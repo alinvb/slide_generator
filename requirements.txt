@@ -1,0 +1,16 @@
+# Core UI
+streamlit>=1.30
+
+# PPTX generation
+python-pptx>=0.6.21
+Pillow>=9.5
+lxml>=4.9
+
+# LLM clients (keep if you use Anthropic/OpenAI; remove if not needed)
+openai>=1.0,<2
+anthropic>=0.29
+
+# Utilities
+pandas>=2.0
+requests>=2.31
+python-dotenv>=1.0
