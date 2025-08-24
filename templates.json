@@ -1,0 +1,359 @@
+[
+  {
+    "id": "management_team",
+    "purpose": "Display senior management team profiles with detailed experience and expertise in two-column layout",
+    "render_fn": "render_management_team_slide",
+    "required": [
+      "title",
+      "left_column_profiles",
+      "right_column_profiles"
+    ],
+    "optional": [
+      "subtitle",
+      "color_scheme",
+      "typography",
+      "company_name"
+    ],
+    "chart_frames": [],
+    "validators": {
+      "title": {
+        "non_empty": true,
+        "max_len": 80
+      }
+    }
+  },
+  {
+    "id": "investor_considerations",
+    "purpose": "Display investor concerns and corresponding mitigation strategies in two-column layout with icons",
+    "render_fn": "render_investor_considerations_slide",
+    "required": [
+      "title",
+      "considerations",
+      "mitigants"
+    ],
+    "optional": [
+      "color_scheme",
+      "typography",
+      "company_name"
+    ],
+    "chart_frames": [],
+    "validators": {
+      "title": {
+        "non_empty": true,
+        "max_len": 80
+      }
+    }
+  },
+  {
+    "id": "investor_process_overview",
+    "purpose": "Comprehensive investor process overview with 4-quadrant layout covering diligence, synergies, risks, and timeline",
+    "render_fn": "render_investor_process_overview_slide",
+    "required": [
+      "title",
+      "diligence_topics",
+      "synergy_opportunities",
+      "risk_factors",
+      "mitigants",
+      "timeline"
+    ],
+    "optional": [
+      "color_scheme",
+      "typography",
+      "company_name"
+    ],
+    "chart_frames": [],
+    "validators": {
+      "title": {
+        "non_empty": true,
+        "max_len": 80
+      }
+    }
+  },
+  {
+    "id": "margin_cost_resilience",
+    "purpose": "Margin trends with line chart, cost management strategies, and risk mitigation analysis",
+    "render_fn": "render_margin_cost_resilience_slide",
+    "required": [
+      "title",
+      "chart_title",
+      "chart_data",
+      "cost_management",
+      "risk_mitigation"
+    ],
+    "optional": [
+      "chart_source",
+      "summary",
+      "color_scheme",
+      "typography",
+      "company_name"
+    ],
+    "chart_frames": [
+      {
+        "frame_id": "main_chart",
+        "allowed_types": [
+          "line"
+        ]
+      }
+    ],
+    "validators": {
+      "title": {
+        "non_empty": true,
+        "max_len": 80
+      }
+    }
+  },
+  {
+    "id": "historical_financial_performance",
+    "purpose": "5-year financial performance with combo chart, key metrics boxes, and revenue growth analysis",
+    "render_fn": "render_historical_financial_performance_slide",
+    "required": [
+      "title",
+      "chart",
+      "key_metrics",
+      "revenue_growth",
+      "banker_view"
+    ],
+    "optional": [
+      "color_scheme",
+      "typography",
+      "company_name"
+    ],
+    "chart_frames": [
+      {
+        "frame_id": "financial_performance_chart",
+        "allowed_types": [
+          "column_clustered",
+          "line"
+        ]
+      }
+    ],
+    "validators": {
+      "title": {
+        "non_empty": true,
+        "max_len": 80
+      }
+    }
+  },
+  {
+    "id": "competitive_positioning",
+    "purpose": "Competitive analysis with revenue comparison chart, assessment table, barriers to entry, and unique advantages",
+    "render_fn": "render_competitive_positioning_slide",
+    "required": [
+      "title",
+      "competitors",
+      "assessment",
+      "barriers",
+      "advantages"
+    ],
+    "optional": [
+      "color_scheme",
+      "typography",
+      "company_name"
+    ],
+    "chart_frames": [
+      {
+        "frame_id": "revenue_chart",
+        "allowed_types": [
+          "column_clustered",
+          "bar"
+        ]
+      }
+    ],
+    "validators": {
+      "title": {
+        "non_empty": true,
+        "max_len": 60
+      }
+    }
+  },
+  {
+    "id": "product_service_footprint",
+    "purpose": "Product and service offerings with market coverage table and key operational metrics",
+    "render_fn": "render_product_service_footprint_slide",
+    "required": [
+      "title",
+      "services"
+    ],
+    "optional": [
+      "table_title",
+      "coverage_table",
+      "metrics_title",
+      "metrics",
+      "color_scheme",
+      "typography",
+      "company_name"
+    ],
+    "chart_frames": [],
+    "validators": {
+      "title": {
+        "non_empty": true,
+        "max_len": 80
+      }
+    }
+  },
+  {
+    "id": "business_overview",
+    "purpose": "Business & operational overview with description, timeline, highlights, clinic footprint, and business model",
+    "render_fn": "render_business_overview_slide",
+    "required": [
+      "title",
+      "description",
+      "timeline",
+      "highlights"
+    ],
+    "optional": [
+      "clinics",
+      "business_model_desc",
+      "highlights_title",
+      "footprint_title",
+      "business_model_title",
+      "services_title",
+      "services",
+      "positioning_title",
+      "positioning_desc",
+      "color_scheme",
+      "typography",
+      "company_name"
+    ],
+    "chart_frames": [],
+    "validators": {
+      "title": {
+        "non_empty": true,
+        "max_len": 80
+      }
+    }
+  },
+  {
+    "id": "precedent_transactions",
+    "purpose": "Precedent transactions analysis with aligned bar chart and pivoted data table",
+    "render_fn": "render_precedent_transactions_slide",
+    "required": [
+      "title",
+      "transactions"
+    ],
+    "optional": [
+      "chart_config",
+      "color_scheme",
+      "typography",
+      "company_name"
+    ],
+    "chart_frames": [
+      {
+        "frame_id": "multiples_chart",
+        "allowed_types": [
+          "bar"
+        ]
+      }
+    ],
+    "validators": {
+      "title": {
+        "non_empty": true,
+        "max_len": 100
+      }
+    }
+  },
+  {
+    "id": "valuation_overview",
+    "purpose": "Valuation analysis with methodology table, commentary, EVs, and financial metrics",
+    "render_fn": "render_valuation_overview_slide",
+    "required": [
+      "title",
+      "valuation_data"
+    ],
+    "optional": [
+      "subtitle",
+      "color_scheme",
+      "typography",
+      "company_name"
+    ],
+    "chart_frames": [
+      {
+        "frame_id": "enterprise_value_bars",
+        "allowed_types": [
+          "bar"
+        ]
+      }
+    ],
+    "validators": {
+      "title": {
+        "non_empty": true,
+        "max_len": 80
+      }
+    }
+  },
+  {
+    "id": "sea_conglomerates",
+    "purpose": "Strategic buyers (companies) table with detailed company information and contacts",
+    "render_fn": "render_sea_conglomerates_slide",
+    "required": [
+      "data"
+    ],
+    "optional": [
+      "color_scheme",
+      "typography",
+      "company_name"
+    ],
+    "chart_frames": [],
+    "validators": {}
+  },
+  {
+    "id": "buyer_profiles",
+    "purpose": "Strategic buyer profiles table with descriptions, transactions, and financials",
+    "render_fn": "render_buyer_profiles_slide",
+    "required": [
+      "table_rows"
+    ],
+    "optional": [
+      "title",
+      "subtitle",
+      "company",
+      "table_headers",
+      "color_scheme",
+      "typography",
+      "company_name"
+    ],
+    "chart_frames": [],
+    "validators": {}
+  },
+  {
+    "id": "buyer_profiles_aum",
+    "purpose": "Asset manager buyer profiles with AUM information",
+    "render_fn": "render_buyer_profiles_slide",
+    "required": [
+      "table_rows"
+    ],
+    "optional": [
+      "title",
+      "subtitle", 
+      "company",
+      "table_headers",
+      "color_scheme",
+      "typography",
+      "company_name"
+    ],
+    "chart_frames": [],
+    "validators": {}
+  },
+  {
+    "id": "growth_strategy_projections",
+    "purpose": "Growth strategy analysis with industry growth chart, drivers, market data, and projections",
+    "render_fn": "render_growth_strategy_slide",
+    "required": [
+      "slide_data"
+    ],
+    "optional": [
+      "color_scheme",
+      "typography",
+      "company_name"
+    ],
+    "chart_frames": [
+      {
+        "frame_id": "industry_growth_chart",
+        "allowed_types": [
+          "column_clustered"
+        ]
+      }
+    ],
+    "validators": {}
+  }
+]

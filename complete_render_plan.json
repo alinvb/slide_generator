@@ -1,0 +1,653 @@
+{
+  "slides": [
+    {
+      "template": "management_team",
+      "data": {
+        "title": "Senior Management Team with Deep Healthcare Expertise",
+        "left_column_profiles": [
+          {
+            "role_title": "Chief Executive Officer",
+            "experience_bullets": [
+              "25+ years healthcare industry experience across hospital operations",
+              "Former Regional VP at major international hospital group",
+              "MBA from top-tier business school with healthcare specialization",
+              "Led successful expansion of 40+ healthcare facilities",
+              "Board member of regional healthcare association"
+            ]
+          },
+          {
+            "role_title": "Chief Financial Officer",
+            "experience_bullets": [
+              "15+ years finance leadership in healthcare services",
+              "Ex-CFO at publicly-traded healthcare services company",
+              "CPA with proven M&A integration track record",
+              "Successfully completed 8 acquisitions totaling $200M+",
+              "Deep expertise in healthcare reimbursement"
+            ]
+          },
+          {
+            "role_title": "Chief Technology Officer",
+            "experience_bullets": [
+              "12+ years leading digital transformation in healthcare",
+              "Former VP Engineering at major healthtech platform",
+              "Built and scaled EMR systems serving 2M+ users",
+              "Expert in healthcare data analytics and AI/ML",
+              "MS Computer Science with healthcare informatics focus"
+            ]
+          }
+        ],
+        "right_column_profiles": [
+          {
+            "role_title": "Chief Operating Officer",
+            "experience_bullets": [
+              "20+ years multi-site healthcare operations experience",
+              "Successfully scaled 50+ clinic locations across SEA",
+              "Lean Six Sigma Master Black Belt certification",
+              "Former Regional Operations Director at international chain",
+              "Deep experience in regulatory compliance and quality"
+            ]
+          },
+          {
+            "role_title": "Chief Medical Officer",
+            "experience_bullets": [
+              "Board-certified internal medicine physician",
+              "Former Department Head at tertiary care hospital",
+              "Published researcher with 25+ peer-reviewed publications",
+              "Champion of clinical quality and patient safety programs",
+              "Fellowship-trained in hospital medicine"
+            ]
+          },
+          {
+            "role_title": "Chief Business Development Officer",
+            "experience_bullets": [
+              "15+ years healthcare business development experience",
+              "Former VP Corporate Development at regional platform",
+              "Led negotiations for 65+ corporate wellness contracts",
+              "Expert in payor relations and insurance contracting",
+              "MBA in Strategic Management with healthcare focus"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "template": "historical_financial_performance",
+      "data": {
+        "title": "Historical Financial Performance",
+        "chart": {
+          "title": "Revenue & EBITDA Growth (2020–2024E)",
+          "categories": ["2020", "2021", "2022", "2023", "2024E"],
+          "revenue": [120, 145, 180, 210, 240],
+          "ebitda": [18, 24, 31, 40, 47]
+        },
+        "key_metrics": {
+          "metrics": [
+            {
+              "title": "Revenue 2023",
+              "value": "US$210m",
+              "period": "FY2023",
+              "note": "↗ Up 17% YoY driven by expansion"
+            },
+            {
+              "title": "EBITDA 2023",
+              "value": "US$40m",
+              "period": "FY2023",
+              "note": "↗ 19.0% margin, up from 17.2%"
+            },
+            {
+              "title": "Patient Visits",
+              "value": "125k+",
+              "period": "FY2023",
+              "note": "↗ 23% growth in total visits"
+            },
+            {
+              "title": "Same-Store Growth",
+              "value": "8.5%",
+              "period": "FY2023",
+              "note": "↗ Strong organic growth"
+            }
+          ]
+        },
+        "revenue_growth": {
+          "title": "Key Growth Drivers",
+          "points": [
+            "New clinic expansion: 8 locations opened in 2023, accelerating rollout pace",
+            "Corporate contracts: 15 new enterprise agreements signed, expanding B2B revenue",
+            "Service mix enhancement: 25% growth in high-margin specialty services",
+            "Digital engagement: 78% online booking adoption improving operational efficiency",
+            "Pricing optimization: Strategic premium increases reflecting value proposition"
+          ]
+        },
+        "banker_view": {
+          "title": "BANKER'S VIEW",
+          "text": "Exceptional performance with consistent growth and expanding margins demonstrates operational excellence and market leadership. Strong cash generation supports expansion while maintaining disciplined capital allocation."
+        }
+      }
+    },
+    {
+      "template": "margin_cost_resilience",
+      "data": {
+        "title": "Margin & Cost Resilience",
+        "chart_title": "EBITDA Margin Expansion (2020–2024E)",
+        "chart_data": {
+          "categories": ["2020", "2021", "2022", "2023", "2024E"],
+          "values": [15.0, 16.6, 17.2, 19.0, 19.6]
+        },
+        "cost_management": {
+          "title": "Strategic Cost Management Initiatives",
+          "items": [
+            {
+              "title": "Supplier Consolidation & Procurement",
+              "description": "Centralized procurement achieving 12-18% savings through volume discounts and strategic partnerships"
+            },
+            {
+              "title": "Digital Transformation & Automation",
+              "description": "Comprehensive automation reducing administrative overhead by 15-20% while improving patient experience"
+            },
+            {
+              "title": "Operational Efficiency & Process Optimization",
+              "description": "Lean Six Sigma methodologies with standardized workflows and optimized staff scheduling"
+            }
+          ]
+        },
+        "risk_mitigation": {
+          "title": "Comprehensive Risk Mitigation Framework",
+          "main_strategy": {
+            "title": "Diversified Revenue Base & Market Position",
+            "description": "Multi-dimensional diversification across service lines, payor types, and geographic markets",
+            "benefits": [
+              "Revenue stability through economic cycles",
+              "Predictable cash flows from corporate contracts",
+              "Reduced payor dependence with balanced mix"
+            ]
+          },
+          "banker_view": {
+            "title": "BANKER'S VIEW",
+            "text": "Outstanding operational resilience with proven margin maintenance ability. Diversified model and disciplined cost management create sustainable competitive advantages."
+          }
+        }
+      }
+    },
+    {
+      "template": "investor_considerations",
+      "data": {
+        "title": "Investor Considerations & Mitigating Factors",
+        "considerations": [
+          "Regulatory changes across multiple SEA jurisdictions",
+          "Healthcare reimbursement pressures and benefit changes",
+          "Competition from larger regional players and new entrants",
+          "Technology disruption from digital health startups",
+          "Currency fluctuation across multi-country operations",
+          "Key person dependency on senior leadership team",
+          "Economic downturn impact on discretionary spending"
+        ],
+        "mitigants": [
+          "Exceptional compliance track record with government relations",
+          "Diversified payor mix with balanced segment exposure",
+          "Differentiated premium service with strong brand recognition",
+          "Significant investment in proprietary digital capabilities",
+          "Natural hedge through multi-currency revenue streams",
+          "Deep management bench with succession planning",
+          "Defensive demand profile with essential healthcare focus"
+        ]
+      }
+    },
+    {
+      "template": "competitive_positioning",
+      "data": {
+        "title": "Competitive Positioning Analysis",
+        "competitors": [
+          {"name": "MajorHealth Corp", "revenue": 450},
+          {"name": "Regional Medical Group", "revenue": 380},
+          {"name": "SouthernCapital Healthcare", "revenue": 210},
+          {"name": "Community Health Network", "revenue": 180},
+          {"name": "Specialty Care Partners", "revenue": 150},
+          {"name": "Metro Healthcare", "revenue": 125}
+        ],
+        "assessment": [
+          ["Provider", "Scale", "Quality", "Digital", "Corporate"],
+          ["SouthernCapital", "●●●●●", "●●●●●", "●●●●●", "●●●●●"],
+          ["MajorHealth Corp", "●●●●●", "●●●●", "●●●", "●●●"],
+          ["Regional Medical", "●●●●", "●●●●", "●●", "●●●"],
+          ["Community Health", "●●●", "●●●", "●●", "●●"],
+          ["Specialty Care", "●●", "●●●●", "●●", "●●●●"]
+        ],
+        "barriers": [
+          {
+            "title": "Regulatory Compliance",
+            "desc": "Complex healthcare licensing across multiple jurisdictions"
+          },
+          {
+            "title": "Specialist Recruitment",
+            "desc": "Challenging acquisition of multilingual medical talent"
+          },
+          {
+            "title": "Prime Real Estate",
+            "desc": "Limited medical-grade facilities in premium locations"
+          },
+          {
+            "title": "Technology Infrastructure",
+            "desc": "Significant EMR and cybersecurity investment required"
+          }
+        ],
+        "advantages": [
+          {
+            "title": "International Accreditation",
+            "desc": "JCI and ISO certifications demonstrating world-class quality"
+          },
+          {
+            "title": "Integrated Multi-Specialty Platform",
+            "desc": "Comprehensive care with seamless referral pathways"
+          },
+          {
+            "title": "Advanced Digital Infrastructure",
+            "desc": "Proprietary EMR with integrated telemedicine capabilities"
+          },
+          {
+            "title": "Corporate Healthcare Leadership",
+            "desc": "Market-leading position in corporate wellness"
+          }
+        ]
+      }
+    },
+    {
+      "template": "product_service_footprint",
+      "data": {
+        "title": "Product & Service Footprint",
+        "services": [
+          {
+            "title": "Primary Care",
+            "desc": "Comprehensive family medicine and preventive care with corporate contracts including health screenings, vaccinations, and chronic disease management"
+          },
+          {
+            "title": "Specialty Services",
+            "desc": "Cardiology, orthopedics, dermatology, and high-acuity outpatient procedures with subspecialty referral network"
+          },
+          {
+            "title": "Diagnostics",
+            "desc": "Advanced imaging (MRI/CT/Ultrasound), laboratory services, and cardiac testing supporting integrated clinical pathways"
+          },
+          {
+            "title": "Corporate Wellness",
+            "desc": "Occupational health, executive physicals, workplace injury management, and employee health programs"
+          },
+          {
+            "title": "Digital Health",
+            "desc": "Telemedicine consultations, patient portal, online appointment booking, and remote monitoring services"
+          }
+        ],
+        "table_title": "Service Coverage by Market",
+        "coverage_table": [
+          ["Country/City", "Primary Care", "Specialty", "Diagnostics", "Corporate"],
+          ["Singapore", "✓", "✓", "✓", "✓"],
+          ["Malaysia", "✓", "✓", "✓", "✓"],
+          ["Indonesia", "✓", "–", "–", "✓"],
+          ["Philippines", "✓", "–", "–", "✓"]
+        ],
+        "metrics_title": "Key Operational Metrics",
+        "metrics": {
+          "total_locations": {
+            "label": "Total Clinic Locations",
+            "value": "35+"
+          },
+          "medical_specialists": {
+            "label": "Board-Certified Specialists",
+            "value": "65+"
+          },
+          "annual_patients": {
+            "label": "Annual Patient Visits",
+            "value": "125,000+"
+          },
+          "patient_satisfaction": {
+            "label": "Net Promoter Score",
+            "value": "72"
+          },
+          "corporate_contracts": {
+            "label": "Corporate Contracts",
+            "value": "65+"
+          },
+          "avg_wait_time": {
+            "label": "Average Wait Time",
+            "value": "1.8 days"
+          }
+        }
+      }
+    },
+    {
+      "template": "business_overview",
+      "data": {
+        "title": "Business & Operational Overview",
+        "description": "SouthernCapital Healthcare is a leading integrated healthcare services platform in Southeast Asia, focused on high-quality patient care and operational excellence across primary care, diagnostics, and specialty services. The platform benefits from significant scale with 35+ clinic locations, a diversified payor mix including 40% corporate contracts, 35% insurance reimbursement, and 25% cash pay, and a proven clinic rollout playbook.",
+        "timeline": {
+          "start_year": "2015",
+          "end_year": "2024",
+          "years_note": "(9+ years of proven growth and market leadership)"
+        },
+        "highlights": [
+          "35+ premium clinic locations across Singapore, Malaysia, Indonesia, and Philippines",
+          "125,000+ annual patient visits with 89% retention rate demonstrating patient loyalty",
+          "65+ corporate wellness contracts with major employers and multinational corporations",
+          "Advanced EMR platform with integrated telemedicine capabilities and 78% digital adoption",
+          "65+ board-certified specialists across 12+ medical disciplines",
+          "International accreditation (JCI, ISO) demonstrating world-class quality standards"
+        ],
+        "services": [
+          "Primary Care & Preventive Medicine - Comprehensive family medicine and health screenings",
+          "Specialty Medical Services - Cardiology, orthopedics, dermatology, and subspecialties",
+          "Diagnostic Imaging & Laboratory - MRI, CT, ultrasound, and comprehensive lab services",
+          "Corporate Wellness Programs - Occupational health and executive physical examinations",
+          "Digital Health & Telemedicine - Remote consultations and patient portal services",
+          "Executive Health Assessments - Premium comprehensive health evaluations"
+        ],
+        "positioning_desc": "SouthernCapital Healthcare has established itself as the leading premium healthcare provider in Southeast Asia, serving both individual patients and corporate clients with comprehensive medical services and exceptional care standards."
+      }
+    },
+    {
+      "template": "precedent_transactions",
+      "data": {
+        "title": "Precedent Transactions Analysis",
+        "transactions": [
+          {
+            "date": "2024-Q1",
+            "target": "Regional Healthcare Network",
+            "acquirer": "MajorHealth Corp",
+            "country": "Singapore",
+            "enterprise_value": 850,
+            "revenue": 200,
+            "ev_revenue_multiple": 4.25
+          },
+          {
+            "date": "2023-Q4",
+            "target": "Specialty Medical Group",
+            "acquirer": "Private Equity Consortium",
+            "country": "Malaysia",
+            "enterprise_value": 640,
+            "revenue": 160,
+            "ev_revenue_multiple": 4.0
+          },
+          {
+            "date": "2023-Q2",
+            "target": "Community Diagnostics Platform",
+            "acquirer": "Strategic Healthcare Buyer",
+            "country": "Thailand",
+            "enterprise_value": 420,
+            "revenue": 120,
+            "ev_revenue_multiple": 3.5
+          },
+          {
+            "date": "2023-Q1",
+            "target": "Corporate Wellness Provider",
+            "acquirer": "International PE Fund",
+            "country": "Indonesia",
+            "enterprise_value": 315,
+            "revenue": 85,
+            "ev_revenue_multiple": 3.7
+          }
+        ]
+      }
+    },
+    {
+      "template": "valuation_overview",
+      "data": {
+        "title": "Comprehensive Valuation Overview",
+        "subtitle": "Enterprise Value Analysis Across Multiple Methodologies",
+        "valuation_data": [
+          {
+            "methodology": "Precedent Transactions",
+            "methodology_type": "precedent_transactions",
+            "commentary": "Recent healthcare services transactions in SEA support premium multiples for scaled platforms with strong growth and market-leading positions.",
+            "enterprise_value": "US$840 – 945mm",
+            "metric": "EV/Revenue",
+            "22a_multiple": "4.0x – 4.5x",
+            "23e_multiple": "3.8x – 4.2x"
+          },
+          {
+            "methodology": "Trading Comparables",
+            "methodology_type": "trading_comps",
+            "commentary": "Public healthcare services companies provide liquidity benchmark with slight discount reflecting current market conditions.",
+            "enterprise_value": "US$735 – 840mm",
+            "metric": "EV/Revenue",
+            "22a_multiple": "3.5x – 4.0x",
+            "23e_multiple": "3.3x – 3.8x"
+          },
+          {
+            "methodology": "Discounted Cash Flow",
+            "methodology_type": "dcf",
+            "commentary": "Base case assumes 12% revenue CAGR through 2027 with EBITDA margin expansion from 19% to 22% via operational leverage.",
+            "enterprise_value": "US$780 – 920mm",
+            "metric": "NPV Analysis",
+            "22a_multiple": "3.7x – 4.4x",
+            "23e_multiple": "3.5x – 4.1x"
+          }
+        ]
+      }
+    },
+    {
+      "template": "investor_process_overview",
+      "data": {
+        "title": "Comprehensive Investor Process Overview",
+        "diligence_topics": [
+          {
+            "title": "Financial & Operational Review",
+            "description": "Historical performance, unit economics, and forward projections with sensitivity analysis"
+          },
+          {
+            "title": "Market & Competitive Analysis",
+            "description": "Healthcare market sizing, competitive landscape, and growth opportunity evaluation"
+          },
+          {
+            "title": "Management Assessment",
+            "description": "Leadership evaluation, organizational structure, and succession planning"
+          },
+          {
+            "title": "Technology & Digital Infrastructure",
+            "description": "IT systems, cybersecurity framework, and digital transformation roadmap"
+          },
+          {
+            "title": "Clinical Quality & Compliance",
+            "description": "Quality programs, patient safety, and regulatory compliance history"
+          }
+        ],
+        "synergy_opportunities": [
+          {
+            "title": "Revenue Synergies",
+            "description": "Enhanced service offerings through expanded specialist network"
+          },
+          {
+            "title": "Operational Excellence",
+            "description": "Best practices implementation across broader clinic network"
+          },
+          {
+            "title": "Corporate Partnership Expansion",
+            "description": "Leveraging relationships for accelerated contract growth"
+          },
+          {
+            "title": "Technology Platform Scaling",
+            "description": "Digital infrastructure amortization across larger patient base"
+          }
+        ],
+        "risk_factors": [
+          "Regulatory changes across operating jurisdictions",
+          "Healthcare reimbursement pressure changes",
+          "Competitive intensity from regional consolidation",
+          "Key talent retention in competitive market",
+          "Technology disruption from digital platforms"
+        ],
+        "mitigants": [
+          "Proactive regulatory compliance with government relations",
+          "Diversified revenue streams with defensive characteristics",
+          "Differentiated position through quality and brand",
+          "Comprehensive talent retention programs",
+          "Significant technology investment and capabilities"
+        ],
+        "timeline": [
+          {
+            "date": "Week 1-2",
+            "description": "Due diligence package and management presentations"
+          },
+          {
+            "date": "Week 3-4",
+            "description": "Site visits and detailed financial analysis"
+          },
+          {
+            "date": "Week 5-6",
+            "description": "Legal review and final due diligence"
+          },
+          {
+            "date": "Week 7-8",
+            "description": "Final negotiations and agreement execution"
+          }
+        ]
+      }
+    },
+    {
+      "template": "growth_strategy_projections",
+      "data": {
+        "slide_data": {
+          "title": "Growth Strategy & Financial Projections",
+          "growth_strategy": {
+            "title": "Multi-Pronged Growth Strategy",
+            "strategies": [
+              "Geographic expansion through targeted clinic rollouts in high-growth SEA markets",
+              "Service line extension into high-margin specialties and chronic disease management",
+              "Corporate partnership scaling through enhanced wellness programs",
+              "Digital transformation with AI-powered diagnostics and telemedicine",
+              "Strategic acquisitions of complementary healthcare assets",
+              "Value-based care initiatives with outcome-focused contracts"
+            ]
+          },
+          "financial_projections": {
+            "chart_title": "Revenue & EBITDA Projections (2024E-2027E)",
+            "categories": ["2024E", "2025E", "2026E", "2027E"],
+            "revenue": [240, 285, 340, 405],
+            "ebitda": [47, 62, 81, 105]
+          },
+          "key_assumptions": {
+            "title": "Key Planning Assumptions",
+            "assumptions": [
+              "New clinic openings: 6-8 locations annually",
+              "Same-store growth: 8-12% annually",
+              "Corporate contract growth: 15-20% annually",
+              "Specialty penetration: 35% to 50% of revenue",
+              "EBITDA margin expansion: 100-150 bps annually",
+              "Digital health scaling: 5% to 15% by 2027"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "template": "sea_conglomerates",
+      "data": [
+        {
+          "name": "Ayala Corporation",
+          "country": "Philippines",
+          "description": "Leading diversified conglomerate with significant healthcare investments through Ayala Healthcare Holdings, operating hospitals and digital health initiatives",
+          "key_shareholders": "Ayala family trust and institutional investors",
+          "key_financials": "Revenue: US$3.2B, Healthcare growing 15%+ annually",
+          "moelis_contact": "Managing Director - SEA Healthcare"
+        },
+        {
+          "name": "CP Group (Charoen Pokphand)",
+          "country": "Thailand",
+          "description": "Massive diversified conglomerate with healthcare retail exposure through pharmacy chains and platform development",
+          "key_shareholders": "Chearavanont family and holding companies",
+          "key_financials": "Revenue: US$45B+, Healthcare investments >US$500M",
+          "moelis_contact": "Managing Director - Consumer Healthcare"
+        },
+        {
+          "name": "Sinar Mas Group",
+          "country": "Indonesia",
+          "description": "Indonesian conglomerate with diversified portfolio and growing healthcare technology investments",
+          "key_shareholders": "Widjaja family and investment vehicles",
+          "key_financials": "Revenue: US$15B+, Active healthtech program",
+          "moelis_contact": "Executive Director - Indonesia Coverage"
+        },
+        {
+          "name": "Genting Group",
+          "country": "Malaysia",
+          "description": "Diversified conglomerate with strategic healthcare investments through integrated resort wellness",
+          "key_shareholders": "Lim Kok Thay family trust",
+          "key_financials": "Revenue: US$2.8B, Healthcare target US$200M+",
+          "moelis_contact": "Managing Director - Malaysia Coverage"
+        }
+      ]
+    },
+    {
+      "template": "buyer_profiles",
+      "data": {
+        "title": "Strategic Buyers - Global Healthcare Leaders",
+        "subtitle": "International healthcare corporations with SEA expansion strategies",
+        "company": "SouthernCapital Healthcare",
+        "table_headers": ["Buyer Profile", "Strategic Rationale", "Key Synergies", "Concerns", "Fit"],
+        "table_rows": [
+          {
+            "buyer_name": "UnitedHealth / Optum",
+            "description": "Global healthcare leader with $350B+ revenue",
+            "strategic_rationale": "SEA market entry with established platform",
+            "key_synergies": "Data analytics, technology platform, corporate relationships",
+            "concerns": "Regulatory complexity, valuation expectations",
+            "fit_score": "High (9/10)",
+            "financial_capacity": "$50B+ available capital"
+          },
+          {
+            "buyer_name": "Teladoc Health",
+            "description": "Leading telemedicine platform with international focus",
+            "strategic_rationale": "Physical-digital healthcare integration",
+            "key_synergies": "Telemedicine expertise, digital platforms",
+            "concerns": "Asset-heavy model transition",
+            "fit_score": "Medium-High (7/10)",
+            "financial_capacity": "$5B+ strategic budget"
+          },
+          {
+            "buyer_name": "Fresenius Medical Care",
+            "description": "German healthcare services leader",
+            "strategic_rationale": "Asian expansion with chronic disease focus",
+            "key_synergies": "Care coordination, operational excellence",
+            "concerns": "Service line alignment",
+            "fit_score": "Medium (6/10)",
+            "financial_capacity": "$3B+ strategic investments"
+          }
+        ]
+      }
+    },
+    {
+      "template": "buyer_profiles",
+      "data": {
+        "title": "Financial Buyers - Global Private Equity",
+        "subtitle": "Large-cap PE funds with healthcare services focus",
+        "company": "SouthernCapital Healthcare",
+        "table_headers": ["Fund Profile", "Healthcare Strategy", "Value Creation", "Concerns", "Fit"],
+        "table_rows": [
+          {
+            "buyer_name": "Blackstone Growth",
+            "description": "$975B AUM, $40B+ healthcare investments",
+            "strategic_rationale": "Buy-and-build platform strategy across SEA",
+            "key_synergies": "Operational excellence, technology investment",
+            "concerns": "Valuation discipline, exit timeline",
+            "fit_score": "Very High (9/10)",
+            "financial_capacity": "Significant dry powder"
+          },
+          {
+            "buyer_name": "TPG Capital",
+            "description": "$135B+ AUM with Asia healthcare focus",
+            "strategic_rationale": "Healthcare services consolidation",
+            "key_synergies": "Digital initiatives, operational playbooks",
+            "concerns": "Competitive process, control preferences",
+            "fit_score": "High (8/10)",
+            "financial_capacity": "Strong healthcare allocation"
+          },
+          {
+            "buyer_name": "KKR & Co",
+            "description": "$500B+ AUM, healthcare expertise",
+            "strategic_rationale": "Technology-enabled growth platform",
+            "key_synergies": "Technology infrastructure, partnerships",
+            "concerns": "Integration complexity, timing",
+            "fit_score": "High (8/10)",
+            "financial_capacity": "Substantial healthcare focus"
+          }
+        ]
+      }
+    }
+  ]
+}
