@@ -52,8 +52,7 @@ def clean_json_string(json_str):
     if json_str.endswith('```'):
         json_str = json_str[:-3].strip()  # Remove trailing ```
     
-    # Remove any leading/trailing non-JSON content
-    # Find the first '{' and last '}'
+    # Find the first '{' and last '}' - this is the most reliable method
     start_idx = json_str.find('{')
     end_idx = json_str.rfind('}')
     
@@ -63,7 +62,7 @@ def clean_json_string(json_str):
     json_str = json_str[start_idx:end_idx+1]
     
     # Fix common JSON issues using safe replacements
-    # Remove trailing commas before }
+    # Remove trailing commas before } or ]
     lines = json_str.split('\n')
     cleaned_lines = []
     
@@ -81,146 +80,582 @@ def clean_json_string(json_str):
     return json_str
 
 def extract_jsons_from_response(response_text):
-    """Extract both Content IR and Render Plan JSONs from AI response using safe string operations"""
+    """Extract both Content IR and Render Plan JSONs from AI response using improved parsing"""
     content_ir = None
     render_plan = None
     
-    # Method 1: Look for JSON code blocks using safe string operations
-    json_blocks = []
+    print(f"[JSON EXTRACTION DEBUG] Starting extraction from response of length: {len(response_text)}")
     
-    # Find all ```json blocks
-    start_pos = 0
-    while True:
-        start_marker = '```json'
-        end_marker = '```'
-        
-        start_idx = response_text.find(start_marker, start_pos)
-        if start_idx == -1:
-            break
-        
-        content_start = start_idx + len(start_marker)
-        end_idx = response_text.find(end_marker, content_start)
-        if end_idx == -1:
-            break
-        
-        json_content = response_text[content_start:end_idx].strip()
-        if json_content:
-            json_blocks.append(json_content)
-        
-        start_pos = end_idx + len(end_marker)
+    # Method 1: Look for specific JSON markers in the response
+    content_ir_markers = [
+        "CONTENT IR JSON:",
+        "Content IR:",
+        "content_ir",
+        "## CONTENT IR JSON:",
+        "**CONTENT IR JSON:**"
+    ]
     
-    # Method 2: Look for any code blocks if no ```json blocks found
-    if not json_blocks:
+    render_plan_markers = [
+        "RENDER PLAN JSON:",
+        "Render Plan:",
+        "render_plan",
+        "## RENDER PLAN JSON:",
+        "**RENDER PLAN JSON:**"
+    ]
+    
+    # Find Content IR section
+    content_ir_start = None
+    content_ir_end = None
+    
+    for marker in content_ir_markers:
+        pos = response_text.find(marker)
+        if pos != -1:
+            content_ir_start = pos + len(marker)
+            print(f"[JSON EXTRACTION DEBUG] Found Content IR marker: '{marker}' at position {pos}")
+            break
+    
+    # Find Render Plan section
+    render_plan_start = None
+    render_plan_end = None
+    
+    for marker in render_plan_markers:
+        pos = response_text.find(marker)
+        if pos != -1:
+            render_plan_start = pos + len(marker)
+            print(f"[JSON EXTRACTION DEBUG] Found Render Plan marker: '{marker}' at position {pos}")
+            break
+    
+    # Extract Content IR JSON
+    if content_ir_start is not None:
+        # Find the start of the JSON (first { after marker)
+        json_start = response_text.find('{', content_ir_start)
+        if json_start != -1:
+            # Find the matching closing brace
+            brace_count = 0
+            content_ir_end = json_start
+            
+            for i in range(json_start, len(response_text)):
+                if response_text[i] == '{':
+                    brace_count += 1
+                elif response_text[i] == '}':
+                    brace_count -= 1
+                    if brace_count == 0:
+                        content_ir_end = i + 1
+                        break
+            
+            if content_ir_end > json_start:
+                content_ir_json = response_text[json_start:content_ir_end]
+                print(f"[JSON EXTRACTION DEBUG] Extracted Content IR JSON (length: {len(content_ir_json)})")
+                
+                try:
+                    cleaned_json = clean_json_string(content_ir_json)
+                    content_ir = json.loads(cleaned_json)
+                    print(f"✅ Successfully parsed Content IR JSON")
+                except json.JSONDecodeError as e:
+                    print(f"❌ Failed to parse Content IR JSON: {e}")
+                    content_ir = None
+    
+    # Extract Render Plan JSON
+    if render_plan_start is not None:
+        # Find the start of the JSON (first { after marker)
+        json_start = response_text.find('{', render_plan_start)
+        if json_start != -1:
+            # Find the matching closing brace
+            brace_count = 0
+            render_plan_end = json_start
+            
+            for i in range(json_start, len(response_text)):
+                if response_text[i] == '{':
+                    brace_count += 1
+                elif response_text[i] == '}':
+                    brace_count -= 1
+                    if brace_count == 0:
+                        render_plan_end = i + 1
+                        break
+            
+            if render_plan_end > json_start:
+                render_plan_json = response_text[json_start:render_plan_end]
+                print(f"[JSON EXTRACTION DEBUG] Extracted Render Plan JSON (length: {len(render_plan_json)})")
+                
+                try:
+                    cleaned_json = clean_json_string(render_plan_json)
+                    render_plan = json.loads(cleaned_json)
+                    print(f"✅ Successfully parsed Render Plan JSON")
+                except json.JSONDecodeError as e:
+                    print(f"❌ Failed to parse Render Plan JSON: {e}")
+                    render_plan = None
+    
+    # Method 2: Fallback to code block extraction if markers didn't work
+    if not content_ir or not render_plan:
+        print("[JSON EXTRACTION DEBUG] Fallback to code block extraction...")
+        
+        # Look for JSON code blocks
+        json_blocks = []
         start_pos = 0
+        
         while True:
-            start_marker = '```'
+            start_marker = '```json'
             end_marker = '```'
             
             start_idx = response_text.find(start_marker, start_pos)
             if start_idx == -1:
                 break
             
-            # Skip if this is part of ```json (already handled)
-            if start_pos == 0 or response_text[start_idx:start_idx+7] != '```json':
-                content_start = start_idx + len(start_marker)
-                # Skip to next line to avoid immediate end marker
-                newline_pos = response_text.find('\n', content_start)
-                if newline_pos != -1:
-                    content_start = newline_pos + 1
-                
-                end_idx = response_text.find(end_marker, content_start)
-                if end_idx == -1:
-                    break
-                
-                json_content = response_text[content_start:end_idx].strip()
-                if json_content and (json_content.startswith('{') or json_content.startswith('[')):
-                    json_blocks.append(json_content)
+            content_start = start_idx + len(start_marker)
+            end_idx = response_text.find(end_marker, content_start)
+            if end_idx == -1:
+                break
             
-            start_pos = start_idx + len(start_marker)
-    
-    # Try to parse each potential JSON block
-    for i, block in enumerate(json_blocks):
-        try:
-            cleaned_block = clean_json_string(block)
+            json_content = response_text[content_start:end_idx].strip()
+            if json_content:
+                json_blocks.append(json_content)
             
-            if not cleaned_block or cleaned_block == "{}":
-                continue
-                
-            parsed = json.loads(cleaned_block)
-            
-            if not isinstance(parsed, dict):
-                continue
-            
-            # Identify which JSON is which based on structure
-            if ("entities" in parsed or "management_team" in parsed or 
-                "historical_financials" in parsed or "strategic_buyers" in parsed):
-                content_ir = parsed
-                print(f"✅ Successfully extracted Content IR from block {i+1}")
-                
-            elif "slides" in parsed and isinstance(parsed.get("slides"), list):
-                render_plan = parsed
-                print(f"✅ Successfully extracted Render Plan from block {i+1}")
-                
-        except json.JSONDecodeError as e:
-            print(f"❌ Failed to parse JSON block {i+1}: {e}")
-            continue
-        except Exception as e:
-            print(f"❌ Unexpected error parsing block {i+1}: {e}")
-            continue
-    
-    # Method 3: Aggressive line-by-line extraction if needed
-    if not content_ir or not render_plan:
-        print("🔍 Attempting line-by-line JSON extraction...")
+            start_pos = end_idx + len(end_marker)
         
-        content_ir_markers = ["CONTENT IR JSON:", "Content IR:", "content_ir"]
-        render_plan_markers = ["RENDER PLAN JSON:", "Render Plan:", "render_plan"]
-        
-        lines = response_text.split('\n')
-        current_json = []
-        json_mode = None
-        brace_count = 0
-        
-        for line in lines:
-            line_lower = line.lower()
-            
-            # Check if we're starting a new JSON section
-            if any(marker.lower() in line_lower for marker in content_ir_markers):
-                json_mode = "content_ir"
-                current_json = []
-                brace_count = 0
-                continue
-            elif any(marker.lower() in line_lower for marker in render_plan_markers):
-                json_mode = "render_plan"
-                current_json = []
-                brace_count = 0
-                continue
-            
-            # If we're in JSON mode, collect lines
-            if json_mode and line.strip():
-                current_json.append(line)
-                brace_count += line.count('{') - line.count('}')
-                
-                # If braces are balanced and we have content, try to parse
-                if brace_count == 0 and len(current_json) > 1:
-                    try:
-                        json_str = '\n'.join(current_json)
-                        cleaned_json = clean_json_string(json_str)
-                        parsed = json.loads(cleaned_json)
-                        
-                        if json_mode == "content_ir" and not content_ir:
-                            content_ir = parsed
-                            print(f"✅ Extracted Content IR via line-by-line method")
-                        elif json_mode == "render_plan" and not render_plan:
-                            render_plan = parsed
-                            print(f"✅ Extracted Render Plan via line-by-line method")
-                            
-                    except:
-                        pass
+        # Try to parse each JSON block
+        for i, block in enumerate(json_blocks):
+            try:
+                cleaned_block = clean_json_string(block)
+                if not cleaned_block or cleaned_block == "{}":
+                    continue
                     
-                    json_mode = None
-                    current_json = []
+                parsed = json.loads(cleaned_block)
+                
+                if not isinstance(parsed, dict):
+                    continue
+                
+                # Identify which JSON is which based on structure
+                if ("entities" in parsed or "management_team" in parsed or 
+                    "historical_financials" in parsed or "strategic_buyers" in parsed):
+                    if not content_ir:
+                        content_ir = parsed
+                        print(f"✅ Successfully extracted Content IR from code block {i+1}")
+                        
+                elif "slides" in parsed and isinstance(parsed.get("slides"), list):
+                    if not render_plan:
+                        render_plan = parsed
+                        print(f"✅ Successfully extracted Render Plan from code block {i+1}")
+                        
+            except json.JSONDecodeError as e:
+                print(f"❌ Failed to parse JSON block {i+1}: {e}")
+                continue
+            except Exception as e:
+                print(f"❌ Unexpected error parsing block {i+1}: {e}")
+                continue
+    
+    # Method 3: Aggressive extraction if still nothing found
+    if not content_ir or not render_plan:
+        print("[JSON EXTRACTION DEBUG] Attempting aggressive extraction...")
+        
+        # Look for any JSON-like content
+        potential_jsons = []
+        
+        # Find all potential JSON objects
+        brace_count = 0
+        json_start = -1
+        
+        for i, char in enumerate(response_text):
+            if char == '{':
+                if brace_count == 0:
+                    json_start = i
+                brace_count += 1
+            elif char == '}':
+                brace_count -= 1
+                if brace_count == 0 and json_start != -1:
+                    potential_json = response_text[json_start:i+1]
+                    if len(potential_json) > 50:  # Only consider substantial JSONs
+                        potential_jsons.append(potential_json)
+                    json_start = -1
+        
+        # Try to parse each potential JSON
+        for i, potential_json in enumerate(potential_jsons):
+            try:
+                cleaned_json = clean_json_string(potential_json)
+                parsed = json.loads(cleaned_json)
+                
+                if not isinstance(parsed, dict):
+                    continue
+                
+                # Identify which JSON is which
+                if ("entities" in parsed or "management_team" in parsed or 
+                    "historical_financials" in parsed or "strategic_buyers" in parsed):
+                    if not content_ir:
+                        content_ir = parsed
+                        print(f"✅ Successfully extracted Content IR via aggressive method")
+                        
+                elif "slides" in parsed and isinstance(parsed.get("slides"), list):
+                    if not render_plan:
+                        render_plan = parsed
+                        print(f"✅ Successfully extracted Render Plan via aggressive method")
+                        
+            except:
+                continue
+    
+    # Final validation and structure checking
+    if content_ir:
+        print(f"[JSON EXTRACTION DEBUG] Content IR keys: {list(content_ir.keys())}")
+    if render_plan:
+        print(f"[JSON EXTRACTION DEBUG] Render Plan keys: {list(render_plan.keys())}")
+        if 'slides' in render_plan:
+            print(f"[JSON EXTRACTION DEBUG] Number of slides: {len(render_plan['slides'])}")
     
     return content_ir, render_plan
+
+def debug_json_extraction(response_text, content_ir, render_plan):
+    """Debug JSON extraction by showing what was returned and what was extracted"""
+    print("\n" + "🔍"*20 + " JSON EXTRACTION DEBUG " + "🔍"*20)
+    
+    # Show response length and first/last parts
+    print(f"📏 Response Length: {len(response_text)} characters")
+    print(f"📝 Response Preview (first 500 chars):")
+    print(response_text[:500] + "..." if len(response_text) > 500 else response_text)
+    
+    if len(response_text) > 500:
+        print(f"\n📝 Response Preview (last 500 chars):")
+        print("..." + response_text[-500:] if len(response_text) > 500 else response_text)
+    
+    # Show what was extracted
+    print(f"\n📊 EXTRACTION RESULTS:")
+    if content_ir:
+        print(f"✅ Content IR extracted:")
+        print(f"   - Type: {type(content_ir)}")
+        print(f"   - Keys: {list(content_ir.keys()) if isinstance(content_ir, dict) else 'N/A'}")
+        if isinstance(content_ir, dict) and 'entities' in content_ir:
+            company_name = content_ir.get('entities', {}).get('company', {}).get('name', 'Unknown')
+            print(f"   - Company: {company_name}")
+    else:
+        print("❌ Content IR NOT extracted")
+    
+    if render_plan:
+        print(f"✅ Render Plan extracted:")
+        print(f"   - Type: {type(render_plan)}")
+        print(f"   - Keys: {list(render_plan.keys()) if isinstance(render_plan, dict) else 'N/A'}")
+        if isinstance(render_plan, dict) and 'slides' in render_plan:
+            print(f"   - Slides: {len(render_plan['slides'])}")
+            slide_types = [slide.get('template', 'unknown') for slide in render_plan['slides']]
+            print(f"   - Slide Types: {slide_types[:5]}{'...' if len(slide_types) > 5 else ''}")
+    else:
+        print("❌ Render Plan NOT extracted")
+    
+    # Show common extraction issues
+    print(f"\n🔍 COMMON EXTRACTION ISSUES CHECK:")
+    
+    # Check for JSON markers
+    markers_found = []
+    for marker in ["CONTENT IR JSON:", "RENDER PLAN JSON:", "```json", "```"]:
+        if marker in response_text:
+            markers_found.append(marker)
+    
+    if markers_found:
+        print(f"✅ Found markers: {markers_found}")
+    else:
+        print("❌ No JSON markers found - LLM may not have formatted response properly")
+    
+    # Check for JSON structure
+    brace_count = response_text.count('{') - response_text.count('}')
+    if brace_count == 0:
+        print("✅ Balanced braces found")
+    else:
+        print(f"❌ Unbalanced braces: {brace_count} more {'{' if brace_count > 0 else '}'}")
+    
+    # Check for common LLM response patterns
+    if "I apologize" in response_text or "I'm sorry" in response_text:
+        print("⚠️ LLM may have encountered an error")
+    
+    if "I don't have enough information" in response_text or "cannot generate" in response_text:
+        print("⚠️ LLM may not have had sufficient context")
+    
+    print("🔍"*60 + "\n")
+
+def normalize_extracted_json(content_ir, render_plan):
+    """Normalize extracted JSON to match expected structure from examples"""
+    print("[NORMALIZATION] Starting JSON normalization...")
+    
+    if content_ir:
+        # Normalize Content IR
+        content_ir = normalize_content_ir_structure(content_ir)
+    
+    if render_plan:
+        # Normalize Render Plan
+        render_plan = normalize_render_plan_structure(render_plan)
+    
+    return content_ir, render_plan
+
+def normalize_content_ir_structure(content_ir):
+    """Normalize Content IR structure to match expected format"""
+    if not isinstance(content_ir, dict):
+        return content_ir
+    
+    normalized = {}
+    
+    # Handle common field name variations
+    field_mappings = {
+        'company_name': 'entities',
+        'company_info': 'entities',
+        'management': 'management_team',
+        'executives': 'management_team',
+        'team': 'management_team',
+        'strategic_buyers': 'strategic_buyers',
+        'financial_buyers': 'financial_buyers',
+        'pe_buyers': 'financial_buyers',
+        'buyers': 'strategic_buyers'
+    }
+    
+    # Map fields to correct names
+    for old_key, new_key in field_mappings.items():
+        if old_key in content_ir and new_key not in content_ir:
+            normalized[new_key] = content_ir[old_key]
+            print(f"[NORMALIZATION] Mapped {old_key} -> {new_key}")
+    
+    # Ensure entities structure
+    if 'entities' not in normalized and 'entities' not in content_ir:
+        # Try to find company name in various locations
+        company_name = None
+        for key in ['company_name', 'company', 'name', 'business_name']:
+            if key in content_ir:
+                if isinstance(content_ir[key], str):
+                    company_name = content_ir[key]
+                elif isinstance(content_ir[key], dict) and 'name' in content_ir[key]:
+                    company_name = content_ir[key]['name']
+                break
+        
+        if company_name:
+            normalized['entities'] = {'company': {'name': company_name}}
+            print(f"[NORMALIZATION] Created entities.company.name: {company_name}")
+    
+    # Ensure management_team structure
+    if 'management_team' not in normalized and 'management_team' not in content_ir:
+        # Look for management data in various forms
+        mgmt_data = None
+        for key in ['management', 'executives', 'team', 'leadership']:
+            if key in content_ir:
+                mgmt_data = content_ir[key]
+                break
+        
+        if mgmt_data and isinstance(mgmt_data, dict):
+            # Normalize to expected structure
+            normalized_mgmt = {}
+            
+            # Handle different profile structures
+            for column in ['left_column_profiles', 'right_column_profiles']:
+                if column in mgmt_data:
+                    normalized_mgmt[column] = mgmt_data[column]
+                else:
+                    # Try to find profiles in other formats
+                    profiles = []
+                    for key in ['profiles', 'members', 'executives']:
+                        if key in mgmt_data:
+                            profiles = mgmt_data[key]
+                            break
+                    
+                    if profiles and isinstance(profiles, list):
+                        # Split profiles between left and right columns
+                        mid_point = len(profiles) // 2
+                        normalized_mgmt['left_column_profiles'] = profiles[:mid_point]
+                        normalized_mgmt['right_column_profiles'] = profiles[mid_point:]
+                        break
+            
+            if normalized_mgmt:
+                normalized['management_team'] = normalized_mgmt
+                print(f"[NORMALIZATION] Created management_team structure with {len(normalized_mgmt.get('left_column_profiles', [])) + len(normalized_mgmt.get('right_column_profiles', []))} profiles")
+    
+    # Copy remaining fields
+    for key, value in content_ir.items():
+        if key not in normalized:
+            normalized[key] = value
+    
+    return normalized
+
+def normalize_render_plan_structure(render_plan):
+    """Normalize Render Plan structure to match expected format"""
+    if not isinstance(render_plan, dict):
+        return render_plan
+    
+    normalized = {}
+    
+    # Ensure slides array exists
+    if 'slides' not in render_plan:
+        # Look for slides in other formats
+        slides = None
+        for key in ['slide_list', 'presentation_slides', 'deck_slides']:
+            if key in render_plan:
+                slides = render_plan[key]
+                break
+        
+        if slides:
+            normalized['slides'] = slides
+            print(f"[NORMALIZATION] Mapped slides from {key}")
+        else:
+            # Create empty slides array
+            normalized['slides'] = []
+            print("[NORMALIZATION] Created empty slides array")
+    else:
+        normalized['slides'] = render_plan['slides']
+    
+    # Normalize each slide
+    if 'slides' in normalized and isinstance(normalized['slides'], list):
+        for i, slide in enumerate(normalized['slides']):
+            if isinstance(slide, dict):
+                normalized['slides'][i] = normalize_slide_structure(slide, i)
+    
+    return normalized
+
+def normalize_slide_structure(slide, slide_index):
+    """Normalize individual slide structure"""
+    if not isinstance(slide, dict):
+        return slide
+    
+    normalized_slide = {}
+    
+    # Ensure template field exists
+    if 'template' not in slide:
+        # Try to infer template from other fields
+        template = None
+        for key in ['slide_type', 'type', 'template_type']:
+            if key in slide:
+                template = slide[key]
+                break
+        
+        if template:
+            normalized_slide['template'] = template
+            print(f"[NORMALIZATION] Slide {slide_index + 1}: Mapped template from {key}")
+        else:
+            # Default template
+            normalized_slide['template'] = 'business_overview'
+            print(f"[NORMALIZATION] Slide {slide_index + 1}: Set default template 'business_overview'")
+    else:
+        normalized_slide['template'] = slide['template']
+    
+    # Ensure data field exists
+    if 'data' not in slide:
+        # Look for data in other fields
+        data = None
+        for key in ['slide_data', 'content', 'information']:
+            if key in slide:
+                data = slide[key]
+                break
+        
+        if data:
+            normalized_slide['data'] = data
+            print(f"[NORMALIZATION] Slide {slide_index + 1}: Mapped data from {key}")
+        else:
+            # Use slide content as data
+            normalized_slide['data'] = {k: v for k, v in slide.items() if k not in ['template', 'slide_type', 'type', 'template_type']}
+            print(f"[NORMALIZATION] Slide {slide_index + 1}: Created data from slide content")
+    else:
+        normalized_slide['data'] = slide['data']
+    
+    # Handle content_ir_key for buyer_profiles
+    if normalized_slide.get('template') == 'buyer_profiles' and 'content_ir_key' not in slide:
+        # Try to infer content_ir_key from data
+        if 'data' in normalized_slide and isinstance(normalized_slide['data'], dict):
+            data = normalized_slide['data']
+            if 'strategic' in str(data).lower() or 'strategic_buyers' in str(data):
+                normalized_slide['content_ir_key'] = 'strategic_buyers'
+                print(f"[NORMALIZATION] Slide {slide_index + 1}: Inferred content_ir_key: strategic_buyers")
+            elif 'financial' in str(data).lower() or 'financial_buyers' in str(data):
+                normalized_slide['content_ir_key'] = 'financial_buyers'
+                print(f"[NORMALIZATION] Slide {slide_index + 1}: Inferred content_ir_key: financial_buyers")
+    
+    # Copy any other fields
+    for key, value in slide.items():
+        if key not in normalized_slide:
+            normalized_slide[key] = value
+    
+    return normalized_slide
+
+def validate_json_structure_against_examples(content_ir, render_plan):
+    """Validate extracted JSON structure against the example files"""
+    print("[STRUCTURE VALIDATION] Starting validation against examples...")
+    
+    validation_results = {
+        'content_ir_valid': False,
+        'render_plan_valid': False,
+        'missing_sections': [],
+        'structure_issues': []
+    }
+    
+    # Validate Content IR structure
+    if content_ir and isinstance(content_ir, dict):
+        print("[STRUCTURE VALIDATION] Validating Content IR structure...")
+        
+        # Check for required top-level sections
+        required_sections = ['entities', 'management_team', 'strategic_buyers', 'financial_buyers']
+        missing_sections = []
+        
+        for section in required_sections:
+            if section not in content_ir:
+                missing_sections.append(f"Missing '{section}' section")
+        
+        if missing_sections:
+            validation_results['structure_issues'].extend(missing_sections)
+            print(f"[STRUCTURE VALIDATION] ❌ Content IR missing sections: {missing_sections}")
+        else:
+            print("[STRUCTURE VALIDATION] ✓ Content IR has all required sections")
+            
+            # Validate management_team structure
+            if 'management_team' in content_ir:
+                mgmt = content_ir['management_team']
+                if isinstance(mgmt, dict):
+                    if 'left_column_profiles' in mgmt and 'right_column_profiles' in mgmt:
+                        print("[STRUCTURE VALIDATION] ✓ Management team structure is correct")
+                    else:
+                        validation_results['structure_issues'].append("Management team missing column profiles")
+                        print("[STRUCTURE VALIDATION] ❌ Management team structure incomplete")
+                else:
+                    validation_results['structure_issues'].append("Management team is not a dictionary")
+                    print("[STRUCTURE VALIDATION] ❌ Management team is not properly structured")
+            
+            # Validate buyer arrays
+            for buyer_type in ['strategic_buyers', 'financial_buyers']:
+                if buyer_type in content_ir:
+                    buyers = content_ir[buyer_type]
+                    if isinstance(buyers, list):
+                        print(f"[STRUCTURE VALIDATION] ✓ {buyer_type} is properly formatted array")
+                    else:
+                        validation_results['structure_issues'].append(f"{buyer_type} is not an array")
+                        print(f"[STRUCTURE VALIDATION] ❌ {buyer_type} is not properly formatted")
+            
+            validation_results['content_ir_valid'] = True
+    
+    # Validate Render Plan structure
+    if render_plan and isinstance(render_plan, dict):
+        print("[STRUCTURE VALIDATION] Validating Render Plan structure...")
+        
+        # Check for slides array
+        if 'slides' in render_plan and isinstance(render_plan['slides'], list):
+            print(f"[STRUCTURE VALIDATION] ✓ Render Plan has {len(render_plan['slides'])} slides")
+            
+            # Validate each slide has required fields
+            slide_issues = []
+            for i, slide in enumerate(render_plan['slides']):
+                if isinstance(slide, dict):
+                    if 'template' not in slide:
+                        slide_issues.append(f"Slide {i+1} missing 'template' field")
+                    if 'data' not in slide:
+                        slide_issues.append(f"Slide {i+1} missing 'data' field")
+                    
+                    # Check for content_ir_key in buyer_profiles slides
+                    if slide.get('template') == 'buyer_profiles' and 'content_ir_key' not in slide:
+                        slide_issues.append(f"Slide {i+1} (buyer_profiles) missing 'content_ir_key'")
+            
+            if slide_issues:
+                validation_results['structure_issues'].extend(slide_issues)
+                print(f"[STRUCTURE VALIDATION] ❌ Slide structure issues: {slide_issues}")
+            else:
+                print("[STRUCTURE VALIDATION] ✓ All slides have required fields")
+                validation_results['render_plan_valid'] = True
+        else:
+            validation_results['structure_issues'].append("Render Plan missing 'slides' array")
+            print("[STRUCTURE VALIDATION] ❌ Render Plan missing slides array")
+    
+    # Summary
+    if validation_results['content_ir_valid'] and validation_results['render_plan_valid']:
+        print("[STRUCTURE VALIDATION] ✅ Both Content IR and Render Plan structures are valid!")
+    else:
+        print(f"[STRUCTURE VALIDATION] ⚠️  Validation issues found: {len(validation_results['structure_issues'])} issues")
+    
+    return validation_results
 
 # COMPREHENSIVE SLIDE VALIDATION SYSTEM
 def validate_individual_slides(content_ir, render_plan):
@@ -1366,11 +1801,36 @@ def create_examples_text():
     
     return examples_text
 
-# UPDATED Enhanced System Prompt with CORRECT Field Names
+# UPDATED Enhanced System Prompt with CORRECT Field Names and JSON Formatting
 SYSTEM_PROMPT = """
 You are a precise, on-task investment banking pitch deck copilot that generates COMPLETE, DOWNLOADABLE JSON files.
 
 🎯 **ZERO EMPTY BOXES POLICY**: Every slide must have complete content - no empty sections, boxes, or placeholder text.
+
+📋 **CRITICAL JSON FORMATTING REQUIREMENTS**:
+Your response MUST include BOTH JSONs in this EXACT format:
+
+## CONTENT IR JSON:
+```json
+{
+  "entities": {"company": {"name": "Company Name"}},
+  "management_team": {"left_column_profiles": [...], "right_column_profiles": [...]},
+  "strategic_buyers": [...],
+  "financial_buyers": [...]
+}
+```
+
+## RENDER PLAN JSON:
+```json
+{
+  "slides": [
+    {"template": "management_team", "data": {...}},
+    {"template": "business_overview", "data": {...}}
+  ]
+}
+```
+
+⚠️ **MANDATORY**: Always use these exact section headers and JSON code blocks. Never skip the formatting.
 
 SPECIFIC SLIDE REQUIREMENTS FOR ALL TEMPLATES (UPDATED WITH CORRECT FIELD NAMES):
 
@@ -1422,13 +1882,6 @@ SPECIFIC SLIDE REQUIREMENTS FOR ALL TEMPLATES (UPDATED WITH CORRECT FIELD NAMES)
    - CORRECT FIELD NAME: advantages (not competitive_advantages)
 
 8. **valuation_overview**:
-
-9. **Template selection — Buyer financials**:
-   - If the buyer rows include key financial metrics (e.g., revenue, EBITDA, market cap, net income, margins, ticker, ownership, EV/valuation), **use the `sea_conglomerates` template** instead of `buyer_profiles`.
-   - For `sea_conglomerates`, provide an array of objects with: `name`, `country`, and a concise `description` that starts with the financials and may include a short rationale/synergies line.
-   - Example item: `{ "name": "Yamazaki Baking Co.", "country": "Japan", "description": "Revenue: US$5.2B • EBITDA: US$520M • Rationale: Japan → SEA expansion" }`
-
-8'. **valuation_overview (cont.)**:
    - Must have: valuation_data array (not separate methodology fields)
    - CORRECT FIELD NAME: valuation_data with methodology, enterprise_value, commentary
    - Structure: {{"valuation_data": [{{"methodology": "DCF", "enterprise_value": "US$100M", "commentary": "..."}}]}}
@@ -1588,6 +2041,7 @@ CRITICAL JSON GENERATION REQUIREMENTS:
 - Include every piece of data collected during the interview
 - NEVER leave placeholder text or empty fields
 - USE CORRECT FIELD NAMES as specified above
+- ALWAYS use the exact JSON formatting shown above with proper headers and code blocks
 
 AVAILABLE SLIDE TEMPLATES:
 {json.dumps(TEMPLATES, indent=2)}
@@ -1595,7 +2049,7 @@ AVAILABLE SLIDE TEMPLATES:
 EXAMPLE JSON STRUCTURES TO FOLLOW EXACTLY:
 {create_examples_text()}
 
-REMEMBER: Focus on getting complete, specific information for each topic. Don't move on until you have all required details or explicit user consent to use searched information. Use the CORRECT field names specified above to match the validation system.
+REMEMBER: Focus on getting complete, specific information for each topic. Don't move on until you have all required details or explicit user consent to use searched information. Use the CORRECT field names specified above to match the validation system. ALWAYS format your final response with the exact JSON structure shown above.
 """
 
 # Helper Functions for Interview Flow and File Generation
@@ -1956,35 +2410,67 @@ def normalize_plan(plan: dict) -> dict:
 
 def extract_and_validate_jsons(response_text):
     """Extract JSONs and perform comprehensive validation with example-based checking"""
+    print("\n" + "="*80)
+    print("🔍 JSON EXTRACTION AND VALIDATION STARTED")
+    print("="*80)
+    
+    # Extract JSONs with improved parsing
     content_ir, render_plan = extract_jsons_from_response(response_text)
+    
+    print(f"\n📊 EXTRACTION RESULTS:")
+    print(f"Content IR: {'✅ Found' if content_ir else '❌ Not Found'}")
+    print(f"Render Plan: {'✅ Found' if render_plan else '❌ Not Found'}")
+    
+    if not content_ir and not render_plan:
+        print("\n❌ NO JSONS EXTRACTED - Validation cannot proceed")
+        return None, None, {
+            'overall_valid': False,
+            'summary': {'total_slides': 0, 'valid_slides': 0, 'invalid_slides': 0},
+            'critical_issues': ['No JSONs found in response'],
+            'extraction_failed': True
+        }
+    
+    # Normalize extracted JSON to match expected structure
+    print("\n🔧 NORMALIZING EXTRACTED JSON...")
+    content_ir, render_plan = normalize_extracted_json(content_ir, render_plan)
+    
+    # Validate JSON structure against examples
+    print("\n🏗️ STRUCTURE VALIDATION:")
+    structure_validation = validate_json_structure_against_examples(content_ir, render_plan)
     
     # Normalize for downstream validation and rendering
     if isinstance(render_plan, dict):
         render_plan = normalize_plan(render_plan)
     
-    if not content_ir or not render_plan:
-        return content_ir, render_plan, {
-            'overall_valid': False,
-            'summary': {'total_slides': 0, 'valid_slides': 0, 'invalid_slides': 0},
-            'critical_issues': ['JSONs not found in response']
-        }
-    
-    # Perform comprehensive validation
+    # Perform comprehensive slide validation
+    print("\n📋 SLIDE-BY-SLIDE VALIDATION:")
     validation_results = validate_individual_slides(content_ir, render_plan)
     
-    # Add example-based structure validation
-    examples = load_example_files()
-    structure_validation = validate_against_examples(content_ir, render_plan, examples)
-    
-    # Merge structure validation results
+    # Add example-based structure validation results
     validation_results['structure_validation'] = structure_validation
-    validation_results['data_quality_score'] = structure_validation['data_quality_score']
-    validation_results['completeness_score'] = structure_validation['completeness_score']
+    validation_results['extraction_successful'] = True
     
     # Add structure issues to critical issues if structure is invalid
-    if not structure_validation['content_ir_structure_valid'] or not structure_validation['render_plan_structure_valid']:
+    if not structure_validation['content_ir_valid'] or not structure_validation['render_plan_valid']:
         validation_results['critical_issues'].extend(structure_validation['structure_issues'])
+        validation_results['critical_issues'].extend(structure_validation['missing_sections'])
+        validation_results['critical_issues'].extend(structure_validation['field_mismatches'])
         validation_results['overall_valid'] = False
+    
+    # Calculate quality scores
+    if structure_validation['content_ir_valid'] and structure_validation['render_plan_valid']:
+        validation_results['structure_quality_score'] = 100
+    else:
+        validation_results['structure_quality_score'] = max(0, 100 - (len(structure_validation['structure_issues']) * 20))
+    
+    print(f"\n📈 VALIDATION SUMMARY:")
+    print(f"Structure Quality: {validation_results.get('structure_quality_score', 0)}%")
+    print(f"Overall Valid: {'✅ Yes' if validation_results['overall_valid'] else '❌ No'}")
+    print(f"Critical Issues: {len(validation_results.get('critical_issues', []))}")
+    
+    print("="*80)
+    print("🔍 JSON EXTRACTION AND VALIDATION COMPLETED")
+    print("="*80 + "\n")
     
     return content_ir, render_plan, validation_results
 
@@ -2561,8 +3047,79 @@ Let's start: **What is your company name and give me a brief overview of what yo
                     # Check if JSONs were generated and extract them with comprehensive validation
                     content_ir, render_plan, validation_results = extract_and_validate_jsons(ai_response)
                     
-                    if content_ir or render_plan:
+                    # Debug extraction if it failed
+                    if not content_ir and not render_plan:
+                        print("🚨 JSON extraction failed - running debug analysis...")
+                        debug_json_extraction(ai_response, content_ir, render_plan)
+                        
+                        st.error("🚨 **JSON Extraction Failed** - The AI response could not be parsed into valid JSON structures.")
+                        st.info("This usually means the LLM didn't format its response properly. Common causes:")
+                        st.markdown("""
+                        - **Missing JSON markers**: Response should contain "CONTENT IR JSON:" and "RENDER PLAN JSON:"
+                        - **Incomplete JSON**: Response was cut off or malformed
+                        - **Wrong format**: LLM provided text instead of structured JSON
+                        """)
+                        
+                        # Show retry button with specific instructions
+                        if st.button("🔄 Retry with Better Instructions", type="primary"):
+                            retry_prompt = """
+Please regenerate your response with proper JSON formatting. Your response MUST include:
+
+1. **CONTENT IR JSON:** followed by the complete Content IR JSON structure
+2. **RENDER PLAN JSON:** followed by the complete Render Plan JSON structure
+
+Each JSON section should be properly formatted and complete. Do not use placeholder text or incomplete structures.
+
+Example format:
+## CONTENT IR JSON:
+```json
+{
+  "entities": {"company": {"name": "Company Name"}},
+  "management_team": {"left_column_profiles": [...], "right_column_profiles": [...]},
+  "strategic_buyers": [...],
+  "financial_buyers": [...]
+}
+```
+
+## RENDER PLAN JSON:
+```json
+{
+  "slides": [
+    {"template": "management_team", "data": {...}},
+    {"template": "business_overview", "data": {...}}
+  ]
+}
+```
+
+Please ensure both JSONs are complete and properly formatted.
+"""
+                            st.session_state.messages.append({"role": "user", "content": retry_prompt})
+                            
+                            with st.spinner("🔄 Regenerating with proper JSON format..."):
+                                retry_response = call_llm_api(
+                                    st.session_state.messages,
+                                    selected_model,
+                                    api_key,
+                                    api_service
+                                )
+                            
+                            st.session_state.messages.append({"role": "assistant", "content": retry_response})
+                            st.rerun()
+                        
+                        # Show the raw response for debugging
+                        with st.expander("🔍 View Raw AI Response"):
+                            st.code(ai_response, language="text")
+                    
+                    elif content_ir or render_plan:
                         st.success("🎉 JSON structures generated!")
+                        
+                        # Show extraction summary
+                        if content_ir and render_plan:
+                            st.success("✅ Both Content IR and Render Plan extracted successfully!")
+                        elif content_ir:
+                            st.warning("⚠️ Only Content IR extracted - Render Plan missing")
+                        elif render_plan:
+                            st.warning("⚠️ Only Render Plan extracted - Content IR missing")
                         
                         # Display comprehensive validation results
                         is_fully_valid = display_validation_results(validation_results)
@@ -3063,3 +3620,8 @@ st.markdown("""
     <p>🎨 <em>Enhanced with Zero Empty Boxes Policy & Comprehensive Slide Validation</em></p>
 </div>
 """, unsafe_allow_html=True)
+
+
+
+
+
