@@ -1455,6 +1455,16 @@ def create_validation_feedback_for_llm(validation_results):
     feedback_sections.append("❌ VALIDATION FAILED - Your JSONs have empty boxes and missing content that must be fixed before generating the deck.")
     feedback_sections.append("\n🎯 ZERO EMPTY BOXES POLICY VIOLATIONS:")
     
+    # Add specific instructions for common issues
+    feedback_sections.append("\n🚨 CRITICAL: You MUST include the 'facts' section in Content IR for financial slides!")
+    feedback_sections.append("Add this to your Content IR:")
+    feedback_sections.append('"facts": {')
+    feedback_sections.append('  "years": ["2020", "2021", "2022", "2023", "2024E"],')
+    feedback_sections.append('  "revenue_usd_m": [120, 145, 180, 210, 240],')
+    feedback_sections.append('  "ebitda_usd_m": [18, 24, 31, 40, 47],')
+    feedback_sections.append('  "ebitda_margins": [15.0, 16.6, 17.2, 19.0, 19.6]')
+    feedback_sections.append('}')
+    
     # Add structure validation feedback first
     if 'structure_validation' in validation_results and validation_results['structure_validation']['structure_issues']:
         feedback_sections.append("\n🗃️ STRUCTURAL ISSUES (compared to professional examples):")
@@ -1507,11 +1517,45 @@ def create_validation_feedback_for_llm(validation_results):
                 feedback_sections.append("  📝 Missing Required Fields:")
                 for field in slide_val['missing_fields']:
                     feedback_sections.append(f"    - {field}")
+                    
+                    # Add specific fix instructions for missing fields
+                    if "Missing slide title" in field:
+                        feedback_sections.append("      FIX: Add 'title' field to the slide data")
+                        feedback_sections.append("      EXAMPLE: 'title': 'Historical Financial Performance'")
+                    
+                    elif "Missing Financial performance chart data" in field and template == "historical_financial_performance":
+                        feedback_sections.append("      FIX: Add complete chart data referencing facts from Content IR")
+                        feedback_sections.append("      EXAMPLE:")
+                        feedback_sections.append("      'chart': {")
+                        feedback_sections.append("        'categories': ['2020', '2021', '2022', '2023', '2024E'],")
+                        feedback_sections.append("        'revenue': [120, 145, 180, 210, 240],")
+                        feedback_sections.append("        'ebitda': [18, 24, 31, 40, 47]")
+                        feedback_sections.append("      }")
+                    
+                    elif "Empty competitive assessment table" in field and template == "competitive_positioning":
+                        feedback_sections.append("      FIX: Add complete competitive assessment table")
+                        feedback_sections.append("      EXAMPLE:")
+                        feedback_sections.append("      'assessment': [")
+                        feedback_sections.append("        {'category': 'Market Position', 'our_company': 'Leader', 'competitor_a': 'Challenger', 'competitor_b': 'Follower'},")
+                        feedback_sections.append("        {'category': 'Technology', 'our_company': 'Advanced', 'competitor_a': 'Moderate', 'competitor_b': 'Basic'},")
+                        feedback_sections.append("        {'category': 'Customer Base', 'our_company': 'Premium', 'competitor_a': 'Mixed', 'competitor_b': 'Mass Market'}")
+                        feedback_sections.append("      ]")
             
             if slide_val['empty_fields']:
                 feedback_sections.append("  📦 Empty/Placeholder Content (will create empty boxes):")
                 for field in slide_val['empty_fields']:
                     feedback_sections.append(f"    - {field}")
+                    
+                    # Add specific fix instructions for empty fields
+                    if "Cost management item" in field and template == "margin_cost_resilience":
+                        feedback_sections.append("      FIX: Add complete cost management items with title and description")
+                        feedback_sections.append("      EXAMPLE:")
+                        feedback_sections.append("      'cost_management': {")
+                        feedback_sections.append("        'items': [")
+                        feedback_sections.append("          {'title': 'Operational Efficiency', 'description': 'Streamlined processes reducing costs by 15%'},")
+                        feedback_sections.append("          {'title': 'Technology Investment', 'description': 'Automation tools reducing manual work by 30%'}")
+                        feedback_sections.append("        ]")
+                        feedback_sections.append("      }")
     
     # Add specific buyer_profiles fix instructions with real examples
     has_buyer_issues = any("buyer_profiles" in slide_val['template'] for slide_val in validation_results['slide_validations'] if not slide_val['valid'])
@@ -1807,6 +1851,14 @@ You are a precise, on-task investment banking pitch deck copilot that generates 
 
 🎯 **ZERO EMPTY BOXES POLICY**: Every slide must have complete content - no empty sections, boxes, or placeholder text.
 
+🚨 **CRITICAL REQUIREMENTS - READ CAREFULLY**:
+1. **Content IR MUST include 'facts' section** with historical financial data
+2. **buyer_profiles slides MUST have content_ir_key** (strategic_buyers or financial_buyers)
+3. **historical_financial_performance slides MUST reference facts data** for complete chart data
+4. **Every slide MUST have a 'title' field** in the data section
+5. **All arrays MUST have minimum required items** (no empty arrays)
+6. **NO placeholder text, NO empty fields, NO null values**
+
 📋 **CRITICAL JSON FORMATTING REQUIREMENTS**:
 Your response MUST include BOTH JSONs in this EXACT format:
 
@@ -1814,6 +1866,7 @@ Your response MUST include BOTH JSONs in this EXACT format:
 ```json
 {
   "entities": {"company": {"name": "Company Name"}},
+  "facts": {"years": ["2020", "2021", "2022", "2023", "2024E"], "revenue_usd_m": [120, 145, 180, 210, 240], "ebitda_usd_m": [18, 24, 31, 40, 47], "ebitda_margins": [15.0, 16.6, 17.2, 19.0, 19.6]},
   "management_team": {"left_column_profiles": [...], "right_column_profiles": [...]},
   "strategic_buyers": [...],
   "financial_buyers": [...]
@@ -1848,10 +1901,11 @@ SPECIFIC SLIDE REQUIREMENTS FOR ALL TEMPLATES (UPDATED WITH CORRECT FIELD NAMES)
    - Services array needs minimum 4 entries with structure: {{"title": "Service Name", "desc": "Description"}}
    - Must include coverage_table and metrics data for right side
    - NO empty boxes in layout areas
+   - Metrics structure: {{"total_locations": "35+", "annual_patients": "125,000+", "retention_rate": "89%", "corporate_contracts": "65+"}}
 
 4. **buyer_profiles**:
-   - Must use content_ir_key to reference buyer data (PREFERRED METHOD)
-   - OR use complete table_rows with actual data (fallback method)
+   - MUST use content_ir_key to reference buyer data (REQUIRED - NO EXCEPTIONS)
+   - NEVER create buyer_profiles slides without content_ir_key
    - Each buyer must have complete: buyer_name, strategic_rationale, key_synergies, fit
    - Tables must populate with real data, not be empty
    - Example correct structure:
@@ -1865,21 +1919,26 @@ SPECIFIC SLIDE REQUIREMENTS FOR ALL TEMPLATES (UPDATED WITH CORRECT FIELD NAMES)
        }}
      }}
      ```
+   - ALWAYS include content_ir_key: "strategic_buyers" or "financial_buyers"
 
 5. **historical_financial_performance**:
-   - Must have chart data with categories, revenue, ebitda arrays (min 3 years each)
-   - Must include key_metrics with metrics array
+   - MUST have chart data with categories, revenue, ebitda arrays (min 3 years each)
+   - MUST include key_metrics with metrics array
    - Chart structure: {{"categories": ["2020", "2021", ...], "revenue": [120, 145, ...], "ebitda": [18, 24, ...]}}
+   - MUST reference facts data from Content IR: {{"chart": {{"categories": ["2020", "2021", "2022", "2023", "2024E"], "revenue": [120, 145, 180, 210, 240], "ebitda": [18, 24, 31, 40, 47]}}}}
+   - ALWAYS include complete ebitda data array matching the facts section
+   - NEVER leave ebitda array empty or missing
 
 6. **margin_cost_resilience**:
-   - Must have: cost_management with items array, risk_mitigation with main_strategy
+   - Must have: title, cost_management with items array, risk_mitigation with main_strategy
    - CORRECT FIELD NAMES: cost_management (not cost_structure), risk_mitigation (not resilience_factors)
-   - Structure: {{"cost_management": {{"items": [...]}}, "risk_mitigation": {{"main_strategy": {{...}}}}}}
+   - Structure: {{"title": "Margin & Cost Resilience", "cost_management": {{"items": [{{"title": "Cost Initiative 1", "description": "Detailed description"}, {{"title": "Cost Initiative 2", "description": "Detailed description"}}]}}, "risk_mitigation": {{"main_strategy": "Primary risk mitigation approach"}}}}
 
 7. **competitive_positioning**:
-   - Must have: competitors array, advantages array (not competitive_advantages), assessment table
+   - Must have: title, competitors array, advantages array (not competitive_advantages), assessment table
    - Competitors structure: [{{"name": "Company", "revenue": 450}}, ...]
    - CORRECT FIELD NAME: advantages (not competitive_advantages)
+   - Assessment table structure: [{{"category": "Market Position", "our_company": "Leader", "competitor_a": "Challenger", "competitor_b": "Follower"}}, {{"category": "Technology", "our_company": "Advanced", "competitor_a": "Moderate", "competitor_b": "Basic"}}]
 
 8. **valuation_overview**:
    - Must have: valuation_data array (not separate methodology fields)
@@ -1887,8 +1946,8 @@ SPECIFIC SLIDE REQUIREMENTS FOR ALL TEMPLATES (UPDATED WITH CORRECT FIELD NAMES)
    - Structure: {{"valuation_data": [{{"methodology": "DCF", "enterprise_value": "US$100M", "commentary": "..."}}]}}
 
 9. **growth_strategy_projections**:
-   - Must have: growth_strategy with strategies array, financial_projections
-   - May have slide_data wrapper: {{"slide_data": {{"growth_strategy": {{...}}}}}}
+   - Must have: title, growth_strategy with strategies array, financial_projections
+   - May have slide_data wrapper: {{"title": "Growth Strategy & Projections", "slide_data": {{"growth_strategy": {{"strategies": ["Strategy 1", "Strategy 2", "Strategy 3"]}}, "financial_projections": {{"projected_revenue": [240, 280, 320], "projected_ebitda": [47, 56, 64]}}}}}}
 
 10. **precedent_transactions**:
     - Must have: transactions array with target, acquirer, date, enterprise_value, revenue, ev_revenue_multiple
@@ -1896,6 +1955,7 @@ SPECIFIC SLIDE REQUIREMENTS FOR ALL TEMPLATES (UPDATED WITH CORRECT FIELD NAMES)
 
 CONTENT IR STRUCTURE REQUIREMENTS:
 - entities: {{"company": {{"name": "Company Name"}}}}
+- facts: {{"years": ["2020", "2021", "2022", "2023", "2024E"], "revenue_usd_m": [120, 145, 180, 210, 240], "ebitda_usd_m": [18, 24, 31, 40, 47], "ebitda_margins": [15.0, 16.6, 17.2, 19.0, 19.6]}}
 - management_team: {{"left_column_profiles": [...], "right_column_profiles": [...]}}
 - strategic_buyers: [{{"buyer_name": "Name", "strategic_rationale": "...", "fit": "High (9/10)"}}, ...]
 - financial_buyers: [{{"buyer_name": "Name", "strategic_rationale": "...", "fit": "High (9/10)"}}, ...]
@@ -2025,13 +2085,26 @@ When you have collected information for ALL non-skipped items in the completion 
 ```json
 [INSERT COMPLETE CONTENT IR JSON WITH ALL COLLECTED DATA USING CORRECT FIELD NAMES]
 ```
+⚠️ **MUST INCLUDE 'facts' section** with historical financial data (years, revenue, EBITDA, margins)
 
 ## RENDER PLAN JSON:
 ```json
 [INSERT COMPLETE RENDER PLAN JSON WITH ALL SLIDES]
 ```
+⚠️ **MUST INCLUDE content_ir_key for buyer_profiles slides**
+⚠️ **MUST INCLUDE complete chart data for financial slides**
 
 These files are now ready for download and can be used directly with your pitch deck generation system!"
+
+🚨 **CRITICAL REQUIREMENTS FOR JSON GENERATION:**
+1. **Content IR MUST include 'facts' section** with historical financial data
+2. **Every slide MUST have a 'title' field** in the data section
+3. **All arrays MUST have minimum required items** (no empty arrays)
+4. **buyer_profiles slides MUST have content_ir_key** AND complete table_headers
+5. **Financial slides MUST reference facts data** from Content IR
+6. **competitive_positioning slides MUST have complete assessment table** with comparison data
+7. **product_service_footprint slides MUST have complete metrics data** for right side
+8. **NO placeholder text, NO empty fields, NO null values**
 
 CRITICAL JSON GENERATION REQUIREMENTS:
 - Generate JSONs for ALL discussed slides (minimum 8-12 slides)
@@ -2042,6 +2115,15 @@ CRITICAL JSON GENERATION REQUIREMENTS:
 - NEVER leave placeholder text or empty fields
 - USE CORRECT FIELD NAMES as specified above
 - ALWAYS use the exact JSON formatting shown above with proper headers and code blocks
+
+🚨 **CRITICAL: EVERY SLIDE MUST HAVE COMPLETE DATA** 🚨
+- Every slide MUST have a "title" field
+- Every slide MUST have complete "data" section with all required fields
+- NO empty arrays, NO null values, NO placeholder text
+- If you don't have specific data for a field, generate realistic, professional content
+- For buyer_profiles slides, ALWAYS include content_ir_key AND complete table_headers
+- For financial slides, ALWAYS include complete chart data and metrics
+- For management slides, ALWAYS include complete profile data with experience bullets
 
 AVAILABLE SLIDE TEMPLATES:
 {json.dumps(TEMPLATES, indent=2)}
@@ -3075,6 +3157,7 @@ Example format:
 ```json
 {
   "entities": {"company": {"name": "Company Name"}},
+  "facts": {"years": ["2020", "2021", "2022", "2023", "2024E"], "revenue_usd_m": [120, 145, 180, 210, 240], "ebitda_usd_m": [18, 24, 31, 40, 47], "ebitda_margins": [15.0, 16.6, 17.2, 19.0, 19.6]},
   "management_team": {"left_column_profiles": [...], "right_column_profiles": [...]},
   "strategic_buyers": [...],
   "financial_buyers": [...]
@@ -3228,6 +3311,16 @@ I believe we have covered all the necessary information for a comprehensive pitc
 - Don't skip any information or use placeholder text
 - Ensure every field has real content (no empty arrays, null values, or placeholders)
 - USE CORRECT FIELD NAMES: role_title/experience_bullets for management, cost_management/risk_mitigation for margins, etc.
+
+🚨 **CRITICAL DATA REQUIREMENTS:**
+1. **Content IR MUST include 'facts' section** with historical financial data (years, revenue, EBITDA, margins)
+2. **Every slide MUST have a 'title' field** in the data section
+3. **historical_financial_performance slide MUST reference facts data** for chart categories, revenue, and EBITDA
+4. **margin_cost_resilience slide MUST have complete cost_management.items** with title and description for each
+5. **growth_strategy_projections slide MUST have complete title and strategies array**
+6. **buyer_profiles slides MUST have content_ir_key** AND complete table_headers
+7. **competitive_positioning slide MUST have complete assessment table** with comparison data
+8. **All arrays MUST have minimum required items** (no empty arrays)
 
 Please generate both complete JSON structures now with full validation compliance.
 """
