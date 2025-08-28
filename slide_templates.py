@@ -6,7 +6,7 @@ These create actual charts, tables, and sophisticated layouts
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
-from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
+from pptx.enum.text import PP_ALIGN, MSO_ANCHOR, MSO_AUTO_SIZE
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.chart.data import ChartData
 from pptx.enum.chart import XL_CHART_TYPE, XL_LEGEND_POSITION
@@ -269,75 +269,176 @@ def render_management_team_slide(data=None, color_scheme=None, typography=None, 
     title_text = (data or {}).get('title', 'Senior Management Team')
     _apply_standard_header_and_title(slide, title_text, brand_config, company_name)
     
-    # Function to add management profiles
+    # Calculate total content to determine adaptive spacing
+    left_profiles = (data or {}).get('left_column_profiles', [])
+    right_profiles = (data or {}).get('right_column_profiles', [])
+    
+    # Count total content length and profiles
+    total_content_length = 0
+    total_profiles = len(left_profiles) + len(right_profiles)
+    
+    for profile in left_profiles + right_profiles:
+        bullets = profile.get('experience_bullets', [])
+        for bullet in bullets:
+            total_content_length += len(bullet) if bullet else 0
+    
+    # Determine spacing mode - optimize for 3-column layout with 6 profiles
+    is_content_heavy = total_content_length > 1500 or total_profiles >= 6  # Lower threshold for 3-column
+    is_very_heavy = total_content_length > 2500 or total_profiles > 6
+    
+    # Adaptive spacing parameters optimized for 3-column layout
+    if is_very_heavy:
+        profile_spacing = Inches(0.06)  # Very tight spacing between profiles
+        bullet_spacing = Inches(0.04)   # Minimal bullet spacing
+        title_height = Inches(0.28)     # Compact title height
+        title_gap = Inches(0.3)         # Minimal gap after title
+        margin_factor = 0.4             # Significantly reduce margins
+    elif is_content_heavy:
+        profile_spacing = Inches(0.08)  # Tight spacing between profiles
+        bullet_spacing = Inches(0.05)   # Reduced bullet spacing
+        title_height = Inches(0.32)     # Reduced title height
+        title_gap = Inches(0.35)        # Small gap after title
+        margin_factor = 0.6             # Moderately reduce margins
+    else:
+        profile_spacing = Inches(0.1)   # Compact spacing for 3-column
+        bullet_spacing = Inches(0.06)   # Compact bullet spacing
+        title_height = Inches(0.35)     # Compact title height
+        title_gap = Inches(0.4)         # Moderate gap after title
+        margin_factor = 0.8             # Some margin reduction for 3-column
+    
+    # Function to add management profiles with adaptive spacing
     def add_management_profile(x_pos, y_pos, width, profile_data):
-        # Role title
-        title_box = slide.shapes.add_textbox(x_pos, y_pos, width, Inches(0.3))
+        # Role title with adaptive margins
+        title_box = slide.shapes.add_textbox(x_pos, y_pos, width, title_height)
         title_frame = title_box.text_frame
         title_frame.clear()
+        title_frame.margin_left = Inches(0.05 * margin_factor)
+        title_frame.margin_right = Inches(0.05 * margin_factor)
+        title_frame.margin_top = Inches(0.02 * margin_factor)
+        title_frame.margin_bottom = Inches(0.02 * margin_factor)
+        title_frame.word_wrap = True
+        
         p = title_frame.paragraphs[0]
         p.text = profile_data.get('role_title', 'Role Title')
-        p.font.name = fonts["primary_font"]          # BRAND FONT
-        p.font.size = fonts["header_size"]           # BRAND SIZE
-        p.font.color.rgb = colors["primary"]         # BRAND COLOR
+        p.font.name = fonts["primary_font"]
+        p.font.size = fonts["header_size"]
+        p.font.color.rgb = colors["primary"]
         p.font.bold = True
+        p.alignment = PP_ALIGN.LEFT
         
-        # Experience bullets
-        current_y = y_pos + Inches(0.35)
+        # Experience bullets with adaptive sizing
+        current_y = y_pos + title_gap  # Adaptive space after title
         experience_bullets = profile_data.get('experience_bullets', [])
+        
         for bullet in experience_bullets:
-            bullet_box = slide.shapes.add_textbox(x_pos, current_y, width, Inches(0.6))
+            # Calculate approximate height for 3-column layout (narrower columns)
+            chars_per_line = int(width.inches * (12 if is_content_heavy else 10))  # More conservative estimate for narrower columns
+            bullet_text = f"• {bullet}"
+            estimated_lines = max(1, len(bullet_text) // chars_per_line + (1 if len(bullet_text) % chars_per_line > 0 else 0))
+            
+            # Adaptive minimum height optimized for 3-column layout with better line spacing
+            min_height = 0.28 if is_very_heavy else (0.32 if is_content_heavy else 0.36)
+            bullet_height = max(Inches(min_height), Inches(0.18 * estimated_lines))  # Increased height per line
+            
+            bullet_box = slide.shapes.add_textbox(x_pos, current_y, width, bullet_height)
             bullet_frame = bullet_box.text_frame
             bullet_frame.clear()
-            p = bullet_frame.paragraphs[0]
-            p.text = f"• {bullet}"
-            p.font.name = fonts["primary_font"]      # BRAND FONT
-            p.font.size = fonts["body_size"]         # BRAND SIZE
-            p.font.color.rgb = colors["text"]        # BRAND COLOR
+            bullet_frame.margin_left = Inches(0.05 * margin_factor)
+            bullet_frame.margin_right = Inches(0.05 * margin_factor)
+            bullet_frame.margin_top = Inches(0.015 * margin_factor)
+            bullet_frame.margin_bottom = Inches(0.015 * margin_factor)
             bullet_frame.word_wrap = True
-            current_y += Inches(0.5)
+            bullet_frame.auto_size = None  # Prevent auto-sizing issues
+            
+            p = bullet_frame.paragraphs[0]
+            p.text = bullet_text
+            p.font.name = fonts["primary_font"]
+            p.font.size = fonts["body_size"]
+            p.font.color.rgb = colors["text"]
+            p.alignment = PP_ALIGN.LEFT
+            p.line_spacing = 1.15 if is_content_heavy else 1.2  # Better line spacing to prevent overlap
+            
+            # Add adaptive spacing between bullets
+            current_y += bullet_height + bullet_spacing
         
         return current_y
     
-    # Add left column profiles
-    current_y = Inches(1.5)
-    left_profiles = (data or {}).get('left_column_profiles', [])
-    for profile in left_profiles:
-        current_y = add_management_profile(Inches(0.5), current_y, Inches(6), profile)
-        current_y += Inches(0.2)
+    # Combine all profiles for 3-column layout
+    all_profiles = left_profiles + right_profiles
     
-    # Add right column profiles  
-    current_y = Inches(1.5)
-    right_profiles = (data or {}).get('right_column_profiles', [])
-    for profile in right_profiles:
-        current_y = add_management_profile(Inches(7), current_y, Inches(5.8), profile)
-        current_y += Inches(0.2)
+    # 3-column layout parameters - add modest top margin for better visual appearance
+    start_y = Inches(1.45)  # Small top margin after title for better spacing
+    column_width = Inches(4.0)  # Narrower columns to fit 3
+    column_spacing = Inches(0.15)  # Small gap between columns
     
-    # Footer
+    # Calculate column positions
+    col1_x = Inches(0.3)  # Left margin
+    col2_x = col1_x + column_width + column_spacing
+    col3_x = col2_x + column_width + column_spacing
+    
+    # Distribute profiles across 3 columns (2 profiles per column for 6 total)
+    profiles_per_column = 2
+    
+    # Column 1 profiles
+    current_y = start_y
+    for i in range(min(profiles_per_column, len(all_profiles))):
+        profile = all_profiles[i]
+        current_y = add_management_profile(col1_x, current_y, column_width, profile)
+        if i < profiles_per_column - 1:  # Don't add spacing after last profile in column
+            current_y += profile_spacing
+    
+    # Column 2 profiles
+    current_y = start_y
+    start_idx = profiles_per_column
+    for i in range(start_idx, min(start_idx + profiles_per_column, len(all_profiles))):
+        profile = all_profiles[i]
+        current_y = add_management_profile(col2_x, current_y, column_width, profile)
+        if i < start_idx + profiles_per_column - 1:  # Don't add spacing after last profile in column
+            current_y += profile_spacing
+    
+    # Column 3 profiles
+    current_y = start_y
+    start_idx = profiles_per_column * 2
+    for i in range(start_idx, min(start_idx + profiles_per_column, len(all_profiles))):
+        profile = all_profiles[i]
+        current_y = add_management_profile(col3_x, current_y, column_width, profile)
+        if i < start_idx + profiles_per_column - 1:  # Don't add spacing after last profile in column
+            current_y += profile_spacing
+    
+    # Footer with minimal bottom padding
     from datetime import datetime
     today = datetime.now().strftime("%B %d, %Y")
     
+    # Position footer with modest bottom margin for better visual appearance
+    footer_y = Inches(6.95)  # Balanced footer position with small bottom margin
+    
     # Add footer - "Confidential | [today's date]" on LEFT
-    footer_left = slide.shapes.add_textbox(Inches(0.5), Inches(7.0), Inches(6), Inches(0.4))
+    footer_left = slide.shapes.add_textbox(Inches(0.4), footer_y, Inches(6), Inches(0.4))
     footer_left_frame = footer_left.text_frame
     footer_left_frame.clear()
+    footer_left_frame.margin_left = Inches(0.05)
+    footer_left_frame.margin_right = Inches(0.05)
+    
     p = footer_left_frame.paragraphs[0]
     p.text = f"Confidential | {today}"
-    p.font.name = fonts["primary_font"]              # BRAND FONT
-    p.font.size = fonts["small_size"]                # BRAND SIZE
-    p.font.color.rgb = colors["footer_grey"]         # BRAND COLOR
+    p.font.name = fonts["primary_font"]
+    p.font.size = fonts["small_size"]
+    p.font.color.rgb = colors["footer_grey"]
     p.alignment = PP_ALIGN.LEFT
     footer_left_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
     
     # Add footer - Company name on RIGHT
-    footer_right = slide.shapes.add_textbox(Inches(10), Inches(7.0), Inches(3), Inches(0.4))
+    footer_right = slide.shapes.add_textbox(Inches(9.5), footer_y, Inches(3.2), Inches(0.4))
     footer_right_frame = footer_right.text_frame
     footer_right_frame.clear()
+    footer_right_frame.margin_left = Inches(0.05)
+    footer_right_frame.margin_right = Inches(0.05)
+    
     p = footer_right_frame.paragraphs[0]
     p.text = company_name if company_name and company_name.strip() else "Moelis"
-    p.font.name = fonts["primary_font"]              # BRAND FONT
-    p.font.size = fonts["small_size"]                # BRAND SIZE
-    p.font.color.rgb = colors["footer_grey"]         # BRAND COLOR
+    p.font.name = fonts["primary_font"]
+    p.font.size = fonts["small_size"]
+    p.font.color.rgb = colors["footer_grey"]
     p.alignment = PP_ALIGN.RIGHT
     footer_right_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
     
@@ -393,9 +494,9 @@ def render_investor_considerations_slide(data=None, color_scheme=None, typograph
     p.font.bold = True
     p.alignment = PP_ALIGN.CENTER
     
-    # Content positioning
-    y_start = 2.0
-    row_height = 1.1
+    # Content positioning - reduced spacing to fit all content
+    y_start = 1.8
+    row_height = 0.75
     
     # Add considerations and mitigants
     considerations = (data or {}).get('considerations', [])
@@ -427,8 +528,8 @@ def render_investor_considerations_slide(data=None, color_scheme=None, typograph
             p.alignment = PP_ALIGN.CENTER
             q_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
             
-            # Consideration text
-            cons_text = slide.shapes.add_textbox(Inches(1.1), Inches(y_pos - 0.1), Inches(5.2), Inches(1.0))
+            # Consideration text - vertically centered with icon
+            cons_text = slide.shapes.add_textbox(Inches(1.1), Inches(y_pos - 0.175), Inches(5.2), Inches(0.65))
             cons_text_frame = cons_text.text_frame
             cons_text_frame.clear()
             p = cons_text_frame.paragraphs[0]
@@ -461,8 +562,8 @@ def render_investor_considerations_slide(data=None, color_scheme=None, typograph
             p.alignment = PP_ALIGN.CENTER
             bulb_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
             
-            # Mitigant text
-            mit_text = slide.shapes.add_textbox(Inches(7.1), Inches(y_pos - 0.1), Inches(5.7), Inches(1.0))
+            # Mitigant text - vertically centered with icon
+            mit_text = slide.shapes.add_textbox(Inches(7.1), Inches(y_pos - 0.175), Inches(5.7), Inches(0.65))
             mit_text_frame = mit_text.text_frame
             mit_text_frame.clear()
             p = mit_text_frame.paragraphs[0]
@@ -656,8 +757,8 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
     add_clean_text(slide, table_left, metrics_title_top, table_width, Inches(0.3), 
                    metrics_title, 14, colors["primary"], True, PP_ALIGN.CENTER)
     
-    # Metrics background box
-    metrics_bg = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, table_left, metrics_box_top, table_width, Inches(1.4))
+    # Metrics background box - increased height to cover all content
+    metrics_bg = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, table_left, metrics_box_top, table_width, Inches(2.0))
     metrics_bg.fill.solid()
     metrics_bg.fill.fore_color.rgb = colors["light_grey"]
     metrics_bg.line.fill.background()
@@ -1068,24 +1169,24 @@ def render_investor_process_overview_slide(data=None, color_scheme=None, typogra
     
     y_start = Inches(1.85)  # Moved down for more breathing room
     for i, item in enumerate(diligence_items[:5]):  # Allow 5 items now
-        y_pos = y_start + Inches(i * 0.34)  # Slightly more spacing
+        y_pos = y_start + Inches(i * 0.42)  # Increased spacing for multi-line content
         
-        # Gold bullet
-        bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(0.65), y_pos, Inches(0.06), Inches(0.06))
+        # Gold bullet - centered vertically with text
+        bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(0.65), y_pos + Inches(0.08), Inches(0.06), Inches(0.06))
         bullet.fill.solid()
         bullet.fill.fore_color.rgb = colors["secondary"]
         bullet.line.fill.background()
         
-        # Item text - LARGER TEXT BOX
+        # Item text - LARGER TEXT BOX with better alignment
         if isinstance(item, dict):
             item_text = f"{item.get('title', '')}: {item.get('description', '')}"
         else:
             item_text = str(item)
-        add_clean_text(slide, Inches(0.8), y_pos - Inches(0.05), Inches(5.6), Inches(0.28), 
-                       item_text, 9, colors["text"])  # Smaller font, more space
+        add_clean_text(slide, Inches(0.8), y_pos, Inches(5.6), Inches(0.28), 
+                       item_text, 10, colors["text"])  # Increased font size from 9 to 10
     
-    # BOTTOM LEFT: Risk Factors & Mitigants - REPOSITIONED
-    add_clean_text(slide, Inches(0.5), Inches(3.6), Inches(6), Inches(0.3), 
+    # BOTTOM LEFT: Risk Factors & Mitigants - REPOSITIONED LOWER
+    add_clean_text(slide, Inches(0.5), Inches(4.0), Inches(6), Inches(0.3), 
                    "Risk Factors & Mitigants", 14, colors["primary"], True)
     
     risk_factors = slide_data.get('risk_factors', [])
@@ -1094,35 +1195,35 @@ def render_investor_process_overview_slide(data=None, color_scheme=None, typogra
     print(f"[DEBUG] Risk factors count: {len(risk_factors)}")
     print(f"[DEBUG] Mitigants count: {len(mitigants)}")
     
-    y_start = Inches(3.95)  # Moved down slightly
+    y_start = Inches(4.35)  # Moved down further to avoid overlap
     max_items = max(len(risk_factors), len(mitigants), 5)  # Allow 5 items
     
     for i in range(min(max_items, 5)):  # Max 5 to fit properly
-        y_pos = y_start + Inches(i * 0.28)  # Slightly more spacing
+        y_pos = y_start + Inches(i * 0.35)  # Increased spacing for multi-line content
         
         # Risk factor (if exists)
         if i < len(risk_factors):
-            # Red circle for risk
-            risk_circle = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(0.65), y_pos, Inches(0.06), Inches(0.06))
+            # Red circle for risk - centered vertically with text
+            risk_circle = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(0.65), y_pos + Inches(0.06), Inches(0.06), Inches(0.06))
             risk_circle.fill.solid()
             risk_circle.fill.fore_color.rgb = RGBColor(220, 20, 60)  # Red color
             risk_circle.line.fill.background()
             
-            # Risk factor text - IMPROVED SIZING
-            add_clean_text(slide, Inches(0.8), y_pos - Inches(0.05), Inches(2.6), Inches(0.22), 
-                           risk_factors[i], 8, RGBColor(220, 20, 60))
+            # Risk factor text - IMPROVED SIZING with better alignment
+            add_clean_text(slide, Inches(0.8), y_pos, Inches(2.6), Inches(0.22), 
+                           risk_factors[i], 9, RGBColor(220, 20, 60))  # Increased font size from 8 to 9
         
         # Mitigant (if exists)
         if i < len(mitigants):
-            # Green circle for mitigant
-            mitigant_circle = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(3.6), y_pos, Inches(0.06), Inches(0.06))
+            # Green circle for mitigant - centered vertically with text
+            mitigant_circle = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(3.6), y_pos + Inches(0.06), Inches(0.06), Inches(0.06))
             mitigant_circle.fill.solid()
             mitigant_circle.fill.fore_color.rgb = RGBColor(34, 139, 34)  # Green color
             mitigant_circle.line.fill.background()
             
-            # Mitigant text - IMPROVED SIZING
-            add_clean_text(slide, Inches(3.75), y_pos - Inches(0.05), Inches(2.8), Inches(0.22), 
-                           mitigants[i], 8, RGBColor(34, 139, 34))
+            # Mitigant text - IMPROVED SIZING with better alignment
+            add_clean_text(slide, Inches(3.75), y_pos, Inches(2.8), Inches(0.22), 
+                           mitigants[i], 9, RGBColor(34, 139, 34))  # Increased font size from 8 to 9
     
     # TOP RIGHT: Investment Highlights - IMPROVED
     synergy_items = slide_data.get('synergy_opportunities', [])
@@ -1136,80 +1237,80 @@ def render_investor_process_overview_slide(data=None, color_scheme=None, typogra
         
         y_start = Inches(1.85)  # Moved down to match left side
         for i, highlight in enumerate(investment_highlights[:5]):  # Allow 5 highlights
-            y_pos = y_start + Inches(i * 0.34)  # Match spacing with left side
+            y_pos = y_start + Inches(i * 0.42)  # Increased spacing for multi-line content
             
-            # Gold bullet
-            bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(7.15), y_pos, Inches(0.06), Inches(0.06))
+            # Gold bullet - centered vertically with text
+            bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(7.15), y_pos + Inches(0.08), Inches(0.06), Inches(0.06))
             bullet.fill.solid()
             bullet.fill.fore_color.rgb = colors["secondary"]
             bullet.line.fill.background()
             
-            # Highlight text - BETTER SIZING
-            add_clean_text(slide, Inches(7.3), y_pos - Inches(0.05), Inches(5.5), Inches(0.28), 
-                           highlight, 9, colors["text"])
+            # Highlight text - BETTER SIZING with improved alignment
+            add_clean_text(slide, Inches(7.3), y_pos, Inches(5.5), Inches(0.28), 
+                           highlight, 10, colors["text"])  # Increased font size from 9 to 10
     else:
         add_clean_text(slide, Inches(7), Inches(1.5), Inches(5.8), Inches(0.3), 
                        "Synergy Opportunities", 14, colors["primary"], True)
         
         y_start = Inches(1.85)  # Moved down to match
         for i, item in enumerate(synergy_items[:5]):
-            y_pos = y_start + Inches(i * 0.34)  # Match spacing
+            y_pos = y_start + Inches(i * 0.42)  # Increased spacing for multi-line content
             
-            # Gold bullet
-            bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(7.15), y_pos, Inches(0.06), Inches(0.06))
+            # Gold bullet - centered vertically with text
+            bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(7.15), y_pos + Inches(0.08), Inches(0.06), Inches(0.06))
             bullet.fill.solid()
             bullet.fill.fore_color.rgb = colors["secondary"]
             bullet.line.fill.background()
             
-            # Item text
+            # Item text with better alignment
             if isinstance(item, dict):
                 item_text = f"{item.get('title', '')}: {item.get('description', '')}"
             else:
                 item_text = str(item)
-            add_clean_text(slide, Inches(7.3), y_pos - Inches(0.05), Inches(5.5), Inches(0.28), 
-                           item_text, 9, colors["text"])
+            add_clean_text(slide, Inches(7.3), y_pos, Inches(5.5), Inches(0.28), 
+                           item_text, 10, colors["text"])  # Increased font size from 9 to 10
     
     # BOTTOM RIGHT: Process Next Steps - IMPROVED
     timeline_items = slide_data.get('timeline', [])
     
     if not timeline_items:
-        add_clean_text(slide, Inches(7), Inches(3.6), Inches(5.8), Inches(0.3), 
+        add_clean_text(slide, Inches(7), Inches(4.0), Inches(5.8), Inches(0.3), 
                        "Process Next Steps", 14, colors["primary"], True)
         
         next_steps = slide_data.get('next_steps', [])
         
-        y_start = Inches(3.95)  # Moved down slightly to match left side
+        y_start = Inches(4.35)  # Moved down to match left side positioning
         for i, item in enumerate(next_steps[:5]):  # Allow 5 steps
-            y_pos = y_start + Inches(i * 0.28)  # Match spacing with left side
+            y_pos = y_start + Inches(i * 0.35)  # Increased spacing for multi-line content
             
-            # Gold circle marker
-            marker = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(7.15), y_pos, Inches(0.06), Inches(0.06))
+            # Gold circle marker - centered vertically with text
+            marker = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(7.15), y_pos + Inches(0.06), Inches(0.06), Inches(0.06))
             marker.fill.solid()
             marker.fill.fore_color.rgb = colors["secondary"]
             marker.line.fill.background()
             
-            # Combined date and description in one line for better space usage
+            # Combined date and description with better alignment
             combined_text = f"{item.get('date', '')}: {item.get('description', '')}"
-            add_clean_text(slide, Inches(7.3), y_pos - Inches(0.05), Inches(5.5), Inches(0.22), 
-                           combined_text, 8, colors["text"])
+            add_clean_text(slide, Inches(7.3), y_pos, Inches(5.5), Inches(0.22), 
+                           combined_text, 9, colors["text"])  # Increased font size from 8 to 9
     else:
-        add_clean_text(slide, Inches(7), Inches(3.6), Inches(5.8), Inches(0.3), 
+        add_clean_text(slide, Inches(7), Inches(4.0), Inches(5.8), Inches(0.3), 
                        "Transaction Timeline", 14, colors["primary"], True)
         
-        y_start = Inches(3.95)  # Match positioning
+        y_start = Inches(4.35)  # Match positioning with left side
         for i, item in enumerate(timeline_items[:5]):
-            y_pos = y_start + Inches(i * 0.28)  # Match spacing
+            y_pos = y_start + Inches(i * 0.35)  # Increased spacing for multi-line content
             
-            # Gold circle marker
-            marker = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(7.15), y_pos, Inches(0.06), Inches(0.06))
+            # Gold circle marker - centered vertically with text
+            marker = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(7.15), y_pos + Inches(0.06), Inches(0.06), Inches(0.06))
             marker.fill.solid()
             marker.fill.fore_color.rgb = colors["secondary"]
             marker.line.fill.background()
             
-            # Combined date and description
+            # Combined date and description with better alignment
             combined_text = f"{item.get('date', '')}: {item.get('description', '')}"
-            add_clean_text(slide, Inches(7.3), y_pos - Inches(0.05), Inches(5.5), Inches(0.22), 
-                           combined_text, 8, colors["text"])
+            add_clean_text(slide, Inches(7.3), y_pos, Inches(5.5), Inches(0.22), 
+                           combined_text, 9, colors["text"])  # Increased font size from 8 to 9
     
     # Get today's date
     today = datetime.now().strftime("%B %d, %Y")
@@ -1727,17 +1828,17 @@ def render_historical_financial_performance_slide(data=None, color_scheme=None, 
         add_clean_text(slide, Inches(1), covid_y + Inches(0.25 + i * 0.18), Inches(7), Inches(0.16), 
                        f"● {point}", 9, colors["text"])
     
-    # Banker's view section (NO SHADOW)
+    # Banker's view section (NO SHADOW) - EXPANDED COVERAGE
     banker_view = (data or {}).get('banker_view', {})
-    banker_box = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8.5), covid_y, Inches(4.3), Inches(0.7))
+    banker_box = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8.2), covid_y - Inches(0.1), Inches(4.8), Inches(1.0))
     banker_box.fill.solid()
     banker_box.fill.fore_color.rgb = RGBColor(240, 255, 240)  # Light green
     banker_box.line.fill.background()  # Remove outline
     banker_box.shadow.inherit = False  # Remove shadow
     
-    add_clean_text(slide, Inches(8.7), covid_y + Inches(0.05), Inches(3.9), Inches(0.15), 
+    add_clean_text(slide, Inches(8.4), covid_y, Inches(4.4), Inches(0.15), 
                    banker_view.get('title', "BANKER'S VIEW"), 10, RGBColor(34, 139, 34), True)
-    add_clean_text(slide, Inches(8.7), covid_y + Inches(0.2), Inches(3.9), Inches(0.45), 
+    add_clean_text(slide, Inches(8.4), covid_y + Inches(0.2), Inches(4.4), Inches(0.65), 
                    banker_view.get('text', ''), 9, colors["text"])
     
     # Get today's date
@@ -1875,10 +1976,10 @@ def render_business_overview_slide(data=None, color_scheme=None, typography=None
     except Exception as e:
         print(f"[DEBUG] Timeline creation error: {e}")
     
-    # Operational Highlights box - REPOSITIONED FOR 16:9
+    # Operational Highlights box - MOVED DOWN TO AVOID OVERLAP
     try:
-        highlights_bg = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8.2), Inches(1.3), 
-                                               Inches(4.5), Inches(3.5))  # Taller box
+        highlights_bg = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8.2), Inches(2.8), 
+                                               Inches(4.5), Inches(3.5))  # Moved down from 1.3 to 2.8
         highlights_bg.fill.solid()
         highlights_bg.fill.fore_color.rgb = colors["light_grey"]
         highlights_bg.line.fill.background()
@@ -1886,10 +1987,10 @@ def render_business_overview_slide(data=None, color_scheme=None, typography=None
         
         # Highlights title
         highlights_title = slide_data.get('highlights_title', 'Key Operational Highlights')
-        add_clean_text(slide, Inches(8.4), Inches(1.4), Inches(4.1), Inches(0.3), 
+        add_clean_text(slide, Inches(8.4), Inches(2.9), Inches(4.1), Inches(0.3), 
                        highlights_title, 14, colors["primary"], True, PP_ALIGN.CENTER)
         
-        # Highlight items with bullets - BETTER SPACING
+        # Highlight items with bullets - BETTER SPACING AND ALIGNMENT
         highlights = slide_data.get('highlights', [
             '15 premium clinic locations across Southeast Asia',
             '18,000+ active patients with high retention rates',
@@ -1900,16 +2001,16 @@ def render_business_overview_slide(data=None, color_scheme=None, typography=None
         ])
         
         for i, item in enumerate(highlights[:6]):  # Max 6 items to fit properly
-            y_pos = Inches(1.8 + i * 0.4)  # More spacing between items
+            y_pos = Inches(3.3 + i * 0.4)  # Adjusted for new position
             
-            # Gold bullet
-            bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(8.5), y_pos, Inches(0.06), Inches(0.06))
+            # Gold bullet - aligned with text baseline
+            bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(8.5), y_pos + Inches(0.05), Inches(0.06), Inches(0.06))
             bullet.fill.solid()
             bullet.fill.fore_color.rgb = colors["secondary"]
             bullet.line.fill.background()
             
             # Text
-            add_clean_text(slide, Inches(8.65), y_pos - Inches(0.05), Inches(3.8), Inches(0.35), 
+            add_clean_text(slide, Inches(8.65), y_pos, Inches(3.8), Inches(0.35), 
                            item, 10, colors["text"])
     except Exception as e:
         print(f"[DEBUG] Highlights section error: {e}")
@@ -1936,34 +2037,34 @@ def render_business_overview_slide(data=None, color_scheme=None, typography=None
         for i, service in enumerate(services[:6]):  # Max 6 services
             if i < items_per_col:  # Left column
                 x_pos = Inches(1)
-                y_pos = Inches(3.8 + i * 0.35)
+                y_pos = Inches(3.8 + i * 0.55)  # Increased from 0.35 to 0.55
             else:  # Right column
                 x_pos = Inches(4.2)
-                y_pos = Inches(3.8 + (i - items_per_col) * 0.35)
+                y_pos = Inches(3.8 + (i - items_per_col) * 0.55)  # Increased from 0.35 to 0.55
             
-            # Gold bullet
-            bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, x_pos, y_pos, Inches(0.05), Inches(0.05))
+            # Gold bullet - aligned with text baseline
+            bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, x_pos, y_pos + Inches(0.05), Inches(0.05), Inches(0.05))
             bullet.fill.solid()
             bullet.fill.fore_color.rgb = colors["secondary"]
             bullet.line.fill.background()
             
-            # Text
-            add_clean_text(slide, x_pos + Inches(0.15), y_pos - Inches(0.05), Inches(2.8), Inches(0.25), 
+            # Text - increased height for multi-line content
+            add_clean_text(slide, x_pos + Inches(0.15), y_pos, Inches(2.8), Inches(0.45), 
                            service, 10, colors["text"])
     except Exception as e:
         print(f"[DEBUG] Services section error: {e}")
     
-    # Strategic Positioning section - REPOSITIONED TO AVOID OVERLAP
+    # Strategic Positioning section - REPOSITIONED TO AVOID OVERLAP WITH EXPANDED SERVICES
     try:
         positioning_title = slide_data.get('positioning_title', 'Strategic Market Positioning')
-        add_clean_text(slide, Inches(0.8), Inches(5.8), Inches(7), Inches(0.3), 
+        add_clean_text(slide, Inches(0.8), Inches(6.2), Inches(7), Inches(0.3), 
                        positioning_title, 14, colors["primary"], True)
         
         positioning_desc = slide_data.get('positioning_desc', 
             'The company has established itself as the leading premium healthcare provider in Southeast Asia, '
             'serving both individual patients and corporate clients with comprehensive medical services and exceptional care standards.')
         
-        add_clean_text(slide, Inches(0.8), Inches(6.2), Inches(11.5), Inches(0.6), 
+        add_clean_text(slide, Inches(0.8), Inches(6.6), Inches(11.5), Inches(0.6), 
                        positioning_desc, 11, colors["text"])
     except Exception as e:
         print(f"[DEBUG] Positioning section error: {e}")
@@ -2059,17 +2160,17 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
     chart_title_para.font.bold = True
     chart_title_para.alignment = PP_ALIGN.CENTER
     
-    # Simple bar representation using rectangles
+    # Simple bar representation using rectangles - ADJUSTED POSITIONING
     num_transactions = len(transactions)
-    bar_area_left = Inches(2.0)
-    bar_area_width = Inches(9.0)
+    bar_area_left = Inches(1.75)  # Moved slightly left
+    bar_area_width = Inches(9.5)  # Increased width
     bar_width = bar_area_width / num_transactions
-    bar_top = Inches(2.2)
+    bar_top = Inches(2.3)  # Moved down to avoid title overlap
     
     for i, transaction in enumerate(transactions):
         multiple = transaction.get('ev_revenue_multiple', 0)
-        # Scale bar height (max 2 inches for 3.0x multiple)
-        bar_height = Inches(multiple * 0.6) if multiple > 0 else Inches(0.1)
+        # Scale bar height (max 1.5 inches for better spacing)
+        bar_height = Inches(multiple * 0.45) if multiple > 0 else Inches(0.1)
         
         bar_left = bar_area_left + (bar_width * i) + Inches(0.05)  # Small margin
         bar_actual_width = bar_width - Inches(0.1)  # Space between bars
@@ -2077,7 +2178,7 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
         # Create bar rectangle
         bar_shape = slide.shapes.add_shape(
             MSO_SHAPE.RECTANGLE,
-            bar_left, bar_top + Inches(2.0) - bar_height, bar_actual_width, bar_height
+            bar_left, bar_top + Inches(1.5) - bar_height, bar_actual_width, bar_height
         )
         bar_shape.fill.solid()
         bar_shape.fill.fore_color.rgb = colors["primary"]
@@ -2086,8 +2187,8 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
         # Add value label
         if multiple > 0:
             label_shape = slide.shapes.add_textbox(
-                bar_left, bar_top + Inches(2.0) - bar_height - Inches(0.3), 
-                bar_actual_width, Inches(0.25)
+                bar_left, bar_top + Inches(1.5) - bar_height - Inches(0.25), 
+                bar_actual_width, Inches(0.2)
             )
             label_frame = label_shape.text_frame
             label_frame.text = f"{multiple:.1f}x"
@@ -2099,7 +2200,7 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
         
         # Add T1, T2, etc. labels
         t_label_shape = slide.shapes.add_textbox(
-            bar_left, bar_top + Inches(2.1), bar_actual_width, Inches(0.25)
+            bar_left, bar_top + Inches(1.6), bar_actual_width, Inches(0.2)
         )
         t_label_frame = t_label_shape.text_frame
         t_label_frame.text = f"T{i+1}"
@@ -2108,17 +2209,17 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
         t_label_para.font.size = Pt(9)
         t_label_para.alignment = PP_ALIGN.CENTER
     
-    # Create table
+    # Create table - REPOSITIONED TO AVOID OVERLAP
     row_labels = ['Date', 'Target', 'Acquirer', 'Country', 'EV ($M)', 'Revenue ($M)', 'EV/Revenue']
     num_rows = len(row_labels)
     
-    # Table positioning - aligned with bars
-    labels_left = Inches(0.5)
-    labels_width = Inches(1.4)
-    table_left = Inches(2.0)  # Same as bar area
-    table_top = Inches(4.8)
-    table_width = Inches(9.0)  # Same as bar area
-    row_height = Inches(0.35)
+    # Table positioning - moved down to avoid chart overlap
+    labels_left = Inches(0.4)
+    labels_width = Inches(1.3)
+    table_left = Inches(1.75)  # Aligned with chart area
+    table_top = Inches(4.8)  # Moved down further to avoid overlap
+    table_width = Inches(9.5)  # Match chart width
+    row_height = Inches(0.30)  # Reduced height to fit better
     
     # Create row labels table
     labels_table = slide.shapes.add_table(
@@ -2303,9 +2404,9 @@ def render_valuation_overview_slide(data=None, color_scheme=None, typography=Non
     # STANDARDIZED: Apply header and title
     _apply_standard_header_and_title(slide, title_text, brand_config, company_name)
     
-    # Add subtitle header for EBITDA columns
-    sub_header_x = Inches(7.8)
-    sub_header_width = Inches(4.0)
+    # Add subtitle header centered across the slide
+    sub_header_x = Inches(1.0)
+    sub_header_width = Inches(11.2)  # Full slide width minus margins
     sub_header_box = slide.shapes.add_textbox(sub_header_x, Inches(1.1), sub_header_width, Inches(0.25))
     sub_header_frame = sub_header_box.text_frame
     sub_header_frame.text = subtitle_text
@@ -2368,7 +2469,7 @@ def render_valuation_overview_slide(data=None, color_scheme=None, typography=Non
         current_x += width
     
     # Create data rows with better formatting
-    row_height = Inches(0.8)  # Increased height for better text formatting
+    row_height = Inches(1.2)  # Further increased height to prevent content overflow
     current_y = table_start_y + header_height
     
     # Track methodology sections
@@ -2378,6 +2479,7 @@ def render_valuation_overview_slide(data=None, color_scheme=None, typography=Non
     section_row_count = 0
     
     for row_idx, row_data in enumerate(valuation_data):
+        print(f"[DEBUG] Processing valuation row {row_idx}: {row_data}")
         current_x = table_start_x
         
         # Determine row color
@@ -2461,23 +2563,56 @@ def render_valuation_overview_slide(data=None, color_scheme=None, typography=Non
             para.font.color.rgb = text_color
             para.line_spacing = 1.1  # Better line spacing
             
-            # Handle long commentary text with better formatting
-            if col_idx == 1 and len(cell_text) > 80:
-                # Split at natural break points
-                if '. ' in cell_text:
-                    sentences = cell_text.split('. ')
-                    para.text = sentences[0] + '.'
-                    
-                    for sentence in sentences[1:]:
-                        if sentence.strip():
-                            new_para = cell_text_frame.add_paragraph()
-                            new_para.text = sentence + ('.' if not sentence.endswith('.') else '')
-                            new_para.alignment = alignment
-                            new_para.font.name = fonts["primary_font"]
-                            new_para.font.size = font_size
-                            new_para.font.bold = bold
-                            new_para.font.color.rgb = text_color
-                            new_para.line_spacing = 1.1
+            # Handle text wrapping for all columns based on content length and cell width
+            def wrap_text_in_cell(text, max_chars_per_line):
+                """Wrap text to fit within cell boundaries"""
+                if len(text) <= max_chars_per_line:
+                    return text
+                
+                words = text.split(' ')
+                lines = []
+                current_line = []
+                current_length = 0
+                
+                for word in words:
+                    if current_length + len(word) + 1 <= max_chars_per_line:
+                        current_line.append(word)
+                        current_length += len(word) + 1
+                    else:
+                        if current_line:
+                            lines.append(' '.join(current_line))
+                        current_line = [word]
+                        current_length = len(word)
+                
+                if current_line:
+                    lines.append(' '.join(current_line))
+                
+                return '\n'.join(lines)
+            
+            # Determine max characters per line based on column width and font size
+            if col_idx == 0:  # Methodology
+                max_chars = 18
+            elif col_idx == 1:  # Commentary - widest column
+                max_chars = 45
+            elif col_idx == 2:  # Enterprise Value
+                max_chars = 15
+            elif col_idx == 3:  # Metric
+                max_chars = 12
+            else:  # 22A' and 23E columns
+                max_chars = 10
+            
+            # Apply text wrapping if needed
+            if len(cell_text) > max_chars:
+                wrapped_text = wrap_text_in_cell(cell_text, max_chars)
+                para.text = wrapped_text
+                
+                # Adjust font size for wrapped text to ensure it fits
+                if '\n' in wrapped_text:
+                    line_count = wrapped_text.count('\n') + 1
+                    if line_count > 2:
+                        para.font.size = Pt(8)  # Smaller font for multi-line text
+                    elif line_count > 1:
+                        para.font.size = Pt(9)  # Slightly smaller for two lines
             
             current_x += width
         
@@ -2487,13 +2622,15 @@ def render_valuation_overview_slide(data=None, color_scheme=None, typography=Non
     if current_section is not None:
         methodology_sections.append((current_section, section_start_y, section_row_count, get_section_color(current_section, colors)))
     
-    # Add vertical methodology labels
-    label_x = Inches(0.2)
-    label_width = Inches(0.9)
+    # Add vertical methodology labels - positioned to align with the methodology column
+    label_x = Inches(0.2)  # Position to the left of the table
+    label_width = Inches(0.9)  # Width to reach the table edge
     
+    print(f"[DEBUG] Adding {len(methodology_sections)} methodology sections")
     for section_type, start_y, row_count, section_color in methodology_sections:
         section_height = row_count * row_height
         section_name = get_section_name(section_type)
+        print(f"[DEBUG] Adding section: {section_name} at y={start_y}, height={section_height}, color={section_color}")
         
         # Background rectangle
         bg = slide.shapes.add_shape(
@@ -2503,19 +2640,23 @@ def render_valuation_overview_slide(data=None, color_scheme=None, typography=Non
         bg.fill.solid()
         bg.fill.fore_color.rgb = section_color
         bg.line.color.rgb = section_color
+        bg.line.width = Pt(0.5)
         
-        # Section label text
+        # Section label text - make it more visible
         text_box = slide.shapes.add_textbox(label_x, start_y, label_width, section_height)
         text_frame = text_box.text_frame
         text_frame.text = section_name
         text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
-        text_frame.margin_left = Inches(0.05)
-        text_frame.margin_right = Inches(0.05)
+        text_frame.margin_left = Inches(0.02)
+        text_frame.margin_right = Inches(0.02)
+        text_frame.margin_top = Inches(0.02)
+        text_frame.margin_bottom = Inches(0.02)
+        text_frame.word_wrap = True
         
         para = text_frame.paragraphs[0]
         para.alignment = PP_ALIGN.CENTER
         para.font.name = fonts["primary_font"]
-        para.font.size = Pt(8)
+        para.font.size = Pt(9)  # Slightly larger font
         para.font.bold = True
         para.font.color.rgb = colors["background"]
     
@@ -2626,8 +2767,7 @@ def render_growth_strategy_slide(data=None, color_scheme=None, typography=None, 
     projections = slide_data.get('financial_projections', {})
     if projections:
         chart_title = projections.get('chart_title', 'Revenue & EBITDA Projections')
-        add_clean_text(slide, Inches(7.5), Inches(1.4), Inches(5.5), Inches(0.3), 
-                       chart_title, 14, colors["primary"], True)
+        # Chart title will be added below the chart
         
         # Create chart if we have data
         categories = projections.get('categories', [])
@@ -2641,19 +2781,26 @@ def render_growth_strategy_slide(data=None, color_scheme=None, typography=None, 
                 chart_data.add_series('Revenue (USD millions)', revenue_data)
                 chart_data.add_series('EBITDA (USD millions)', ebitda_data)
                 
-                # Add chart
+                # Add chart - MOVED UP and DISABLED LEGEND to prevent overlap
                 chart_left = Inches(7.5)
-                chart_top = Inches(1.8)
+                chart_top = Inches(1.4)  # Moved up from 1.8 to 1.4
                 chart_width = Inches(5.5)
-                chart_height = Inches(2.5)
+                chart_height = Inches(2.2)  # Increased back to 2.2 since no legend
                 
                 chart_shape = slide.shapes.add_chart(
                     XL_CHART_TYPE.COLUMN_CLUSTERED, chart_left, chart_top, chart_width, chart_height, chart_data
                 )
                 
                 chart = chart_shape.chart
-                chart.has_legend = True
-                chart.legend.position = XL_LEGEND_POSITION.BOTTOM
+                chart.has_legend = False  # DISABLED legend to prevent overlap
+                
+                # Add chart title below the chart
+                add_clean_text(slide, Inches(7.5), Inches(3.6), Inches(5.5), Inches(0.2), 
+                               chart_title, 12, colors["primary"], True)
+                
+                # Add manual legend as text below chart title
+                add_clean_text(slide, Inches(7.5), Inches(3.9), Inches(5.5), Inches(0.2), 
+                               "■ Revenue (USD millions)  ■ EBITDA (USD millions)", 10, colors["text"])
                 
                 # Style chart
                 series = chart.series
@@ -2670,10 +2817,10 @@ def render_growth_strategy_slide(data=None, color_scheme=None, typography=None, 
                 add_clean_text(slide, Inches(7.5), Inches(2.5), Inches(5.5), Inches(1), 
                                "Financial projections chart will be displayed here.", 12, colors["text"])
     
-    # Key Assumptions
+    # Key Assumptions - MOVED UP to reduce empty spacing
     assumptions = slide_data.get('key_assumptions', {})
     if assumptions:
-        add_clean_text(slide, Inches(0.5), Inches(4.8), Inches(12.5), Inches(0.3), 
+        add_clean_text(slide, Inches(0.5), Inches(4.4), Inches(12.5), Inches(0.3), 
                        assumptions.get('title', 'Key Planning Assumptions'), 14, colors["primary"], True)
         
         assumption_items = assumptions.get('assumptions', [])
@@ -2683,7 +2830,7 @@ def render_growth_strategy_slide(data=None, color_scheme=None, typography=None, 
         
         # Left column
         for i, assumption in enumerate(left_items):
-            y_pos = Inches(5.2 + i * 0.3)
+            y_pos = Inches(4.8 + i * 0.3)
             
             bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(0.7), y_pos, Inches(0.05), Inches(0.05))
             bullet.fill.solid()
@@ -2695,7 +2842,7 @@ def render_growth_strategy_slide(data=None, color_scheme=None, typography=None, 
         
         # Right column
         for i, assumption in enumerate(right_items):
-            y_pos = Inches(5.2 + i * 0.3)
+            y_pos = Inches(4.8 + i * 0.3)
             
             bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(7.2), y_pos, Inches(0.05), Inches(0.05))
             bullet.fill.solid()
@@ -2844,7 +2991,7 @@ def render_buyer_profiles_slide(data=None, color_scheme=None, typography=None, c
                 paragraph.alignment = PP_ALIGN.CENTER
                 for run in paragraph.runs:
                     run.font.name = fonts["primary_font"]
-                    run.font.size = fonts["body_size"]
+                    run.font.size = Pt(12)
                     run.font.bold = True
                     run.font.color.rgb = colors["background"]
         
@@ -2890,7 +3037,7 @@ def render_buyer_profiles_slide(data=None, color_scheme=None, typography=None, c
                         paragraph.alignment = PP_ALIGN.LEFT
                         for run in paragraph.runs:
                             run.font.name = fonts["primary_font"]
-                            run.font.size = Pt(9)
+                            run.font.size = Pt(11)
                             run.font.color.rgb = colors["text"]
                             # Make first column (buyer name) bold
                             if j == 0:
