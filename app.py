@@ -2535,8 +2535,9 @@ def extract_and_validate_jsons(response_text):
     # Add structure issues to critical issues if structure is invalid
     if not structure_validation['content_ir_valid'] or not structure_validation['render_plan_valid']:
         validation_results['critical_issues'].extend(structure_validation['structure_issues'])
-        validation_results['critical_issues'].extend(structure_validation['missing_sections'])
-        validation_results['critical_issues'].extend(structure_validation['field_mismatches'])
+        if 'missing_sections' in structure_validation:
+            validation_results['critical_issues'].extend(structure_validation['missing_sections'])
+        # Note: field_mismatches key doesn't exist in structure_validation, removed to fix KeyError
         validation_results['overall_valid'] = False
     
     # Calculate quality scores
@@ -3249,6 +3250,11 @@ Please ensure both JSONs are complete and properly formatted.
                             st.session_state["files_ready"] = True
                             st.session_state["files_data"] = files_data
                             
+                            # AUTO-POPULATE JSON EDITOR: Automatically validate and save to session
+                            st.session_state["auto_populated"] = True
+                            st.success("🚀 **Auto-Population Complete!** JSONs have been automatically populated in the JSON Editor tab and are ready for execution.")
+                            st.info("💡 **No manual copy-paste needed!** Switch to the Execute tab to generate your pitch deck directly.")
+                            
                             # Show download section
                             st.markdown("---")
                             st.subheader("📁 Download Your Pitch Deck Files")
@@ -3369,17 +3375,115 @@ Please generate both complete JSON structures now with full validation complianc
 
 with tab_json:
     st.subheader("📄 JSON Editor")
-    st.info("💡 **Tip**: Use the AI Copilot to generate the JSON, then copy it here for manual editing if needed")
     
-    # Show file status if files are ready
-    if st.session_state.get("files_ready", False):
+    # Check if JSONs were auto-populated from AI Copilot
+    auto_populated = st.session_state.get("auto_populated", False)
+    files_ready = st.session_state.get("files_ready", False)
+    
+    if auto_populated and files_ready:
         files_data = st.session_state.get("files_data", {})
-        st.success(f"🎉 Using auto-generated files for {files_data.get('company_name', 'your company')}")
+        st.success(f"🚀 **Auto-Populated!** JSONs from AI Copilot for {files_data.get('company_name', 'your company')}")
+        st.info("✅ **No manual copy-paste required!** Your JSONs have been automatically populated, validated, and saved.")
         
-        with st.expander("📋 Generated Files Summary"):
+        with st.expander("📋 Auto-Generated Files Summary"):
             st.write(f"**Content IR:** {files_data.get('content_ir_filename', 'N/A')}")
             st.write(f"**Render Plan:** {files_data.get('render_plan_filename', 'N/A')}")
             st.write(f"**Timestamp:** {files_data.get('timestamp', 'N/A')}")
+            
+        # Auto-validate the populated JSONs
+        content_ir_str = st.session_state.get("generated_content_ir", "{}")
+        render_plan_str = st.session_state.get("generated_render_plan", "{}")
+        
+        try:
+            # Clean JSONs before parsing
+            cleaned_content_ir = clean_json_string(content_ir_str) if content_ir_str.strip() else "{}"
+            cleaned_render_plan = clean_json_string(render_plan_str) if render_plan_str.strip() else "{}"
+            
+            content_ir = json.loads(cleaned_content_ir)
+            render_plan = json.loads(cleaned_render_plan)
+            
+            if content_ir and render_plan:
+                # Perform comprehensive validation
+                validation_results = validate_individual_slides(content_ir, render_plan)
+                is_valid = display_validation_results(validation_results)
+                
+                if is_valid:
+                    st.success("✅ **Auto-Validation Passed!** Both JSONs are valid and ready for execution.")
+                    
+                    # Automatically save validated JSONs to session state
+                    st.session_state["generated_content_ir"] = json.dumps(content_ir, indent=2)
+                    st.session_state["generated_render_plan"] = json.dumps(render_plan, indent=2)
+                    st.session_state["jsons_validated"] = True
+                    
+                    # Show quick summary
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.metric("Content IR Status", "✅ Valid", f"{len(str(content_ir))} chars")
+                    with col2:
+                        slides_count = len(render_plan.get('slides', []))
+                        st.metric("Render Plan Status", "✅ Valid", f"{slides_count} slides")
+                else:
+                    st.error("❌ **Auto-Validation Failed!** Please check the validation results above.")
+                    st.session_state["manual_edit_mode"] = True
+                    
+                # Quick action buttons
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    if st.button("🚀 Generate Deck Now", type="primary"):
+                        st.success("✅ Ready for execution! Switch to the Execute tab to generate your pitch deck.")
+                        st.balloons()
+                with col2:
+                    if st.button("👀 Preview JSONs"):
+                        st.session_state["show_json_preview"] = True
+                        st.rerun()
+                with col3:
+                    if st.button("✏️ Manual Edit Mode"):
+                        st.session_state["manual_edit_mode"] = True
+                        st.rerun()
+                        
+        except Exception as e:
+            st.error(f"❌ Auto-validation failed: {e}")
+            st.session_state["manual_edit_mode"] = True
+    else:
+        st.info("💡 **Tip**: Use the AI Copilot to generate JSONs, and they'll automatically populate here!")
+    
+    # Show JSON preview if requested
+    if st.session_state.get("show_json_preview", False):
+        st.markdown("---")
+        st.subheader("👀 JSON Preview")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.caption("Content IR JSON")
+            content_ir_preview = st.session_state.get("generated_content_ir", "{}")
+            st.code(content_ir_preview[:1000] + "..." if len(content_ir_preview) > 1000 else content_ir_preview, language="json")
+            
+        with col2:
+            st.caption("Render Plan JSON")
+            render_plan_preview = st.session_state.get("generated_render_plan", "{}")
+            st.code(render_plan_preview[:1000] + "..." if len(render_plan_preview) > 1000 else render_plan_preview, language="json")
+            
+        if st.button("❌ Close Preview"):
+            st.session_state["show_json_preview"] = False
+            st.rerun()
+    
+    # Always show JSON Editor (with auto-populated content when available)
+    st.markdown("---")
+    if auto_populated and files_ready:
+        st.subheader("📝 JSON Editor (Auto-Populated)")
+        st.info("✅ **JSONs have been automatically populated below!** You can edit them if needed or proceed directly to Execute.")
+    else:
+        st.subheader("✏️ Manual JSON Editor")
+        
+        # Show file status if files are ready but not auto-populated
+        if files_ready and not auto_populated:
+            files_data = st.session_state.get("files_data", {})
+            st.success(f"🎉 Using generated files for {files_data.get('company_name', 'your company')}")
+            
+            with st.expander("📋 Generated Files Summary"):
+                st.write(f"**Content IR:** {files_data.get('content_ir_filename', 'N/A')}")
+                st.write(f"**Render Plan:** {files_data.get('render_plan_filename', 'N/A')}")
+                st.write(f"**Timestamp:** {files_data.get('timestamp', 'N/A')}")
     
     col1, col2 = st.columns(2)
     
@@ -3494,10 +3598,16 @@ with tab_json:
 with tab_execute:
     st.subheader("⚙️ Generate Pitch Deck")
     
-    # Check if files are ready
+    # Check automation status
+    auto_populated = st.session_state.get("auto_populated", False)
+    jsons_validated = st.session_state.get("jsons_validated", False)
     files_ready = st.session_state.get("files_ready", False)
     
-    if files_ready:
+    # Show automation status
+    if auto_populated and jsons_validated:
+        st.success("🚀 **Fully Automated Workflow Complete!** JSONs auto-populated, validated, and ready for execution.")
+        st.info("✅ **No manual steps required** - Your pitch deck is ready to generate!")
+    elif files_ready:
         files_data = st.session_state.get("files_data", {})
         st.success(f"🎉 Using generated files for {files_data.get('company_name', 'your company')}")
         
