@@ -3427,19 +3427,19 @@ with tab_json:
                     st.session_state["manual_edit_mode"] = True
                     
                 # Quick action buttons
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    if st.button("🚀 Generate Deck Now", type="primary"):
-                        st.success("✅ Ready for execution! Switch to the Execute tab to generate your pitch deck.")
-                        st.balloons()
-                with col2:
-                    if st.button("👀 Preview JSONs"):
-                        st.session_state["show_json_preview"] = True
-                        st.rerun()
-                with col3:
-                    if st.button("✏️ Manual Edit Mode"):
-                        st.session_state["manual_edit_mode"] = True
-                        st.rerun()
+                # col1, col2, col3 = st.columns(3)
+                # with col1:
+                #     if st.button("🚀 Generate Deck Now", type="primary"):
+                #         st.success("✅ Ready for execution! Switch to the Execute tab to generate your pitch deck.")
+                #         st.balloons()
+                # with col2:
+                #     if st.button("👀 Preview JSONs"):
+                #         st.session_state["show_json_preview"] = True
+                #         st.rerun()
+                # with col3:
+                #     if st.button("✏️ Manual Edit Mode"):
+                #         st.session_state["manual_edit_mode"] = True
+                #         st.rerun()
                         
         except Exception as e:
             st.error(f"❌ Auto-validation failed: {e}")
