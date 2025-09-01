@@ -2939,14 +2939,17 @@ with st.sidebar:
             colors = brand_config.get('color_scheme', {})
             primary = colors.get('primary')
             
-            if hasattr(primary, 'r'):
-                # Check if we got custom colors or defaults
-                if primary.r == 24 and primary.g == 58 and primary.b == 88:
+            # Check if we got custom colors or defaults
+            if isinstance(primary, tuple) and len(primary) == 3:
+                r, g, b = primary
+                if r == 24 and g == 58 and b == 88:
                     st.warning("⚠️ Using default colors - no distinct brand colors detected")
                     if use_llm:
                         st.info("💡 Try uploading a deck with more prominent brand colors or logos")
                 else:
                     st.success("✅ Brand elements extracted successfully!")
+            else:
+                st.success("✅ Brand elements extracted successfully!")
             
             # Show extracted colors
             st.write("**🎨 Extracted Brand Colors:**")
@@ -2956,8 +2959,9 @@ with st.sidebar:
             for i, name in enumerate(color_display_order):
                 if name in colors:
                     color = colors[name]
-                    if hasattr(color, 'r'):
-                        hex_color = f"#{color.r:02x}{color.g:02x}{color.b:02x}"
+                    if isinstance(color, tuple) and len(color) == 3:
+                        r, g, b = color
+                        hex_color = f"#{r:02x}{g:02x}{b:02x}"
                         with color_cols[i % 2]:
                             col1, col2 = st.columns([1, 2])
                             with col1:
@@ -2968,7 +2972,7 @@ with st.sidebar:
                                     key=f"color_{name}"
                                 )
                             with col2:
-                                st.caption(f"RGB({color.r}, {color.g}, {color.b})")
+                                st.caption(f"RGB({r}, {g}, {b})")
             
             # Show typography if available
             typography = brand_config.get('typography', {})

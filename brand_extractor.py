@@ -694,7 +694,16 @@ class BrandExtractor:
         """Convert RGBColor to hex string for debugging"""
         if hasattr(rgb_color, 'r'):
             return f"#{rgb_color.r:02x}{rgb_color.g:02x}{rgb_color.b:02x}"
-        return str(rgb_color)
+        elif isinstance(rgb_color, str):
+            # RGBColor is actually a hex string like "0070C0"
+            return f"#{rgb_color}"
+        else:
+            # Handle RGBColor object (can be unpacked as tuple)
+            try:
+                r, g, b = rgb_color
+                return f"#{r:02x}{g:02x}{b:02x}"
+            except (ValueError, TypeError):
+                return str(rgb_color)
     
     def _extract_colors(self, prs: Presentation) -> Dict:
         """Extract color scheme from the presentation - IMPROVED VERSION"""
@@ -729,41 +738,114 @@ class BrandExtractor:
         colors = {}
         color_candidates = {'primary': [], 'secondary': [], 'accent': [], 'text': []}
         
+        print(f"[BRAND DEBUG] Starting color extraction from {len(prs.slides)} slides...")
+        
         try:
-            for slide_idx, slide in enumerate(prs.slides[:10]):
-                for shape in slide.shapes:
+            for slide_idx, slide in enumerate(prs.slides):
+                print(f"[BRAND DEBUG] Processing slide {slide_idx + 1} with {len(slide.shapes)} shapes")
+                
+                for shape_idx, shape in enumerate(slide.shapes):
+                    print(f"[BRAND DEBUG] Processing shape {shape_idx}: {type(shape).__name__}")
+                    
                     try:
                         if hasattr(shape, 'fill'):
+                            print(f"[BRAND DEBUG] Shape has fill attribute")
                             fill_color = self._get_fill_color(shape.fill)
+                            print(f"[BRAND DEBUG] Extracted fill color: {fill_color}")
+                            
                             if fill_color and not self._is_default_color(fill_color):
+                                print(f"[BRAND DEBUG] Fill color passed default check: {fill_color}")
                                 color_role = self._determine_color_role(shape, prs)
                                 color_candidates[color_role].append(fill_color)
+                                print(f"[BRAND DEBUG] Added fill color {fill_color} to {color_role}")
+                            else:
+                                print(f"[BRAND DEBUG] Fill color failed default check or is None")
                         
                         if hasattr(shape, 'text_frame') and shape.text_frame:
+                            print(f"[BRAND DEBUG] Shape has text frame")
                             text_colors = self._extract_text_colors(shape.text_frame)
+                            print(f"[BRAND DEBUG] Extracted text colors: {text_colors}")
+                            
                             for role, color in text_colors.items():
-                                color_candidates[role].append(color)
+                                if color and not self._is_default_color(color):
+                                    print(f"[BRAND DEBUG] Text color passed default check: {color}")
+                                    color_candidates[role].append(color)
+                                    print(f"[BRAND DEBUG] Added text color {color} to {role}")
+                                else:
+                                    print(f"[BRAND DEBUG] Text color failed default check or is None")
                                 
-                    except Exception:
+                    except Exception as e:
+                        print(f"[BRAND DEBUG] Error processing shape {shape_idx}: {str(e)}")
                         continue
+                        
+                # Limit to first 10 slides to avoid performance issues
+                if slide_idx >= 9:
+                    break
         except Exception as e:
+            print(f"[BRAND DEBUG] Error in color extraction: {str(e)}")
             return None
+        
+        print(f"[BRAND DEBUG] Color candidates: {color_candidates}")
         
         for role, candidate_colors in color_candidates.items():
             if candidate_colors:
                 colors[role] = candidate_colors[0]
+                print(f"[BRAND DEBUG] Selected {role} color: {candidate_colors[0]}")
         
+        print(f"[BRAND DEBUG] Final extracted colors: {colors}")
         return colors if colors else None
     
-    def _get_fill_color(self, fill) -> Optional[RGBColor]:
-        """Extract fill color from a shape fill"""
+    def _get_fill_color(self, fill) -> Optional[str]:
+        """Extract fill color from a shape fill - FIXED VERSION"""
         try:
+            if not fill:
+                return None
+                
+            print(f"[BRAND DEBUG] Fill type: {getattr(fill, 'type', 'unknown')}")
+            
+            # Check for solid fill (type 1)
             if hasattr(fill, 'type') and fill.type == 1:
-                if hasattr(fill, 'fore_color') and hasattr(fill.fore_color, 'rgb'):
+                if hasattr(fill, 'fore_color') and fill.fore_color:
+                    if hasattr(fill.fore_color, 'rgb') and fill.fore_color.rgb:
+                        print(f"[BRAND DEBUG] Found solid fill color: {fill.fore_color.rgb}")
+                        return fill.fore_color.rgb
+                    elif hasattr(fill.fore_color, 'theme_color'):
+                        # Convert theme color to RGB
+                        theme_color = fill.fore_color.theme_color
+                        print(f"[BRAND DEBUG] Found theme color: {theme_color}")
+                        return self._theme_color_to_hex(theme_color)
+            
+            # Generic check for any color
+            if hasattr(fill, 'fore_color') and fill.fore_color:
+                if hasattr(fill.fore_color, 'rgb') and fill.fore_color.rgb:
+                    print(f"[BRAND DEBUG] Found generic fore color: {fill.fore_color.rgb}")
                     return fill.fore_color.rgb
-        except Exception:
-            pass
+                    
+        except Exception as e:
+            print(f"[BRAND DEBUG] Error extracting fill color: {str(e)}")
+        
         return None
+    
+    def _theme_color_to_hex(self, theme_color):
+        """Convert theme color index to hex string"""
+        theme_colors = {
+            1: "FF0000",      # Red
+            2: "00FF00",      # Green
+            3: "0000FF",      # Blue
+            4: "FFFF00",      # Yellow
+            5: "FF00FF",      # Magenta
+            6: "00FFFF",       # Cyan
+            7: "800000",       # Dark Red
+            8: "008000",       # Dark Green
+            9: "000080",       # Dark Blue
+            10: "808000",      # Dark Yellow
+            11: "800080",      # Dark Magenta
+            12: "008080",      # Dark Cyan
+            13: "000000",      # Black
+            14: "808080",      # Gray
+            15: "FFFFFF",      # White
+        }
+        return theme_colors.get(theme_color, "000000")
     
     def _extract_text_colors(self, text_frame) -> Dict[str, RGBColor]:
         """Extract colors from text in a text frame"""
@@ -804,13 +886,34 @@ class BrandExtractor:
         except Exception:
             return 'primary'
     
-    def _is_default_color(self, color: RGBColor) -> bool:
-        """Check if a color is a default/common color to ignore"""
+    def _is_default_color(self, color) -> bool:
+        """Check if a color is a default/common color to ignore - ENHANCED"""
         if not color:
             return True
-        return ((color.r == 255 and color.g == 255 and color.b == 255) or
-                (color.r == 0 and color.g == 0 and color.b == 0) or
-                (color.r > 240 and color.g > 240 and color.b > 240))
+        
+        # Handle string-based RGBColor
+        if isinstance(color, str):
+            # Convert hex string to RGB values
+            try:
+                if len(color) == 6:
+                    r = int(color[0:2], 16)
+                    g = int(color[2:4], 16)
+                    b = int(color[4:6], 16)
+                else:
+                    return True
+            except:
+                return True
+        else:
+            # Handle RGBColor object (can be unpacked as tuple)
+            try:
+                r, g, b = color
+            except (ValueError, TypeError):
+                return True
+        
+        # More permissive filtering - only filter out pure white, pure black, and very light grays
+        return ((r == 255 and g == 255 and b == 255) or  # Pure white
+                (r == 0 and g == 0 and b == 0) or        # Pure black
+                (r > 250 and g > 250 and b > 250))       # Very light gray/white
     
     def _extract_fonts(self, prs: Presentation) -> Dict:
         """Extract typography settings from the presentation"""
