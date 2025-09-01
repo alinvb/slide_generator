@@ -61,7 +61,10 @@ class LLMBrandExtractor:
             
             print(f"[LLM BRAND DEBUG] Analyzing {len(prs.slides)} slides for content...")
             
-            for slide_idx, slide in enumerate(prs.slides[:8]):  # Analyze first 8 slides
+            # Analyze first 8 slides (avoid rId error by using enumerate)
+            slides_to_analyze = min(8, len(prs.slides))
+            for slide_idx in range(slides_to_analyze):
+                slide = prs.slides[slide_idx]
                 slide_info = {
                     'slide_number': slide_idx + 1,
                     'text_content': [],
@@ -94,21 +97,34 @@ class LLMBrandExtractor:
                 slides_info.append(slide_info)
             
             # Filter and deduplicate samples
-            unique_colors = self._filter_unique_colors(all_color_samples)
-            unique_fonts = self._filter_unique_fonts(all_font_samples)
-            
-            print(f"[LLM BRAND DEBUG] Extracted {len(unique_colors)} unique colors and {len(unique_fonts)} font samples")
-            
-            return {
-                'slides': slides_info,
-                'color_samples': unique_colors[:15],  # Limit for token efficiency
-                'font_samples': unique_fonts[:8],
-                'total_slides': len(prs.slides),
-                'slide_dimensions': {
-                    'width': getattr(prs.slide_width, 'inches', 13.33) if hasattr(prs, 'slide_width') else 13.33,
-                    'height': getattr(prs.slide_height, 'inches', 7.5) if hasattr(prs, 'slide_height') else 7.5
+            try:
+                unique_colors = self._filter_unique_colors(all_color_samples)
+                unique_fonts = self._filter_unique_fonts(all_font_samples)
+                
+                print(f"[LLM BRAND DEBUG] Extracted {len(unique_colors)} unique colors and {len(unique_fonts)} font samples")
+                
+                return {
+                    'slides': slides_info,
+                    'color_samples': unique_colors[:15],  # Limit for token efficiency
+                    'font_samples': unique_fonts[:8],
+                    'total_slides': len(prs.slides),
+                    'slide_dimensions': {
+                        'width': getattr(prs.slide_width, 'inches', 13.33) if hasattr(prs, 'slide_width') else 13.33,
+                        'height': getattr(prs.slide_height, 'inches', 7.5) if hasattr(prs, 'slide_height') else 7.5
+                    }
                 }
-            }
+            except Exception as e:
+                print(f"[LLM BRAND DEBUG] Error filtering samples: {e}")
+                return {
+                    'slides': slides_info,
+                    'color_samples': all_color_samples[:10],  # Use unfiltered colors
+                    'font_samples': all_font_samples[:5],
+                    'total_slides': len(prs.slides),
+                    'slide_dimensions': {
+                        'width': getattr(prs.slide_width, 'inches', 13.33) if hasattr(prs, 'slide_width') else 13.33,
+                        'height': getattr(prs.slide_height, 'inches', 7.5) if hasattr(prs, 'slide_height') else 7.5
+                    }
+                }
             
         except Exception as e:
             print(f"[LLM BRAND DEBUG] Content extraction failed: {str(e)}")
@@ -174,15 +190,34 @@ class LLMBrandExtractor:
         colors = []
         
         try:
-            # Fill colors
-            if hasattr(shape, 'fill') and hasattr(shape.fill, 'fore_color'):
+            # Fill colors - only if shape has a solid fill
+            if (hasattr(shape, 'fill') and 
+                hasattr(shape.fill, 'type') and 
+                hasattr(shape.fill, 'fore_color') and
+                shape.fill.type == 1):  # SOLID fill type
+                
                 if hasattr(shape.fill.fore_color, 'rgb'):
                     rgb = shape.fill.fore_color.rgb
                     if not self._is_ignore_color(rgb):
+                        # Handle RGBColor object (can be unpacked as tuple)
+                        if isinstance(rgb, str):
+                            # RGBColor is actually a hex string like "0070C0"
+                            r = int(rgb[0:2], 16)
+                            g = int(rgb[2:4], 16)
+                            b = int(rgb[4:6], 16)
+                        elif hasattr(rgb, 'r'):
+                            r, g, b = rgb.r, rgb.g, rgb.b
+                        else:
+                            # Handle RGBColor object (can be unpacked as tuple)
+                            try:
+                                r, g, b = rgb
+                            except (ValueError, TypeError):
+                                return colors  # Return current colors if we can't process this one
+                        
                         colors.append({
                             'type': 'fill',
-                            'rgb': [rgb.r, rgb.g, rgb.b],
-                            'hex': f"#{rgb.r:02x}{rgb.g:02x}{rgb.b:02x}",
+                            'rgb': [r, g, b],
+                            'hex': f"#{r:02x}{g:02x}{b:02x}",
                             'context': self._determine_color_context(shape, prs),
                             'shape_size': self._get_shape_size_category(shape, prs)
                         })
@@ -194,10 +229,25 @@ class LLMBrandExtractor:
                         if hasattr(run.font, 'color') and hasattr(run.font.color, 'rgb'):
                             rgb = run.font.color.rgb
                             if not self._is_ignore_color(rgb):
+                                # Handle RGBColor object (can be unpacked as tuple)
+                                if isinstance(rgb, str):
+                                    # RGBColor is actually a hex string like "0070C0"
+                                    r = int(rgb[0:2], 16)
+                                    g = int(rgb[2:4], 16)
+                                    b = int(rgb[4:6], 16)
+                                elif hasattr(rgb, 'r'):
+                                    r, g, b = rgb.r, rgb.g, rgb.b
+                                else:
+                                    # Handle RGBColor object (can be unpacked as tuple)
+                                    try:
+                                        r, g, b = rgb
+                                    except (ValueError, TypeError):
+                                        continue  # Skip this run if we can't process the color
+                                
                                 colors.append({
                                     'type': 'text',
-                                    'rgb': [rgb.r, rgb.g, rgb.b],
-                                    'hex': f"#{rgb.r:02x}{rgb.g:02x}{rgb.b:02x}",
+                                    'rgb': [r, g, b],
+                                    'hex': f"#{r:02x}{g:02x}{b:02x}",
                                     'context': 'text_content',
                                     'font_size': getattr(run.font.size, 'pt', None) if run.font.size else None,
                                     'is_bold': run.font.bold
@@ -208,10 +258,25 @@ class LLMBrandExtractor:
                 if hasattr(shape.line.color, 'rgb'):
                     rgb = shape.line.color.rgb
                     if not self._is_ignore_color(rgb):
+                        # Handle RGBColor object (can be unpacked as tuple)
+                        if isinstance(rgb, str):
+                            # RGBColor is actually a hex string like "0070C0"
+                            r = int(rgb[0:2], 16)
+                            g = int(rgb[2:4], 16)
+                            b = int(rgb[4:6], 16)
+                        elif hasattr(rgb, 'r'):
+                            r, g, b = rgb.r, rgb.g, rgb.b
+                        else:
+                            # Handle RGBColor object (can be unpacked as tuple)
+                            try:
+                                r, g, b = rgb
+                            except (ValueError, TypeError):
+                                return colors  # Return current colors if we can't process this one
+                        
                         colors.append({
                             'type': 'line',
-                            'rgb': [rgb.r, rgb.g, rgb.b],
-                            'hex': f"#{rgb.r:02x}{rgb.g:02x}{rgb.b:02x}",
+                            'rgb': [r, g, b],
+                            'hex': f"#{r:02x}{g:02x}{b:02x}",
                             'context': 'border_or_accent'
                         })
                         
@@ -261,10 +326,31 @@ class LLMBrandExtractor:
         if not rgb:
             return True
         
+        # Handle different RGB color formats
+        if isinstance(rgb, str):
+            # RGBColor is actually a hex string like "0070C0"
+            try:
+                if len(rgb) == 6:
+                    r = int(rgb[0:2], 16)
+                    g = int(rgb[2:4], 16)
+                    b = int(rgb[4:6], 16)
+                else:
+                    return True
+            except:
+                return True
+        elif hasattr(rgb, 'r'):
+            r, g, b = rgb.r, rgb.g, rgb.b
+        else:
+            # Handle RGBColor object (can be unpacked as tuple)
+            try:
+                r, g, b = rgb
+            except (ValueError, TypeError):
+                return True
+        
         # Ignore pure white, black, and very light colors
-        return ((rgb.r == 255 and rgb.g == 255 and rgb.b == 255) or  # White
-                (rgb.r == 0 and rgb.g == 0 and rgb.b == 0) or          # Black
-                (rgb.r > 250 and rgb.g > 250 and rgb.b > 250))         # Very light
+        return ((r == 255 and g == 255 and b == 255) or  # White
+                (r == 0 and g == 0 and b == 0) or          # Black
+                (r > 250 and g > 250 and b > 250))         # Very light
     
     def _filter_unique_colors(self, colors: List[Dict]) -> List[Dict]:
         """Remove duplicate colors and keep most contextually relevant ones"""
@@ -281,12 +367,20 @@ class LLMBrandExtractor:
             'general_element': 6
         }
         
-        sorted_colors = sorted(colors, key=lambda x: context_priority.get(x.get('context', 'general_element'), 6))
-        
-        for color in sorted_colors:
-            if color['hex'] not in seen_hex:
-                unique_colors.append(color)
-                seen_hex.add(color['hex'])
+        try:
+            sorted_colors = sorted(colors, key=lambda x: context_priority.get(x.get('context', 'general_element'), 6))
+            
+            for color in sorted_colors:
+                if isinstance(color, dict) and 'hex' in color:
+                    if color['hex'] not in seen_hex:
+                        unique_colors.append(color)
+                        seen_hex.add(color['hex'])
+                else:
+                    print(f"[LLM BRAND DEBUG] Skipping invalid color format: {color}")
+        except Exception as e:
+            print(f"[LLM BRAND DEBUG] Error filtering colors: {e}")
+            # Fallback: just return the first few colors
+            unique_colors = colors[:10] if colors else []
         
         return unique_colors
     

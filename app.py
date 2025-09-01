@@ -2872,8 +2872,8 @@ with st.sidebar:
     # Add extraction method selector
     extraction_method = st.radio(
         "Brand Extraction Method",
-        ["🤖 LLM-Powered (Recommended)", "🔧 Rule-Based (Fallback)"],
-        help="LLM extraction analyzes slide content contextually for better brand element detection",
+        ["🔧 Rule-Based (Recommended)", "🤖 LLM-Powered (Experimental)"],
+        help="Rule-based extraction analyzes PowerPoint structure directly for reliable color extraction",
         key="extraction_method"
     )
     
@@ -2884,6 +2884,19 @@ with st.sidebar:
         key="brand_upload"
     )
     
+    # Add a unique key based on file content to prevent caching
+    if uploaded_brand is not None:
+        # Create a unique identifier for this file to prevent caching
+        file_content = uploaded_brand.read()
+        file_hash = hash(file_content)
+        uploaded_brand.seek(0)  # Reset file pointer
+        
+        # Clear previous brand config if file changed
+        if st.session_state.get("last_file_hash") != file_hash:
+            st.session_state["brand_config"] = None
+            st.session_state["last_file_hash"] = file_hash
+            st.info("🔄 New file detected - extracting brand colors...")
+    
     if uploaded_brand is not None and HAS_PPTX:
         try:
             # Show progress
@@ -2893,8 +2906,8 @@ with st.sidebar:
             use_llm = extraction_method.startswith("🤖")
             
             if use_llm and api_key:
-                # Use LLM extraction
-                st.write("🤖 **LLM-Powered Brand Extraction**")
+                # Use LLM extraction (experimental)
+                st.write("🤖 **LLM-Powered Brand Extraction (Experimental)**")
                 st.info("💡 AI is analyzing your slides to understand brand context and hierarchy")
                 
                 status_text.text("🧠 AI analyzing slide content and design patterns...")
@@ -2913,9 +2926,9 @@ with st.sidebar:
                 status_text.text("✅ AI analysis complete!")
                 
             else:
-                # Use rule-based extraction
-                st.write("🔧 **Rule-Based Brand Extraction**")
-                if not api_key:
+                # Use rule-based extraction (recommended)
+                st.write("🔧 **Rule-Based Brand Extraction (Recommended)**")
+                if not api_key and use_llm:
                     st.info("💡 Add your API key above to enable AI-powered brand extraction")
                 
                 status_text.text("🔍 Analyzing PowerPoint structure...")
@@ -2935,6 +2948,15 @@ with st.sidebar:
             # Store configuration
             st.session_state["brand_config"] = brand_config
             
+            # Debug output to console
+            print(f"[STREAMLIT DEBUG] Extracted brand colors from {uploaded_brand.name}:")
+            colors = brand_config.get('color_scheme', {})
+            for name, color in colors.items():
+                if isinstance(color, tuple) and len(color) == 3:
+                    r, g, b = color
+                    hex_color = f"#{r:02x}{g:02x}{b:02x}"
+                    print(f"   {name}: RGB({r}, {g}, {b}) = {hex_color}")
+            
             # Display results
             colors = brand_config.get('color_scheme', {})
             primary = colors.get('primary')
@@ -2944,8 +2966,7 @@ with st.sidebar:
                 r, g, b = primary
                 if r == 24 and g == 58 and b == 88:
                     st.warning("⚠️ Using default colors - no distinct brand colors detected")
-                    if use_llm:
-                        st.info("💡 Try uploading a deck with more prominent brand colors or logos")
+                    st.info("💡 Try uploading a deck with more prominent brand colors or logos")
                 else:
                     st.success("✅ Brand elements extracted successfully!")
             else:

@@ -66,6 +66,10 @@ def _convert_brand_colors(brand_config: Optional[Dict]) -> Optional[Dict]:
                 int(hex_color[2:4], 16), 
                 int(hex_color[4:6], 16)
             )
+        elif isinstance(color, tuple) and len(color) == 3:
+            # Convert tuple (r, g, b) to RGBColor
+            r, g, b = color
+            converted_colors[name] = RGBColor(r, g, b)
         elif hasattr(color, 'r'):  # Already RGBColor
             converted_colors[name] = color
         else:

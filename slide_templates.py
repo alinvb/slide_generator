@@ -169,15 +169,40 @@ def get_brand_styling(brand_config=None, color_scheme=None, typography=None):
         brand_colors = brand_config.get('color_scheme', {})
         brand_fonts = brand_config.get('typography', {})
         
-        colors = {
-            "primary": brand_colors.get('primary', RGBColor(24, 58, 88)),
-            "secondary": brand_colors.get('secondary', RGBColor(181, 151, 91)),
-            "accent": brand_colors.get('accent', RGBColor(64, 64, 64)),
-            "text": brand_colors.get('text', RGBColor(64, 64, 64)),
-            "background": brand_colors.get('background', RGBColor(255, 255, 255)),
-            "light_grey": brand_colors.get('light_grey', RGBColor(240, 240, 240)),
+        colors = {}
+        for name, color in brand_colors.items():
+            if isinstance(color, tuple) and len(color) == 3:
+                # Convert tuple (r, g, b) to RGBColor
+                r, g, b = color
+                colors[name] = RGBColor(r, g, b)
+            elif isinstance(color, str) and color.startswith('#'):
+                # Convert hex to RGBColor
+                hex_color = color.lstrip('#')
+                colors[name] = RGBColor(
+                    int(hex_color[0:2], 16),
+                    int(hex_color[2:4], 16), 
+                    int(hex_color[4:6], 16)
+                )
+            elif hasattr(color, 'r'):  # Already RGBColor
+                colors[name] = color
+            else:
+                # Fallback to default
+                colors[name] = RGBColor(24, 58, 88)
+        
+        # Ensure all required colors are present
+        default_colors = {
+            "primary": RGBColor(24, 58, 88),
+            "secondary": RGBColor(181, 151, 91),
+            "accent": RGBColor(64, 64, 64),
+            "text": RGBColor(64, 64, 64),
+            "background": RGBColor(255, 255, 255),
+            "light_grey": RGBColor(240, 240, 240),
             "footer_grey": RGBColor(128, 128, 128)
         }
+        
+        for name, default_color in default_colors.items():
+            if name not in colors:
+                colors[name] = default_color
         
         fonts = {
             "primary_font": brand_fonts.get('primary_font', 'Arial'),
