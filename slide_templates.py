@@ -166,28 +166,51 @@ def _apply_standard_header_and_title(slide, title_text, brand_config=None, compa
 def get_brand_styling(brand_config=None, color_scheme=None, typography=None):
     """Extract brand styling or use defaults - reusable across all functions"""
     if brand_config:
-        brand_colors = brand_config.get('color_scheme', {})
-        brand_fonts = brand_config.get('typography', {})
-        
         colors = {}
-        for name, color in brand_colors.items():
-            if isinstance(color, tuple) and len(color) == 3:
-                # Convert tuple (r, g, b) to RGBColor
-                r, g, b = color
-                colors[name] = RGBColor(r, g, b)
-            elif isinstance(color, str) and color.startswith('#'):
-                # Convert hex to RGBColor
-                hex_color = color.lstrip('#')
-                colors[name] = RGBColor(
-                    int(hex_color[0:2], 16),
-                    int(hex_color[2:4], 16), 
-                    int(hex_color[4:6], 16)
-                )
-            elif hasattr(color, 'r'):  # Already RGBColor
-                colors[name] = color
-            else:
-                # Fallback to default
-                colors[name] = RGBColor(24, 58, 88)
+        
+        # Handle different color formats that might be in brand_config
+        if 'color_scheme' in brand_config:
+            # Standard format: brand_config['color_scheme']
+            brand_colors = brand_config['color_scheme']
+            for name, color in brand_colors.items():
+                if isinstance(color, tuple) and len(color) == 3:
+                    # Convert tuple (r, g, b) to RGBColor
+                    r, g, b = color
+                    colors[name] = RGBColor(r, g, b)
+                elif isinstance(color, str) and color.startswith('#'):
+                    # Convert hex to RGBColor
+                    hex_color = color.lstrip('#')
+                    colors[name] = RGBColor(
+                        int(hex_color[0:2], 16),
+                        int(hex_color[2:4], 16), 
+                        int(hex_color[4:6], 16)
+                    )
+                elif hasattr(color, 'r'):  # Already RGBColor
+                    colors[name] = color
+                else:
+                    # Fallback to default
+                    colors[name] = RGBColor(24, 58, 88)
+        
+        # Handle the actual format from brand extraction: list of tuples
+        elif 'extracted_colors' in brand_config:
+            extracted_colors = brand_config['extracted_colors']
+            if isinstance(extracted_colors, list):
+                for name, color_value in extracted_colors:
+                    if isinstance(color_value, str) and color_value.startswith('#'):
+                        # Convert hex to RGBColor
+                        hex_color = color_value.lstrip('#')
+                        colors[name] = RGBColor(
+                            int(hex_color[0:2], 16),
+                            int(hex_color[2:4], 16), 
+                            int(hex_color[4:6], 16)
+                        )
+                    elif isinstance(color_value, tuple) and len(color_value) == 3:
+                        # Convert tuple (r, g, b) to RGBColor
+                        r, g, b = color_value
+                        colors[name] = RGBColor(r, g, b)
+                    else:
+                        # Fallback to default
+                        colors[name] = RGBColor(24, 58, 88)  # Default blue
         
         # Ensure all required colors are present
         default_colors = {
@@ -204,6 +227,8 @@ def get_brand_styling(brand_config=None, color_scheme=None, typography=None):
             if name not in colors:
                 colors[name] = default_color
         
+        # Handle typography
+        brand_fonts = brand_config.get('typography', {})
         fonts = {
             "primary_font": brand_fonts.get('primary_font', 'Arial'),
             "title_size": Pt(brand_fonts.get('title_size', 24)),

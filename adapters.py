@@ -51,30 +51,58 @@ RENDERER_MAP = {
 
 def _convert_brand_colors(brand_config: Optional[Dict]) -> Optional[Dict]:
     """Convert brand configuration colors to RGBColor objects"""
-    if not brand_config or not brand_config.get('color_scheme'):
+    if not brand_config:
         return None
     
-    color_scheme = brand_config['color_scheme']
     converted_colors = {}
     
-    for name, color in color_scheme.items():
-        if isinstance(color, str) and color.startswith('#'):
-            # Convert hex to RGBColor
-            hex_color = color.lstrip('#')
-            converted_colors[name] = RGBColor(
-                int(hex_color[0:2], 16),
-                int(hex_color[2:4], 16), 
-                int(hex_color[4:6], 16)
-            )
-        elif isinstance(color, tuple) and len(color) == 3:
-            # Convert tuple (r, g, b) to RGBColor
-            r, g, b = color
-            converted_colors[name] = RGBColor(r, g, b)
-        elif hasattr(color, 'r'):  # Already RGBColor
-            converted_colors[name] = color
-        else:
-            # Fallback to default
-            converted_colors[name] = RGBColor(24, 58, 88)  # Default blue
+    # Handle different color formats that might be in brand_config
+    if 'color_scheme' in brand_config:
+        # Standard format: brand_config['color_scheme']
+        color_scheme = brand_config['color_scheme']
+        for name, color in color_scheme.items():
+            if isinstance(color, str) and color.startswith('#'):
+                # Convert hex to RGBColor
+                hex_color = color.lstrip('#')
+                converted_colors[name] = RGBColor(
+                    int(hex_color[0:2], 16),
+                    int(hex_color[2:4], 16), 
+                    int(hex_color[4:6], 16)
+                )
+            elif isinstance(color, tuple) and len(color) == 3:
+                # Convert tuple (r, g, b) to RGBColor
+                r, g, b = color
+                converted_colors[name] = RGBColor(r, g, b)
+            elif hasattr(color, 'r'):  # Already RGBColor
+                converted_colors[name] = color
+            else:
+                # Fallback to default
+                converted_colors[name] = RGBColor(24, 58, 88)  # Default blue
+    
+    # Handle the actual format from brand extraction: list of tuples
+    elif 'extracted_colors' in brand_config:
+        extracted_colors = brand_config['extracted_colors']
+        if isinstance(extracted_colors, list):
+            for name, color_value in extracted_colors:
+                if isinstance(color_value, str) and color_value.startswith('#'):
+                    # Convert hex to RGBColor
+                    hex_color = color_value.lstrip('#')
+                    converted_colors[name] = RGBColor(
+                        int(hex_color[0:2], 16),
+                        int(hex_color[2:4], 16), 
+                        int(hex_color[4:6], 16)
+                    )
+                elif isinstance(color_value, tuple) and len(color_value) == 3:
+                    # Convert tuple (r, g, b) to RGBColor
+                    r, g, b = color_value
+                    converted_colors[name] = RGBColor(r, g, b)
+                else:
+                    # Fallback to default
+                    converted_colors[name] = RGBColor(24, 58, 88)  # Default blue
+    
+    # If no colors found, return None
+    if not converted_colors:
+        return None
     
     return converted_colors
 
