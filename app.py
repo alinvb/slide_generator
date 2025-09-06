@@ -2076,10 +2076,52 @@ RESPONSE INTERPRETATION:
 - Complete information = Move to next topic
 - Brief confirmatory responses ("yes", "correct") = Move to next topic if current is complete
 
+MAKE SURE YOU HAVE ASKED ABOUT EVERY TOPIC. 
+
+'business_overview':
+'investor_considerations'
+'product_service_footprint'
+'product_service_overview'
+'buyer_profiles'
+'historical_financial_performance'
+'management_team'
+'growth_strategy_projections'
+'competitive_positioning'
+'valuation_overview'
+'trading_comparables'
+'precedent_transactions'
+'margin_cost_resilience'
+'financial_summary'
+'transaction_overview'
+'sea_conglomerates'
+
+If you have forgotten to ask about a topic, ask NOW. 
+
 AUTO-GENERATION TRIGGER:
 When you have collected information for ALL non-skipped items in the completion checklist, immediately respond with:
 
 "Perfect! I now have all the information needed to create your comprehensive pitch deck. Here are your complete, downloadable pitch deck files:
+
+EVERY RENDER PLAN MUST INCLUDE the following unless the user has requested to skip a slide. 
+
+business_overview
+investor_considerations
+product_service_footprint
+product_service_overview
+historical_financial_performance
+management_team
+growth_strategy_projections
+competitive_positioning
+valuation_overview
+trading_comparables
+precedent_transactions
+margin_cost_resilience
+financial_summary
+transaction_overview
+sea_conglomerates
+buyer_profiles
+
+
 
 ## CONTENT IR JSON:
 ```json
