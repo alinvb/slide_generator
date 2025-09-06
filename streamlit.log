@@ -1,0 +1,483 @@
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8501
+  Network URL: http://192.168.1.7:8501
+
+  For better performance, install the Watchdog module:
+
+  $ xcode-select --install
+  $ pip install watchdog
+            
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 542
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 542 characters
+📝 Response Preview (first 500 chars):
+Thank you for your detailed company description and business model. For your pitch deck, I need to confirm and collect the following details for the **Company Overview** section. 
+
+**I still need these items:**
+- Founding year of Breadlife
+- Legal structure (PT, CV, etc.)
+- Core operations (beyond bakery retail—e.g., manufacturing, distribution, B2B contracts)
+- Target markets (cities, demographics, customer segments)
+
+Can you provide this information? If you don’t know, I can search for it and ...
+
+📝 Response Preview (last 500 chars):
+...ption and business model. For your pitch deck, I need to confirm and collect the following details for the **Company Overview** section. 
+
+**I still need these items:**
+- Founding year of Breadlife
+- Legal structure (PT, CV, etc.)
+- Core operations (beyond bakery retail—e.g., manufacturing, distribution, B2B contracts)
+- Target markets (cities, demographics, customer segments)
+
+Can you provide this information? If you don’t know, I can search for it and ask for your approval before including it.
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 1567
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 1567 characters
+📝 Response Preview (first 500 chars):
+Here’s what I found about Breadlife and The Daily Company (DailyCo):
+
+- **Founding Year:** The exact founding year of Breadlife is not explicitly stated in the available sources. Would you like me to use 2017 (the founding year of related entities) as a proxy, or should I leave this detail out until we can confirm?
+- **Legal Structure:** The legal structure is not specified, but most similar businesses in Indonesia use "PT" (Perseroan Terbatas, i.e., Limited Liability Company). Is it acceptable ...
+
+📝 Response Preview (last 500 chars):
+...a summary of what I propose to use:
+- **Founding year:** [To confirm: Use 2017, or leave blank?]
+- **Legal structure:** PT Breadlife Indonesia
+- **Core operations:** Retail bakery, central production, B2B institutional sales
+- **Target markets:** Urban middle-class consumers, commuters, retail/transit locations across Greater Jakarta and select Indonesian cities
+
+Please confirm if this is acceptable, or clarify any details. Would you like me to proceed with these assumptions for your pitch deck?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 1524
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 1524 characters
+📝 Response Preview (first 500 chars):
+Here is what I found from available sources:
+
+- **Founding Year:** Breadlife was acquired by Dailybox Group (now rebranded as The Daily Company/DailyCo) in December 2021[3]. However, Breadlife itself was operating as an established bakery chain prior to this acquisition. The exact founding year is not stated in these sources. Would you like to use "Founded prior to 2021" or should I continue searching for the specific year?
+- **Legal Structure:** Most Indonesian chains use “PT” (Perseroan Terbat...
+
+📝 Response Preview (last 500 chars):
+... for pitch deck:**
+- **Founding year:** [Prior to 2021 – exact year not confirmed]
+- **Legal structure:** PT Breadlife Indonesia
+- **Core operations:** Retail bakery outlets, central bread production, B2B institutional sales
+- **Target markets:** Urban middle-class consumers, commuters, retail/transit locations in Greater Jakarta and select Indonesian cities
+
+Should I proceed using these details for your Company Overview slide? If you want me to search further for the founding year, let me know.
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 1123
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 1123 characters
+📝 Response Preview (first 500 chars):
+Based on the most authoritative Indonesian sources:
+
+- **Founding Year:** BreadLife was founded in 2010[1].
+- **Legal Structure:** Not explicitly stated, but as a major retail bakery chain in Indonesia, it is standard to use “PT” (Perseroan Terbatas) for the legal structure. I will use PT BreadLife Indonesia.
+- **Core Operations:** BreadLife runs retail bakery outlets, produces a variety of breads and cakes, and serves both B2C and B2B channels[1].
+- **Target Markets:** Branches are distributed ...
+
+📝 Response Preview (last 500 chars):
+...urban, middle-class consumers and commuters in retail/transit areas.
+
+**Summary for pitch deck:**
+- **Founding year:** 2010
+- **Legal structure:** PT BreadLife Indonesia
+- **Core operations:** Retail bakery chain, central bread and cake production, B2C and B2B sales
+- **Target markets:** Urban middle-class consumers and commuters in major Indonesian cities, especially Greater Jakarta
+
+Please confirm if you are happy to proceed with these details, or let me know if you would like any adjustments.
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 927
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 927 characters
+📝 Response Preview (first 500 chars):
+Based on current authoritative sources:
+
+- **Founding Year:** BreadLife was founded in 2010[1][2].
+- **Legal Structure:** While not explicitly stated, as a major Indonesian bakery chain, the standard is “PT” (Perseroan Terbatas, Limited Liability Company). I will use **PT BreadLife Indonesia**.
+- **Core Operations:** BreadLife operates retail bakery outlets, produces a variety of breads and cakes, and serves both B2C and B2B channels[1][2].
+- **Target Markets:** Its branches are distributed in J...
+
+📝 Response Preview (last 500 chars):
+...B channels[1][2].
+- **Target Markets:** Its branches are distributed in Jakarta, Balikpapan, Surabaya, Banjarmasin, Samarinda, Pontianak, Medan, and soon Padang and Solok, targeting urban, middle-class consumers[1][2].
+
+**I now have all required details for your Company Overview.**
+
+Next, I need the following for the Investment Highlights slide:
+- 3-5 key value propositions
+- Competitive advantages
+- Unique selling points
+
+Can you provide these, or should I search and propose highlights for you?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 2080
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 2080 characters
+📝 Response Preview (first 500 chars):
+Here are five key value propositions, competitive advantages, and unique selling points for Breadlife, directly sourced from authoritative recent reviews and company updates:
+
+**Investment Highlights for Breadlife:**
+
+1. **Freshness & Quality:** Breadlife is committed to delivering freshly baked, preservative-free breads and cakes daily, ensuring exceptional taste and health benefits for consumers[1][4][3].
+2. **Rapid Expansion & Market Reach:** With over 130 outlets across Indonesia—including G...
+
+📝 Response Preview (last 500 chars):
+...dicated central kitchen and B2B channels for operational efficiency and market penetration[1].
+
+**Unique Selling Points:**
+- Signature soft, sweet breads and specialty cakes made with premium ingredients[1][3].
+- Innovative flavors and products inspired by Japanese baking traditions[2].
+- Freshness guarantee—no preservatives, baked daily, with visible quality differences[1][3].
+
+Would you like to include these investment highlights for your pitch deck, or would you like to add/adjust any points?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 2442
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 2442 characters
+📝 Response Preview (first 500 chars):
+Here are the **investment highlights** for Breadlife, based on current, authoritative information:
+
+- **1. Largest Japanese Artisan Bakery Chain in Indonesia:** Breadlife is recognized as the largest Japanese-style artisan bakery chain in Indonesia, offering premium, fresh bread in more than 130 outlets across major urban centers[4].
+
+- **2. Rapid Expansion and Scalable Model:** Under DailyCo’s ownership (since 2021), Breadlife has rapidly opened over 100 new outlets, primarily in high-traffic t...
+
+📝 Response Preview (last 500 chars):
+...[5].
+
+If you are happy with these highlights, I will proceed to the next required section: **Business Model**.
+
+**Next required information for Business Model:**
+- Revenue streams (e.g., percentage B2C vs. B2B, product categories)
+- How Breadlife makes money (retail, wholesale, franchise, online, etc.)
+- Customer segments (demographics, institutional buyers, etc.)
+- Pricing model (premium, value, hybrid, etc.)
+
+Do you want to provide these details, or should I search and propose a draft for you?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 1840
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 1840 characters
+📝 Response Preview (first 500 chars):
+**Business Model Details for Breadlife (Based on Authoritative Sources):**
+
+- **Revenue Streams:**  
+  - *B2C retail sales* from bakery outlets (majority of revenue)  
+  - *B2B institutional sales* (to hospitality, corporate, and catering clients)[1][3]  
+  - *Online sales* via e-commerce platforms and food delivery apps[3]
+
+- **How Breadlife Makes Money:**  
+  - Sale of freshly baked bread, cakes, and snacks directly to consumers in high-traffic retail and transit locations[1]  
+  - Bulk sales ...
+
+📝 Response Preview (last 500 chars):
+...enue streams, customer segments, or pricing model elements, please let me know. Otherwise, I will proceed to the next required topic:**
+
+**Product/Service Footprint**
+- Main offerings (breads, cakes, snacks, beverages, etc.)
+- Geographic presence (list of cities/regions or store count)
+- Market positioning (premium, mass market, health-oriented, etc.)
+- Distribution channels (retail, online, B2B, etc.)
+
+Would you like to provide any of this detail, or should I search and propose a draft for you?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 1983
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 1983 characters
+📝 Response Preview (first 500 chars):
+Here is a synthesis of Breadlife’s **product/service footprint** based on the most up-to-date and authoritative information:
+
+---
+
+- **Title:** Product & Service Footprint
+
+- **Services:**
+  1. **Artisan Sweet Breads:** Wide range of soft, fluffy Japanese-inspired sweet breads with fillings such as banana cream, chocolate, and butter cream[1][3][4].
+  2. **Savory Breads & Snacks:** Unique offerings like Yakitari (bread skewer with beef sausage and nori), spicy chicken floss buns, and cheese-fill...
+
+📝 Response Preview (last 500 chars):
+...d[3][4][5]
+
+**Market Positioning:**  
+Premium yet affordable Japanese artisan bakery, known for freshness, innovation, and health-forward (preservative-free) products[1][2][3].
+
+If you’d like to add or change anything in this footprint, let me know. Otherwise, I will proceed to the next required section: **Historical Financials** (3-5 years revenue, EBITDA, margins, growth rates, key metrics). Would you like to provide these, or should I draft estimates based on typical bakery chain performance?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 1379
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 1379 characters
+📝 Response Preview (first 500 chars):
+I was unable to find authoritative, company-specific historical financials for Breadlife or DailyCo in public sources. However, I can provide realistic, market-based financial estimates for a leading Indonesian bakery chain of Breadlife’s scale, using the benchmarks of comparable companies (e.g., PT Nippon Indosari Corpindo Tbk/ROTI) and Indonesian bakery market statistics[2][4][5].
+
+**Here is a market-based estimate for Breadlife’s historical financial performance (USD, millions):**
+
+- **Years:...
+
+📝 Response Preview (last 500 chars):
+...evenue growth >40% CAGR (consistent with your prior input and market-leading expansion)
+- EBITDA margins improving with scale and operational leverage, consistent with top-performing regional bakeries[2]
+- All values are estimates based on market comparables and available industry data
+
+**If you approve, I will use these numbers for your pitch deck’s “historical financial performance” and “facts” sections.**  
+Would you like to adjust any of the figures, or should I proceed with these estimates?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 18742
+[JSON EXTRACTION DEBUG] Found Content IR marker: 'CONTENT IR JSON:' at position 147
+[JSON EXTRACTION DEBUG] Found Render Plan marker: 'RENDER PLAN JSON:' at position 3819
+[JSON EXTRACTION DEBUG] Extracted Content IR JSON (length: 3638)
+✅ Successfully parsed Content IR JSON
+[JSON EXTRACTION DEBUG] Extracted Render Plan JSON (length: 14788)
+✅ Successfully parsed Render Plan JSON
+[JSON EXTRACTION DEBUG] Content IR keys: ['entities', 'facts', 'management_team', 'strategic_buyers', 'financial_buyers']
+[JSON EXTRACTION DEBUG] Render Plan keys: ['slides']
+[JSON EXTRACTION DEBUG] Number of slides: 13
+
+📊 EXTRACTION RESULTS:
+Content IR: ✅ Found
+Render Plan: ✅ Found
+
+🔧 NORMALIZING EXTRACTED JSON...
+[NORMALIZATION] Starting JSON normalization...
+
+🏗️ STRUCTURE VALIDATION:
+[STRUCTURE VALIDATION] Starting validation against examples...
+[STRUCTURE VALIDATION] Validating Content IR structure...

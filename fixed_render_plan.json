@@ -1,0 +1,382 @@
+{
+  "slides": [
+    {
+      "template": "business_overview",
+      "data": {
+        "title": "Business Overview",
+        "description": "Breadlife is Indonesia's leading bakery chain, specializing in fresh, preservative-free bread. Since acquisition by DailyCo in 2021, Breadlife has expanded rapidly, opening 100+ outlets in high-traffic locations and driving substantial revenue growth.",
+        "timeline": {
+          "start_year": "2021",
+          "end_year": "2024"
+        },
+        "highlights": [
+          "150% revenue growth from 2022 to 2024",
+          "100+ new outlets launched in transit and retail hubs",
+          "Strong brand recognition and customer loyalty"
+        ],
+        "services": [
+          "Retail bakery outlets",
+          "B2B supply partnerships",
+          "Online and delivery distribution"
+        ],
+        "positioning_desc": "Breadlife is positioned as the go-to provider for premium, affordable baked goods in Indonesia's urban markets, targeting both consumers and institutional buyers."
+      }
+    },
+    {
+      "template": "investor_considerations",
+      "data": {
+        "title": "Investor Considerations",
+        "considerations": [
+          "Market saturation in key urban areas",
+          "Rising input costs for flour and dairy",
+          "Potential regulatory changes regarding food safety standards",
+          "Competition from international bakery brands"
+        ],
+        "mitigants": [
+          "Continuous product innovation and differentiation",
+          "Long-term supplier contracts to manage costs",
+          "Agile compliance processes for regulatory adaptation",
+          "Strategic partnerships with major transit operators"
+        ]
+      }
+    },
+    {
+      "template": "product_service_footprint",
+      "data": {
+        "title": "Product & Service Footprint",
+        "services": [
+          {
+            "title": "Fresh Artisan Bread",
+            "desc": "Daily baked, preservative-free bread using Japanese artisan techniques."
+          },
+          {
+            "title": "Premium Pastries",
+            "desc": "Selection of sweet and savory pastries tailored to Indonesian tastes."
+          },
+          {
+            "title": "Corporate & Institutional Supply",
+            "desc": "B2B partnerships supplying bread to hotels, schools, and restaurants."
+          },
+          {
+            "title": "Online & Delivery",
+            "desc": "Direct-to-consumer sales via mobile app and third-party platforms."
+          }
+        ],
+        "coverage_table": [
+          {"region": "Greater Jakarta", "outlets": "85"},
+          {"region": "Java (outside Jakarta)", "outlets": "30"},
+          {"region": "Sumatra", "outlets": "10"}
+        ],
+        "metrics": {
+          "total_locations": "125+",
+          "annual_patients": "N/A",
+          "retention_rate": "89%",
+          "corporate_contracts": "65+"
+        }
+      }
+    },
+    {
+      "template": "historical_financial_performance",
+      "data": {
+        "title": "Historical Financial Performance",
+        "chart": {
+          "categories": ["2020", "2021", "2022", "2023", "2024E"],
+          "revenue": [120, 145, 180, 210, 240],
+          "ebitda": [18, 24, 31, 40, 47]
+        },
+        "key_metrics": {
+          "metrics": [
+            {"label": "EBITDA Margin", "value": "19.6% (2024E)"},
+            {"label": "Revenue CAGR (2020-2024E)", "value": "19.5%"},
+            {"label": "Outlet Growth (2022-2024)", "value": "150%"}
+          ]
+        },
+        "revenue_growth": {
+          "description": "Strong revenue growth driven by outlet expansion and same-store sales growth"
+        },
+        "banker_view": {
+          "summary": "Consistent growth trajectory with improving margins demonstrates operational excellence"
+        }
+      }
+    },
+    {
+      "template": "management_team",
+      "data": {
+        "title": "Management Team",
+        "left_column_profiles": [
+          {
+            "role_title": "Chief Executive Officer",
+            "experience_bullets": [
+              "Led Breadlife through post-acquisition expansion, opening over 100 new outlets",
+              "15+ years senior leadership experience in Indonesian F&B retail",
+              "Expertise in multi-unit operations and strategic partnerships",
+              "Former Director at major Indonesian franchise group"
+            ]
+          },
+          {
+            "role_title": "Chief Operating Officer",
+            "experience_bullets": [
+              "Oversaw rollout of new production standards and operational excellence program",
+              "Managed nationwide logistics and supply chain for 100+ outlets",
+              "Background in lean manufacturing and process optimization",
+              "10+ years in large-scale retail operations"
+            ]
+          }
+        ],
+        "right_column_profiles": [
+          {
+            "role_title": "Chief Financial Officer",
+            "experience_bullets": [
+              "Implemented advanced financial controls post-acquisition by DailyCo",
+              "Drove 150% revenue growth and sustainable EBITDA margin improvement",
+              "Former VP Finance at leading Indonesian retail conglomerate",
+              "Specialist in M&A and growth integration"
+            ]
+          },
+          {
+            "role_title": "Head of Product Development",
+            "experience_bullets": [
+              "Developed fresh, preservative-free product line, driving brand differentiation",
+              "Introduced Japanese artisan bread to Indonesian market",
+              "10+ years in food science and consumer research",
+              "Awarded for best new product launch 2023"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "template": "growth_strategy_projections",
+      "data": {
+        "slide_data": {
+          "title": "Growth Strategy & Projections",
+          "growth_strategy": {
+            "strategies": [
+              "Expand retail footprint into new Indonesian cities",
+              "Launch health-oriented product lines (whole grain, gluten-free)",
+              "Enhance digital ordering and delivery capabilities"
+            ]
+          },
+          "financial_projections": {
+            "categories": ["2024E", "2025E", "2026E"],
+            "revenue": [240, 280, 320],
+            "ebitda": [47, 56, 64]
+          }
+        }
+      }
+    },
+    {
+      "template": "competitive_positioning",
+      "data": {
+        "title": "Competitive Positioning",
+        "competitors": [
+          {"name": "PT Nippon Indosari Corpindo Tbk", "revenue": 450},
+          {"name": "PT Champ Resto Indonesia Tbk", "revenue": 220},
+          {"name": "PT Indofood Sukses Makmur Tbk", "revenue": 1200}
+        ],
+        "assessment": [
+          {
+            "category": "Market Position",
+            "our_company": "Leader (Fresh bakery retail)",
+            "competitor_a": "Packaged bread leader",
+            "competitor_b": "Diversified F&B"
+          },
+          {
+            "category": "Technology",
+            "our_company": "Modern POS & supply chain",
+            "competitor_a": "Automated production",
+            "competitor_b": "Integrated logistics"
+          }
+        ],
+        "barriers": [
+          {
+            "title": "Brand Recognition",
+            "desc": "Strong customer loyalty and brand awareness in target markets"
+          },
+          {
+            "title": "Operational Excellence",
+            "desc": "Proven multi-unit management and supply chain capabilities"
+          }
+        ],
+        "advantages": [
+          {
+            "title": "Fresh Product Differentiation",
+            "desc": "Preservative-free products with superior taste and quality"
+          },
+          {
+            "title": "Rapid Expansion Capability",
+            "desc": "Proven ability to scale operations quickly and efficiently"
+          },
+          {
+            "title": "Strategic Location Focus",
+            "desc": "High-traffic locations in transit and retail hubs"
+          }
+        ]
+      }
+    },
+    {
+      "template": "valuation_overview",
+      "data": {
+        "title": "Valuation Overview",
+        "valuation_data": [
+          {
+            "methodology": "DCF",
+            "enterprise_value": "US$100M",
+            "metric": "NPV",
+            "22a_multiple": "N/A",
+            "23e_multiple": "N/A"
+          },
+          {
+            "methodology": "Precedent Transactions",
+            "enterprise_value": "US$110M",
+            "metric": "EV/EBITDA",
+            "22a_multiple": "6.5x",
+            "23e_multiple": "7.0x"
+          },
+          {
+            "methodology": "Trading Multiples",
+            "enterprise_value": "US$95M",
+            "metric": "EV/EBITDA",
+            "22a_multiple": "6.2x",
+            "23e_multiple": "6.8x"
+          }
+        ]
+      }
+    },
+    {
+      "template": "precedent_transactions",
+      "data": {
+        "title": "Precedent Transactions",
+        "transactions": [
+          {
+            "target": "Breadlife",
+            "acquirer": "DailyCo",
+            "date": "2021",
+            "country": "Indonesia",
+            "enterprise_value": 60,
+            "revenue": 120,
+            "ev_revenue_multiple": 0.5
+          },
+          {
+            "target": "Sari Roti (Nippon Indosari)",
+            "acquirer": "PT Nippon Indosari Corpindo Tbk",
+            "date": "2022",
+            "country": "Indonesia",
+            "enterprise_value": 450,
+            "revenue": 450,
+            "ev_revenue_multiple": 1.0
+          },
+          {
+            "target": "Champ Resto",
+            "acquirer": "PT Champ Resto Indonesia Tbk",
+            "date": "2023",
+            "country": "Indonesia",
+            "enterprise_value": 220,
+            "revenue": 220,
+            "ev_revenue_multiple": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "template": "margin_cost_resilience",
+      "data": {
+        "title": "Margin & Cost Resilience",
+        "chart_title": "EBITDA Margin Trend",
+        "chart_data": {
+          "categories": ["2020", "2021", "2022", "2023", "2024E"],
+          "values": [15.0, 16.6, 17.2, 19.0, 19.6]
+        },
+        "cost_management": {
+          "items": [
+            {
+              "title": "Centralized Procurement",
+              "description": "Bulk sourcing of flour and dairy ensures cost stability and volume discounts."
+            },
+            {
+              "title": "Lean Outlet Operations",
+              "description": "Optimized labor scheduling and digital inventory management reduce overhead."
+            },
+            {
+              "title": "Supplier Diversification",
+              "description": "Multiple supplier relationships mitigate risk of price shocks and shortages."
+            }
+          ]
+        },
+        "risk_mitigation": {
+          "main_strategy": "Continuous review of input costs, flexible pricing, and rapid product mix adaptation to shield margins from volatility."
+        }
+      }
+    },
+    {
+      "template": "buyer_profiles",
+      "content_ir_key": "strategic_buyers",
+      "data": {
+        "title": "Strategic Buyer Profiles",
+        "table_headers": ["Buyer Name", "Strategic Rationale", "Fit"],
+        "table_rows": [
+          {
+            "buyer_name": "PT Nippon Indosari Corpindo Tbk",
+            "description": "Leading Indonesian bakery company seeking premium brand acquisition",
+            "fit_score": "High"
+          },
+          {
+            "buyer_name": "PT Indofood Sukses Makmur Tbk",
+            "description": "Major F&B conglomerate looking to expand bakery segment",
+            "fit_score": "Medium"
+          },
+          {
+            "buyer_name": "DailyCo",
+            "description": "Current owner seeking strategic partnership or exit",
+            "fit_score": "High"
+          }
+        ]
+      }
+    },
+    {
+      "template": "buyer_profiles",
+      "content_ir_key": "financial_buyers",
+      "data": {
+        "title": "Financial Buyer Profiles",
+        "table_headers": ["Buyer Name", "Strategic Rationale", "Fit"],
+        "table_rows": [
+          {
+            "buyer_name": "CVC Capital Partners",
+            "description": "PE firm with strong F&B track record in Southeast Asia",
+            "fit_score": "High"
+          },
+          {
+            "buyer_name": "KKR",
+            "description": "Global PE firm seeking growth investments in consumer sectors",
+            "fit_score": "Medium"
+          },
+          {
+            "buyer_name": "TPG Capital",
+            "description": "PE firm with experience in retail and food service investments",
+            "fit_score": "High"
+          }
+        ]
+      }
+    },
+    {
+      "template": "sea_conglomerates",
+      "data": [
+        {
+          "name": "Salim Group",
+          "country": "Indonesia",
+          "description": "Regional F&B leader with existing bakery investments and strong distribution network."
+        },
+        {
+          "name": "Jardine Matheson",
+          "country": "Hong Kong",
+          "description": "Pan-Asian retail platform seeking innovative food businesses for regional expansion."
+        },
+        {
+          "name": "CP Group",
+          "country": "Thailand",
+          "description": "Aggressive expansion in ASEAN consumer food segments with focus on premium brands."
+        }
+      ]
+    }
+  ]
+}

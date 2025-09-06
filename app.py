@@ -1857,6 +1857,21 @@ You are a precise, on-task investment banking pitch deck copilot that generates 
 3. **historical_financial_performance slides MUST reference facts data** for complete chart data
 4. **Every slide MUST have a 'title' field** in the data section
 5. **All arrays MUST have minimum required items** (no empty arrays)
+6. **🚨 ALWAYS GENERATE COMPLETE JSON** - Never truncate or cut off JSON responses
+
+📋 **REQUIRED FIELDS FOR EACH TEMPLATE**:
+- **investor_considerations**: title, considerations (array), mitigants (array)
+- **growth_strategy_projections**: slide_data (with title, growth_strategy and financial_projections)
+- **buyer_profiles**: title, table_rows (array), table_headers (array)
+- **sea_conglomerates**: data (array of objects with name, country, description)
+- **margin_cost_resilience**: title, chart_title, chart_data, cost_management, risk_mitigation
+- **competitive_positioning**: title, competitors (array), assessment (array), barriers (array), advantages (array)
+- **valuation_overview**: title, valuation_data (array with methodology, enterprise_value, metric, 22a_multiple, 23e_multiple)
+- **precedent_transactions**: title, transactions (array with target, acquirer, date, country, enterprise_value, revenue, ev_revenue_multiple)
+- **historical_financial_performance**: title, chart, key_metrics, revenue_growth, banker_view
+- **management_team**: title, left_column_profiles (array), right_column_profiles (array)
+- **business_overview**: title, description, timeline, highlights
+- **product_service_footprint**: title, services (array)
 6. **NO placeholder text, NO empty fields, NO null values**
 
 📋 **CRITICAL JSON FORMATTING REQUIREMENTS**:
@@ -2052,7 +2067,7 @@ INTERVIEW SEQUENCE (ask in this order, collecting ALL required info for each). Y
    Required: 4-6 executives with role_title, experience_bullets array for each
    
 9. **Investor Considerations**: 
-   Required: 3-4 key risks, 3-4 key opportunities, mitigation strategies
+   Required: 3-4 key risks (for "considerations" field), 3-4 mitigation strategies (for "mitigants" field)
    
 10. **Competitive Positioning**: (Ask: "Do you want a competitive positioning slide?")
     If yes, required: Main competitors, competitive advantages, market positioning
@@ -2076,24 +2091,27 @@ RESPONSE INTERPRETATION:
 - Complete information = Move to next topic
 - Brief confirmatory responses ("yes", "correct") = Move to next topic if current is complete
 
-MAKE SURE YOU HAVE ASKED ABOUT EVERY TOPIC. 
+🚨 **CRITICAL: YOU MUST ASK ABOUT EVERY TOPIC BELOW - DO NOT SKIP ANY!**
 
-'business_overview':
-'investor_considerations'
-'product_service_footprint'
-'product_service_overview'
-'buyer_profiles'
-'historical_financial_performance'
-'management_team'
-'growth_strategy_projections'
-'competitive_positioning'
-'valuation_overview'
-'trading_comparables'
-'precedent_transactions'
-'margin_cost_resilience'
-'financial_summary'
-'transaction_overview'
-'sea_conglomerates'
+REQUIRED TOPICS CHECKLIST (ask about ALL of these):
+✅ business_overview
+✅ investor_considerations  
+✅ product_service_footprint
+✅ historical_financial_performance
+✅ management_team
+✅ growth_strategy_projections
+✅ competitive_positioning
+✅ valuation_overview
+✅ precedent_transactions
+✅ margin_cost_resilience
+✅ sea_conglomerates
+✅ buyer_profiles
+
+❌ DO NOT USE THESE NON-EXISTENT TEMPLATES:
+❌ product_service_overview (use product_service_footprint)
+❌ trading_comparables (use precedent_transactions)
+❌ financial_summary (use historical_financial_performance)
+❌ transaction_overview (use business_overview)
 
 If you have forgotten to ask about a topic, ask NOW. 
 
@@ -2107,17 +2125,13 @@ EVERY RENDER PLAN MUST INCLUDE the following unless the user has requested to sk
 business_overview
 investor_considerations
 product_service_footprint
-product_service_overview
 historical_financial_performance
 management_team
 growth_strategy_projections
 competitive_positioning
 valuation_overview
-trading_comparables
 precedent_transactions
 margin_cost_resilience
-financial_summary
-transaction_overview
 sea_conglomerates
 buyer_profiles
 
@@ -2167,11 +2181,50 @@ CRITICAL JSON GENERATION REQUIREMENTS:
 - For financial slides, ALWAYS include complete chart data and metrics
 - For management slides, ALWAYS include complete profile data with experience bullets
 
-AVAILABLE SLIDE TEMPLATES:
-{json.dumps(TEMPLATES, indent=2)}
+AVAILABLE SLIDE TEMPLATES (USE ONLY THESE EXACT NAMES):
+- business_overview
+- investor_considerations  
+- investor_process_overview
+- margin_cost_resilience
+- historical_financial_performance
+- competitive_positioning
+- product_service_footprint
+- precedent_transactions
+- valuation_overview
+- sea_conglomerates
+- buyer_profiles
+- buyer_profiles_aum
+- growth_strategy_projections
+- management_team
+
+🚨 CRITICAL: DO NOT USE THESE NON-EXISTENT TEMPLATES:
+❌ product_service_overview (use product_service_footprint instead)
+❌ trading_comparables (use precedent_transactions instead)
+❌ financial_summary (use historical_financial_performance instead)
+❌ transaction_overview (use business_overview instead)
 
 EXAMPLE JSON STRUCTURES TO FOLLOW EXACTLY:
 {create_examples_text()}
+
+🚨 **CRITICAL: growth_strategy_projections STRUCTURE**:
+```json
+{
+  "template": "growth_strategy_projections",
+  "data": {
+    "slide_data": {
+      "title": "Growth Strategy & Projections",
+      "growth_strategy": {
+        "strategies": ["Strategy 1", "Strategy 2", "Strategy 3"]
+      },
+      "financial_projections": {
+        "categories": ["2024E", "2025E", "2026E"],
+        "revenue": [240, 280, 320],
+        "ebitda": [47, 56, 64]
+      }
+    }
+  }
+}
+```
 
 REMEMBER: Focus on getting complete, specific information for each topic. Don't move on until you have all required details or explicit user consent to use searched information. Use the CORRECT field names specified above to match the validation system. ALWAYS format your final response with the exact JSON structure shown above.
 """
@@ -2785,7 +2838,7 @@ def call_perplexity_api(messages, model_name, api_key):
             "model": model_name,
             "messages": final_messages,
             "temperature": 0.7,
-            "max_tokens": 4000,
+            "max_tokens": 16000,  # Increased from 4000 to handle complete JSON generation
             "stream": False
         }
         
@@ -2825,7 +2878,7 @@ def call_claude_api(messages, model_name, api_key):
         
         payload = {
             "model": model_name,
-            "max_tokens": 4000,
+            "max_tokens": 16000,  # Increased from 4000 to handle complete JSON generation
             "temperature": 0.7,
             "messages": claude_messages
         }
@@ -2880,7 +2933,7 @@ with st.sidebar:
             "Choose Perplexity Model",
             model_options,
             index=0,  # Default to sonar-pro (most capable)
-            help="sonar-pro offers the best balance of capability and speed"
+            help="sonar-pro offers the best balance of capability and speed. Token limit: 16,000 tokens for complete JSON generation."
         )
         api_service = "perplexity"
     else:
@@ -2896,7 +2949,7 @@ with st.sidebar:
             "Choose Claude Model",
             model_options,
             index=0,  # Default to latest Sonnet
-            help="Claude Sonnet offers the best balance of speed and capability"
+            help="Claude Sonnet offers the best balance of speed and capability. Token limit: 16,000 tokens for complete JSON generation."
         )
         api_service = "claude"
     
@@ -3484,6 +3537,7 @@ I believe we have covered all the necessary information for a comprehensive pitc
 - Create multiple slides of the same type if the data supports it
 - Don't skip any information or use placeholder text
 - Ensure every field has real content (no empty arrays, null values, or placeholders)
+- 🚨 **CRITICAL: Generate COMPLETE JSON** - Never truncate or cut off your response
 - USE CORRECT FIELD NAMES: role_title/experience_bullets for management, cost_management/risk_mitigation for margins, etc.
 
 🚨 **CRITICAL DATA REQUIREMENTS:**

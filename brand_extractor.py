@@ -492,7 +492,7 @@ Return ONLY the JSON, no additional text."""
                 "model": self.model_name,
                 "messages": cleaned_messages,
                 "temperature": 0.3,  # Lower temperature for more consistent results
-                "max_tokens": 1500,
+                "max_tokens": 4000,  # Increased from 1500 for complete brand analysis
                 "stream": False
             }
             
@@ -577,7 +577,7 @@ Return ONLY the JSON, no additional text."""
             
             payload = {
                 "model": self.model_name,
-                "max_tokens": 1500,
+                "max_tokens": 4000,  # Increased from 1500 for complete brand analysis
                 "temperature": 0.3,
                 "messages": claude_messages
             }
