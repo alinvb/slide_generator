@@ -1986,7 +1986,7 @@ MANDATORY COMPLETION CHECKLIST:
 ✅ Growth strategy with market data and projections
 ✅ Management team (4-6 profiles with role_title/experience_bullets)
 ✅ Investor considerations (risks and opportunities)
-✅ Competitive positioning (if requested)
+✅ Competitive positioning
 ✅ Trading precedents (public comps and/or private deals)
 ✅ Valuation methodologies and assumptions
 ✅ Strategic buyers (3-4 with rationale)
@@ -2025,7 +2025,7 @@ ENHANCED INTERVIEW FLOW RULES:
    - Never provide additional information until you've asked follow-up questions
    - Don't summarize or explain - focus on getting missing data
 
-INTERVIEW SEQUENCE (ask in this order, collecting ALL required info for each):
+INTERVIEW SEQUENCE (ask in this order, collecting ALL required info for each). YOU MUST ASK ABOUT EACH TOPIC: 
 
 1. **Company Overview**: 
    Required: Name, business description, founding year, legal structure, core operations, target markets
