@@ -1,0 +1,137 @@
+{
+  "entities": {
+    "company": {
+      "name": "PT BreadLife Indonesia"
+    }
+  },
+  "facts": {
+    "years": [
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024E"
+    ],
+    "revenue_usd_m": [
+      120,
+      145,
+      180,
+      210,
+      240
+    ],
+    "ebitda_usd_m": [
+      18,
+      24,
+      31,
+      40,
+      47
+    ],
+    "ebitda_margins": [
+      15.0,
+      16.6,
+      17.2,
+      19.0,
+      19.6
+    ]
+  },
+  "management_team": {
+    "left_column_profiles": [
+      {
+        "role_title": "Chief Executive Officer",
+        "experience_bullets": [
+          "15+ years in F&B and retail expansion across Southeast Asia",
+          "Former Regional Director at a leading Asian QSR chain",
+          "Expert in multi-unit operations and brand scaling",
+          "MBA from National University of Singapore"
+        ]
+      },
+      {
+        "role_title": "Chief Operating Officer",
+        "experience_bullets": [
+          "Built and managed supply chain for 100+ outlets",
+          "Ex-Head of Operations at a major Indonesian bakery",
+          "Implemented lean manufacturing for central kitchen",
+          "Certified Six Sigma Black Belt"
+        ]
+      }
+    ],
+    "right_column_profiles": [
+      {
+        "role_title": "Chief Financial Officer",
+        "experience_bullets": [
+          "Oversaw finance for F&B conglomerates in Indonesia",
+          "Led M&A and integration of Breadlife into DailyCo",
+          "Implemented ERP systems for multi-brand groups",
+          "Chartered Accountant (Indonesia)"
+        ]
+      },
+      {
+        "role_title": "Head of Product & Innovation",
+        "experience_bullets": [
+          "Developed 25+ market-leading bakery SKUs",
+          "Former R&D Head at Japanese-style bakery",
+          "Expert in flavor innovation and food trends",
+          "Graduate of Tokyo Institute of Culinary Arts"
+        ]
+      }
+    ]
+  },
+  "strategic_buyers": [
+    {
+      "buyer_name": "PT Nippon Indosari Corpindo Tbk (Sari Roti)",
+      "description": "Leading Indonesian bakery company with extensive distribution network",
+      "strategic_rationale": "Expand premium and Japanese-style bakery segment, leverage Breadlife's urban footprint and innovation",
+      "key_synergies": "Production integration, distribution network, product cross-selling",
+      "concerns": "Brand integration challenges, valuation expectations",
+      "fit_score": "High (9/10)",
+      "financial_capacity": "Strong balance sheet for acquisitions"
+    },
+    {
+      "buyer_name": "PT Sriboga Raturaya (Holland Bakery)",
+      "description": "Premium bakery chain with strong brand recognition",
+      "strategic_rationale": "Diversify into preservative-free, health-oriented bakery segment and reach younger customers",
+      "key_synergies": "Brand diversification, B2B client expansion, shared logistics",
+      "concerns": "Market overlap, integration complexity",
+      "fit_score": "High (8/10)",
+      "financial_capacity": "Adequate for strategic acquisition"
+    },
+    {
+      "buyer_name": "Yamazaki Baking Co., Ltd.",
+      "description": "Japanese bakery giant seeking Southeast Asia expansion",
+      "strategic_rationale": "Accelerate Southeast Asia expansion using Breadlife's local expertise and market access",
+      "key_synergies": "Product innovation, joint procurement, regional expansion",
+      "concerns": "Cultural integration, regulatory compliance",
+      "fit_score": "Medium-High (8/10)",
+      "financial_capacity": "Significant international expansion budget"
+    }
+  ],
+  "financial_buyers": [
+    {
+      "buyer_name": "Creador",
+      "description": "Southeast Asian private equity with consumer focus",
+      "strategic_rationale": "Attractive consumer growth story with margin expansion in Indonesia's bakery sector",
+      "key_synergies": "Regional F&B roll-up platform, operational enhancements, exit to strategic",
+      "concerns": "Valuation discipline, exit timeline",
+      "fit_score": "High (9/10)",
+      "financial_capacity": "Strong consumer sector allocation"
+    },
+    {
+      "buyer_name": "Northstar Group",
+      "description": "Indonesian-focused private equity with retail expertise",
+      "strategic_rationale": "Scalable platform in resilient F&B, strong management, and brand equity",
+      "key_synergies": "Network access, digitalization support, value creation for IPO",
+      "concerns": "Competitive process, control preferences",
+      "fit_score": "High (9/10)",
+      "financial_capacity": "Significant dry powder for growth"
+    },
+    {
+      "buyer_name": "Navis Capital Partners",
+      "description": "Southeast Asian private equity with F&B experience",
+      "strategic_rationale": "Exposure to Indonesia's fast-growing food retail, proven unit economics",
+      "key_synergies": "Operational improvement, cross-border M&A, strategic governance",
+      "concerns": "Integration complexity, market timing",
+      "fit_score": "High (8/10)",
+      "financial_capacity": "Strong regional presence"
+    }
+  ]
+}

@@ -700,7 +700,8 @@ def validate_individual_slides(content_ir, render_plan):
         'financial_summary': validate_financial_summary_slide,
         'transaction_overview': validate_transaction_overview_slide,
         'appendix': validate_appendix_slide,
-        'sea_conglomerates': validate_sea_conglomerates_slide
+        'sea_conglomerates': validate_sea_conglomerates_slide,
+        'investor_process_overview': validate_investor_process_overview_slide
     }
     
     # Validate each slide
@@ -876,7 +877,7 @@ def validate_buyer_profiles_slide(slide, content_ir):
                         continue
                     
                     # Check for required buyer fields - FIXED for your data structure
-                    required_buyer_fields = ['buyer_name', 'strategic_rationale', 'fit']
+                    required_buyer_fields = ['buyer_name', 'strategic_rationale', 'fit_score']
                     for field in required_buyer_fields:
                         if field not in buyer:
                             validation['empty_fields'].append(f"Buyer #{buyer_num} missing {field}")
@@ -1350,6 +1351,45 @@ def validate_sea_conglomerates_slide(slide, content_ir):
                 for field in required_fields:
                     if field not in conglomerate or not conglomerate[field]:
                         validation['empty_fields'].append(f"Conglomerate #{cong_num} missing {field}")
+    
+    return validation
+
+def validate_investor_process_overview_slide(slide, content_ir):
+    """Validate investor process overview slide"""
+    validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
+    
+    data = slide.get('data', {})
+    
+    # Required fields for investor process overview
+    required_fields = {
+        'title': 'Slide title',
+        'diligence_topics': 'Due diligence topics',
+        'synergy_opportunities': 'Synergy opportunities',
+        'risk_factors': 'Risk factors',
+        'mitigants': 'Mitigating factors',
+        'timeline': 'Process timeline'
+    }
+    
+    for field, description in required_fields.items():
+        if field not in data:
+            validation['missing_fields'].append(f"Missing {description}")
+        elif not data[field]:
+            validation['empty_fields'].append(f"Empty {description}")
+        elif isinstance(data[field], list) and len(data[field]) == 0:
+            validation['empty_fields'].append(f"Empty {description} array")
+        elif isinstance(data[field], list):
+            # Validate array items
+            for i, item in enumerate(data[field]):
+                item_num = i + 1
+                if isinstance(item, dict):
+                    # Check for required fields in each item
+                    if 'title' in item and 'description' in item:
+                        if not item.get('title') or not item.get('description'):
+                            validation['empty_fields'].append(f"{description} #{item_num} missing title or description")
+                    elif not item or str(item).strip() == '':
+                        validation['empty_fields'].append(f"{description} #{item_num} is empty")
+                elif not item or str(item).strip() == '':
+                    validation['empty_fields'].append(f"{description} #{item_num} is empty")
     
     return validation
 
@@ -1853,25 +1893,44 @@ You are a precise, on-task investment banking pitch deck copilot that generates 
 
 🚨 **CRITICAL REQUIREMENTS - READ CAREFULLY**:
 1. **Content IR MUST include 'facts' section** with historical financial data
-2. **buyer_profiles slides MUST have content_ir_key** (strategic_buyers or financial_buyers)
-3. **historical_financial_performance slides MUST reference facts data** for complete chart data
-4. **Every slide MUST have a 'title' field** in the data section
-5. **All arrays MUST have minimum required items** (no empty arrays)
-6. **🚨 ALWAYS GENERATE COMPLETE JSON** - Never truncate or cut off JSON responses
+2. **Content IR MUST include 'charts' section** with chart data for financial performance
+3. **Content IR MUST include 'investor_process_data' section** with diligence topics, synergies, risks, mitigants, timeline
+4. **Content IR MUST include 'margin_cost_data' section** with cost management and risk mitigation
+5. **buyer_profiles slides MUST have content_ir_key** (strategic_buyers or financial_buyers)
+6. **historical_financial_performance slides MUST reference facts data** for complete chart data
+7. **Every slide MUST have a 'title' field** in the data section
+8. **All arrays MUST have minimum required items** (no empty arrays)
+9. **🚨 ALWAYS GENERATE COMPLETE JSON** - Never truncate or cut off JSON responses
+10. **🚨 FOLLOW STEP-BY-STEP INTERVIEW** - Ask about each topic individually, don't skip any
+11. **🚨 GENERATE EXACTLY 13 SLIDES** - No more, no less
 
-📋 **REQUIRED FIELDS FOR EACH TEMPLATE**:
-- **investor_considerations**: title, considerations (array), mitigants (array)
-- **growth_strategy_projections**: slide_data (with title, growth_strategy and financial_projections)
-- **buyer_profiles**: title, table_rows (array), table_headers (array)
-- **sea_conglomerates**: data (array of objects with name, country, description)
-- **margin_cost_resilience**: title, chart_title, chart_data, cost_management, risk_mitigation
-- **competitive_positioning**: title, competitors (array), assessment (array), barriers (array), advantages (array)
-- **valuation_overview**: title, valuation_data (array with methodology, enterprise_value, metric, 22a_multiple, 23e_multiple)
-- **precedent_transactions**: title, transactions (array with target, acquirer, date, country, enterprise_value, revenue, ev_revenue_multiple)
-- **historical_financial_performance**: title, chart, key_metrics, revenue_growth, banker_view
-- **management_team**: title, left_column_profiles (array), right_column_profiles (array)
-- **business_overview**: title, description, timeline, highlights
-- **product_service_footprint**: title, services (array)
+📋 **COMPREHENSIVE FIELD REQUIREMENTS FOR EACH TEMPLATE**:
+
+**business_overview**: title, description, timeline (start_year, end_year), highlights (array), services (array), positioning_desc
+
+**investor_considerations**: title, considerations (array of risks), mitigants (array of strategies)
+
+**product_service_footprint**: title, services (array with title + desc), coverage_table (array of objects), metrics (object with labels)
+
+**historical_financial_performance**: title, chart (title, categories, revenue, ebitda), key_metrics (object with metrics array), revenue_growth (object with title and points array), banker_view (object with title and text)
+
+**management_team**: title, left_column_profiles (array with role_title + experience_bullets), right_column_profiles (array with role_title + experience_bullets)
+
+**growth_strategy_projections**: title, slide_data (title, growth_strategy with strategies array, financial_projections with categories + revenue + ebitda)
+
+**competitive_positioning**: title, competitors (array with name + revenue), assessment (array format), barriers (array with title + desc), advantages (array with title + desc)
+
+**valuation_overview**: title, valuation_data (array with methodology, enterprise_value, metric, 22a_multiple, 23e_multiple, commentary)
+
+**precedent_transactions**: title, transactions (array with target, acquirer, date, country, enterprise_value, revenue, ev_revenue_multiple)
+
+**margin_cost_resilience**: title, chart_title, chart_data (categories + values), cost_management (items array), risk_mitigation (main_strategy)
+
+**sea_conglomerates**: data (array with name, country, description, key_shareholders, key_financials, moelis_contact)
+
+**buyer_profiles**: title, table_headers (array), table_rows (array with buyer_name, description, strategic_rationale, key_synergies, concerns, fit_score, financial_capacity), content_ir_key
+
+**investor_process_overview**: title, diligence_topics (array), synergy_opportunities (array), risk_factors (array), mitigants (array), timeline (array)
 6. **NO placeholder text, NO empty fields, NO null values**
 
 📋 **CRITICAL JSON FORMATTING REQUIREMENTS**:
@@ -1884,7 +1943,17 @@ Your response MUST include BOTH JSONs in this EXACT format:
   "facts": {"years": ["2020", "2021", "2022", "2023", "2024E"], "revenue_usd_m": [120, 145, 180, 210, 240], "ebitda_usd_m": [18, 24, 31, 40, 47], "ebitda_margins": [15.0, 16.6, 17.2, 19.0, 19.6]},
   "management_team": {"left_column_profiles": [...], "right_column_profiles": [...]},
   "strategic_buyers": [...],
-  "financial_buyers": [...]
+  "financial_buyers": [...],
+  "competitive_analysis": {"competitors": [...], "assessment": [...], "barriers": [...], "advantages": [...]},
+  "precedent_transactions": [...],
+  "valuation_data": [...],
+  "product_service_data": {"services": [...], "coverage_table": [...], "metrics": {...}},
+  "business_overview_data": {"description": "...", "timeline": {...}, "highlights": [...], "services": [...], "positioning_desc": "..."},
+  "growth_strategy_data": {"growth_strategy": {...}, "financial_projections": {...}, "key_assumptions": {...}},
+  "investor_process_data": {"diligence_topics": [...], "synergy_opportunities": [...], "risk_factors": [...], "mitigants": [...], "timeline": [...]},
+  "margin_cost_data": {"chart_data": {...}, "cost_management": {...}, "risk_mitigation": {...}},
+  "sea_conglomerates": [...],
+  "investor_considerations": {"considerations": [...], "mitigants": [...]}
 }
 ```
 
@@ -2040,37 +2109,68 @@ ENHANCED INTERVIEW FLOW RULES:
    - Never provide additional information until you've asked follow-up questions
    - Don't summarize or explain - focus on getting missing data
 
-INTERVIEW SEQUENCE (ask in this order, collecting ALL required info for each). YOU MUST ASK ABOUT EACH TOPIC: 
+🚨 **SYSTEMATIC INTERVIEW PROTOCOL** - YOU MUST ASK ABOUT EACH TOPIC ONE BY ONE:
 
-1. **Company Overview**: 
-   Required: Name, business description, founding year, legal structure, core operations, target markets
-   
-2. **Investment Highlights**: 
-   Required: 3-5 key value propositions, competitive advantages, unique selling points
-   
-3. **Business Model**: 
-   Required: Revenue streams, how company makes money, customer segments, pricing model
-   
-4. **Product/Service Footprint**: 
-   Required: Main offerings, geographic presence, market positioning, distribution channels
-   
-5. **Historical Financials**: 
-   Required: 3-5 years of revenue, EBITDA, margins, growth rates, key financial metrics
-   
-6. **Margin/Cost Resilience**: 
-   Required: Cost structure breakdown, margin stability factors, competitive moats
-   
-7. **Growth Strategy**: 
-   Required: Expansion plans, market size data, growth projections, strategic initiatives
-   
-8. **Management Team**: 
-   Required: 4-6 executives with role_title, experience_bullets array for each
-   
-9. **Investor Considerations**: 
-   Required: 3-4 key risks (for "considerations" field), 3-4 mitigation strategies (for "mitigants" field)
-   
-10. **Competitive Positioning**: (Ask: "Do you want a competitive positioning slide?")
-    If yes, required: Main competitors, competitive advantages, market positioning
+**STEP-BY-STEP INTERVIEW SEQUENCE** (Ask about each topic individually):
+
+**STEP 1: Company Overview**
+Ask: "Let's start with your company overview. What is your company name, what does your business do, when was it founded, and how would you describe your market positioning?"
+
+**STEP 2: Product/Service Footprint** 
+Ask: "Now let's discuss your products and services. What are your main offerings? Please provide the title and description for each product/service. Also, where do you operate geographically?"
+
+**STEP 3: Historical Financial Performance**
+Ask: "Let's talk about your financial performance. Can you provide your revenue, EBITDA, and margins for the last 3-5 years? What are your key financial metrics and growth drivers? Also, I need specific metrics like patient visits, same-store growth, and any other key operational metrics."
+
+**STEP 4: Management Team**
+Ask: "Tell me about your management team. Who are your key executives? Please provide their role titles and experience backgrounds for each person."
+
+**STEP 5: Investor Considerations**
+Ask: "What are the main risks or concerns that investors should consider about your business? And what are your strategies to mitigate these risks?"
+
+**STEP 6: Competitive Positioning**
+Ask: "Who are your main competitors? What are their revenues? How do you compare to them in terms of market position, technology, and distribution?"
+
+**STEP 7: Growth Strategy & Projections**
+Ask: "What is your growth strategy going forward? Please provide specific strategies you plan to implement. Also, what are your financial projections for the next 2-3 years in terms of revenue and EBITDA? I need both the growth strategies and the specific financial projections with categories, revenue, and EBITDA numbers."
+
+**STEP 8: Margin & Cost Resilience**
+Ask: "How do you manage your costs and maintain margins? What are your cost management initiatives and risk mitigation strategies?"
+
+**STEP 9: Valuation Overview**
+Ask: "What valuation methodologies would be appropriate for your business? What enterprise values and multiples do you expect based on different methods?"
+
+**STEP 10: Precedent Transactions**
+Ask: "Are there any recent transactions in your industry that we should consider as precedents? Please provide details about target, acquirer, date, country, enterprise value, revenue, and multiples."
+
+**STEP 11: Strategic Buyers**
+Ask: "Who would be potential strategic buyers for your business? Please provide buyer name, description, strategic rationale, key synergies, concerns, fit score, and financial capacity for each."
+
+**STEP 12: Financial Buyers**
+Ask: "Who would be potential financial buyers (private equity funds)? Please provide the same details as for strategic buyers."
+
+**STEP 13: SEA Conglomerates**
+Ask: "Which Southeast Asian conglomerates might be interested? Please provide name, country, description, key shareholders, key financials, and Moelis contact for each."
+
+**STEP 14: Investor Process Overview**
+Ask: "What would be the key due diligence topics, synergy opportunities, risk factors, mitigants, and timeline for an investor process?"
+
+**STEP 15: Charts Data**
+Ask: "I need specific chart data for your financial performance. Can you provide the exact data for revenue & EBITDA growth chart and EBITDA margin trend chart with categories, values, and units?"
+
+**STEP 16: Margin & Cost Data**
+Ask: "What are your specific cost management initiatives and risk mitigation strategies? I need detailed information about how you manage costs and maintain margins."
+
+🚨 **CRITICAL RULES:**
+- Ask about ONE topic at a time
+- Wait for complete information before moving to the next topic
+- Don't skip any topics
+- Don't generate JSON until ALL 16 topics are covered
+- Confirm you have complete information before moving on
+- NEVER generate JSON until you have asked about ALL topics systematically
+- If user provides incomplete information, ask follow-up questions
+- Only generate JSON when you have collected data for ALL topics
+- MUST collect data for: charts, investor_process_data, margin_cost_data sections
     
 11. **Trading Precedents**: 
     Required: Public comparables OR private transactions (ask preference), multiples, rationale
@@ -2093,19 +2193,26 @@ RESPONSE INTERPRETATION:
 
 🚨 **CRITICAL: YOU MUST ASK ABOUT EVERY TOPIC BELOW - DO NOT SKIP ANY!**
 
-REQUIRED TOPICS CHECKLIST (ask about ALL of these):
-✅ business_overview
-✅ investor_considerations  
-✅ product_service_footprint
-✅ historical_financial_performance
-✅ management_team
-✅ growth_strategy_projections
-✅ competitive_positioning
-✅ valuation_overview
-✅ precedent_transactions
-✅ margin_cost_resilience
-✅ sea_conglomerates
-✅ buyer_profiles
+**COMPREHENSIVE DATA COLLECTION CHECKLIST** (ask about ALL of these):
+
+**PHASE 1: CORE BUSINESS DATA**
+✅ business_overview (name, description, timeline, highlights, services, positioning)
+✅ product_service_footprint (services with titles+descriptions, coverage_table, metrics)
+✅ historical_financial_performance (chart data, key_metrics, revenue_growth, banker_view)
+✅ management_team (left_column_profiles + right_column_profiles with role_title + experience_bullets)
+
+**PHASE 2: STRATEGIC ANALYSIS**
+✅ investor_considerations (considerations array + mitigants array)
+✅ competitive_positioning (competitors with revenue, assessment array, barriers, advantages)
+✅ growth_strategy_projections (strategies array, financial_projections with categories+revenue+ebitda)
+✅ margin_cost_resilience (chart_data with values, cost_management items, risk_mitigation)
+
+**PHASE 3: TRANSACTION DATA**
+✅ valuation_overview (multiple methodologies, enterprise_values, multiples, commentary)
+✅ precedent_transactions (target, acquirer, date, country, enterprise_value, revenue, ev_revenue_multiple)
+✅ buyer_profiles (strategic_buyers + financial_buyers with ALL fields: buyer_name, description, strategic_rationale, key_synergies, concerns, fit_score, financial_capacity)
+✅ sea_conglomerates (name, country, description, key_shareholders, key_financials, moelis_contact)
+✅ investor_process_overview (diligence_topics, synergy_opportunities, risk_factors, mitigants, timeline)
 
 ❌ DO NOT USE THESE NON-EXISTENT TEMPLATES:
 ❌ product_service_overview (use product_service_footprint)
@@ -2120,20 +2227,23 @@ When you have collected information for ALL non-skipped items in the completion 
 
 "Perfect! I now have all the information needed to create your comprehensive pitch deck. Here are your complete, downloadable pitch deck files:
 
-EVERY RENDER PLAN MUST INCLUDE the following unless the user has requested to skip a slide. 
+EVERY RENDER PLAN MUST INCLUDE EXACTLY these 13 slides (no more, no less):
 
-business_overview
-investor_considerations
-product_service_footprint
-historical_financial_performance
-management_team
-growth_strategy_projections
-competitive_positioning
-valuation_overview
-precedent_transactions
-margin_cost_resilience
-sea_conglomerates
-buyer_profiles
+1. business_overview
+2. investor_considerations
+3. product_service_footprint
+4. historical_financial_performance
+5. management_team
+6. growth_strategy_projections
+7. competitive_positioning
+8. valuation_overview
+9. precedent_transactions
+10. margin_cost_resilience
+11. sea_conglomerates
+12. buyer_profiles (strategic_buyers)
+13. buyer_profiles (financial_buyers)
+
+🚨 **CRITICAL**: Generate EXACTLY 13 slides total. Do NOT add extra slides.
 
 
 
@@ -2204,6 +2314,27 @@ AVAILABLE SLIDE TEMPLATES (USE ONLY THESE EXACT NAMES):
 ❌ transaction_overview (use business_overview instead)
 
 EXAMPLE JSON STRUCTURES TO FOLLOW EXACTLY:
+
+**Growth Strategy Slide Structure:**
+```json
+{
+  "template": "growth_strategy_projections",
+  "data": {
+    "title": "Growth Strategy & Financial Projections",
+    "slide_data": {
+      "title": "Growth Strategy & Financial Projections",
+      "growth_strategy": {
+        "strategies": ["Strategy 1", "Strategy 2", "Strategy 3"]
+      },
+      "financial_projections": {
+        "categories": ["2024E", "2025E", "2026E"],
+        "revenue": [240, 280, 320],
+        "ebitda": [47, 56, 64]
+      }
+    }
+  }
+}
+```
 {create_examples_text()}
 
 🚨 **CRITICAL: growth_strategy_projections STRUCTURE**:
@@ -2838,7 +2969,7 @@ def call_perplexity_api(messages, model_name, api_key):
             "model": model_name,
             "messages": final_messages,
             "temperature": 0.7,
-            "max_tokens": 16000,  # Increased from 4000 to handle complete JSON generation
+            "max_tokens": 12000,  # Increased from 4000 to handle complete JSON generation
             "stream": False
         }
         
@@ -2878,7 +3009,7 @@ def call_claude_api(messages, model_name, api_key):
         
         payload = {
             "model": model_name,
-            "max_tokens": 16000,  # Increased from 4000 to handle complete JSON generation
+            "max_tokens": 12000,  # Increased from 4000 to handle complete JSON generation
             "temperature": 0.7,
             "messages": claude_messages
         }
@@ -3546,6 +3677,8 @@ I believe we have covered all the necessary information for a comprehensive pitc
 3. **historical_financial_performance slide MUST reference facts data** for chart categories, revenue, and EBITDA
 4. **margin_cost_resilience slide MUST have complete cost_management.items** with title and description for each
 5. **growth_strategy_projections slide MUST have complete title and strategies array**
+   - MUST have title field at slide level (not just in slide_data)
+   - MUST have slide_data with growth_strategy.strategies array and financial_projections
 6. **buyer_profiles slides MUST have content_ir_key** AND complete table_headers
 7. **competitive_positioning slide MUST have complete assessment table** with comparison data
 8. **All arrays MUST have minimum required items** (no empty arrays)
