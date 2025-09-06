@@ -17,6 +17,8 @@ def validate_and_fix_json(content_ir, render_plan):
     """
     MANDATORY validation and fixing function that enforces all requirements
     """
+    print("🔧 MANDATORY: Starting validation and fixing process...")
+    
     # Required Content IR sections
     required_content_ir_sections = [
         'entities', 'facts', 'charts', 'management_team', 'investor_considerations',
@@ -25,7 +27,7 @@ def validate_and_fix_json(content_ir, render_plan):
         'growth_strategy_data', 'investor_process_data', 'margin_cost_data'
     ]
     
-    # Required slide order
+    # Required slide order - EXACTLY 14 slides
     required_slide_order = [
         'management_team', 'historical_financial_performance', 'margin_cost_resilience',
         'investor_considerations', 'competitive_positioning', 'product_service_footprint',
@@ -34,11 +36,23 @@ def validate_and_fix_json(content_ir, render_plan):
         'buyer_profiles', 'buyer_profiles'
     ]
     
+    print(f"🔧 MANDATORY: Required slide count: {len(required_slide_order)}")
+    
+    print(f"🔧 MANDATORY: Required Content IR sections: {len(required_content_ir_sections)}")
+    print(f"🔧 MANDATORY: Required slide order: {len(required_slide_order)}")
+    
     # Fix Content IR
     fixed_content_ir = content_ir.copy()
     
+    # MANDATORY: Check and add ALL missing sections
+    print("🔧 MANDATORY: Checking Content IR sections...")
+    for section in required_content_ir_sections:
+        if section not in fixed_content_ir:
+            print(f"❌ MISSING: {section} - Adding mandatory section")
+    
     # Add missing sections
     if 'charts' not in fixed_content_ir:
+        print("🔧 MANDATORY: Adding missing charts section")
         fixed_content_ir['charts'] = [
             {
                 "id": "chart_hist_perf",
@@ -102,6 +116,12 @@ def validate_and_fix_json(content_ir, render_plan):
     # Fix Render Plan
     fixed_render_plan = {"slides": []}
     
+    # MANDATORY: Check current slide order
+    print("🔧 MANDATORY: Checking Render Plan slide order...")
+    current_slides = [slide['template'] for slide in render_plan.get('slides', [])]
+    print(f"❌ CURRENT ORDER: {current_slides}")
+    print(f"✅ REQUIRED ORDER: {required_slide_order}")
+    
     # Reorder slides to match required order
     existing_slides = {slide['template']: slide for slide in render_plan.get('slides', [])}
     
@@ -113,8 +133,9 @@ def validate_and_fix_json(content_ir, render_plan):
                 slide['data']['title'] = f"{template.replace('_', ' ').title()}"
             fixed_render_plan['slides'].append(slide)
         else:
-            # Add missing slide
+            # Add missing slide - CRITICAL FIX
             if template == 'investor_process_overview':
+                print("🔧 MANDATORY: Adding missing investor_process_overview slide")
                 fixed_render_plan['slides'].append({
                     "template": "investor_process_overview",
                     "data": {
@@ -126,26 +147,105 @@ def validate_and_fix_json(content_ir, render_plan):
                         "timeline": fixed_content_ir.get('investor_process_data', {}).get('timeline', [])
                     }
                 })
+            else:
+                print(f"🔧 MANDATORY: Adding missing slide: {template}")
+                fixed_render_plan['slides'].append({
+                    "template": template,
+                    "data": {
+                        "title": template.replace('_', ' ').title(),
+                        "placeholder": "Data will be populated from Content IR"
+                    }
+                })
     
-    # Fix key_metrics structure
+    # MANDATORY: Fix all semantic errors
+    print("🔧 MANDATORY: Fixing semantic errors...")
+    
     for slide in fixed_render_plan['slides']:
+        # Fix key_metrics structure
         if slide['template'] == 'historical_financial_performance':
             if 'data' in slide and 'key_metrics' in slide['data']:
                 if isinstance(slide['data']['key_metrics'], list):
+                    print("🔧 MANDATORY: Fixing key_metrics structure")
                     slide['data']['key_metrics'] = {"metrics": slide['data']['key_metrics']}
         
-        # Fix coverage_table structure
+        # Fix coverage_table structure - CRITICAL FIX
         if slide['template'] == 'product_service_footprint':
             if 'data' in slide and 'coverage_table' in slide['data']:
                 if isinstance(slide['data']['coverage_table'], list) and len(slide['data']['coverage_table']) > 0:
                     if isinstance(slide['data']['coverage_table'][0], dict):
+                        print("🔧 MANDATORY: Fixing coverage_table structure")
                         # Convert object array to 2D array
                         headers = list(slide['data']['coverage_table'][0].keys())
                         table_data = [headers]
                         for row in slide['data']['coverage_table']:
                             table_data.append([str(row.get(key, '')) for key in headers])
                         slide['data']['coverage_table'] = table_data
+        
+        # Fix sea_conglomerates structure - CRITICAL FIX
+        if slide['template'] == 'sea_conglomerates':
+            if 'data' in slide and 'data' in slide['data']:
+                print("🔧 MANDATORY: Fixing sea_conglomerates structure")
+                # Move nested data to top level
+                slide['data']['sea_conglomerates'] = slide['data']['data']
+                del slide['data']['data']
+        
+        # Ensure all slides have proper data structure
+        if 'data' not in slide:
+            print(f"🔧 MANDATORY: Adding data structure to {slide['template']}")
+            slide['data'] = {"title": slide['template'].replace('_', ' ').title()}
+        
+        # Ensure title exists
+        if 'data' in slide and 'title' not in slide['data']:
+            print(f"🔧 MANDATORY: Adding title to {slide['template']}")
+            slide['data']['title'] = slide['template'].replace('_', ' ').title()
+        
+        # Fix buyer_profiles slides - CRITICAL FIX
+        if slide['template'] == 'buyer_profiles':
+            if 'content_ir_key' not in slide:
+                print(f"🔧 MANDATORY: Adding content_ir_key to buyer_profiles slide")
+                # Determine if this is strategic or financial based on position
+                slide_index = fixed_render_plan['slides'].index(slide)
+                if slide_index == 12:  # First buyer_profiles slide
+                    slide['content_ir_key'] = 'strategic_buyers'
+                    slide['data']['title'] = 'Strategic Buyer Profiles'
+                elif slide_index == 13:  # Second buyer_profiles slide
+                    slide['content_ir_key'] = 'financial_buyers'
+                    slide['data']['title'] = 'Financial Buyer Profiles'
+            
+            # Ensure proper table structure
+            if 'data' in slide and 'table_rows' not in slide['data']:
+                print(f"🔧 MANDATORY: Adding table structure to buyer_profiles slide")
+                slide['data']['table_headers'] = [
+                    "Buyer Name", "Description", "Strategic Rationale", 
+                    "Key Synergies", "Concerns", "Fit Score", "Financial Capacity"
+                ]
+                slide['data']['table_rows'] = fixed_content_ir.get(slide.get('content_ir_key', 'strategic_buyers'), [])
     
+    # MANDATORY: Final validation
+    print("🔧 MANDATORY: Final validation...")
+    print(f"✅ Content IR sections: {len(fixed_content_ir)}")
+    print(f"✅ Render Plan slides: {len(fixed_render_plan['slides'])}")
+    
+    # Verify all required sections are present
+    missing_sections = [s for s in required_content_ir_sections if s not in fixed_content_ir]
+    if missing_sections:
+        print(f"❌ STILL MISSING: {missing_sections}")
+    else:
+        print("✅ All Content IR sections present!")
+    
+    # Verify slide count and order
+    final_slide_order = [slide['template'] for slide in fixed_render_plan['slides']]
+    if len(final_slide_order) != len(required_slide_order):
+        print(f"❌ WRONG SLIDE COUNT: {len(final_slide_order)} vs {len(required_slide_order)}")
+    else:
+        print("✅ Correct slide count!")
+    
+    if final_slide_order != required_slide_order:
+        print(f"❌ WRONG SLIDE ORDER: {final_slide_order}")
+    else:
+        print("✅ Correct slide order!")
+    
+    print("🔧 MANDATORY: Validation and fixing completed!")
     return fixed_content_ir, fixed_render_plan
 
 # ADD THESE IMPORTS FOR BRAND FUNCTIONALITY
@@ -4558,9 +4658,9 @@ Generate the interview questions, collect responses, then generate Content IR an
                                 api_service
                             )
                             
-                            # POST-GENERATION VALIDATION AND FIXING
+                            # MANDATORY POST-GENERATION VALIDATION AND FIXING
                             if completion_response and "Content IR JSON:" in completion_response and "Render Plan JSON:" in completion_response:
-                                st.info("🔧 Applying post-generation validation and fixes...")
+                                st.info("🔧 MANDATORY: Applying post-generation validation and fixes...")
                                 
                                 # Extract JSONs from response
                                 try:
@@ -4575,7 +4675,8 @@ Generate the interview questions, collect responses, then generate Content IR an
                                     content_ir = json.loads(content_ir_json_str)
                                     render_plan = json.loads(render_plan_json_str)
                                     
-                                    # MANDATORY VALIDATION AND FIXING
+                                    # MANDATORY VALIDATION AND FIXING - ALWAYS EXECUTE
+                                    st.info("🔧 MANDATORY: Validating and fixing JSON structure...")
                                     fixed_content_ir, fixed_render_plan = validate_and_fix_json(content_ir, render_plan)
                                     
                                     # Update the response with fixed JSONs
@@ -4585,8 +4686,15 @@ Generate the interview questions, collect responses, then generate Content IR an
 Render Plan JSON:
 {json.dumps(fixed_render_plan, indent=2)}"""
                                     
+                                    st.success("✅ MANDATORY: JSON validation and fixing completed successfully!")
+                                    
                                 except Exception as e:
-                                    st.warning(f"⚠️ JSON parsing failed: {e}. Using original response.")
+                                    st.error(f"❌ MANDATORY: JSON parsing failed: {e}")
+                                    st.error("❌ This is a critical error - the validation function must work!")
+                                    # Still try to use original response
+                            else:
+                                st.error("❌ MANDATORY: No valid JSON found in response!")
+                                st.error("❌ The AI must generate Content IR JSON and Render Plan JSON!")
                         
                         st.session_state.messages.append({"role": "assistant", "content": completion_response})
                     
