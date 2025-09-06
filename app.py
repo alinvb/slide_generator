@@ -13,6 +13,141 @@ from executor import execute_plan
 from catalog_loader import TemplateCatalog
 from brand_extractor import BrandExtractor
 
+def validate_and_fix_json(content_ir, render_plan):
+    """
+    MANDATORY validation and fixing function that enforces all requirements
+    """
+    # Required Content IR sections
+    required_content_ir_sections = [
+        'entities', 'facts', 'charts', 'management_team', 'investor_considerations',
+        'competitive_analysis', 'precedent_transactions', 'valuation_data', 'sea_conglomerates',
+        'strategic_buyers', 'financial_buyers', 'product_service_data', 'business_overview_data',
+        'growth_strategy_data', 'investor_process_data', 'margin_cost_data'
+    ]
+    
+    # Required slide order
+    required_slide_order = [
+        'management_team', 'historical_financial_performance', 'margin_cost_resilience',
+        'investor_considerations', 'competitive_positioning', 'product_service_footprint',
+        'business_overview', 'precedent_transactions', 'valuation_overview',
+        'investor_process_overview', 'growth_strategy_projections', 'sea_conglomerates',
+        'buyer_profiles', 'buyer_profiles'
+    ]
+    
+    # Fix Content IR
+    fixed_content_ir = content_ir.copy()
+    
+    # Add missing sections
+    if 'charts' not in fixed_content_ir:
+        fixed_content_ir['charts'] = [
+            {
+                "id": "chart_hist_perf",
+                "type": "combo",
+                "title": "Revenue & EBITDA Growth",
+                "categories": fixed_content_ir.get('facts', {}).get('years', ['2020', '2021', '2022', '2023', '2024E']),
+                "revenue": fixed_content_ir.get('facts', {}).get('revenue_usd_m', [120, 145, 180, 210, 240]),
+                "ebitda": fixed_content_ir.get('facts', {}).get('ebitda_usd_m', [18, 24, 31, 40, 47]),
+                "unit": "US$m"
+            }
+        ]
+    
+    if 'investor_process_data' not in fixed_content_ir:
+        fixed_content_ir['investor_process_data'] = {
+            "diligence_topics": [
+                {"title": "Financial & Operational Review", "description": "Historical performance, unit economics, and forward projections"},
+                {"title": "Market & Competitive Analysis", "description": "Market sizing, competitive landscape, and growth opportunities"},
+                {"title": "Management Assessment", "description": "Leadership evaluation, organizational structure, and succession planning"}
+            ],
+            "synergy_opportunities": [
+                {"title": "Revenue Synergies", "description": "Enhanced service offerings through expanded capabilities"},
+                {"title": "Operational Excellence", "description": "Best practices implementation across broader network"}
+            ],
+            "risk_factors": ["Market volatility", "Competitive intensity", "Execution risk"],
+            "mitigants": ["Diversified revenue streams", "Strong market position", "Experienced management"],
+            "timeline": [
+                {"date": "Week 1-2", "description": "Due diligence package and management presentations"},
+                {"date": "Week 3-4", "description": "Site visits and detailed financial analysis"}
+            ]
+        }
+    
+    if 'margin_cost_data' not in fixed_content_ir:
+        fixed_content_ir['margin_cost_data'] = {
+            "chart_data": {
+                "categories": fixed_content_ir.get('facts', {}).get('years', ['2020', '2021', '2022', '2023', '2024E']),
+                "values": fixed_content_ir.get('facts', {}).get('ebitda_margins', [15.0, 16.6, 17.2, 19.0, 19.6])
+            },
+            "cost_management": {
+                "title": "Strategic Cost Management Initiatives",
+                "items": [
+                    {"title": "Supplier Consolidation", "description": "Centralized procurement achieving cost savings"},
+                    {"title": "Operational Efficiency", "description": "Process optimization and automation"}
+                ]
+            },
+            "risk_mitigation": {
+                "title": "Risk Mitigation Framework",
+                "main_strategy": {"title": "Diversified Revenue Base", "description": "Multi-dimensional diversification"},
+                "banker_view": {"title": "BANKER'S VIEW", "text": "Strong operational resilience with proven margin maintenance"}
+            }
+        }
+    
+    # Fix precedent transactions
+    if 'precedent_transactions' in fixed_content_ir:
+        for transaction in fixed_content_ir['precedent_transactions']:
+            if 'enterprise_value' not in transaction or 'revenue' not in transaction:
+                transaction['enterprise_value'] = transaction.get('enterprise_value', transaction.get('revenue', 100) * 3.0)
+                transaction['revenue'] = transaction.get('revenue', transaction.get('enterprise_value', 300) / 3.0)
+            if 'ev_revenue_multiple' not in transaction:
+                transaction['ev_revenue_multiple'] = transaction['enterprise_value'] / transaction['revenue']
+    
+    # Fix Render Plan
+    fixed_render_plan = {"slides": []}
+    
+    # Reorder slides to match required order
+    existing_slides = {slide['template']: slide for slide in render_plan.get('slides', [])}
+    
+    for i, template in enumerate(required_slide_order):
+        if template in existing_slides:
+            slide = existing_slides[template].copy()
+            # Ensure title field exists
+            if 'data' in slide and 'title' not in slide['data']:
+                slide['data']['title'] = f"{template.replace('_', ' ').title()}"
+            fixed_render_plan['slides'].append(slide)
+        else:
+            # Add missing slide
+            if template == 'investor_process_overview':
+                fixed_render_plan['slides'].append({
+                    "template": "investor_process_overview",
+                    "data": {
+                        "title": "Comprehensive Investor Process Overview",
+                        "diligence_topics": fixed_content_ir.get('investor_process_data', {}).get('diligence_topics', []),
+                        "synergy_opportunities": fixed_content_ir.get('investor_process_data', {}).get('synergy_opportunities', []),
+                        "risk_factors": fixed_content_ir.get('investor_process_data', {}).get('risk_factors', []),
+                        "mitigants": fixed_content_ir.get('investor_process_data', {}).get('mitigants', []),
+                        "timeline": fixed_content_ir.get('investor_process_data', {}).get('timeline', [])
+                    }
+                })
+    
+    # Fix key_metrics structure
+    for slide in fixed_render_plan['slides']:
+        if slide['template'] == 'historical_financial_performance':
+            if 'data' in slide and 'key_metrics' in slide['data']:
+                if isinstance(slide['data']['key_metrics'], list):
+                    slide['data']['key_metrics'] = {"metrics": slide['data']['key_metrics']}
+        
+        # Fix coverage_table structure
+        if slide['template'] == 'product_service_footprint':
+            if 'data' in slide and 'coverage_table' in slide['data']:
+                if isinstance(slide['data']['coverage_table'], list) and len(slide['data']['coverage_table']) > 0:
+                    if isinstance(slide['data']['coverage_table'][0], dict):
+                        # Convert object array to 2D array
+                        headers = list(slide['data']['coverage_table'][0].keys())
+                        table_data = [headers]
+                        for row in slide['data']['coverage_table']:
+                            table_data.append([str(row.get(key, '')) for key in headers])
+                        slide['data']['coverage_table'] = table_data
+    
+    return fixed_content_ir, fixed_render_plan
+
 # ADD THESE IMPORTS FOR BRAND FUNCTIONALITY
 try:
     from pptx import Presentation
@@ -4328,52 +4463,87 @@ Please generate both complete JSON structures now with full validation complianc
 }
 ```
 
-🚨 **MANDATORY JSON FIXING PROCESS - YOU MUST FOLLOW THIS:**
+🚨 **MANDATORY JSON FIXING PROCESS - YOU MUST FOLLOW THIS EXACTLY:**
 
 **STEP 1: Generate Initial JSON**
 First, generate your Content IR and Render Plan JSON based on the interview.
 
-**STEP 2: MANDATORY COMPARISON & FIXING**
-You MUST now compare your generated JSON with the working examples above and fix ALL issues:
+**STEP 2: MANDATORY VALIDATION CHECKLIST - YOU MUST VERIFY EACH ITEM:**
 
-**CONTENT IR REQUIRED SECTIONS (ALL MUST BE PRESENT):**
-- entities, facts, charts, management_team, investor_considerations, competitive_analysis
-- precedent_transactions, valuation_data, sea_conglomerates, strategic_buyers, financial_buyers
-- product_service_data, business_overview_data, growth_strategy_data, investor_process_data, margin_cost_data
+**CONTENT IR VALIDATION (ALL 15 SECTIONS MUST BE PRESENT):**
+✅ entities
+✅ facts  
+✅ charts (REQUIRED - add if missing)
+✅ management_team
+✅ investor_considerations
+✅ competitive_analysis
+✅ precedent_transactions
+✅ valuation_data
+✅ sea_conglomerates
+✅ strategic_buyers
+✅ financial_buyers
+✅ product_service_data
+✅ business_overview_data
+✅ growth_strategy_data
+✅ investor_process_data (REQUIRED - add if missing)
+✅ margin_cost_data (REQUIRED - add if missing)
 
-**RENDER PLAN REQUIRED STRUCTURE:**
-- EXACTLY 13 slides in this order: management_team, historical_financial_performance, margin_cost_resilience, investor_considerations, competitive_positioning, product_service_footprint, business_overview, precedent_transactions, valuation_overview, investor_process_overview, growth_strategy_projections, sea_conglomerates, buyer_profiles (strategic), buyer_profiles (financial)
+**RENDER PLAN VALIDATION (EXACTLY 13 SLIDES IN THIS ORDER):**
+✅ Slide 1: management_team
+✅ Slide 2: historical_financial_performance  
+✅ Slide 3: margin_cost_resilience
+✅ Slide 4: investor_considerations
+✅ Slide 5: competitive_positioning
+✅ Slide 6: product_service_footprint
+✅ Slide 7: business_overview
+✅ Slide 8: precedent_transactions
+✅ Slide 9: valuation_overview
+✅ Slide 10: investor_process_overview (REQUIRED - add if missing)
+✅ Slide 11: growth_strategy_projections
+✅ Slide 12: sea_conglomerates
+✅ Slide 13: buyer_profiles (strategic)
+✅ Slide 14: buyer_profiles (financial)
 
-**CRITICAL FIXES TO APPLY:**
-1. **key_metrics structure**: Must be {"metrics": [array]} not direct array
-2. **coverage_table structure**: Must be 2D array [["header1", "header2"], ["row1col1", "row1col2"]]
+**STEP 3: MANDATORY FIXES - APPLY ALL OF THESE:**
+
+**CRITICAL STRUCTURE FIXES:**
+1. **key_metrics**: Must be {"metrics": [array]} NOT direct array
+2. **coverage_table**: Must be 2D array [["header1", "header2"], ["row1col1", "row1col2"]] NOT object array
 3. **growth_strategy_projections**: Must have slide_data wrapper
 4. **All precedent_transactions**: Must have enterprise_value, revenue, ev_revenue_multiple
 5. **All slides**: Must have title field
-6. **Missing sections**: Add any missing sections from working examples
+6. **Missing charts section**: Add charts array with historical performance chart
+7. **Missing investor_process_data**: Add complete investor process data
+8. **Missing margin_cost_data**: Add complete margin cost data
+9. **Missing investor_process_overview slide**: Add this slide as slide 10
 
-**STEP 3: APPLY FAILSAFE MECHANISM**
+**STEP 4: MANDATORY FAILSAFE APPLICATION:**
 For ANY missing field, automatically fill with realistic data:
 - Missing enterprise_value: Calculate using 2.0x-4.0x revenue multiple
-- Missing revenue: Use industry-appropriate range
+- Missing revenue: Use industry-appropriate range  
 - Missing ev_revenue_multiple: Calculate enterprise_value/revenue
 - Missing experience_bullets: Use professional experience points
 - Missing strategic_rationale: Use industry-appropriate rationale
 - Missing fit_score: Use "High (8/10)"
 - Missing financial_capacity: Use "High"
+- Missing charts: Add historical performance chart
+- Missing investor_process_data: Add complete investor process data
+- Missing margin_cost_data: Add complete margin cost data
 
-**STEP 4: FINAL VALIDATION**
+**STEP 5: FINAL MANDATORY VALIDATION:**
 Before outputting, verify:
-- Content IR has ALL required sections
-- Render Plan has EXACTLY 13 slides
-- All data structures match working examples
+- Content IR has ALL 15 required sections
+- Render Plan has EXACTLY 14 slides in correct order
+- All data structures match working examples exactly
 - No missing fields anywhere
+- All precedent_transactions have complete data
+- All slides have title fields
 
 **OUTPUT FORMAT:**
-Provide the COMPLETELY FIXED JSON that matches the working examples exactly. Do not output the initial broken JSON - only the corrected version.
+Provide ONLY the COMPLETELY FIXED JSON that matches the working examples exactly. Do not output the initial broken JSON - only the corrected version.
 
 **CRITICAL REMINDER:**
-You MUST follow this 4-step process. Do not skip any step. Your final output must be perfect JSON that matches the working examples exactly. If you output broken JSON, you have failed this task.
+You MUST follow this 5-step process. Do not skip any step. Your final output must be perfect JSON that matches the working examples exactly. If you output broken JSON, you have failed this task.
 
 **FINAL INSTRUCTION:**
 Generate the interview questions, collect responses, then generate Content IR and Render Plan JSON, then IMMEDIATELY apply the fixing process above to ensure perfect output.
@@ -4387,6 +4557,36 @@ Generate the interview questions, collect responses, then generate Content IR an
                                 api_key,
                                 api_service
                             )
+                            
+                            # POST-GENERATION VALIDATION AND FIXING
+                            if completion_response and "Content IR JSON:" in completion_response and "Render Plan JSON:" in completion_response:
+                                st.info("🔧 Applying post-generation validation and fixes...")
+                                
+                                # Extract JSONs from response
+                                try:
+                                    content_ir_start = completion_response.find("Content IR JSON:") + len("Content IR JSON:")
+                                    content_ir_end = completion_response.find("Render Plan JSON:")
+                                    content_ir_json_str = completion_response[content_ir_start:content_ir_end].strip()
+                                    
+                                    render_plan_start = completion_response.find("Render Plan JSON:") + len("Render Plan JSON:")
+                                    render_plan_json_str = completion_response[render_plan_start:].strip()
+                                    
+                                    # Parse JSONs
+                                    content_ir = json.loads(content_ir_json_str)
+                                    render_plan = json.loads(render_plan_json_str)
+                                    
+                                    # MANDATORY VALIDATION AND FIXING
+                                    fixed_content_ir, fixed_render_plan = validate_and_fix_json(content_ir, render_plan)
+                                    
+                                    # Update the response with fixed JSONs
+                                    completion_response = f"""Content IR JSON:
+{json.dumps(fixed_content_ir, indent=2)}
+
+Render Plan JSON:
+{json.dumps(fixed_render_plan, indent=2)}"""
+                                    
+                                except Exception as e:
+                                    st.warning(f"⚠️ JSON parsing failed: {e}. Using original response.")
                         
                         st.session_state.messages.append({"role": "assistant", "content": completion_response})
                     
