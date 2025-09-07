@@ -1933,23 +1933,23 @@ def render_business_overview_slide(data=None, color_scheme=None, typography=None
         service_cols = 2  # Split into 2 columns
         items_per_col = (len(services) + 1) // 2
         
-        for i, service in enumerate(services[:6]):  # Max 6 services
+        for i, service in enumerate(services[:8]):  # Support up to 8 detailed services
             if i < items_per_col:  # Left column
-                x_pos = Inches(1)
-                y_pos = Inches(3.8 + i * 0.35)
+                x_pos = Inches(0.9)
+                y_pos = Inches(3.4 + i * 0.5)  # Proper spacing for detailed text
             else:  # Right column
-                x_pos = Inches(4.2)
-                y_pos = Inches(3.8 + (i - items_per_col) * 0.35)
+                x_pos = Inches(4.2)  # Optimized column positioning
+                y_pos = Inches(3.4 + (i - items_per_col) * 0.5)
             
-            # Gold bullet
-            bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, x_pos, y_pos, Inches(0.05), Inches(0.05))
+            # Gold bullet - aligned with text baseline
+            bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, x_pos, y_pos + Inches(0.08), Inches(0.04), Inches(0.04))
             bullet.fill.solid()
             bullet.fill.fore_color.rgb = colors["secondary"]
             bullet.line.fill.background()
             
-            # Text
-            add_clean_text(slide, x_pos + Inches(0.15), y_pos - Inches(0.05), Inches(2.8), Inches(0.25), 
-                           service, 10, colors["text"])
+            # Text with proper width for detailed service descriptions
+            add_clean_text(slide, x_pos + Inches(0.12), y_pos, Inches(3.5), Inches(0.45), 
+                           service, 9, colors["text"])
     except Exception as e:
         print(f"[DEBUG] Services section error: {e}")
     
