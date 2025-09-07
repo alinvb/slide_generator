@@ -282,132 +282,50 @@ st.title("🤖 AI Deck Builder – LLM-Powered Pitch Deck Generator")
 
 # JSON CLEANING FUNCTIONS - ALL SAFE STRING OPERATIONS
 def clean_json_string(json_str):
-    """Clean and fix common JSON formatting issues using safe string operations"""
+    """SIMPLE JSON cleaning - minimal processing to avoid parsing errors"""
     if not json_str:
         return "{}"
     
     print(f"[JSON CLEAN] Input length: {len(json_str)}")
     
-    # COMPREHENSIVE control character removal
-    import re
-    
-    # Remove ALL control characters (ASCII 0-31) and extended control chars (127-159)
-    original_len = len(json_str)
-    json_str = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', json_str)
-    
-    # Remove problematic Unicode characters that cause parsing issues
-    json_str = re.sub(r'[\u200b-\u200f\u202a-\u202e\u2060-\u206f]', '', json_str)
-    
-    # Remove additional problematic characters
-    json_str = re.sub(r'[\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]', ' ', json_str)
-    
-    # Remove any remaining non-printable characters except standard whitespace
-    json_str = ''.join(char if ord(char) >= 32 or char in '\t\n\r' else ' ' for char in json_str)
-    
-    if len(json_str) != original_len:
-        print(f"[JSON CLEAN] Removed {original_len - len(json_str)} control characters")
-    
-    # Remove common prefixes and suffixes that break JSON
+    # Only basic cleaning
     json_str = json_str.strip()
     
-    # Remove markdown code block indicators using safe string operations
+    # Remove markdown code blocks
     if json_str.startswith('```json'):
-        json_str = json_str[7:].strip()  # Remove ```json
+        json_str = json_str[7:].strip()
     elif json_str.startswith('```'):
-        json_str = json_str[3:].strip()   # Remove ```
+        json_str = json_str[3:].strip()
     
     if json_str.endswith('```'):
-        json_str = json_str[:-3].strip()  # Remove trailing ```
+        json_str = json_str[:-3].strip()
     
-    # Find the first '{' and last '}' - this is the most reliable method
+    # Extract JSON content between first { and last }
     start_idx = json_str.find('{')
     end_idx = json_str.rfind('}')
     
     if start_idx == -1 or end_idx == -1 or start_idx >= end_idx:
+        print(f"[JSON CLEAN] No valid JSON structure found")
         return "{}"
     
     json_str = json_str[start_idx:end_idx+1]
     
-    # Fix common JSON issues using safe replacements
-    # Remove trailing commas before } or ]
-    lines = json_str.split('\n')
-    cleaned_lines = []
-    
-    for line in lines:
-        # Remove trailing comma before } or ]
-        line = line.rstrip()
-        if line.endswith(',}'):
-            line = line[:-2] + '}'
-        elif line.endswith(',]'):
-            line = line[:-2] + ']'
-        
-        # Fix missing commas between objects/arrays
-        # If line ends with } or ] and the next line starts with { or [ or ", add comma
-        cleaned_lines.append(line)
-    
-    # Post-process to fix missing commas between consecutive objects/arrays
-    for i in range(len(cleaned_lines) - 1):
-        current_line = cleaned_lines[i].strip()
-        next_line = cleaned_lines[i + 1].strip()
-        
-        # Add comma if current line ends with } or ] or "value" and next line starts with { or [ or "
-        if (current_line.endswith('}') or current_line.endswith(']') or 
-            (current_line.endswith('"') and not current_line.endswith(',"'))):
-            if (next_line.startswith('{') or next_line.startswith('[') or 
-                next_line.startswith('"') or next_line.startswith('  "')):
-                # Don't add comma if it would be before a closing brace/bracket
-                if not next_line.startswith('}') and not next_line.startswith(']'):
-                    # Check if comma is already there
-                    if not current_line.endswith(','):
-                        cleaned_lines[i] = current_line + ','
-    
-    json_str = '\n'.join(cleaned_lines)
-    
-    # Additional cleaning: fix double quotes issues
-    json_str = json_str.replace('""', '"')  # Fix double quotes
-    json_str = json_str.replace('\\""', '\\"')  # Fix escaped quotes
-    
-    # Try advanced repair as final step
+    # Test if it's already valid
     try:
-        json.loads(json_str)  # Test if it's valid
-        return json_str
-    except json.JSONDecodeError:
-        # Use advanced repair
-        return advanced_json_repair(json_str)
-    
-    return json_str
-
-def advanced_json_repair(json_str):
-    """Advanced JSON repair for complex parsing issues"""
-    try:
-        # Try to parse as-is first
+        import json
         json.loads(json_str)
+        print(f"[JSON CLEAN] JSON is valid as-is")
         return json_str
     except json.JSONDecodeError as e:
-        print(f"[JSON REPAIR] Attempting to fix JSON error: {e}")
-        
-        # Get error position
-        error_pos = getattr(e, 'pos', 0)
-        
-        # Handle "Invalid control character" error - remove control characters
-        if "Invalid control character" in str(e):
-            print(f"[JSON REPAIR] Fixing invalid control characters...")
-            # Remove control characters (ASCII 0-31 except tab, newline, carriage return)
-            cleaned = ""
-            for char in json_str:
-                char_code = ord(char)
-                if char_code >= 32 or char_code in (9, 10, 13):  # Keep printable + tab/newline/CR
-                    cleaned += char
-                else:
-                    cleaned += " "  # Replace control chars with space
-            
-            # Try parsing the cleaned version
-            try:
-                json.loads(cleaned)
-                return cleaned
-            except json.JSONDecodeError:
-                # If still fails, continue with other repair methods
-                json_str = cleaned
+        print(f"[JSON CLEAN] JSON parse error: {e}")
+        # Return as-is - let the enhanced error handling deal with it
+        return json_str
+
+def advanced_json_repair(json_str):
+    """DISABLED - Advanced JSON repair causes more problems than it solves"""
+    print(f"[JSON REPAIR] Advanced repair disabled - returning original JSON")
+    # Just return the original - the enhanced parsing will handle errors
+    return json_str
         
         # Handle "Extra data" error - truncate at first complete JSON
         if "Extra data" in str(e):
@@ -540,90 +458,15 @@ def advanced_json_repair(json_str):
             return json_str
 
 def validate_json_char_by_char(json_str, error_pos):
-    """Validate JSON character by character around error position"""
-    print(f"[CHAR VALIDATION] Analyzing around position {error_pos}")
-    
-    # Extended context around error
-    context_size = 200
-    start_pos = max(0, error_pos - context_size)
-    end_pos = min(len(json_str), error_pos + context_size)
-    
-    # Look for specific delimiter issues
-    for pos in range(start_pos, end_pos):
-        if pos >= len(json_str):
-            break
-            
-        char = json_str[pos]
-        prev_char = json_str[pos - 1] if pos > 0 else ''
-        next_char = json_str[pos + 1] if pos + 1 < len(json_str) else ''
-        
-        # Check for missing commas in specific patterns
-        if char in '{["' and prev_char in '}]"' and pos > 0:
-            # Need comma between structures
-            if not json_str[max(0, pos-10):pos].strip().endswith(','):
-                print(f"[CHAR VALIDATION] Inserting comma at position {pos}")
-                return json_str[:pos] + ',' + json_str[pos:]
-        
-        # Check for invalid character sequences
-        if char in '}]' and next_char in '{["' and next_char != '':
-            # Check if there's whitespace but no comma
-            between_text = json_str[pos+1:pos+10].strip()
-            if between_text.startswith(('{', '[', '"')):
-                print(f"[CHAR VALIDATION] Inserting comma after position {pos}")
-                return json_str[:pos+1] + ',' + json_str[pos+1:]
-    
+    """DISABLED - Character validation causes parsing errors"""
+    print(f"[CHAR VALIDATION] Disabled - returning original JSON")
     return json_str
 
 def fallback_json_repair(json_str):
-    """Last resort JSON repair using aggressive fixes"""
-    print(f"[FALLBACK REPAIR] Attempting aggressive JSON repair...")
-    
-    try:
-        # Remove any remaining invalid characters
-        import string
-        valid_chars = string.printable + '\u00a0-\uffff'
-        cleaned = ''.join(c for c in json_str if c in string.printable or ord(c) > 127)
-        
-        # Try to build valid JSON structure
-        lines = cleaned.split('\n')
-        fixed_lines = []
-        
-        brace_stack = []
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-                
-            # Track braces and brackets
-            for char in line:
-                if char in '{[':
-                    brace_stack.append(char)
-                elif char in '}]':
-                    if brace_stack:
-                        brace_stack.pop()
-            
-            # Add comma if needed
-            if (line.endswith(('}', ']', '"')) and 
-                not line.endswith(',') and 
-                len(fixed_lines) > 0):
-                
-                # Check if next line needs comma
-                next_non_empty = next((l.strip() for l in lines[lines.index(line)+1:] if l.strip()), '')
-                if next_non_empty.startswith(('{', '[', '"')) and not next_non_empty.startswith(('}', ']')):
-                    line += ','
-            
-            fixed_lines.append(line)
-        
-        result = '\n'.join(fixed_lines)
-        
-        # Test if it's valid
-        json.loads(result)
-        return result
-        
-    except Exception as e:
-        print(f"[FALLBACK REPAIR] All repairs failed: {e}")
-        # Return minimal valid JSON
-        return '{}'
+    """DISABLED - Fallback repair causes more issues"""
+    print(f"[FALLBACK REPAIR] Disabled - returning empty JSON")
+    # Return minimal valid JSON to prevent crashes
+    return '{}'
 
 def extract_jsons_from_response(response_text):
     """Extract both Content IR and Render Plan JSONs from AI response using improved parsing"""
