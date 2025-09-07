@@ -349,13 +349,23 @@ def validate_business_overview_slide(slide, content_ir):
             if not highlight or highlight.strip() == '' or '[' in highlight:
                 validation['empty_fields'].append(f"Empty highlight #{i+1}")
     
-    # Validate services array
+    # Validate services array - ENHANCED FOR DETAILED DESCRIPTIONS
     if 'services' in data and isinstance(data['services'], list):
-        if len(data['services']) < 2:
-            validation['warnings'].append("Less than 2 services listed - consider adding more")
+        if len(data['services']) < 6:
+            validation['warnings'].append("Less than 6 services provided - business overview should have 6-8 detailed services for comprehensive coverage")
+        if len(data['services']) > 8:
+            validation['warnings'].append("More than 8 services - consider consolidating for optimal layout")
+        
+        # Check for category: description format
+        non_detailed_services = [s for s in data['services'] if ':' not in s or len(s) < 40]
+        if non_detailed_services:
+            validation['warnings'].append(f"Found {len(non_detailed_services)} services without detailed descriptions - use format 'Category: Detailed description of scope and capabilities'")
+            
         for i, service in enumerate(data['services']):
             if not service or service.strip() == '' or '[' in service:
                 validation['empty_fields'].append(f"Empty service #{i+1}")
+            elif len(service) < 30:
+                validation['warnings'].append(f"Service #{i+1} is very brief - consider adding more descriptive detail")
     
     return validation
 
@@ -391,13 +401,32 @@ def validate_product_service_footprint_slide(slide, content_ir):
             elif '[' in service['desc']:
                 validation['empty_fields'].append(f"Service #{service_num} has placeholder description")
     
-    # Check for market coverage data (right side of slide)
+    # ENHANCED: Check for market coverage data (right side of slide) - REQUIRES 3-4 COLUMNS
     if 'coverage_table' in data:
         coverage_data = data['coverage_table']
         if not coverage_data or (isinstance(coverage_data, list) and len(coverage_data) == 0):
             validation['empty_fields'].append("Empty coverage table section")
+        elif isinstance(coverage_data, list) and len(coverage_data) > 0:
+            # Check column structure
+            if isinstance(coverage_data[0], list):
+                num_cols = len(coverage_data[0])
+                if num_cols < 3:
+                    validation['issues'].append(f"Coverage table has only {num_cols} columns - market comparison tables should have 3-4 columns")
+                elif num_cols > 4:
+                    validation['warnings'].append(f"Coverage table has {num_cols} columns - optimal range is 3-4 columns for readability")
+                
+                # Validate header row content
+                if len(coverage_data) > 0 and isinstance(coverage_data[0], list):
+                    header_row = coverage_data[0]
+                    required_concepts = ['region', 'market', 'segment', 'business', 'asset', 'coverage', 'product', 'service']
+                    header_text = ' '.join(str(h).lower() for h in header_row)
+                    has_market_concepts = any(concept in header_text for concept in required_concepts)
+                    if not has_market_concepts:
+                        validation['warnings'].append("Table headers don't seem to contain market/business concepts - should include terms like Region, Market Segment, Assets, Coverage, etc.")
+            else:
+                validation['issues'].append("Coverage table format invalid - should be array of arrays (rows and columns)")
     else:
-        validation['warnings'].append("No coverage table data - right side may appear empty")
+        validation['issues'].append("Missing coverage_table - market coverage comparison is required for this slide")
     
     if 'metrics' in data:
         metrics = data['metrics']
@@ -495,7 +524,7 @@ def validate_buyer_profiles_slide(slide, content_ir):
     return validation
 
 def validate_management_team_slide(slide, content_ir):
-    """Validate management team slide - FIXED for correct field names"""
+    """Validate management team slide - ENHANCED with name and layout requirements"""
     validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
     
     # Check if using content_ir_key approach
@@ -513,25 +542,53 @@ def validate_management_team_slide(slide, content_ir):
             return validation
         mgmt_data = content_ir['management_team']
     
-    # Check for required profile arrays
+    # Check for required profile arrays with ENHANCED requirements
     for column in ['left_column_profiles', 'right_column_profiles']:
         if column not in mgmt_data:
             validation['missing_fields'].append(f"Missing {column}")
         elif not isinstance(mgmt_data[column], list) or len(mgmt_data[column]) == 0:
             validation['empty_fields'].append(f"Empty {column}")
+        elif len(mgmt_data[column]) < 2:
+            validation['warnings'].append(f"{column} should have at least 2 profiles for comprehensive management overview")
         else:
-            # Validate individual profiles - FIXED FIELD NAMES
+            # ENHANCED: Validate individual profiles with NAME and LENGTH requirements
+            if len(mgmt_data[column]) > 3:
+                validation['warnings'].append(f"{column} has {len(mgmt_data[column])} profiles - recommend max 3 per column for optimal layout")
+                
             for i, profile in enumerate(mgmt_data[column]):
                 profile_num = i + 1
-                # Check for the CORRECT field names used in your data
-                required_profile_fields = ['role_title', 'experience_bullets']
-                for field in required_profile_fields:
-                    if field not in profile or not profile[field]:
-                        validation['empty_fields'].append(f"{column} profile #{profile_num} missing/placeholder {field}")
-                    elif field == 'role_title' and '[' in str(profile[field]):
-                        validation['empty_fields'].append(f"{column} profile #{profile_num} missing/placeholder {field}")
-                    elif field == 'experience_bullets' and (not isinstance(profile[field], list) or len(profile[field]) == 0):
-                        validation['empty_fields'].append(f"{column} profile #{profile_num} missing/placeholder {field}")
+                
+                # Check for required fields
+                if 'role_title' not in profile or not profile['role_title']:
+                    validation['empty_fields'].append(f"{column} profile #{profile_num} missing role_title")
+                elif '[' in str(profile['role_title']):
+                    validation['empty_fields'].append(f"{column} profile #{profile_num} has placeholder role_title")
+                else:
+                    role_title = profile['role_title']
+                    # ENHANCED: Check for name requirement (look for common name patterns)
+                    if not any(indicator in role_title.lower() for indicator in [' - ', 'ceo', 'cfo', 'coo', 'president']) or len(role_title) < 10:
+                        validation['warnings'].append(f"{column} profile #{profile_num} role_title should include executive name (e.g., 'CEO - John Smith')")
+                    
+                    # ENHANCED: Check length limit
+                    if len(role_title) > 50:
+                        validation['warnings'].append(f"{column} profile #{profile_num} role_title too long ({len(role_title)} chars) - max 50 chars to prevent overlap")
+                
+                # Check experience bullets with enhanced validation
+                if 'experience_bullets' not in profile or not profile['experience_bullets']:
+                    validation['empty_fields'].append(f"{column} profile #{profile_num} missing experience_bullets")
+                elif not isinstance(profile['experience_bullets'], list) or len(profile['experience_bullets']) == 0:
+                    validation['empty_fields'].append(f"{column} profile #{profile_num} experience_bullets must be non-empty array")
+                else:
+                    bullets = profile['experience_bullets']
+                    if len(bullets) > 4:
+                        validation['warnings'].append(f"{column} profile #{profile_num} has {len(bullets)} bullets - recommend max 4 for optimal layout")
+                    
+                    # Check individual bullet length
+                    for j, bullet in enumerate(bullets):
+                        if len(bullet) > 80:
+                            validation['warnings'].append(f"{column} profile #{profile_num} bullet #{j+1} too long ({len(bullet)} chars) - max 80 chars to prevent overlap")
+                        elif len(bullet) < 20:
+                            validation['warnings'].append(f"{column} profile #{profile_num} bullet #{j+1} very brief - consider adding more detail")
     
     return validation
 
@@ -610,54 +667,95 @@ def validate_growth_strategy_slide(slide, content_ir):
     return validation
 
 def validate_competitive_positioning_slide(slide, content_ir):
-    """Validate competitive positioning slide - FIXED for correct field names"""
+    """ENHANCED: Validate competitive positioning slide - iCar Asia format requirements"""
     validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
     
     data = slide.get('data', {})
     
-    # FIXED: Use the correct field names from your data structure
+    # ENHANCED: Check for iCar Asia format requirements
     required_fields = {
         'title': 'Slide title',
-        'competitors': 'Competitors list',
-        'advantages': 'Competitive advantages'  # FIXED from 'competitive_advantages'
+        'competitors': 'Competitors list for revenue chart',
+        'assessment': 'Competitive assessment table (REQUIRED for iCar Asia format)',
+        'advantages': 'Competitive advantages',
+        'barriers': 'Market barriers to entry'
     }
     
     for field, description in required_fields.items():
         if field not in data:
-            validation['missing_fields'].append(f"Missing {description}")
+            if field == 'assessment':
+                validation['issues'].append(f"Missing {description} - critical for professional competitive analysis")
+            else:
+                validation['missing_fields'].append(f"Missing {description}")
         elif not data[field]:
             validation['empty_fields'].append(f"Empty {description}")
     
-    # Validate competitors array - FIXED for correct structure
+    # ENHANCED: Validate 5-column assessment table structure (iCar Asia format)
+    if 'assessment' in data:
+        assessment = data['assessment']
+        if not assessment or not isinstance(assessment, list) or len(assessment) == 0:
+            validation['issues'].append("Empty competitive assessment table - iCar Asia format requires 5-column structure")
+        elif len(assessment) > 0:
+            # Check column structure
+            if isinstance(assessment[0], list):
+                num_cols = len(assessment[0])
+                if num_cols < 5:
+                    validation['issues'].append(f"Assessment table has only {num_cols} columns - iCar Asia format requires 5 columns: Company, Market Share, Tech Platform, Coverage, Revenue")
+                elif num_cols > 5:
+                    validation['warnings'].append(f"Assessment table has {num_cols} columns - optimal is 5 for iCar Asia format")
+                
+                # Validate header structure
+                if len(assessment) > 0:
+                    header_row = assessment[0]
+                    expected_concepts = ['company', 'market', 'tech', 'platform', 'coverage', 'revenue']
+                    header_text = ' '.join(str(h).lower() for h in header_row)
+                    has_expected_headers = any(concept in header_text for concept in expected_concepts)
+                    if not has_expected_headers:
+                        validation['warnings'].append("Table headers don't match iCar Asia format - should include Company, Market Share, Tech Platform, Coverage, Revenue")
+                
+                # Check for star ratings in data rows
+                if len(assessment) > 1:
+                    data_rows = assessment[1:]
+                    has_star_ratings = False
+                    for row in data_rows[:3]:  # Check first few data rows
+                        if isinstance(row, list) and len(row) > 1:
+                            for cell in row[1:-1]:  # Skip company name and revenue columns
+                                if '⭐' in str(cell) or '★' in str(cell):
+                                    has_star_ratings = True
+                                    break
+                    if not has_star_ratings:
+                        validation['warnings'].append("Assessment table should use star ratings (⭐⭐⭐⭐) for visual comparison like iCar Asia format")
+            else:
+                validation['issues'].append("Assessment table format invalid - should be array of arrays (rows and columns)")
+    
+    # ENHANCED: Validate competitors for revenue chart
     if 'competitors' in data and isinstance(data['competitors'], list):
         if len(data['competitors']) < 3:
-            validation['warnings'].append("Less than 3 competitors listed - consider adding more")
+            validation['warnings'].append("Less than 3 competitors for revenue chart - consider adding more for comprehensive analysis")
         for i, competitor in enumerate(data['competitors']):
             comp_num = i + 1
-            # Your data structure has 'name' and 'revenue' - not strengths/weaknesses
             if isinstance(competitor, dict):
                 if 'name' not in competitor or not competitor['name']:
                     validation['empty_fields'].append(f"Competitor #{comp_num} missing name")
                 if 'revenue' not in competitor or not competitor['revenue']:
-                    validation['empty_fields'].append(f"Competitor #{comp_num} missing revenue")
+                    validation['empty_fields'].append(f"Competitor #{comp_num} missing revenue data")
             elif not competitor or '[' in str(competitor):
                 validation['empty_fields'].append(f"Competitor #{comp_num} is empty or placeholder")
     
-    # Check assessment table
-    if 'assessment' in data:
-        assessment = data['assessment']
-        if not assessment or not isinstance(assessment, list) or len(assessment) == 0:
-            validation['empty_fields'].append("Empty competitive assessment table")
-    else:
-        validation['warnings'].append("No competitive assessment table")
-    
-    # Check for barriers and advantages
+    # ENHANCED: Check advantages and barriers content quality
     for section in ['barriers', 'advantages']:
-        if section in data and isinstance(data[section], list):
-            for i, item in enumerate(data[section]):
-                if isinstance(item, dict):
-                    if not item.get('title') or not item.get('desc'):
-                        validation['empty_fields'].append(f"{section.title()} #{i+1} missing title or description")
+        if section in data:
+            items = data[section]
+            if isinstance(items, list):
+                if len(items) > 6:
+                    validation['warnings'].append(f"Too many {section} ({len(items)}) - consider limiting to 4-6 for clean layout")
+                for i, item in enumerate(items):
+                    if isinstance(item, dict):
+                        if not item.get('title') or not item.get('desc'):
+                            validation['empty_fields'].append(f"{section.title()} #{i+1} missing title or description")
+                    elif isinstance(item, str):
+                        if len(item) > 80:
+                            validation['warnings'].append(f"{section.title()} #{i+1} text too long ({len(item)} chars) - consider shortening for clean layout")
     
     return validation
 
@@ -1176,17 +1274,16 @@ def load_example_files():
             "management_team": {
                 "left_column_profiles": [
                     {
-                        "role_title": "Chief Executive Officer",
+                        "role_title": "CEO - Michael Chen",
                         "experience_bullets": [
                             "25+ years healthcare industry experience across hospital operations",
                             "Former Regional VP at major international hospital group",
                             "MBA from top-tier business school with healthcare specialization",
-                            "Led successful expansion of 40+ healthcare facilities",
-                            "Board member of regional healthcare association"
+                            "Led successful expansion of 40+ healthcare facilities"
                         ]
                     },
                     {
-                        "role_title": "Chief Financial Officer",
+                        "role_title": "CFO - Sarah Martinez",
                         "experience_bullets": [
                             "15+ years finance leadership in healthcare services",
                             "Ex-CFO at publicly-traded healthcare services company",
@@ -1198,13 +1295,12 @@ def load_example_files():
                 ],
                 "right_column_profiles": [
                     {
-                        "role_title": "Chief Operating Officer",
+                        "role_title": "COO - David Park",
                         "experience_bullets": [
                             "20+ years multi-site healthcare operations experience",
                             "Successfully scaled 50+ clinic locations across SEA",
                             "Lean Six Sigma Master Black Belt certification",
-                            "Former Regional Operations Director at international chain",
-                            "Deep experience in regulatory compliance and quality"
+                            "Former Regional Operations Director at international chain"
                         ]
                     }
                 ]
@@ -1236,18 +1332,33 @@ def load_example_files():
                     "template": "business_overview",
                     "data": {
                         "title": "Business & Operational Overview",
-                        "description": "Leading integrated healthcare services platform in Southeast Asia",
+                        "description": "Leading integrated healthcare services platform in Southeast Asia with comprehensive medical care across multiple countries. The company operates premium clinic locations serving both individual patients and corporate clients, with established market presence and proven operational excellence in healthcare delivery and patient care management.",
+                        "timeline": {
+                            "start_year": "2015",
+                            "end_year": "2024", 
+                            "years_note": "(9+ years of healthcare leadership and expansion)"
+                        },
                         "highlights": [
-                            "35+ premium clinic locations across Singapore, Malaysia, Indonesia, and Philippines",
-                            "125,000+ annual patient visits with 89% retention rate",
-                            "65+ corporate wellness contracts with major employers"
+                            "Market-leading network with 35+ premium clinic locations across Singapore, Malaysia, Indonesia, and Philippines",
+                            "Strong patient engagement with 125,000+ annual patient visits and exceptional 89% retention rate demonstrating quality care",
+                            "Diversified revenue base with 65+ corporate wellness contracts covering major employers and multinational corporations",
+                            "Advanced healthcare technology platform with integrated digital health solutions and telemedicine capabilities",
+                            "Board-certified medical specialists across multiple disciplines ensuring comprehensive care delivery",
+                            "International healthcare accreditation and quality certifications meeting global standards",
+                            "Proven scalable business model with consistent growth in patient volume and geographic expansion",
+                            "Strong ESG commitment with community health initiatives and sustainable healthcare practices"
                         ],
                         "services": [
-                            "Primary Care & Preventive Medicine",
-                            "Specialty Medical Services",
-                            "Diagnostic Imaging & Laboratory"
+                            "Primary Care & Preventive Medicine: Comprehensive health screenings, vaccinations, and preventive care programs",
+                            "Specialty Medical Services: Cardiology, orthopedics, dermatology, and other specialized medical treatments",
+                            "Diagnostic Imaging & Laboratory: Advanced imaging technology, comprehensive lab testing, and diagnostic services",
+                            "Corporate Wellness Programs: Employee health assessments, workplace wellness initiatives, and occupational health",
+                            "Digital Health & Telemedicine: Remote consultations, health monitoring apps, and digital patient engagement",
+                            "Executive Health Assessments: Comprehensive VIP health packages for corporate executives and high-net-worth individuals",
+                            "Emergency & Urgent Care: 24/7 emergency services and urgent care facilities across clinic network",
+                            "Health Education & Training: Patient education programs, health workshops, and medical training services"
                         ],
-                        "positioning_desc": "Leading premium healthcare provider in Southeast Asia"
+                        "positioning_desc": "The company has established itself as the premier healthcare services provider in Southeast Asia, serving both individual patients and corporate clients with comprehensive medical services, advanced technology platforms, and exceptional care standards that drive high patient satisfaction and retention rates across multiple markets."
                     }
                 },
                 {
@@ -1375,33 +1486,48 @@ You are a precise, on-task investment banking pitch deck copilot that generates 
 SPECIFIC SLIDE REQUIREMENTS FOR ALL TEMPLATES (UPDATED WITH CORRECT FIELD NAMES):
 
 1. **management_team**:
-   - Must have left_column_profiles and right_column_profiles (min 2 each)
-   - Each profile needs: role_title, experience_bullets (array of 3-5 bullets)
-   - CORRECT STRUCTURE: {{"role_title": "Chief Executive Officer", "experience_bullets": ["bullet1", "bullet2", ...]}}
+   - Must have left_column_profiles and right_column_profiles (2-3 profiles each for optimal layout)
+   - Each profile needs: role_title WITH NAME, experience_bullets (array of 3-4 concise bullets)
+   - CORRECT STRUCTURE: {{"role_title": "CEO - John Smith" OR "Chief Executive Officer - Sarah Johnson", "experience_bullets": ["brief bullet1", "brief bullet2", ...]}}
+   - CONTENT LIMITS: Role titles max 50 chars, bullets max 80 chars each to prevent text overlap
+   - NAMES REQUIRED: Always include actual executive names in role_title field
+   - LAYOUT OPTIMIZATION: Max 3 profiles per column, max 4 bullets per profile for clean presentation
 
 2. **business_overview**:
-   - Must have: title, description, highlights (min 3), services (min 3), positioning_desc
-   - All fields must be complete sentences, not placeholders
+   - Must have: title, description, highlights (min 6-8 detailed items), services (min 6-8 detailed items), positioning_desc
+   - RICH CONTENT DENSITY like iCar Asia example - each highlight must be comprehensive and detailed
+   - Highlights format: "Detailed description with specific metrics, numbers, and context" (NOT simple titles)
+   - Services format: "Service Category: Detailed description with scope and capabilities" (category + colon + details)
+   - Examples of GOOD highlights: "Market-leading position with 130+ outlets across major Indonesian cities and strategic transit hubs", "Strong growth trajectory with 100+ new locations added since 2021 acquisition demonstrating scalable business model"
+   - Examples of GOOD services: "Upstream Operations: Oil and gas exploration, development, and production activities across multiple basins", "Digital Solutions: Advanced analytics, AI, and digital transformation programs for operational efficiency"
+   - Timeline should include years_note with descriptive context like "(90+ years of operations and global leadership)"
+   - All fields must be comprehensive business descriptions, not simple bullet points or placeholders
 
 3. **product_service_footprint**:
    - Must have: title, services array with complete title AND desc for each
    - Services array needs minimum 4 entries with structure: {{"title": "Service Name", "desc": "Description"}}
-   - Must include coverage_table and metrics data for right side
-   - NO empty boxes in layout areas
+   - CRITICAL: coverage_table must have 3-4 columns for proper market comparison
+   - Coverage table structure: [["Region", "Market Segment", "Assets/Products", "Coverage Details"], ["Saudi Arabia", "Upstream", "Oil fields, refineries", "Ghawar, Safaniya fields"], ...]
+   - Example 3-column format: [["Region", "Business Segment", "Market Position"], ["Americas", "Downstream", "Leading refinery network"]]
+   - Example 4-column format: [["Region", "Segment", "Assets", "Market Share"], ["Asia", "Petrochemicals", "JV facilities", "15% market share"]]
+   - Must include metrics data for operational metrics section
+   - NO empty boxes in layout areas - all sections must be populated
 
 4. **buyer_profiles**:
    - Must use content_ir_key to reference buyer data (PREFERRED METHOD)
    - OR use complete table_rows with actual data (fallback method)
-   - Each buyer must have complete: buyer_name, strategic_rationale, key_synergies, fit
+   - Each buyer must have complete: buyer_name, strategic_rationale (5-10 words max), key_synergies, fit
+   - STRATEGIC RATIONALE: Must be concise 5-10 words explaining strategic value (e.g., "Regional expansion into Southeast Asian markets")
+   - FIT: Assess strategic alignment with concise rating/explanation (e.g., "High (9/10)", "Strong synergies", "Good cultural fit")
    - Tables must populate with real data, not be empty
    - Example correct structure:
      ```json
      {{
        "template": "buyer_profiles",
-       "content_ir_key": "strategic_buyers",
+       "content_ir_key": "strategic_buyers", 
        "data": {{
          "title": "Strategic Buyer Profiles",
-         "table_headers": ["Buyer Name", "Strategic Rationale", "Fit"]
+         "table_headers": ["Buyer Name", "Description", "Strategic Rationale", "Key Synergies", "Fit"]
        }}
      }}
      ```
@@ -1417,21 +1543,33 @@ SPECIFIC SLIDE REQUIREMENTS FOR ALL TEMPLATES (UPDATED WITH CORRECT FIELD NAMES)
    - Structure: {{"cost_management": {{"items": [...]}}, "risk_mitigation": {{"main_strategy": {{...}}}}}}
 
 7. **competitive_positioning**:
-   - Must have: competitors array, advantages array (not competitive_advantages), assessment table
-   - Competitors structure: [{{"name": "Company", "revenue": 450}}, ...]
-   - CORRECT FIELD NAME: advantages (not competitive_advantages)
+   - CRITICAL: Must match iCar Asia format with 5-column assessment table
+   - Must have: competitors array, assessment table (5 columns), advantages array, barriers array
+   - Competitors structure: [{{"name": "Company", "revenue": 450}}, ...] (for chart)
+   - ASSESSMENT TABLE STRUCTURE (5 columns): [["Company", "Market Share", "Tech Platform", "Coverage", "Revenue (M)"], ["Our Company", "⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐", "$200M"], ...]
+   - Star ratings: Use 1-5 stars (⭐) or numeric ratings 1-5 that get converted to stars
+   - Revenue column: Include quantitative data like "$200M", "€150M", "¥1.2B"
+   - Advantages: Array of concise competitive advantages (4-6 items max)
+   - Barriers: Array of market entry barriers (4-6 items max)
+   - Content limits: Each advantage/barrier max 80 chars for clean layout
+   - CORRECT FIELD NAMES: advantages (not competitive_advantages), assessment (not competitive_analysis)
 
 8. **valuation_overview**:
 
-9. **Template selection — Buyer financials**:
-   - If the buyer rows include key financial metrics (e.g., revenue, EBITDA, market cap, net income, margins, ticker, ownership, EV/valuation), **use the `sea_conglomerates` template** instead of `buyer_profiles`.
-   - For `sea_conglomerates`, provide an array of objects with: `name`, `country`, and a concise `description` that starts with the financials and may include a short rationale/synergies line.
-   - Example item: `{ "name": "Yamazaki Baking Co.", "country": "Japan", "description": "Revenue: US$5.2B • EBITDA: US$520M • Rationale: Japan → SEA expansion" }`
+9. **sea_conglomerates** (Strategic Buyers with Financials):
+   - If buyer rows include key financial metrics (e.g., revenue, EBITDA, market cap, net income, margins, ticker, ownership, EV/valuation), **use the `sea_conglomerates` template** instead of `buyer_profiles`.
+   - Table structure: 6 columns ["Name", "Country", "Description", "Key shareholders", "Key financials (US$m)", "Contact"]
+   - CONTACT COLUMN: Use "Contact" header (not "Moelis contact") - assign Moelis team members or "To be assigned"
+   - For content, provide an array of objects with: `name`, `country`, `description` (starts with financials + brief rationale), `key_shareholders`, `key_financials`, `contact`
+   - Example item: `{ "name": "Yamazaki Baking Co.", "country": "Japan", "description": "Revenue: US$5.2B • EBITDA: US$520M • Rationale: Japan → SEA expansion", "contact": "John Smith" }`
 
 8'. **valuation_overview (cont.)**:
-   - Must have: valuation_data array (not separate methodology fields)
-   - CORRECT FIELD NAME: valuation_data with methodology, enterprise_value, commentary
-   - Structure: {{"valuation_data": [{{"methodology": "DCF", "enterprise_value": "US$100M", "commentary": "..."}}]}}
+   - Must have: valuation_data array with proper methodology grouping (ORIGINAL FORMAT REQUIRED)
+   - CRITICAL: Include methodology_type field for colored section grouping (precedent_transactions, trading_comps, dcf)
+   - Structure: {{"valuation_data": [{{"methodology_type": "precedent_transactions", "methodology": "Precedent Transactions", "commentary": "Based on regional deals...", "enterprise_value": "US$200M", "metric": "EV/Revenue", "22a_multiple": "14.3x", "23e_multiple": "12.8x"}}]}}
+   - Required fields per row: methodology_type, methodology, commentary, enterprise_value, metric, 22a_multiple, 23e_multiple
+   - Methodology types: "precedent_transactions", "trading_comps", "dcf" (produces colored section tabs)
+   - ORIGINAL FORMAT: Colored methodology sections on left side with proper visual grouping
 
 9. **growth_strategy_projections**:
    - Must have: growth_strategy with strategies array, financial_projections
@@ -1444,8 +1582,8 @@ SPECIFIC SLIDE REQUIREMENTS FOR ALL TEMPLATES (UPDATED WITH CORRECT FIELD NAMES)
 CONTENT IR STRUCTURE REQUIREMENTS:
 - entities: {{"company": {{"name": "Company Name"}}}}
 - management_team: {{"left_column_profiles": [...], "right_column_profiles": [...]}}
-- strategic_buyers: [{{"buyer_name": "Name", "strategic_rationale": "...", "fit": "High (9/10)"}}, ...]
-- financial_buyers: [{{"buyer_name": "Name", "strategic_rationale": "...", "fit": "High (9/10)"}}, ...]
+- strategic_buyers: [{{"buyer_name": "Name", "strategic_rationale": "5-10 word rationale", "fit": "High (9/10)"}}, ...]
+- financial_buyers: [{{"buyer_name": "Name", "strategic_rationale": "5-10 word rationale", "fit": "High (9/10)"}}, ...]
 
 VALIDATION BEFORE OUTPUT:
 Before generating JSONs, verify each slide will have NO EMPTY BOXES:
@@ -1859,9 +1997,10 @@ def normalize_buyer_profiles_slide(slide: dict) -> dict:
         return slide
     d = slide.setdefault("data", {})
 
-    headers = d.get("table_headers") or ["Buyer Profile", "Strategic Rationale", "Key Synergies", "Concerns", "Fit"]
-    if len(headers) == 4 and headers[-1].lower().startswith("fit"):
-        headers = [headers[0], headers[1], headers[2], "Concerns", headers[3]]
+    headers = d.get("table_headers") or ["Buyer Profile", "Strategic Rationale", "Key Synergies", "Fit"]
+    if len(headers) == 4:
+        # Keep as 4 columns for buyer_profiles
+        headers = headers[:4]
     d["table_headers"] = headers[:5]
 
     fixed_rows = []
@@ -1871,7 +2010,7 @@ def normalize_buyer_profiles_slide(slide: dict) -> dict:
                 "buyer_name":          (r[0] if len(r) > 0 else ""),
                 "strategic_rationale": (r[1] if len(r) > 1 else ""),
                 "key_synergies":       (r[2] if len(r) > 2 else ""),
-                "concerns":            (r[3] if len(r) > 3 else ""),
+                "fit":                (r[3] if len(r) > 3 else ""),
                 "fit_score":           (r[4] if len(r) > 4 else ""),
             }
         else:
@@ -1879,8 +2018,8 @@ def normalize_buyer_profiles_slide(slide: dict) -> dict:
             r["buyer_name"]          = r.get("buyer_name") or r.get("name", "")
             r["strategic_rationale"] = r.get("strategic_rationale") or r.get("rationale", "")
             r["key_synergies"]       = r.get("key_synergies") or r.get("synergies", "")
-            r["concerns"]            = r.get("concerns", "")
-            r["fit_score"]           = r.get("fit_score") or r.get("fit", "")
+            r["fit"]                = r.get("fit") or r.get("concerns", "")
+            # Note: fit is now the primary field, not fit_score
         fixed_rows.append(r)
     d["table_rows"] = fixed_rows
 

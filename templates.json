@@ -1,7 +1,7 @@
 [
   {
     "id": "management_team",
-    "purpose": "Display senior management team profiles with detailed experience and expertise in two-column layout",
+    "purpose": "Display senior management team profiles with names, roles, and concise experience bullets optimized to prevent text overlap (2-3 profiles per column, max 4 bullets each)",
     "render_fn": "render_management_team_slide",
     "required": [
       "title",
@@ -19,6 +19,15 @@
       "title": {
         "non_empty": true,
         "max_len": 80
+      },
+      "role_title": {
+        "non_empty": true,
+        "max_len": 50,
+        "must_include_name": true
+      },
+      "experience_bullets": {
+        "max_items": 4,
+        "max_bullet_length": 80
       }
     }
   },
@@ -136,16 +145,17 @@
   },
   {
     "id": "competitive_positioning",
-    "purpose": "Competitive analysis with revenue comparison chart, assessment table, barriers to entry, and unique advantages",
+    "purpose": "Enhanced competitive analysis matching iCar Asia format with 5-column assessment table using star ratings, revenue comparison chart, barriers to entry, and unique advantages",
     "render_fn": "render_competitive_positioning_slide",
     "required": [
       "title",
       "competitors",
       "assessment",
-      "barriers",
+      "barriers", 
       "advantages"
     ],
     "optional": [
+      "our_company_name",
       "color_scheme",
       "typography",
       "company_name"
@@ -163,20 +173,41 @@
       "title": {
         "non_empty": true,
         "max_len": 60
+      },
+      "assessment": {
+        "required": true,
+        "min_columns": 5,
+        "max_columns": 5,
+        "must_have_headers": true,
+        "header_format": ["Company", "Market Share", "Tech Platform", "Coverage", "Revenue"],
+        "star_ratings_required": true
+      },
+      "competitors": {
+        "min_items": 3,
+        "max_items": 6,
+        "required_fields": ["name", "revenue"]
+      },
+      "advantages": {
+        "max_items": 6,
+        "max_text_length": 80
+      },
+      "barriers": {
+        "max_items": 6, 
+        "max_text_length": 80
       }
     }
   },
   {
     "id": "product_service_footprint",
-    "purpose": "Product and service offerings with market coverage table and key operational metrics",
+    "purpose": "Product and service offerings with 3-4 column market coverage comparison table and key operational metrics - comprehensive regional/segment analysis",
     "render_fn": "render_product_service_footprint_slide",
     "required": [
       "title",
-      "services"
+      "services",
+      "coverage_table"
     ],
     "optional": [
       "table_title",
-      "coverage_table",
       "metrics_title",
       "metrics",
       "color_scheme",
@@ -188,12 +219,23 @@
       "title": {
         "non_empty": true,
         "max_len": 80
+      },
+      "coverage_table": {
+        "required": true,
+        "min_columns": 3,
+        "max_columns": 4,
+        "must_have_headers": true,
+        "header_concepts": ["region", "market", "segment", "business", "asset", "coverage", "product", "service"]
+      },
+      "services": {
+        "min_items": 4,
+        "max_items": 6
       }
     }
   },
   {
     "id": "business_overview",
-    "purpose": "Business & operational overview with description, timeline, highlights, clinic footprint, and business model",
+    "purpose": "Business & operational overview with comprehensive description, timeline, detailed highlights (6-8 items), enhanced services (6-8 items), and strategic positioning - high content density like iCar Asia example",
     "render_fn": "render_business_overview_slide",
     "required": [
       "title",

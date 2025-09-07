@@ -6,7 +6,7 @@ These create actual charts, tables, and sophisticated layouts
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
-from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
+from pptx.enum.text import PP_ALIGN, MSO_ANCHOR, MSO_AUTO_SIZE
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.chart.data import ChartData
 from pptx.enum.chart import XL_CHART_TYPE, XL_LEGEND_POSITION
@@ -269,56 +269,76 @@ def render_management_team_slide(data=None, color_scheme=None, typography=None, 
     title_text = (data or {}).get('title', 'Senior Management Team')
     _apply_standard_header_and_title(slide, title_text, brand_config, company_name)
     
-    # Function to add management profiles
-    def add_management_profile(x_pos, y_pos, width, profile_data):
-        # Role title
-        title_box = slide.shapes.add_textbox(x_pos, y_pos, width, Inches(0.3))
+    # Function to add management profiles - ENHANCED LAYOUT WITH OVERLAP PREVENTION
+    def add_management_profile(x_pos, y_pos, width, profile_data, max_bullets=4):
+        # Role title with better sizing
+        title_box = slide.shapes.add_textbox(x_pos, y_pos, width, Inches(0.4))
         title_frame = title_box.text_frame
         title_frame.clear()
+        title_frame.word_wrap = True
+        title_frame.auto_size = MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT
+        
         p = title_frame.paragraphs[0]
-        p.text = profile_data.get('role_title', 'Role Title')
+        role_title = profile_data.get('role_title', 'Role Title')
+        p.text = role_title
         p.font.name = fonts["primary_font"]          # BRAND FONT
-        p.font.size = fonts["header_size"]           # BRAND SIZE
+        p.font.size = Pt(12)                         # Slightly smaller for better fit
         p.font.color.rgb = colors["primary"]         # BRAND COLOR
         p.font.bold = True
         
-        # Experience bullets
-        current_y = y_pos + Inches(0.35)
+        # Experience bullets - LIMITED AND OPTIMIZED
+        current_y = y_pos + Inches(0.45)  # More space for title
         experience_bullets = profile_data.get('experience_bullets', [])
-        for bullet in experience_bullets:
-            bullet_box = slide.shapes.add_textbox(x_pos, current_y, width, Inches(0.6))
+        
+        # LIMIT bullets to prevent overflow and truncate long ones
+        limited_bullets = experience_bullets[:max_bullets]  # Max 4 bullets per profile
+        
+        for i, bullet in enumerate(limited_bullets):
+            # TRUNCATE long bullets to prevent overlap
+            truncated_bullet = bullet[:80] + "..." if len(bullet) > 80 else bullet
+            
+            bullet_box = slide.shapes.add_textbox(x_pos, current_y, width, Inches(0.35))
             bullet_frame = bullet_box.text_frame
             bullet_frame.clear()
-            p = bullet_frame.paragraphs[0]
-            p.text = f"• {bullet}"
-            p.font.name = fonts["primary_font"]      # BRAND FONT
-            p.font.size = fonts["body_size"]         # BRAND SIZE
-            p.font.color.rgb = colors["text"]        # BRAND COLOR
             bullet_frame.word_wrap = True
-            current_y += Inches(0.5)
+            bullet_frame.auto_size = MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT
+            
+            p = bullet_frame.paragraphs[0]
+            p.text = f"• {truncated_bullet}"
+            p.font.name = fonts["primary_font"]      # BRAND FONT
+            p.font.size = Pt(9)                      # Smaller font for more content
+            p.font.color.rgb = colors["text"]        # BRAND COLOR
+            
+            current_y += Inches(0.4)  # Tighter spacing but still readable
         
-        return current_y
+        return current_y + Inches(0.2)  # Extra padding between profiles
     
-    # Add left column profiles
-    current_y = Inches(1.5)
+    # Add left column profiles - ENHANCED WITH SPACE MANAGEMENT
+    current_y = Inches(1.4)  # Start slightly higher
     left_profiles = (data or {}).get('left_column_profiles', [])
-    for profile in left_profiles:
-        current_y = add_management_profile(Inches(0.5), current_y, Inches(6), profile)
-        current_y += Inches(0.2)
+    max_profiles_per_column = 3  # Limit to 3 profiles per column to prevent overflow
     
-    # Add right column profiles  
-    current_y = Inches(1.5)
+    for i, profile in enumerate(left_profiles[:max_profiles_per_column]):
+        if current_y > Inches(6.2):  # Stop if approaching footer
+            break
+        current_y = add_management_profile(Inches(0.5), current_y, Inches(6.0), profile, max_bullets=4)
+    
+    # Add right column profiles - ENHANCED WITH SPACE MANAGEMENT
+    current_y = Inches(1.4)  # Start slightly higher
     right_profiles = (data or {}).get('right_column_profiles', [])
-    for profile in right_profiles:
-        current_y = add_management_profile(Inches(7), current_y, Inches(5.8), profile)
-        current_y += Inches(0.2)
     
-    # Footer
+    for i, profile in enumerate(right_profiles[:max_profiles_per_column]):
+        if current_y > Inches(6.2):  # Stop if approaching footer
+            break
+        current_y = add_management_profile(Inches(6.8), current_y, Inches(6.0), profile, max_bullets=4)
+    
+    # Footer - REPOSITIONED TO AVOID OVERLAP
     from datetime import datetime
     today = datetime.now().strftime("%B %d, %Y")
+    footer_y = Inches(7.1)  # Moved down to provide more content space
     
     # Add footer - "Confidential | [today's date]" on LEFT
-    footer_left = slide.shapes.add_textbox(Inches(0.5), Inches(7.0), Inches(6), Inches(0.4))
+    footer_left = slide.shapes.add_textbox(Inches(0.5), footer_y, Inches(6), Inches(0.3))
     footer_left_frame = footer_left.text_frame
     footer_left_frame.clear()
     p = footer_left_frame.paragraphs[0]
@@ -330,7 +350,7 @@ def render_management_team_slide(data=None, color_scheme=None, typography=None, 
     footer_left_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
     
     # Add footer - Company name on RIGHT
-    footer_right = slide.shapes.add_textbox(Inches(10), Inches(7.0), Inches(3), Inches(0.4))
+    footer_right = slide.shapes.add_textbox(Inches(10), footer_y, Inches(3), Inches(0.3))
     footer_right_frame = footer_right.text_frame
     footer_right_frame.clear()
     p = footer_right_frame.paragraphs[0]
@@ -589,7 +609,7 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
         add_clean_text(slide, Inches(1.2), y_pos + Inches(0.25), Inches(5.5), Inches(0.55), 
                        service.get("desc", ""), 10, colors["text"])
     
-    # Right side - Product/Market Table (ALL FROM DATA)
+    # Right side - Enhanced Product/Market Table with 3-4 columns (ALL FROM DATA)
     table_left = Inches(7.2)
     table_width = Inches(5.5)
     
@@ -598,7 +618,7 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
     add_clean_text(slide, table_left, Inches(1.4), table_width, Inches(0.3), 
                    table_title, 14, colors["primary"], True, PP_ALIGN.CENTER)
     
-    # Create table from data
+    # Create enhanced table from data - SUPPORTS 3-4 COLUMNS
     table_data = slide_data.get('coverage_table', [])
     
     if table_data:  # Only create table if data exists
@@ -606,24 +626,30 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
         table_top = Inches(1.8)
         table_height = Inches(2.8)
         
+        # ENHANCED: Ensure minimum 3 columns for proper market coverage display
+        if cols < 3:
+            print(f"[WARNING] Table has only {cols} columns, market coverage tables should have 3-4 columns")
+        
         table = slide.shapes.add_table(rows, cols, table_left, table_top, table_width, table_height).table
         
-        # Style table
+        # ENHANCED: Style table with optimized column widths for 3-4 columns
         for i, row_data in enumerate(table_data):
             for j, cell_text in enumerate(row_data):
                 cell = table.cell(i, j)
                 cell.text = str(cell_text)
-                cell.margin_left = Inches(0.05)
-                cell.margin_right = Inches(0.05)
-                cell.margin_top = Inches(0.05)
-                cell.margin_bottom = Inches(0.05)
+                cell.margin_left = Inches(0.03)
+                cell.margin_right = Inches(0.03)
+                cell.margin_top = Inches(0.04)
+                cell.margin_bottom = Inches(0.04)
                 
-                # Style cell text
+                # Enhanced cell text styling with better font sizing for multi-column tables
                 for paragraph in cell.text_frame.paragraphs:
-                    paragraph.alignment = PP_ALIGN.CENTER
+                    paragraph.alignment = PP_ALIGN.CENTER if j > 0 else PP_ALIGN.LEFT  # Left-align first column
                     for run in paragraph.runs:
                         run.font.name = fonts["primary_font"]
-                        run.font.size = Pt(9)
+                        # Dynamic font size based on number of columns
+                        font_size = 10 if cols <= 3 else 9
+                        run.font.size = Pt(font_size)
                         
                         if i == 0:  # Header row
                             run.font.bold = True
@@ -639,13 +665,32 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
                                 cell.fill.solid()
                                 cell.fill.fore_color.rgb = colors["background"]
         
-        # Adjust column widths dynamically based on number of columns
+        # ENHANCED: Optimal column width distribution for 3-4 column tables
         if cols > 0:
+            total_width = table_width
             for i in range(cols):
-                if i == 0:  # First column wider for location names
-                    table.columns[i].width = Inches(1.2)
+                if cols == 3:
+                    # 3-column layout: Region (40%), Market (30%), Coverage (30%)
+                    if i == 0:
+                        table.columns[i].width = Inches(2.2)  # Region column wider
+                    else:
+                        table.columns[i].width = Inches(1.65)  # Other columns equal
+                elif cols == 4:
+                    # 4-column layout: Region (35%), Market (25%), Assets (20%), Coverage (20%)
+                    if i == 0:
+                        table.columns[i].width = Inches(1.9)  # Region column wider
+                    elif i == 1:
+                        table.columns[i].width = Inches(1.4)  # Market column
+                    else:
+                        table.columns[i].width = Inches(1.1)  # Assets/Coverage columns
                 else:
-                    table.columns[i].width = Inches(0.8)
+                    # Default for 2 or 5+ columns
+                    if i == 0:
+                        table.columns[i].width = Inches(1.8)
+                    else:
+                        remaining_width = table_width - Inches(1.8)
+                        col_width = remaining_width / (cols - 1)
+                        table.columns[i].width = col_width
     
     # Key Operational Metrics (ALL FROM DATA)
     metrics_title_top = Inches(4.8)
@@ -729,7 +774,8 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
 
 def render_competitive_positioning_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, **kwargs):
     """
-    Render a competitive positioning slide for investment banking presentations
+    Render an ENHANCED competitive positioning slide matching iCar Asia format
+    Features: 5-column assessment table with star ratings, clean layout, comprehensive data
     """
     
     # Create presentation if not provided
@@ -739,9 +785,6 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
         prs.slide_height = Inches(7.5)
     else:
         prs = ensure_prs(prs)
-    
-    # Get brand styling
-    colors, fonts = get_brand_styling(brand_config, color_scheme, typography)
     
     # Get brand styling
     colors, fonts = get_brand_styling(brand_config, color_scheme, typography)
@@ -764,7 +807,7 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
             
         textbox = slide.shapes.add_textbox(left, top, width, height)
         text_frame = textbox.text_frame
-        text_frame.text = text
+        text_frame.text = str(text)  # Convert to string to handle numbers
         text_frame.margin_left = Inches(0.1)
         text_frame.margin_right = Inches(0.1)
         text_frame.margin_top = Inches(0.05)
@@ -787,6 +830,22 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
         textbox.shadow.inherit = False
         return textbox
     
+    def convert_rating_to_stars(rating):
+        """Convert numeric rating (1-5) to star symbols"""
+        if isinstance(rating, (int, float)):
+            star_count = min(5, max(1, int(rating)))
+            return "★" * star_count
+        elif isinstance(rating, str):
+            # Handle string ratings like "4", "3.5", or already star format
+            if "★" in rating:
+                return rating
+            try:
+                star_count = min(5, max(1, int(float(rating))))
+                return "★" * star_count
+            except:
+                return rating  # Return as-is if can't convert
+        return str(rating)
+    
     # Extract slide data
     slide_data = data or {}
     
@@ -794,29 +853,36 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
     title_text = slide_data.get('title', 'Competitive Positioning')
     _apply_standard_header_and_title(slide, title_text, brand_config, company_name)
     
-    # Left side - Revenue Comparison Chart
+    # Left side - Revenue Comparison Chart (ENHANCED)
     add_clean_text(slide, Inches(0.5), Inches(1.3), Inches(6), Inches(0.3), 
                    "Revenue Comparison vs. Competitors", 14, colors["primary"], True)
     
-    # Create bar chart data
-    competitors_data = slide_data.get('competitors', [
-        {'name': 'Central Health', 'revenue': 450},
-        {'name': 'HK Sanatorium', 'revenue': 380},
-        {'name': 'Matilda Intl', 'revenue': 320},
-        {'name': 'OT&P Healthcare', 'revenue': 280},
-        {'name': 'Quality HealthCare', 'revenue': 250},
-        {'name': 'Union Hospital', 'revenue': 220}
-    ])
+    # ENHANCED: Get competitors data from slide_data with validation
+    competitors_data = slide_data.get('competitors', [])
+    
+    # Fallback data if none provided
+    if not competitors_data:
+        competitors_data = [
+            {'name': 'Our Company', 'revenue': 450},
+            {'name': 'Competitor A', 'revenue': 380}, 
+            {'name': 'Competitor B', 'revenue': 320},
+            {'name': 'Competitor C', 'revenue': 280}
+        ]
+    
+    # Ensure we have revenue data
+    for comp in competitors_data:
+        if 'revenue' not in comp:
+            comp['revenue'] = 0
     
     chart_data = ChartData()
     chart_data.categories = [comp['name'] for comp in competitors_data]
-    chart_data.add_series('Revenue (HK$ M)', [comp['revenue'] for comp in competitors_data])
+    chart_data.add_series('Revenue', [comp['revenue'] for comp in competitors_data])
     
-    # Add chart
+    # Add chart with better positioning
     chart_left = Inches(0.5)
     chart_top = Inches(1.7)
-    chart_width = Inches(6)
-    chart_height = Inches(2.5)
+    chart_width = Inches(5.5)  # Slightly narrower for better balance
+    chart_height = Inches(2.8)  # Taller for better visibility
     
     chart_shape = slide.shapes.add_chart(
         XL_CHART_TYPE.COLUMN_CLUSTERED, chart_left, chart_top, chart_width, chart_height, chart_data
@@ -824,12 +890,12 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
     
     chart = chart_shape.chart
     
-    # Style the chart
+    # ENHANCED: Style the chart for professional appearance
     chart.has_legend = False
     chart.chart_title.has_text_frame = True
     chart.chart_title.text_frame.clear()
     
-    # Style chart elements
+    # Style chart elements with better formatting
     category_axis = chart.category_axis
     category_axis.has_major_gridlines = False
     category_axis.tick_labels.font.size = Pt(9)
@@ -839,64 +905,92 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
     value_axis.has_major_gridlines = True
     value_axis.tick_labels.font.size = Pt(9)
     value_axis.tick_labels.font.name = fonts["primary_font"]
-    value_axis.maximum_scale = 500
     
-    # Highlight specific bar in gold/secondary color
+    # ENHANCED: Dynamic maximum scale based on data
+    max_revenue = max([comp['revenue'] for comp in competitors_data]) if competitors_data else 500
+    value_axis.maximum_scale = max_revenue * 1.2  # 20% buffer above max value
+    
+    # ENHANCED: Highlight our company bar in secondary color
     series = chart.series[0]
     points = series.points
+    our_company_indicators = ['our company', 'target company', 'company', slide_data.get('our_company_name', '').lower()]
+    
     for i, point in enumerate(points):
-        if competitors_data[i]['name'] == 'OT&P Healthcare':  # Find target company
-            point.format.fill.solid()
+        company_name = competitors_data[i]['name'].lower()
+        is_our_company = any(indicator in company_name for indicator in our_company_indicators if indicator)
+        
+        point.format.fill.solid()
+        if is_our_company or i == 0:  # Highlight first company or identified company
             point.format.fill.fore_color.rgb = colors["secondary"]
         else:
-            point.format.fill.solid()
             point.format.fill.fore_color.rgb = colors["primary"]
     
-    # Right side - Competitive Assessment Table
-    add_clean_text(slide, Inches(7.5), Inches(1.3), Inches(5.5), Inches(0.3), 
+    # Right side - ENHANCED 5-Column Competitive Assessment Table (iCar Asia Format)
+    add_clean_text(slide, Inches(6.8), Inches(1.3), Inches(6), Inches(0.3), 
                    "Competitive Assessment", 14, colors["primary"], True)
     
-    # Assessment table data
-    assessment_data = slide_data.get('assessment', [
-        ["Provider", "Services", "Digital", "Intl. Focus", "Locations"],
-        ["OT&P Healthcare", "●●●●●", "●●●●", "●●●●●", "●●●"],
-        ["Central Health", "●●●●●", "●●●", "●●●●", "●●"],
-        ["HK Sanatorium", "●●●●●", "●●", "●●●", "●"],
-        ["Matilda Intl.", "●●●●", "●●●", "●●●●", "●"]
-    ])
+    # ENHANCED: Get assessment table with proper 5-column structure
+    assessment_data = slide_data.get('assessment', [])
     
-    # Create assessment table
-    table_left = Inches(7.5)
+    # Ensure we have proper assessment data with 5 columns
+    if not assessment_data or len(assessment_data) == 0:
+        # Default iCar Asia-style 5-column structure
+        assessment_data = [
+            ["Company", "Market Share", "Tech Platform", "Coverage", "Revenue (M)"],
+            ["Our Company", "★★★★", "★★★★", "★★★★", "$200M"],
+            ["Competitor A", "★★★", "★★★", "★★★", "$150M"],
+            ["Competitor B", "★★", "★★", "★★", "$100M"]
+        ]
+    else:
+        # Convert ratings to stars if needed
+        for i in range(1, len(assessment_data)):  # Skip header row
+            row = assessment_data[i]
+            for j in range(1, len(row)):  # Skip company name column
+                if j < len(row) - 1:  # Don't convert last column (revenue)
+                    row[j] = convert_rating_to_stars(row[j])
+    
+    # ENHANCED: Validate 5-column structure
+    if assessment_data and len(assessment_data[0]) < 5:
+        print(f"[WARNING] Assessment table has only {len(assessment_data[0])} columns, should have 5 for iCar Asia format")
+    
+    # Create enhanced assessment table with better positioning
+    table_left = Inches(6.8)
     table_top = Inches(1.7)
-    table_width = Inches(5.5)
-    table_height = Inches(1.5)
+    table_width = Inches(6)  # Wider for 5 columns
+    table_height = Inches(2.2)  # Taller for better readability
     
     rows, cols = len(assessment_data), len(assessment_data[0])
     table = slide.shapes.add_table(rows, cols, table_left, table_top, table_width, table_height).table
     
-    # Style assessment table
+    # ENHANCED: Style assessment table with professional iCar Asia formatting
     for i, row_data in enumerate(assessment_data):
         for j, cell_text in enumerate(row_data):
             cell = table.cell(i, j)
-            cell.text = cell_text
-            cell.margin_left = Inches(0.05)
-            cell.margin_right = Inches(0.05)
-            cell.margin_top = Inches(0.05)
-            cell.margin_bottom = Inches(0.05)
+            cell.text = str(cell_text)
+            cell.margin_left = Inches(0.03)
+            cell.margin_right = Inches(0.03)
+            cell.margin_top = Inches(0.08)
+            cell.margin_bottom = Inches(0.08)
             
             for paragraph in cell.text_frame.paragraphs:
-                paragraph.alignment = PP_ALIGN.CENTER
+                # ENHANCED: Left-align company names, center-align ratings and revenue
+                if j == 0:  # Company column
+                    paragraph.alignment = PP_ALIGN.LEFT
+                else:  # Rating and revenue columns
+                    paragraph.alignment = PP_ALIGN.CENTER
+                    
                 for run in paragraph.runs:
                     run.font.name = fonts["primary_font"]
-                    run.font.size = Pt(8)
+                    run.font.size = Pt(10)  # Larger font for better readability
                     
                     if i == 0:  # Header row
                         run.font.bold = True
                         run.font.color.rgb = colors["background"]
                         cell.fill.solid()
                         cell.fill.fore_color.rgb = colors["primary"]
-                    elif i == 1:  # Target company row (highlighted)
+                    elif i == 1:  # Our company row (highlighted like iCar Asia)
                         run.font.color.rgb = colors["primary"]
+                        run.font.bold = True if j == 0 else False  # Bold company name
                         cell.fill.solid()
                         cell.fill.fore_color.rgb = colors["light_grey"]
                     else:
@@ -904,71 +998,108 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
                         if i % 2 == 0:
                             cell.fill.solid()
                             cell.fill.fore_color.rgb = colors["light_grey"]
+                        else:
+                            cell.fill.solid()
+                            cell.fill.fore_color.rgb = colors["background"]
     
-    # Adjust table column widths
-    col_widths = [Inches(1.5), Inches(0.8), Inches(0.7), Inches(0.9), Inches(0.8)]
-    for i, width in enumerate(col_widths):
-        table.columns[i].width = width
+    # ENHANCED: Optimal column widths for 5-column iCar Asia format
+    if cols >= 5:
+        col_widths = [Inches(1.3), Inches(1.0), Inches(1.0), Inches(0.9), Inches(0.8)]  # Company, Market Share, Tech Platform, Coverage, Revenue
+        for i, width in enumerate(col_widths[:cols]):
+            table.columns[i].width = width
+    else:
+        # Fallback for fewer columns
+        equal_width = table_width / cols
+        for i in range(cols):
+            table.columns[i].width = equal_width
     
-    # Source note for assessment
-    add_clean_text(slide, Inches(7.5), Inches(3.3), Inches(5.5), Inches(0.2), 
+    # ENHANCED: Source note positioned better for 5-column table
+    add_clean_text(slide, Inches(6.8), Inches(4.0), Inches(6), Inches(0.2), 
                    "Source: Management estimates, competitor websites, July 2024 [Medium Confidence]", 
                    8, colors["text"])
     
-    # Bottom left - Barriers to Entry
-    add_clean_text(slide, Inches(0.5), Inches(4.5), Inches(6), Inches(0.3), 
+    # Bottom left - ENHANCED Barriers to Entry (matching iCar Asia style)
+    add_clean_text(slide, Inches(0.5), Inches(4.8), Inches(6), Inches(0.3), 
                    "Barriers to Entry", 14, colors["primary"], True)
     
-    barriers = slide_data.get('barriers', [
-        {"title": "Regulatory Compliance:", "desc": "Stringent healthcare licensing requirements and facility standards"},
-        {"title": "Specialist Recruitment:", "desc": "Challenging acquisition of multilingual medical talent"},
-        {"title": "Prime Real Estate:", "desc": "Limited availability and high cost of clinic locations"},
-        {"title": "Insurance Relationships:", "desc": "Established direct billing partnerships with 35+ insurers"}
-    ])
+    # ENHANCED: Get barriers from data with proper formatting
+    barriers = slide_data.get('barriers', [])
+    if not barriers:
+        barriers = [
+            "Market Leadership: Established #1 position with strong brand recognition",
+            "Network Effects: Extensive dealer network creating switching costs", 
+            "Technology Moat: Proprietary platform and analytics tools",
+            "Regulatory Compliance: Complex licensing and operational requirements"
+        ]
     
-    y_start = Inches(4.9)
-    for i, barrier in enumerate(barriers):
-        y_pos = y_start + Inches(i * 0.35)
+    # Handle both string and object formats
+    y_start = Inches(5.2)
+    max_barriers = 4  # Limit for clean layout
+    
+    for i, barrier in enumerate(barriers[:max_barriers]):
+        y_pos = y_start + Inches(i * 0.3)
         
-        # Gold bullet
+        # Gold bullet point
         bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(0.7), y_pos, Inches(0.06), Inches(0.06))
         bullet.fill.solid()
         bullet.fill.fore_color.rgb = colors["secondary"]
         bullet.line.fill.background()
         
-        # Barrier text
-        barrier_text = f"{barrier['title']} {barrier['desc']}"
-        add_clean_text(slide, Inches(0.85), y_pos - Inches(0.05), Inches(5.5), Inches(0.3), 
+        # ENHANCED: Handle different barrier formats
+        if isinstance(barrier, dict):
+            barrier_text = f"{barrier.get('title', '')} {barrier.get('desc', '')}".strip()
+        else:
+            barrier_text = str(barrier)
+        
+        # Truncate long text for better layout
+        if len(barrier_text) > 80:
+            barrier_text = barrier_text[:77] + "..."
+        
+        add_clean_text(slide, Inches(0.85), y_pos - Inches(0.05), Inches(5.3), Inches(0.25), 
                        barrier_text, 9, colors["text"])
     
-    # Bottom right - Company's Unique Advantages
-    add_clean_text(slide, Inches(7.5), Inches(3.8), Inches(5.5), Inches(0.3), 
+    # Bottom right - ENHANCED Company's Unique Advantages (matching iCar Asia style)
+    add_clean_text(slide, Inches(6.8), Inches(4.4), Inches(6), Inches(0.3), 
                    "Company's Unique Advantages", 14, colors["primary"], True)
     
-    advantages = slide_data.get('advantages', [
-        {"title": "International Accreditation:", "desc": "First Hong Kong clinic accredited by Australian Council"},
-        {"title": "Multi-specialty Integration:", "desc": "Comprehensive holistic care model spanning physical and mental health"},
-        {"title": "In-house Pharmacy:", "desc": "Holder of wholesale pharmacy license with dedicated pharmacy team"},
-        {"title": "Teaching Status:", "desc": "Recognized undergraduate and postgraduate teaching unit"}
-    ])
+    # ENHANCED: Get advantages from data with proper formatting
+    advantages = slide_data.get('advantages', [])
+    if not advantages:
+        advantages = [
+            "Largest User Base: 11M+ monthly users across key markets",
+            "Comprehensive Platform: End-to-end automotive ecosystem and tools",
+            "Market Leadership: #1 position with strong network effects", 
+            "Premium Content: Research tools and automotive expertise"
+        ]
     
-    y_start = Inches(4.2)
-    for i, advantage in enumerate(advantages):
-        y_pos = y_start + Inches(i * 0.35)
+    # Handle both string and object formats
+    y_start = Inches(4.8)
+    max_advantages = 4  # Limit for clean layout
+    
+    for i, advantage in enumerate(advantages[:max_advantages]):
+        y_pos = y_start + Inches(i * 0.3)
         
-        # Gold bullet
-        bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(7.7), y_pos, Inches(0.06), Inches(0.06))
+        # Gold bullet point
+        bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(7.0), y_pos, Inches(0.06), Inches(0.06))
         bullet.fill.solid()
         bullet.fill.fore_color.rgb = colors["secondary"]
         bullet.line.fill.background()
         
-        # Advantage text
-        advantage_text = f"{advantage['title']} {advantage['desc']}"
-        add_clean_text(slide, Inches(7.85), y_pos - Inches(0.05), Inches(5), Inches(0.3), 
+        # ENHANCED: Handle different advantage formats
+        if isinstance(advantage, dict):
+            advantage_text = f"{advantage.get('title', '')} {advantage.get('desc', '')}".strip()
+        else:
+            advantage_text = str(advantage)
+        
+        # Truncate long text for better layout
+        if len(advantage_text) > 80:
+            advantage_text = advantage_text[:77] + "..."
+        
+        add_clean_text(slide, Inches(7.15), y_pos - Inches(0.05), Inches(5.5), Inches(0.25), 
                        advantage_text, 9, colors["text"])
     
-    # Source note for chart
-    add_clean_text(slide, Inches(0.5), Inches(4.3), Inches(6), Inches(0.15), 
+    # ENHANCED: Source note for chart positioned better
+    add_clean_text(slide, Inches(0.5), Inches(4.6), Inches(6), Inches(0.15), 
                    "Source: Company analysis, industry reports, 2024 [High Confidence]", 
                    8, colors["text"])
     
@@ -1591,11 +1722,25 @@ def render_historical_financial_performance_slide(data=None, color_scheme=None, 
     add_clean_text(slide, Inches(1), Inches(1.3), Inches(11), Inches(0.3), 
                    chart_title, 16, colors["primary"], True, PP_ALIGN.CENTER)
     
-    # Create combination chart
+    # Create combination chart with ENHANCED DATA CONVERSION AND VALIDATION
     chart_data = ChartData()
     categories = chart_info.get('categories', ['2020', '2021', '2022', '2023', '2024'])
-    revenue_data = chart_info.get('revenue', [26, 24, 33, 40, 42])
-    ebitda_data = chart_info.get('ebitda', [6.5, 5.8, 8.2, 10.0, 11.2])
+    revenue_data_raw = chart_info.get('revenue', [26, 24, 33, 40, 42])
+    ebitda_data_raw = chart_info.get('ebitda', [6.5, 5.8, 8.2, 10.0, 11.2])
+    
+    print(f"[DEBUG] Historical chart categories: {categories}")
+    print(f"[DEBUG] Historical chart revenue: {revenue_data_raw}")
+    print(f"[DEBUG] Historical chart ebitda: {ebitda_data_raw}")
+    
+    # ENHANCED: Convert to numeric and handle negative values
+    try:
+        revenue_data = [float(str(x).replace(',', '').replace('$', '')) for x in revenue_data_raw]
+        ebitda_data = [float(str(x).replace(',', '').replace('$', '')) for x in ebitda_data_raw]
+        print(f"[DEBUG] Successfully converted chart data to numeric")
+    except (ValueError, TypeError) as e:
+        print(f"[DEBUG] Chart data conversion failed: {e}, using defaults")
+        revenue_data = [26, 24, 33, 40, 42]
+        ebitda_data = [6.5, 5.8, 8.2, 10.0, 11.2]
     
     chart_data.categories = categories
     chart_data.add_series('Revenue (USD millions)', revenue_data)
@@ -1628,7 +1773,31 @@ def render_historical_financial_performance_slide(data=None, color_scheme=None, 
     value_axis.has_major_gridlines = True
     value_axis.tick_labels.font.size = Pt(10)
     value_axis.tick_labels.font.name = fonts["primary_font"]
-    value_axis.maximum_scale = 45
+    
+    # ENHANCED: Dynamic scaling to handle negative EBITDA and large ranges
+    try:
+        all_values = revenue_data + ebitda_data
+        min_val = min(all_values)
+        max_val = max(all_values)
+        
+        # Calculate appropriate axis range with 20% padding
+        if min_val < 0:
+            # Handle negative values - ensure axis starts below minimum
+            axis_min = min_val * 1.2
+            value_axis.minimum_scale = axis_min
+        else:
+            # All positive values - can start at 0
+            value_axis.minimum_scale = 0
+            
+        # Set maximum with padding
+        axis_max = max_val * 1.2
+        value_axis.maximum_scale = axis_max
+        
+        print(f"[DEBUG] Chart axis scaled: range {min_val} to {max_val} → axis {value_axis.minimum_scale} to {axis_max}")
+        
+    except Exception as e:
+        print(f"[DEBUG] Chart scaling failed: {e}, using default")
+        value_axis.maximum_scale = 50
     
     # Color the series
     series = chart.series
@@ -1714,40 +1883,43 @@ def render_historical_financial_performance_slide(data=None, color_scheme=None, 
         add_clean_text(slide, x_pos + Inches(0.1), metrics_y + Inches(0.75), box_width - Inches(0.2), Inches(0.25), 
                        metric.get('note', ''), 8, RGBColor(34, 139, 34))
     
-    # Revenue Growth section
+    # Revenue Growth section - REPOSITIONED TO AVOID OVERLAP
     revenue_section = (data or {}).get('revenue_growth', {})
-    covid_y = Inches(5.7)
-    section_title = revenue_section.get('title', 'Revenue Growth')
-    add_clean_text(slide, Inches(1), covid_y, Inches(7), Inches(0.2), 
+    growth_section_y = Inches(5.8)  # Moved down from 5.7 to avoid overlap
+    section_title = revenue_section.get('title', 'Revenue Growth Drivers')
+    add_clean_text(slide, Inches(1), growth_section_y, Inches(6.5), Inches(0.2), 
                    section_title, 12, colors["primary"], True)
     
-    # Five bullet points for revenue growth
+    # Revenue growth bullet points - BETTER SPACING
     revenue_points = revenue_section.get('points', [])
-    for i, point in enumerate(revenue_points[:5]):  # Max 5 points
-        add_clean_text(slide, Inches(1), covid_y + Inches(0.25 + i * 0.18), Inches(7), Inches(0.16), 
+    for i, point in enumerate(revenue_points[:4]):  # Max 4 points to fit better
+        add_clean_text(slide, Inches(1), growth_section_y + Inches(0.25 + i * 0.2), Inches(6.3), Inches(0.18), 
                        f"● {point}", 9, colors["text"])
     
-    # Banker's view section (NO SHADOW)
+    # Banker's view section - REPOSITIONED TO RIGHT SIDE TO AVOID OVERLAP
     banker_view = (data or {}).get('banker_view', {})
-    banker_box = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8.5), covid_y, Inches(4.3), Inches(0.7))
+    banker_x = Inches(7.8)  # Moved right from 8.5 for better separation
+    banker_y = growth_section_y  # Same Y as growth section but different X
+    banker_box = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, banker_x, banker_y, Inches(4.8), Inches(1.0))
     banker_box.fill.solid()
     banker_box.fill.fore_color.rgb = RGBColor(240, 255, 240)  # Light green
     banker_box.line.fill.background()  # Remove outline
     banker_box.shadow.inherit = False  # Remove shadow
     
-    add_clean_text(slide, Inches(8.7), covid_y + Inches(0.05), Inches(3.9), Inches(0.15), 
-                   banker_view.get('title', "BANKER'S VIEW"), 10, RGBColor(34, 139, 34), True)
-    add_clean_text(slide, Inches(8.7), covid_y + Inches(0.2), Inches(3.9), Inches(0.45), 
-                   banker_view.get('text', ''), 9, colors["text"])
+    add_clean_text(slide, banker_x + Inches(0.2), banker_y + Inches(0.05), Inches(4.4), Inches(0.2), 
+                   banker_view.get('title', "Banker View"), 11, RGBColor(34, 139, 34), True)
+    add_clean_text(slide, banker_x + Inches(0.2), banker_y + Inches(0.25), Inches(4.4), Inches(0.7), 
+                   banker_view.get('text', 'Aramco consistently delivers industry-leading margins and returns, supported by scale, cost discipline, and strong business model. Diversification and transition investments provide long-term value.'), 9, colors["text"])
     
     # Get today's date
     today = datetime.now().strftime("%B %d, %Y")
     
-    # Footer
-    add_clean_text(slide, Inches(0.5), Inches(6.9), Inches(4), Inches(0.2), 
+    # Footer - REPOSITIONED TO AVOID OVERLAP WITH CONTENT
+    footer_y = Inches(7.1)  # Moved down to provide more space for content
+    add_clean_text(slide, Inches(0.5), footer_y, Inches(4), Inches(0.2), 
                    f"Confidential | {today}", 9, colors["footer_grey"])
     
-    add_clean_text(slide, Inches(9.5), Inches(6.9), Inches(3.5), Inches(0.2), 
+    add_clean_text(slide, Inches(9.5), footer_y, Inches(3.5), Inches(0.2), 
                    f"{company_name} Investment Opportunity    6", 9, colors["footer_grey"], False, PP_ALIGN.RIGHT)
     
     return prs
@@ -1933,23 +2105,23 @@ def render_business_overview_slide(data=None, color_scheme=None, typography=None
         service_cols = 2  # Split into 2 columns
         items_per_col = (len(services) + 1) // 2
         
-        for i, service in enumerate(services[:6]):  # Max 6 services
+        for i, service in enumerate(services[:8]):  # Support up to 8 detailed services
             if i < items_per_col:  # Left column
-                x_pos = Inches(1)
-                y_pos = Inches(3.8 + i * 0.35)
+                x_pos = Inches(0.9)
+                y_pos = Inches(3.4 + i * 0.5)  # Proper spacing for detailed text
             else:  # Right column
-                x_pos = Inches(4.2)
-                y_pos = Inches(3.8 + (i - items_per_col) * 0.35)
+                x_pos = Inches(4.2)  # Optimized column positioning
+                y_pos = Inches(3.4 + (i - items_per_col) * 0.5)
             
-            # Gold bullet
-            bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, x_pos, y_pos, Inches(0.05), Inches(0.05))
+            # Gold bullet - aligned with text baseline
+            bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, x_pos, y_pos + Inches(0.08), Inches(0.04), Inches(0.04))
             bullet.fill.solid()
             bullet.fill.fore_color.rgb = colors["secondary"]
             bullet.line.fill.background()
             
-            # Text
-            add_clean_text(slide, x_pos + Inches(0.15), y_pos - Inches(0.05), Inches(2.8), Inches(0.25), 
-                           service, 10, colors["text"])
+            # Text with proper width for detailed service descriptions
+            add_clean_text(slide, x_pos + Inches(0.12), y_pos, Inches(3.5), Inches(0.45), 
+                           service, 9, colors["text"])
     except Exception as e:
         print(f"[DEBUG] Services section error: {e}")
     
@@ -2796,7 +2968,7 @@ def render_buyer_profiles_slide(data=None, color_scheme=None, typography=None, c
     
     # Get table data
     table_rows = slide_data.get('table_rows', [])
-    table_headers = slide_data.get('table_headers', ['Buyer Profile', 'Strategic Rationale', 'Key Synergies', 'Concerns', 'Fit'])
+    table_headers = slide_data.get('table_headers', ['Buyer Name', 'Description', 'Strategic Rationale', 'Key Synergies', 'Fit'])
     
     if table_rows:
         # Create table
@@ -2857,10 +3029,10 @@ def render_buyer_profiles_slide(data=None, color_scheme=None, typography=None, c
                 # Convert dict to list based on expected fields
                 cell_data = [
                     row_data.get('buyer_name', row_data.get('name', '')),
+                    row_data.get('description', ''),
                     row_data.get('strategic_rationale', row_data.get('rationale', '')),
                     row_data.get('key_synergies', row_data.get('synergies', '')),
-                    row_data.get('concerns', ''),
-                    row_data.get('fit_score', row_data.get('fit', ''))
+                    row_data.get('fit', row_data.get('concerns', ''))
                 ]
             elif isinstance(row_data, list):
                 cell_data = row_data
@@ -2957,7 +3129,7 @@ def render_sea_conglomerates_slide(data=None, color_scheme=None, typography=None
                 "description": "Leading diversified conglomerate with significant healthcare investments through Ayala Healthcare Holdings",
                 "key_shareholders": "Ayala family trust and institutional investors",
                 "key_financials": "Revenue: US$3.2B, Healthcare growing 15%+ annually",
-                "moelis_contact": "Managing Director - SEA Healthcare"
+                "contact": "Managing Director - SEA Healthcare"
             },
             {
                 "name": "CP Group (Charoen Pokphand)",
@@ -2965,7 +3137,7 @@ def render_sea_conglomerates_slide(data=None, color_scheme=None, typography=None
                 "description": "Massive diversified conglomerate with healthcare retail exposure through pharmacy chains",
                 "key_shareholders": "Chearavanont family and holding companies",
                 "key_financials": "Revenue: US$45B+, Healthcare investments >US$500M",
-                "moelis_contact": "Managing Director - Consumer Healthcare"
+                "contact": "Managing Director - Consumer Healthcare"
             },
             {
                 "name": "Sinar Mas Group",
@@ -2973,7 +3145,7 @@ def render_sea_conglomerates_slide(data=None, color_scheme=None, typography=None
                 "description": "Indonesian conglomerate with diversified portfolio and growing healthcare technology investments",
                 "key_shareholders": "Widjaja family and investment vehicles",
                 "key_financials": "Revenue: US$15B+, Active healthtech program",
-                "moelis_contact": "Executive Director - Indonesia Coverage"
+                "contact": "Executive Director - Indonesia Coverage"
             },
             {
                 "name": "Genting Group",
@@ -2981,7 +3153,7 @@ def render_sea_conglomerates_slide(data=None, color_scheme=None, typography=None
                 "description": "Diversified conglomerate with strategic healthcare investments through integrated resort wellness",
                 "key_shareholders": "Lim Kok Thay family trust",
                 "key_financials": "Revenue: US$2.8B, Healthcare target US$200M+",
-                "moelis_contact": "Managing Director - Malaysia Coverage"
+                "contact": "Managing Director - Malaysia Coverage"
             }
         ]
     
@@ -3033,7 +3205,7 @@ def render_sea_conglomerates_slide(data=None, color_scheme=None, typography=None
         table = table_shape.table
         
         # Column headers
-        headers = ["Name", "Country", "Description", "Key shareholders", "Key financials (US$m)", "Moelis contact"]
+        headers = ["Name", "Country", "Description", "Key shareholders", "Key financials (US$m)", "Contact"]
         
         # Set column widths to match original
         col_widths = [Inches(1.8), Inches(1.0), Inches(4.2), Inches(2.2), Inches(1.8), Inches(1.333)]
@@ -3071,7 +3243,7 @@ def render_sea_conglomerates_slide(data=None, color_scheme=None, typography=None
                 company.get('description', company.get('healthcare_focus', '')),  # Fallback to healthcare_focus
                 company.get('key_shareholders', 'N/A'),
                 company.get('key_financials', company.get('revenue', '')),  # Fallback to revenue
-                company.get('moelis_contact', 'To be assigned')
+                company.get('contact', company.get('moelis_contact', 'To be assigned'))
             ]
             
             for col_idx, data in enumerate(row_data):
