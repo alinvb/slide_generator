@@ -500,7 +500,7 @@ def advanced_json_repair(json_str):
                     next_line.startswith(('{', '[', '"'))):
                     
                     # Exclude cases where next line is closing
-                    if not next_line.startswith(('}', ']'))):
+                    if not next_line.startswith(('}', ']')):
                         needs_comma = True
                 
                 # Pattern 2: Value followed by key
