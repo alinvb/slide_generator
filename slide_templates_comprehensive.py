@@ -269,68 +269,84 @@ def render_management_team_slide(data=None, color_scheme=None, typography=None, 
     title_text = (data or {}).get('title', 'Senior Management Team')
     _apply_standard_header_and_title(slide, title_text, brand_config, company_name)
     
-    # Function to add management profiles - ENHANCED LAYOUT WITH OVERLAP PREVENTION
-    def add_management_profile(x_pos, y_pos, width, profile_data, max_bullets=4):
-        # Role title with better sizing
-        title_box = slide.shapes.add_textbox(x_pos, y_pos, width, Inches(0.4))
+    # Function to add management profiles - FIXED OVERLAP PREVENTION
+    def add_management_profile(x_pos, y_pos, width, profile_data, max_bullets=3):
+        # Name and role title with FIXED HEIGHT to prevent overlap
+        title_box = slide.shapes.add_textbox(x_pos, y_pos, width, Inches(0.6))
         title_frame = title_box.text_frame
         title_frame.clear()
         title_frame.word_wrap = True
-        title_frame.auto_size = MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT
+        title_frame.margin_left = Inches(0.05)
+        title_frame.margin_right = Inches(0.05)
+        title_frame.margin_top = Inches(0.05)
+        title_frame.margin_bottom = Inches(0.05)
         
         p = title_frame.paragraphs[0]
+        # Display both name and role title
+        name = profile_data.get('name', '')
         role_title = profile_data.get('role_title', 'Role Title')
-        p.text = role_title
+        
+        if name and role_title:
+            p.text = f"{name}\n{role_title}"
+        elif name:
+            p.text = name
+        elif role_title:
+            p.text = role_title
+        else:
+            p.text = 'Name\nRole Title'
         p.font.name = fonts["primary_font"]          # BRAND FONT
-        p.font.size = Pt(12)                         # Slightly smaller for better fit
+        p.font.size = Pt(11)                         # Smaller font to fit better
         p.font.color.rgb = colors["primary"]         # BRAND COLOR
         p.font.bold = True
         
-        # Experience bullets - LIMITED AND OPTIMIZED
-        current_y = y_pos + Inches(0.45)  # More space for title
+        # Experience bullets - FIXED HEIGHT AND SPACING
+        current_y = y_pos + Inches(0.65)  # Fixed spacing after title
         experience_bullets = profile_data.get('experience_bullets', [])
         
-        # LIMIT bullets to prevent overflow and truncate long ones
-        limited_bullets = experience_bullets[:max_bullets]  # Max 4 bullets per profile
+        # LIMIT bullets to prevent overflow
+        limited_bullets = experience_bullets[:max_bullets]  # Max 3 bullets per profile
         
         for i, bullet in enumerate(limited_bullets):
             # TRUNCATE long bullets to prevent overlap
-            truncated_bullet = bullet[:80] + "..." if len(bullet) > 80 else bullet
+            truncated_bullet = bullet[:60] + "..." if len(bullet) > 60 else bullet
             
-            bullet_box = slide.shapes.add_textbox(x_pos, current_y, width, Inches(0.35))
+            bullet_box = slide.shapes.add_textbox(x_pos, current_y, width, Inches(0.3))
             bullet_frame = bullet_box.text_frame
             bullet_frame.clear()
             bullet_frame.word_wrap = True
-            bullet_frame.auto_size = MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT
+            bullet_frame.margin_left = Inches(0.05)
+            bullet_frame.margin_right = Inches(0.05)
+            bullet_frame.margin_top = Inches(0.02)
+            bullet_frame.margin_bottom = Inches(0.02)
             
             p = bullet_frame.paragraphs[0]
             p.text = f"• {truncated_bullet}"
             p.font.name = fonts["primary_font"]      # BRAND FONT
-            p.font.size = Pt(9)                      # Smaller font for more content
+            p.font.size = Pt(8)                      # Smaller font for more content
             p.font.color.rgb = colors["text"]        # BRAND COLOR
             
-            current_y += Inches(0.4)  # Tighter spacing but still readable
+            current_y += Inches(0.32)  # Fixed spacing between bullets
         
-        return current_y + Inches(0.2)  # Extra padding between profiles
+        return current_y + Inches(0.15)  # Fixed padding between profiles
     
-    # Add left column profiles - ENHANCED WITH SPACE MANAGEMENT
-    current_y = Inches(1.4)  # Start slightly higher
+    # Add left column profiles - FIXED SPACING TO PREVENT OVERLAP
+    current_y = Inches(1.4)  # Start position
     left_profiles = (data or {}).get('left_column_profiles', [])
-    max_profiles_per_column = 3  # Limit to 3 profiles per column to prevent overflow
+    max_profiles_per_column = 3  # Limit to 3 profiles per column
     
     for i, profile in enumerate(left_profiles[:max_profiles_per_column]):
-        if current_y > Inches(6.2):  # Stop if approaching footer
+        if current_y > Inches(6.0):  # Stop if approaching footer
             break
-        current_y = add_management_profile(Inches(0.5), current_y, Inches(6.0), profile, max_bullets=4)
+        current_y = add_management_profile(Inches(0.5), current_y, Inches(6.0), profile, max_bullets=3)
     
-    # Add right column profiles - ENHANCED WITH SPACE MANAGEMENT
-    current_y = Inches(1.4)  # Start slightly higher
+    # Add right column profiles - FIXED SPACING TO PREVENT OVERLAP
+    current_y = Inches(1.4)  # Start position
     right_profiles = (data or {}).get('right_column_profiles', [])
     
     for i, profile in enumerate(right_profiles[:max_profiles_per_column]):
-        if current_y > Inches(6.2):  # Stop if approaching footer
+        if current_y > Inches(6.0):  # Stop if approaching footer
             break
-        current_y = add_management_profile(Inches(6.8), current_y, Inches(6.0), profile, max_bullets=4)
+        current_y = add_management_profile(Inches(6.8), current_y, Inches(6.0), profile, max_bullets=3)
     
     # Footer - REPOSITIONED TO AVOID OVERLAP
     from datetime import datetime
@@ -1828,34 +1844,64 @@ def render_historical_financial_performance_slide(data=None, color_scheme=None, 
     metrics_y = Inches(4.4)
     metrics = metrics_section.get('metrics', [])
     
+    # FIXED: Handle both string and object formats for metrics
+    processed_metrics = []
+    for i, metric in enumerate(metrics):
+        if isinstance(metric, str):
+            # Convert string to structured format
+            processed_metrics.append({
+                'title': f'Key Metric {i+1}',
+                'value': metric,
+                'period': '(Historical)',
+                'note': 'Key performance indicator'
+            })
+        elif isinstance(metric, dict):
+            # Ensure all required fields exist
+            processed_metrics.append({
+                'title': metric.get('title', f'Key Metric {i+1}'),
+                'value': metric.get('value', 'N/A'),
+                'period': metric.get('period', '(Historical)'),
+                'note': metric.get('note', 'Key performance indicator')
+            })
+        else:
+            # Fallback for other types
+            processed_metrics.append({
+                'title': f'Key Metric {i+1}',
+                'value': str(metric),
+                'period': '(Historical)',
+                'note': 'Key performance indicator'
+            })
+    
     # If no metrics provided, create default ones
-    if not metrics:
-        metrics = [
+    if not processed_metrics:
+        processed_metrics = [
             {
-                'title': 'Patient Growth (CAGR)',
-                'value': '12.4%',
-                'period': '(2020-2024)',
-                'note': '✓ Consistent growth despite pandemic disruptions'
+                'title': 'Revenue Growth',
+                'value': '25%',
+                'period': '(CAGR)',
+                'note': 'Consistent growth trajectory'
             },
             {
-                'title': 'Patient Retention Rate',
-                'value': '87%',
+                'title': 'EBITDA Margin',
+                'value': '18%',
                 'period': '(2024)',
-                'note': '✓ Premium market segment leading indicator'
+                'note': 'Strong profitability'
             },
             {
-                'title': 'Avg. Revenue Per Patient',
-                'value': '$980',
-                'period': 'USD (2024)',
-                'note': '↗ +8.2% increase from 2023'
+                'title': 'Customer Base',
+                'value': '500+',
+                'period': '(Enterprise)',
+                'note': 'Growing customer portfolio'
             },
             {
-                'title': 'Corporate Contracts',
-                'value': '35+',
-                'period': '(2024)',
-                'note': '● Major financial institutions & MNCs'
+                'title': 'Market Position',
+                'value': 'Top 3',
+                'period': '(Industry)',
+                'note': 'Leading market position'
             }
         ]
+    
+    metrics = processed_metrics
     
     # Calculate positions to fit exactly 4 boxes across slide width
     slide_content_width = Inches(12.5)  # Total usable width
@@ -1886,7 +1932,7 @@ def render_historical_financial_performance_slide(data=None, color_scheme=None, 
     # Revenue Growth section - REPOSITIONED TO AVOID OVERLAP
     revenue_section = (data or {}).get('revenue_growth', {})
     growth_section_y = Inches(5.8)  # Moved down from 5.7 to avoid overlap
-    section_title = revenue_section.get('title', 'Revenue Growth Drivers')
+    section_title = revenue_section.get('title', 'Key Growth Drivers')
     add_clean_text(slide, Inches(1), growth_section_y, Inches(6.5), Inches(0.2), 
                    section_title, 12, colors["primary"], True)
     
@@ -2239,7 +2285,20 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
     bar_top = Inches(2.2)
     
     for i, transaction in enumerate(transactions):
-        multiple = transaction.get('ev_revenue_multiple', 0)
+        multiple_raw = transaction.get('ev_revenue_multiple', 0)
+        
+        # Convert multiple to float (handle N/A values)
+        try:
+            if isinstance(multiple_raw, str):
+                if multiple_raw.lower() in ['n/a', 'na', '-', '']:
+                    multiple = 0
+                else:
+                    multiple = float(multiple_raw.replace('x', '').replace('X', '').strip())
+            else:
+                multiple = float(multiple_raw) if multiple_raw else 0
+        except (ValueError, TypeError):
+            multiple = 0
+            
         # Scale bar height (max 2 inches for 3.0x multiple)
         bar_height = Inches(multiple * 0.6) if multiple > 0 else Inches(0.1)
         
@@ -2339,7 +2398,7 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
             transaction.get('country', 'N/A'),
             f"${transaction.get('enterprise_value', 0):,.0f}" if transaction.get('enterprise_value') else 'N/A',
             f"${transaction.get('revenue', 0):,.0f}" if transaction.get('revenue') else 'N/A',
-            f"{transaction.get('ev_revenue_multiple', 0):.1f}x" if transaction.get('ev_revenue_multiple') else 'N/A'
+            f"{transaction.get('ev_revenue_multiple', 0):.1f}x" if transaction.get('ev_revenue_multiple') and str(transaction.get('ev_revenue_multiple', '')).lower() not in ['n/a', 'na', '-', ''] else 'N/A'
         ]
         
         for row_idx, value in enumerate(data_values):

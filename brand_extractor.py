@@ -498,10 +498,13 @@ Return ONLY the JSON, no additional text."""
             
             headers = {
                 "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json; charset=utf-8"
             }
             
-            response = requests.post(url, json=payload, headers=headers)
+            # Ensure UTF-8 encoding for Unicode characters (emojis, etc.)
+            import json
+            json_data = json.dumps(payload, ensure_ascii=False)
+            response = requests.post(url, data=json_data.encode('utf-8'), headers=headers)
             
             if response.status_code == 200:
                 result = response.json()
@@ -755,14 +758,20 @@ class BrandExtractor:
     def _extract_with_rules(self, pptx_file) -> Dict:
         """Original rule-based extraction method"""
         try:
+            print(f"[BRAND DEBUG] Starting rule-based extraction for file: {getattr(pptx_file, 'name', 'unknown')}")
+            
             # Handle different input types
             if hasattr(pptx_file, 'read'):
                 # File-like object from Streamlit - need to reset position
                 pptx_file.seek(0)
-                prs = Presentation(io.BytesIO(pptx_file.read()))
+                file_data = pptx_file.read()
+                print(f"[BRAND DEBUG] Read {len(file_data)} bytes from file")
+                prs = Presentation(io.BytesIO(file_data))
             else:
                 # File path
                 prs = Presentation(pptx_file)
+            
+            print(f"[BRAND DEBUG] Successfully loaded presentation with {len(prs.slides)} slides")
             
             brand_config = {
                 'color_scheme': self._extract_colors(prs),

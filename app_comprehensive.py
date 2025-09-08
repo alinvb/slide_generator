@@ -2289,10 +2289,13 @@ def call_perplexity_api(messages, model_name, api_key):
         
         headers = {
             "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json; charset=utf-8"
         }
         
-        response = requests.post(url, json=payload, headers=headers)
+        # Ensure UTF-8 encoding for Unicode characters (emojis, etc.)
+        import json
+        json_data = json.dumps(payload, ensure_ascii=False)
+        response = requests.post(url, data=json_data.encode('utf-8'), headers=headers)
         
         if response.status_code == 200:
             result = response.json()
@@ -2333,11 +2336,14 @@ def call_claude_api(messages, model_name, api_key):
         
         headers = {
             "x-api-key": api_key,
-            "Content-Type": "application/json",
+            "Content-Type": "application/json; charset=utf-8",
             "anthropic-version": "2023-06-01"
         }
         
-        response = requests.post(url, json=payload, headers=headers)
+        # Ensure UTF-8 encoding for Unicode characters (emojis, etc.)
+        import json
+        json_data = json.dumps(payload, ensure_ascii=False)
+        response = requests.post(url, data=json_data.encode('utf-8'), headers=headers)
         
         if response.status_code == 200:
             result = response.json()

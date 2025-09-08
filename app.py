@@ -21,6 +21,15 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
     """
     print("🔧 MANDATORY: Starting validation and fixing process...")
     
+    # CRITICAL: Check for None values first
+    if content_ir is None:
+        print("❌ CRITICAL ERROR: content_ir is None - JSON extraction failed")
+        return None, None
+    
+    if render_plan is None:
+        print("❌ CRITICAL ERROR: render_plan is None - JSON extraction failed")
+        return None, None
+    
     # Prevent multiple executions that cause duplication
     if _already_fixed:
         print("🔧 MANDATORY: JSON already fixed, skipping to prevent duplication")
@@ -41,13 +50,13 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
         'growth_strategy_data', 'investor_process_data', 'margin_cost_data'
     ]
     
-    # Required slide order - EXACTLY 13 slides (NO DUPLICATES)
+    # Required slide order - EXACTLY 14 slides (NO DUPLICATES)
     required_slide_order = [
         'management_team', 'historical_financial_performance', 'margin_cost_resilience',
         'investor_considerations', 'competitive_positioning', 'product_service_footprint',
         'business_overview', 'precedent_transactions', 'valuation_overview',
         'investor_process_overview', 'growth_strategy_projections', 'sea_conglomerates',
-        'buyer_profiles'
+        'buyer_profiles', 'buyer_profiles'
     ]
     
     print(f"🔧 MANDATORY: Required slide count: {len(required_slide_order)}")
@@ -139,24 +148,107 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
     print(f"✅ REQUIRED ORDER: {required_slide_order}")
     
     # CRITICAL FIX: Reorder slides to match required order WITHOUT duplication
-    existing_slides = {slide['template']: slide for slide in render_plan.get('slides', [])}
+    # Additional safety check for render_plan structure
+    if not isinstance(render_plan, dict):
+        print("❌ CRITICAL ERROR: render_plan is not a dictionary")
+        return None, None
     
-    # Create new ordered slides list instead of appending to existing
-    ordered_slides = []
+    # Handle duplicate buyer_profiles slides differently
+    existing_slides = {}
+    buyer_slides = []
+    
+    for slide in render_plan.get('slides', []):
+        template = slide['template']
+        if template == 'buyer_profiles':
+            buyer_slides.append(slide)
+        else:
+            existing_slides[template] = slide
+    
+    # CRITICAL: Initialize with empty slides array to prevent duplication
+    fixed_render_plan['slides'] = []
     
     for i, template in enumerate(required_slide_order):
-        if template in existing_slides:
+        if template == 'buyer_profiles':
+            # Handle buyer_profiles slides based on position
+            if i == 12:  # First buyer_profiles slide (strategic)
+                # Look for existing strategic buyer slide
+                strategic_slide = None
+                for slide in buyer_slides:
+                    if slide.get('content_ir_key') == 'strategic_buyers':
+                        strategic_slide = slide
+                        break
+                
+                if strategic_slide:
+                    fixed_render_plan['slides'].append(strategic_slide)
+                    print(f"🔧 MANDATORY: Added existing strategic buyers slide")
+                else:
+                    # Create new strategic buyers slide
+                    fixed_render_plan['slides'].append({
+                        "template": "buyer_profiles",
+                        "content_ir_key": "strategic_buyers",
+                        "data": {
+                            "title": "Strategic Buyer Profiles",
+                            "table_headers": ["Buyer Name", "Strategic Rationale", "Fit"],
+                            "table_rows": fixed_content_ir.get('strategic_buyers', [])
+                        }
+                    })
+                    print(f"🔧 MANDATORY: Created new strategic buyers slide")
+            
+            elif i == 13:  # Second buyer_profiles slide (financial)
+                # Look for existing financial buyer slide
+                financial_slide = None
+                for slide in buyer_slides:
+                    if slide.get('content_ir_key') == 'financial_buyers':
+                        financial_slide = slide
+                        break
+                
+                if financial_slide:
+                    fixed_render_plan['slides'].append(financial_slide)
+                    print(f"🔧 MANDATORY: Added existing financial buyers slide")
+                else:
+                    # Create new financial buyers slide
+                    fixed_render_plan['slides'].append({
+                        "template": "buyer_profiles",
+                        "content_ir_key": "financial_buyers",
+                        "data": {
+                            "title": "Financial Buyer Profiles",
+                            "table_headers": ["Buyer Name", "Strategic Rationale", "Fit"],
+                            "table_rows": fixed_content_ir.get('financial_buyers', [])
+                        }
+                    })
+                    print(f"🔧 MANDATORY: Created new financial buyers slide")
+        
+        elif template in existing_slides:
             slide = existing_slides[template].copy()
-            # Ensure title field exists
-            if 'data' in slide and 'title' not in slide['data']:
-                slide['data']['title'] = f"{template.replace('_', ' ').title()}"
-            ordered_slides.append(slide)
+            # Ensure title field exists - FIXED TYPE CHECKING
+            if 'data' in slide:
+                if isinstance(slide['data'], dict):
+                    if 'title' not in slide['data']:
+                        slide['data']['title'] = f"{template.replace('_', ' ').title()}"
+                elif isinstance(slide['data'], list):
+                    # Convert list to dict if needed
+                    slide['data'] = {
+                        'title': f"{template.replace('_', ' ').title()}",
+                        'content': slide['data']
+                    }
+                else:
+                    # Ensure data is a dict
+                    slide['data'] = {
+                        'title': f"{template.replace('_', ' ').title()}",
+                        'content': slide['data']
+                    }
+            else:
+                # Add data field if missing
+                slide['data'] = {
+                    'title': f"{template.replace('_', ' ').title()}"
+                }
+            fixed_render_plan['slides'].append(slide)
             print(f"🔧 MANDATORY: Added existing slide: {template}")
         else:
             # Add missing slide - CRITICAL FIX
             if template == 'investor_process_overview':
                 print("🔧 MANDATORY: Adding missing investor_process_overview slide")
-                ordered_slides.append({
+                fixed_render_plan['slides'].append({
                     "template": "investor_process_overview",
                     "data": {
                         "title": "Comprehensive Investor Process Overview",
@@ -169,7 +261,7 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
                 })
             else:
                 print(f"🔧 MANDATORY: Adding missing slide: {template}")
-                ordered_slides.append({
+                fixed_render_plan['slides'].append({
                     "template": template,
                     "data": {
                         "title": template.replace('_', ' ').title(),
@@ -178,8 +270,7 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
                 })
     
     # Replace the slides list with the ordered one to prevent duplication
-    fixed_render_plan['slides'] = ordered_slides
-    print(f"🔧 MANDATORY: Reordered slides. Final count: {len(ordered_slides)}")
+    print(f"🔧 MANDATORY: Reordered slides. Final count: {len(fixed_render_plan['slides'])}")
     
     # MANDATORY: Fix all semantic errors
     print("🔧 MANDATORY: Fixing semantic errors...")
@@ -187,14 +278,14 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
     for slide in fixed_render_plan['slides']:
         # Fix key_metrics structure
         if slide['template'] == 'historical_financial_performance':
-            if 'data' in slide and 'key_metrics' in slide['data']:
+            if 'data' in slide and isinstance(slide['data'], dict) and 'key_metrics' in slide['data']:
                 if isinstance(slide['data']['key_metrics'], list):
                     print("🔧 MANDATORY: Fixing key_metrics structure")
                     slide['data']['key_metrics'] = {"metrics": slide['data']['key_metrics']}
         
         # Fix coverage_table structure - CRITICAL FIX
         if slide['template'] == 'product_service_footprint':
-            if 'data' in slide and 'coverage_table' in slide['data']:
+            if 'data' in slide and isinstance(slide['data'], dict) and 'coverage_table' in slide['data']:
                 if isinstance(slide['data']['coverage_table'], list) and len(slide['data']['coverage_table']) > 0:
                     if isinstance(slide['data']['coverage_table'][0], dict):
                         print("🔧 MANDATORY: Fixing coverage_table structure")
@@ -207,7 +298,7 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
         
         # Fix sea_conglomerates structure - CRITICAL FIX
         if slide['template'] == 'sea_conglomerates':
-            if 'data' in slide and 'data' in slide['data']:
+            if 'data' in slide and isinstance(slide['data'], dict) and 'data' in slide['data']:
                 print("🔧 MANDATORY: Fixing sea_conglomerates structure")
                 # Move nested data to top level
                 slide['data']['sea_conglomerates'] = slide['data']['data']
@@ -219,7 +310,7 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
             slide['data'] = {"title": slide['template'].replace('_', ' ').title()}
         
         # Ensure title exists
-        if 'data' in slide and 'title' not in slide['data']:
+        if 'data' in slide and isinstance(slide['data'], dict) and 'title' not in slide['data']:
             print(f"🔧 MANDATORY: Adding title to {slide['template']}")
             slide['data']['title'] = slide['template'].replace('_', ' ').title()
         
@@ -231,13 +322,15 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
                 slide_index = fixed_render_plan['slides'].index(slide)
                 if slide_index == 12:  # First buyer_profiles slide
                     slide['content_ir_key'] = 'strategic_buyers'
-                    slide['data']['title'] = 'Strategic Buyer Profiles'
+                    if 'data' in slide and isinstance(slide['data'], dict):
+                        slide['data']['title'] = 'Strategic Buyer Profiles'
                 elif slide_index == 13:  # Second buyer_profiles slide
                     slide['content_ir_key'] = 'financial_buyers'
-                    slide['data']['title'] = 'Financial Buyer Profiles'
+                    if 'data' in slide and isinstance(slide['data'], dict):
+                        slide['data']['title'] = 'Financial Buyer Profiles'
             
             # Ensure proper table structure
-            if 'data' in slide and 'table_rows' not in slide['data']:
+            if 'data' in slide and isinstance(slide['data'], dict) and 'table_rows' not in slide['data']:
                 print(f"🔧 MANDATORY: Adding table structure to buyer_profiles slide")
                 slide['data']['table_headers'] = [
                     "Buyer Name", "Description", "Strategic Rationale", 
@@ -829,7 +922,19 @@ def normalize_slide_structure(slide, slide_index):
             normalized_slide['data'] = {k: v for k, v in slide.items() if k not in ['template', 'slide_type', 'type', 'template_type']}
             print(f"[NORMALIZATION] Slide {slide_index + 1}: Created data from slide content")
     else:
-        normalized_slide['data'] = slide['data']
+        # Ensure data is a dict
+        if isinstance(slide['data'], dict):
+            normalized_slide['data'] = slide['data']
+        elif isinstance(slide['data'], list):
+            normalized_slide['data'] = {
+                'title': slide.get('template', 'Slide').replace('_', ' ').title(),
+                'content': slide['data']
+            }
+        else:
+            normalized_slide['data'] = {
+                'title': slide.get('template', 'Slide').replace('_', ' ').title(),
+                'content': slide['data']
+            }
     
     # Handle content_ir_key for buyer_profiles
     if normalized_slide.get('template') == 'buyer_profiles' and 'content_ir_key' not in slide:
@@ -882,9 +987,21 @@ def validate_json_structure_against_examples(content_ir, render_plan):
                         validation_results['recent_fixes_validation']['timeline_format'] = False
                         validation_results['structure_issues'].append('Timeline items must be strings or dicts with date/description')
         
-        # 2. Buyer descriptions validation (no N/A allowed)
+        # 2. Buyer descriptions validation (no N/A allowed, sections must exist)
         for buyer_type in ['strategic_buyers', 'financial_buyers']:
             buyers = content_ir.get(buyer_type, [])
+            
+            # Check if buyer section exists and has sufficient content
+            if not buyers:
+                validation_results['recent_fixes_validation']['buyer_descriptions'] = False
+                validation_results['structure_issues'].append(f'MISSING: {buyer_type} section is required but not found')
+                print(f"[ENHANCED VALIDATION] ❌ Missing required section: {buyer_type}")
+            elif len(buyers) < 3:
+                validation_results['recent_fixes_validation']['buyer_descriptions'] = False
+                validation_results['structure_issues'].append(f'{buyer_type} should have at least 3-4 entries, found only {len(buyers)}')
+                print(f"[ENHANCED VALIDATION] ❌ {buyer_type} has insufficient entries: {len(buyers)}")
+            
+            # Check individual buyer entries
             for i, buyer in enumerate(buyers):
                 if isinstance(buyer, dict):
                     description = buyer.get('description', '')
@@ -892,6 +1009,14 @@ def validate_json_structure_against_examples(content_ir, render_plan):
                         validation_results['recent_fixes_validation']['buyer_descriptions'] = False
                         validation_results['structure_issues'].append(f'{buyer_type}[{i}] missing proper description (has: {description})')
                         print(f"[ENHANCED VALIDATION] ❌ {buyer_type}[{i}] has invalid description: {description}")
+                    
+                    # Check for required fields
+                    required_fields = ['buyer_name', 'description', 'strategic_rationale', 'key_synergies', 'fit']
+                    for field in required_fields:
+                        if not buyer.get(field):
+                            validation_results['recent_fixes_validation']['buyer_descriptions'] = False
+                            validation_results['structure_issues'].append(f'{buyer_type}[{i}] missing required field: {field}')
+                            print(f"[ENHANCED VALIDATION] ❌ {buyer_type}[{i}] missing field: {field}")
         
         # 3. Financial formatting validation (use compact notation)
         transactions = content_ir.get('precedent_transactions', [])
@@ -1401,25 +1526,44 @@ def validate_management_team_slide(slide, content_ir):
             return validation
         mgmt_data = content_ir['management_team']
     
+    # CRITICAL FIX: Check total profile count first (max 6 profiles)
+    left_profiles = mgmt_data.get('left_column_profiles', [])
+    right_profiles = mgmt_data.get('right_column_profiles', [])
+    total_profiles = len(left_profiles) + len(right_profiles)
+    
+    if total_profiles > 6:
+        validation['issues'].append(f"Too many management profiles: {total_profiles} (maximum 6 allowed)")
+        # Truncate to 6 profiles for validation
+        left_profiles = left_profiles[:3]  # Max 3 per column
+        right_profiles = right_profiles[:3]  # Max 3 per column
+        validation['warnings'].append("Management profiles truncated to maximum 6 for proper layout")
+    
     # Check for required profile arrays
-    for column in ['left_column_profiles', 'right_column_profiles']:
-        if column not in mgmt_data:
-            validation['missing_fields'].append(f"Missing {column}")
-        elif not isinstance(mgmt_data[column], list) or len(mgmt_data[column]) == 0:
-            validation['empty_fields'].append(f"Empty {column}")
+    for column_name, profiles in [('left_column_profiles', left_profiles), ('right_column_profiles', right_profiles)]:
+        if not isinstance(profiles, list) or len(profiles) == 0:
+            validation['empty_fields'].append(f"Empty {column_name}")
         else:
             # Validate individual profiles - FIXED FIELD NAMES
-            for i, profile in enumerate(mgmt_data[column]):
+            for i, profile in enumerate(profiles):
                 profile_num = i + 1
                 # Check for the CORRECT field names used in your data
-                required_profile_fields = ['role_title', 'experience_bullets']
+                required_profile_fields = ['role_title', 'experience_bullets']  # Removed 'name' as it's optional
+                optional_profile_fields = ['name']  # Name is optional, can be generated from role_title
+                
                 for field in required_profile_fields:
                     if field not in profile or not profile[field]:
-                        validation['empty_fields'].append(f"{column} profile #{profile_num} missing/placeholder {field}")
-                    elif field == 'role_title' and '[' in str(profile[field]):
-                        validation['empty_fields'].append(f"{column} profile #{profile_num} missing/placeholder {field}")
+                        validation['empty_fields'].append(f"{column_name} profile #{profile_num} missing/placeholder {field}")
+                    elif field in ['role_title'] and '[' in str(profile[field]):
+                        validation['empty_fields'].append(f"{column_name} profile #{profile_num} missing/placeholder {field}")
                     elif field == 'experience_bullets' and (not isinstance(profile[field], list) or len(profile[field]) == 0):
-                        validation['empty_fields'].append(f"{column} profile #{profile_num} missing/placeholder {field}")
+                        validation['empty_fields'].append(f"{column_name} profile #{profile_num} missing/placeholder {field}")
+                
+                # Check optional fields
+                for field in optional_profile_fields:
+                    if field not in profile or not profile[field]:
+                        validation['warnings'].append(f"{column_name} profile #{profile_num} missing {field} (will use role_title as fallback)")
+                    elif '[' in str(profile[field]):
+                        validation['warnings'].append(f"{column_name} profile #{profile_num} has placeholder {field} (will use role_title as fallback)")
     
     return validation
 
@@ -1442,15 +1586,23 @@ def validate_historical_financial_performance_slide(slide, content_ir):
         elif not data[field]:
             validation['empty_fields'].append(f"Empty {description}")
     
-    # Validate chart data
+    # Validate chart data with more specific feedback
     if 'chart' in data and isinstance(data['chart'], dict):
         chart = data['chart']
         chart_required = ['categories', 'revenue', 'ebitda']
         for field in chart_required:
-            if field not in chart or not chart[field]:
-                validation['empty_fields'].append(f"Missing chart {field} data")
+            if field not in chart:
+                validation['missing_fields'].append(f"Missing Financial performance chart data: '{field}' field required")
+            elif not chart[field]:
+                validation['empty_fields'].append(f"Empty Financial performance chart data: '{field}' field is empty")
+            elif isinstance(chart[field], list) and len(chart[field]) == 0:
+                validation['empty_fields'].append(f"Empty Financial performance chart data: '{field}' array is empty")
+    elif 'chart' in data and not isinstance(data['chart'], dict):
+        validation['issues'].append("Financial performance chart data must be a dictionary/object")
+    elif 'chart' not in data:
+        validation['missing_fields'].append("Missing Financial performance chart data")
     
-    # Validate key metrics - MUST have exactly 4 numeric metrics
+    # Validate key metrics - ENHANCED to handle both string and object formats
     if 'key_metrics' in data and isinstance(data['key_metrics'], dict):
         metrics = data['key_metrics']
         if 'metrics' in metrics and isinstance(metrics['metrics'], list):
@@ -1460,14 +1612,26 @@ def validate_historical_financial_performance_slide(slide, content_ir):
             elif metric_count > 6:
                 validation['warnings'].append(f"Many metrics ({metric_count}) - consider focusing on most important ones")
             
-            # Check if metrics are numeric (percentages, amounts, rankings)
+            # Check if metrics are objects (structured format) or strings
             for i, metric in enumerate(metrics['metrics']):
-                if isinstance(metric, str):
-                    # Check if it looks like a descriptive sentence rather than a number
+                if isinstance(metric, dict):
+                    # Structured format - check required fields
+                    required_fields = ['title', 'value', 'period', 'note']
+                    for field in required_fields:
+                        if field not in metric or not metric[field]:
+                            validation['warnings'].append(f"Metric {i+1} missing {field} field")
+                elif isinstance(metric, str):
+                    # String format - check if it looks like a descriptive sentence rather than a number
                     if len(metric.split()) > 8:  # More than 8 words suggests overly descriptive text
                         validation['warnings'].append(f"Metric {i+1} quite descriptive - consider shorter format")
+                else:
+                    validation['warnings'].append(f"Metric {i+1} has unexpected format")
         else:
             validation['empty_fields'].append("Missing metrics array in key_metrics")
+    elif 'key_metrics' in data and not isinstance(data['key_metrics'], dict):
+        validation['issues'].append("key_metrics must be a dictionary/object")
+    elif 'key_metrics' not in data:
+        validation['missing_fields'].append("Missing key_metrics section")
     
     return validation
 
@@ -1636,15 +1800,23 @@ def validate_valuation_overview_slide(slide, content_ir):
         if len(data['valuation_data']) < 1:
             validation['warnings'].append("No valuation methodologies provided")
         
-        # Check for duplicate methodologies
+        # Check for duplicate methodologies - ENHANCED LOGIC
         methodologies = []
         for method in data['valuation_data']:
             if isinstance(method, dict) and 'methodology' in method:
                 methodologies.append(method['methodology'])
         
+        # Check for actual duplicates (same exact name)
         duplicate_methods = [m for m in set(methodologies) if methodologies.count(m) > 1]
         if duplicate_methods:
             validation['issues'].append(f"Duplicate methodologies detected: {duplicate_methods} - should have distinct methodologies like 'Trading Multiples (EV/Revenue)', 'Trading Multiples (EV/EBITDA)', 'DCF'")
+        
+        # Check for similar methodologies that should be differentiated
+        trading_methods = [m for m in methodologies if 'trading' in m.lower() and 'multiple' in m.lower()]
+        if len(trading_methods) > 1:
+            # If there are multiple trading methods, they should be differentiated
+            if len(set(trading_methods)) == 1:  # All have same name
+                validation['issues'].append(f"Multiple trading methodologies with same name: {trading_methods[0]} - should differentiate like 'Trading Multiples (EV/Revenue)' vs 'Trading Multiples (EV/EBITDA)'")
         
         # Validate each methodology entry
         for i, method in enumerate(data['valuation_data']):
@@ -2138,16 +2310,71 @@ def create_validation_feedback_for_llm(validation_results):
     feedback_sections.append('  "ebitda_margins": [-166, -25, -5, 5.7, 15.0]')
     feedback_sections.append('}')
     
-    # Add buyer profile requirements
-    feedback_sections.append("\n🚨 BUYER PROFILES: ALL buyer profiles must have 'description' field with actual content:")
+    # Add historical financial performance requirements
+    feedback_sections.append("\n🚨 HISTORICAL FINANCIAL PERFORMANCE: Must have proper structure:")
+    feedback_sections.append('"key_metrics": {')
+    feedback_sections.append('  "metrics": [')
+    feedback_sections.append('    "120%",')
+    feedback_sections.append('    "38.0",')
+    feedback_sections.append('    "5.7",')
+    feedback_sections.append('    "300"')
+    feedback_sections.append('  ]')
+    feedback_sections.append('},')
+    feedback_sections.append('"revenue_growth": {')
+    feedback_sections.append('  "title": "Key Growth Drivers",')
+    feedback_sections.append('  "points": [')
+    feedback_sections.append('    "New market expansion and geographic growth",')
+    feedback_sections.append('    "Product innovation and service enhancement",')
+    feedback_sections.append('    "Strategic partnerships and acquisitions",')
+    feedback_sections.append('    "Digital transformation and operational efficiency",')
+    feedback_sections.append('    "Customer acquisition and retention programs"')
+    feedback_sections.append('  ]')
+    feedback_sections.append('}')
+    feedback_sections.append("\n⚠️ CRITICAL: revenue_growth.points must contain TEXT descriptions, not numbers!")
+    
+    # Add precedent transactions requirements
+    feedback_sections.append("\n🚨 PRECEDENT TRANSACTIONS: Must include real M&A transactions:")
+    feedback_sections.append('"precedent_transactions": {')
+    feedback_sections.append('  "title": "Precedent Transactions Analysis",')
+    feedback_sections.append('  "transactions": [')
+    feedback_sections.append('    {')
+    feedback_sections.append('      "target": "Company A",')
+    feedback_sections.append('      "acquirer": "Strategic Buyer Inc.",')
+    feedback_sections.append('      "date": "2023",')
+    feedback_sections.append('      "country": "USA",')
+    feedback_sections.append('      "enterprise_value": 250000000,')
+    feedback_sections.append('      "revenue": 50000000,')
+    feedback_sections.append('      "ev_revenue_multiple": 5.0')
+    feedback_sections.append('    }')
+    feedback_sections.append('  ]')
+    feedback_sections.append('}')
+    feedback_sections.append("\n⚠️ CRITICAL: Include at least 3-5 real M&A transactions, NOT funding rounds or IPOs!")
+    
+    # Add buyer profile requirements - MANDATORY SECTIONS
+    feedback_sections.append("\n🚨 CRITICAL: You MUST include BOTH strategic_buyers AND financial_buyers sections in Content IR!")
+    feedback_sections.append("\n📊 STRATEGIC BUYERS (Required - at least 3-4 companies):")
     feedback_sections.append('"strategic_buyers": [')
     feedback_sections.append('  {')
-    feedback_sections.append('    "buyer_name": "NVIDIA",')
-    feedback_sections.append('    "description": "World\'s largest AI chipmaker and GPU/cloud infrastructure leader.",')
-    feedback_sections.append('    "strategic_rationale": "Expand AI infrastructure...",')
-    feedback_sections.append('    "key_synergies": "Integrate platform...",')
-    feedback_sections.append('    "fit": "High (9/10)"')
+    feedback_sections.append('    "buyer_name": "Microsoft",')
+    feedback_sections.append('    "description": "Leading global cloud and enterprise software provider.",')
+    feedback_sections.append('    "strategic_rationale": "Enhance capabilities and enterprise solutions.",')
+    feedback_sections.append('    "key_synergies": "Cross-platform integration and enterprise access.",')
+    feedback_sections.append('    "fit": "High (9/10)",')
+    feedback_sections.append('    "financial_capacity": "Very High"')
     feedback_sections.append('  }')
+    feedback_sections.append('  // Add 2-3 more strategic buyers...')
+    feedback_sections.append(']')
+    feedback_sections.append("\n💰 FINANCIAL BUYERS (Required - at least 3-4 firms):")
+    feedback_sections.append('"financial_buyers": [')
+    feedback_sections.append('  {')
+    feedback_sections.append('    "buyer_name": "Sequoia Capital",')
+    feedback_sections.append('    "description": "Top global VC with proven tech investment track record.",')
+    feedback_sections.append('    "strategic_rationale": "Invest in high-growth technology platforms.",')
+    feedback_sections.append('    "key_synergies": "Portfolio synergies and growth acceleration.",')
+    feedback_sections.append('    "fit": "High (8/10)",')
+    feedback_sections.append('    "financial_capacity": "Very High"')
+    feedback_sections.append('  }')
+    feedback_sections.append('  // Add 2-3 more financial buyers...')
     feedback_sections.append(']')
     
     # Add precedent transactions formatting
@@ -2160,6 +2387,36 @@ def create_validation_feedback_for_llm(validation_results):
     feedback_sections.append('    "ev_revenue_multiple": "28x"')
     feedback_sections.append('  }')
     feedback_sections.append(']')
+    
+    # Add valuation methodologies formatting
+    feedback_sections.append("\n🚨 VALUATION METHODOLOGIES: Use DISTINCT methodology names:")
+    feedback_sections.append('"valuation_data": [')
+    feedback_sections.append('  {')
+    feedback_sections.append('    "methodology": "Trading Multiples (EV/Revenue)",')
+    feedback_sections.append('    "enterprise_value": "$2.1B",')
+    feedback_sections.append('    "metric": "EV/Revenue",')
+    feedback_sections.append('    "22a_multiple": "28x",')
+    feedback_sections.append('    "23e_multiple": "25x",')
+    feedback_sections.append('    "commentary": "Based on comparable companies"')
+    feedback_sections.append('  },')
+    feedback_sections.append('  {')
+    feedback_sections.append('    "methodology": "Trading Multiples (EV/EBITDA)",')
+    feedback_sections.append('    "enterprise_value": "$2.0B",')
+    feedback_sections.append('    "metric": "EV/EBITDA",')
+    feedback_sections.append('    "22a_multiple": "15x",')
+    feedback_sections.append('    "23e_multiple": "12x",')
+    feedback_sections.append('    "commentary": "Based on EBITDA multiples"')
+    feedback_sections.append('  },')
+    feedback_sections.append('  {')
+    feedback_sections.append('    "methodology": "DCF",')
+    feedback_sections.append('    "enterprise_value": "$2.2B",')
+    feedback_sections.append('    "metric": "DCF",')
+    feedback_sections.append('    "22a_multiple": "-",')
+    feedback_sections.append('    "23e_multiple": "-",')
+    feedback_sections.append('    "commentary": "Discounted cash flow analysis"')
+    feedback_sections.append('  }')
+    feedback_sections.append(']')
+    feedback_sections.append("\n⚠️ CRITICAL: Each methodology must have a UNIQUE name - no duplicates!")
     
     # Add structure validation feedback first
     if 'structure_validation' in validation_results and validation_results['structure_validation']['structure_issues']:
@@ -2175,8 +2432,10 @@ def create_validation_feedback_for_llm(validation_results):
         feedback_sections.append("    - financial_buyers: [{buyer_name, strategic_rationale, fit}, ...]")
         
         feedback_sections.append("\n  Each management profile must have:")
+        feedback_sections.append("    - name: 'John Smith'")
         feedback_sections.append("    - role_title: 'Chief Executive Officer'")
         feedback_sections.append("    - experience_bullets: ['bullet 1', 'bullet 2', ...]")
+        feedback_sections.append("\n  CRITICAL: Maximum 6 profiles total (3 per column) for proper layout")
         
         feedback_sections.append("\n  Each buyer must have:")
         feedback_sections.append("    - buyer_name: 'Company Name'")
@@ -2296,6 +2555,47 @@ def create_validation_feedback_for_llm(validation_results):
     
     feedback_sections.append("\n✅ TO FIX: Please regenerate the JSONs with complete content for all the issues listed above. Follow the professional examples exactly. Every field must have real data, not placeholders or empty values.")
     
+    # Enhanced validation requirements
+    feedback_sections.append("\n🚨 CRITICAL VALIDATION RULES:")
+    feedback_sections.append("  - NO placeholder text like '[Company Name]' or '[Role Title]'")
+    feedback_sections.append("  - NO empty arrays or missing sections")
+    feedback_sections.append("  - ALL buyer sections must have at least 3 companies each")
+    feedback_sections.append("  - Management team must have both names AND role titles")
+    feedback_sections.append("  - Key metrics must be structured objects with title, value, period, note")
+    feedback_sections.append("  - Precedent transactions must be real M&A deals, not funding rounds")
+    
+    feedback_sections.append("\n📊 RENDER PLAN REQUIREMENTS:")
+    feedback_sections.append("  Render Plan must include exactly 14 slides in this order:")
+    feedback_sections.append("    1. management_team")
+    feedback_sections.append("    2. historical_financial_performance") 
+    feedback_sections.append("    3. margin_cost_resilience")
+    feedback_sections.append("    4. investor_considerations")
+    feedback_sections.append("    5. competitive_positioning")
+    feedback_sections.append("    6. product_service_footprint")
+    feedback_sections.append("    7. business_overview")
+    feedback_sections.append("    8. precedent_transactions")
+    feedback_sections.append("    9. valuation_overview")
+    feedback_sections.append("    10. investor_process_overview")
+    feedback_sections.append("    11. growth_strategy_projections")
+    feedback_sections.append("    12. sea_conglomerates")
+    feedback_sections.append("    13. buyer_profiles (with content_ir_key: 'strategic_buyers')")
+    feedback_sections.append("    14. buyer_profiles (with content_ir_key: 'financial_buyers')")
+    
+    feedback_sections.append("\n⚠️ CRITICAL: Slides 13 and 14 must use 'buyer_profiles' template with different content_ir_key values!")
+    
+    feedback_sections.append("\n🎯 FINAL CHECKLIST:")
+    feedback_sections.append("  ✅ Content IR has all required sections")
+    feedback_sections.append("  ✅ Management team has names AND role titles")
+    feedback_sections.append("  ✅ Strategic buyers section exists with 3+ companies")
+    feedback_sections.append("  ✅ Financial buyers section exists with 3+ companies")
+    feedback_sections.append("  ✅ Precedent transactions are real M&A deals")
+    feedback_sections.append("  ✅ Key metrics are structured objects")
+    feedback_sections.append("  ✅ Render plan has exactly 14 slides")
+    feedback_sections.append("  ✅ Buyer profiles slides have correct content_ir_key")
+    
+    feedback_sections.append("\n🚨 IF ANY REQUIREMENT IS MISSING, THE SYSTEM WILL FAIL!")
+    feedback_sections.append("Please ensure ALL requirements are met before submitting your response.")
+    
     return "\n".join(feedback_sections)
 
 def enhanced_json_validation_with_fixes(content_ir, render_plan):
@@ -2340,7 +2640,7 @@ def enhanced_json_validation_with_fixes(content_ir, render_plan):
     # Fix 3: Ensure all slides have proper titles
     if render_plan and 'slides' in render_plan:
         for i, slide in enumerate(render_plan['slides']):
-            if 'data' in slide and 'title' not in slide['data']:
+            if 'data' in slide and isinstance(slide['data'], dict) and 'title' not in slide['data']:
                 template = slide.get('template', 'unknown')
                 slide['data']['title'] = template.replace('_', ' ').title()
                 fixes_applied.append(f"Added title to slide {i+1} ({template})")
@@ -3286,7 +3586,7 @@ def analyze_conversation_progress(messages):
             "keywords": ["valuation", "multiple", "methodology", "worth", "assumptions", "enterprise value", "dcf", "comparable"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip valuation", "skip multiple"]),
-            "next_question": "Now let's examine precedent transactions. Are there recent M&A transactions in your industry or similar markets that we should analyze? I need target company, acquirer, date, enterprise value, revenue, and multiples."
+            "next_question": "Now let's examine precedent transactions. 🚨 IMPORTANT: Focus ONLY on private market M&A transactions where one company acquired another company (NOT public market transactions, IPOs, or funding rounds like Series A/B/C/etc.). I need recent corporate acquisitions in your industry with: target company name, acquiring company name (must be a specific corporation/entity, NOT 'public market' or 'series K'), transaction date, enterprise value, target revenue, and valuation multiples. Exclude any transactions that are public offerings or venture funding rounds."
         },
         "precedent_transactions": {
             "keywords": ["precedent", "transactions", "m&a", "acquisitions", "deals", "transaction multiples"],
@@ -3295,13 +3595,13 @@ def analyze_conversation_progress(messages):
             "next_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT companies based on YOUR company's location and market presence. Consider companies from your region/country AND major players with operations in your market. Avoid generic global lists - tailor suggestions to your specific geographic and industry context. I need 4-5 strategic buyers with company name, strategic rationale (3-30 words), key synergies, fit assessment, and financial capacity. If you don't have this information, I can research strategic buyers for your industry and region."
         },
         "strategic_buyers": {
-            "keywords": ["strategic buyers", "strategic", "acquirer", "acquisition", "corporate buyer", "industry player", "strategic rationale", "synergies"],
+            "keywords": ["strategic buyers", "strategic buyer", "strategic rationale", "corporate buyer", "industry player", "strategic acquisition", "strategic synergies", "strategic fit"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip strategic", "skip buyer"]),
             "next_question": "Now let's identify financial buyers—private equity firms, VCs, and other financial investors. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT funds based on YOUR company's location and market. Consider local/regional funds, sovereign wealth funds, and international funds with strong presence in your market. Tailor suggestions to your geographic context rather than generic global lists. I need 4-5 financial buyers with fund name, investment rationale (3-30 words), key synergies, fit assessment, and financial capacity. If you don't have this information, I can research relevant PE firms and financial investors in your market."
         },
         "financial_buyers": {
-            "keywords": ["financial buyers", "private equity", "pe", "vc", "venture capital", "financial investor", "fund", "investment rationale"],
+            "keywords": ["financial buyers", "financial buyer", "private equity", "pe fund", "vc fund", "venture capital", "financial investor", "investment fund", "financial rationale", "financial synergies"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip financial", "skip pe"]),
             "next_question": "Finally, what would the investment/acquisition process look like? I need: diligence topics investors would focus on, key synergy opportunities, main risk factors and mitigation strategies, and expected timeline for the transaction process."
@@ -3313,7 +3613,7 @@ def analyze_conversation_progress(messages):
             "next_question": "Let's identify potential global conglomerates and strategic acquirers. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT conglomerates based on YOUR company's location and industry. Consider major conglomerates from your region/country AND international conglomerates with significant operations in your market. Prioritize companies that understand your local market dynamics and regulatory environment. I need at least 4-5 regionally relevant conglomerates with strong market knowledge in your geography."
         },
         "sea_conglomerates": {
-            "keywords": ["conglomerate", "global", "international", "multinational", "strategic acquirer"],
+            "keywords": ["conglomerate", "global conglomerate", "multinational conglomerate", "international conglomerate", "holding company", "diversified corporation", "multinational corporation", "global corporation"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip conglomerate", "skip global"]),
             "next_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT companies based on YOUR company's location and market presence. Consider companies from your region/country AND major players with operations in your market. Avoid generic global lists - tailor suggestions to your specific geographic and industry context. I need 4-5 strategic buyers with company name, strategic rationale (3-30 words), key synergies, fit assessment, and financial capacity. If you don't have this information, I can research strategic buyers for your industry and region."
@@ -3473,13 +3773,28 @@ def analyze_conversation_progress(messages):
                 is_covered = detailed_margins or ai_margin_research
             
             elif topic_name == "sea_conglomerates":
-                # Require actual conglomerate names and details
-                conglomerate_indicators = ["conglomerate", "global", "international", "multinational", "strategic acquirer", "corporation", "holding"]
-                found_conglomerates = [indicator for indicator in conglomerate_indicators if indicator in conversation_text]
+                # SPECIFIC detection for global conglomerates - avoid confusion with strategic/financial buyers
+                conglomerate_specific_indicators = [
+                    "conglomerate", "global conglomerate", "multinational conglomerate", 
+                    "international conglomerate", "holding company", "diversified corporation",
+                    "multinational corporation", "global corporation"
+                ]
+                geographic_indicators = ["global", "international", "multinational", "worldwide", "regions", "countries"]
                 
-                # Must have specific conglomerate discussion
-                detailed_conglomerates = len(found_conglomerates) >= 3 and ("conglomerate" in conversation_text or "multinational" in conversation_text)
-                ai_conglomerate_research = has_research_response and len(found_conglomerates) >= 2 and "global" in conversation_text
+                # Check for conglomerate-specific content - must be explicitly about conglomerates
+                found_conglomerate_specific = [indicator for indicator in conglomerate_specific_indicators if indicator in conversation_text]
+                found_geographic = [indicator for indicator in geographic_indicators if indicator in conversation_text]
+                
+                # Must have explicit conglomerate discussion - not just "strategic acquirer"
+                has_conglomerate_context = len(found_conglomerate_specific) >= 1 and len(found_geographic) >= 1
+                has_research_response = "research" in conversation_text or "here" in conversation_text or "based on" in conversation_text
+                
+                # Require explicit conglomerate terminology to avoid strategic buyer confusion
+                detailed_conglomerates = has_conglomerate_context and (
+                    "conglomerate" in conversation_text or "multinational corporation" in conversation_text or
+                    "holding company" in conversation_text or "global corporation" in conversation_text
+                )
+                ai_conglomerate_research = has_research_response and has_conglomerate_context and "conglomerate" in conversation_text
                 
                 is_covered = detailed_conglomerates or ai_conglomerate_research
             
@@ -3494,23 +3809,57 @@ def analyze_conversation_progress(messages):
                 
                 is_covered = detailed_process or ai_process_research
             
-            elif topic_name == "strategic_buyers" or topic_name == "financial_buyers":
-                # RELAXED - allow AI research and reasonable buyer content detection
-                buyer_indicators = ["acquisition", "acquirer", "fund", "capital", "equity", "investment", "rationale", "synerg", "fit", "capacity", "strategic", "financial", "buyer", "private equity", "corporation", "conglomerate"]
-                found_buyers = [indicator for indicator in buyer_indicators if indicator in conversation_text]
+            elif topic_name == "strategic_buyers":
+                # SPECIFIC detection for strategic buyers - avoid confusion with sea_conglomerates
+                strategic_specific_indicators = [
+                    "strategic buyer", "strategic rationale", "strategic synergies", 
+                    "corporate buyer", "industry player", "strategic acquisition",
+                    "strategic fit", "strategic acquirer", "synergies"
+                ]
+                general_buyer_indicators = ["acquisition", "acquirer", "investment", "fit", "capacity"]
                 
-                # Look for buyer content - can be from AI research or user discussion
-                has_buyer_context = len(found_buyers) >= 3
+                # Check for strategic-specific content
+                found_strategic_specific = [indicator for indicator in strategic_specific_indicators if indicator in conversation_text]
+                found_general_buyers = [indicator for indicator in general_buyer_indicators if indicator in conversation_text]
+                
+                # Must have strategic-specific indicators to avoid conglomerate confusion
+                has_strategic_context = len(found_strategic_specific) >= 1 and len(found_general_buyers) >= 2
                 has_research_response = "research" in conversation_text or "here" in conversation_text or "based on" in conversation_text
                 
-                # Accept if substantial buyer discussion OR AI research
-                detailed_buyer_content = has_buyer_context and (
-                    "strategic" in conversation_text or "financial" in conversation_text or 
-                    "rationale" in conversation_text or "synerg" in conversation_text
+                # More stringent requirements - must explicitly mention strategic buyer context
+                detailed_strategic_content = has_strategic_context and (
+                    "strategic buyer" in conversation_text or "strategic rationale" in conversation_text or 
+                    "strategic synergies" in conversation_text or "corporate buyer" in conversation_text
                 )
-                ai_buyer_research = has_research_response and has_buyer_context
+                ai_strategic_research = has_research_response and has_strategic_context and "strategic" in conversation_text
                 
-                is_covered = detailed_buyer_content or ai_buyer_research
+                is_covered = detailed_strategic_content or ai_strategic_research
+            
+            elif topic_name == "financial_buyers":
+                # SPECIFIC detection for financial buyers - avoid confusion with sea_conglomerates  
+                financial_specific_indicators = [
+                    "financial buyer", "private equity", "pe fund", "vc fund", 
+                    "venture capital", "financial investor", "investment fund", 
+                    "financial rationale", "financial synergies"
+                ]
+                general_buyer_indicators = ["fund", "capital", "equity", "investment", "fit", "capacity"]
+                
+                # Check for financial-specific content
+                found_financial_specific = [indicator for indicator in financial_specific_indicators if indicator in conversation_text]
+                found_general_buyers = [indicator for indicator in general_buyer_indicators if indicator in conversation_text]
+                
+                # Must have financial-specific indicators
+                has_financial_context = len(found_financial_specific) >= 1 and len(found_general_buyers) >= 2
+                has_research_response = "research" in conversation_text or "here" in conversation_text or "based on" in conversation_text
+                
+                # More stringent requirements - must explicitly mention financial buyer context
+                detailed_financial_content = has_financial_context and (
+                    "financial buyer" in conversation_text or "private equity" in conversation_text or 
+                    "financial rationale" in conversation_text or "pe fund" in conversation_text
+                )
+                ai_financial_research = has_research_response and has_financial_context and ("financial" in conversation_text or "private equity" in conversation_text)
+                
+                is_covered = detailed_financial_content or ai_financial_research
             
             if is_covered:
                 topic_info["covered"] = True
@@ -3772,11 +4121,6 @@ def normalize_plan(plan: dict) -> dict:
         slides_out.append(s)
     plan["slides"] = slides_out
     return plan
-    slides_out = []
-    for s in slides_in:
-        s = normalize_buyer_profiles_slide(s)
-        s = normalize_valuation_overview_slide(s)
-        slides_out.append(s)
     plan["slides"] = slides_out
     return plan
 # --- END: Normalizers ---
@@ -3806,6 +4150,16 @@ def extract_and_validate_jsons(response_text):
     # Apply comprehensive fixes - MANDATORY validation and fixing
     print("\n🔧 APPLYING COMPREHENSIVE JSON FIXES...")
     content_ir, render_plan = validate_and_fix_json(content_ir, render_plan)
+    
+    # Check if validation and fixing failed
+    if content_ir is None or render_plan is None:
+        print("\n❌ JSON VALIDATION AND FIXING FAILED - Cannot proceed")
+        return None, None, {
+            'overall_valid': False,
+            'summary': {'total_slides': 0, 'valid_slides': 0, 'invalid_slides': 0},
+            'critical_issues': ['JSON validation and fixing failed - invalid JSON structure'],
+            'extraction_failed': True
+        }
     
     # Normalize extracted JSON to match expected structure
     print("\n🔧 NORMALIZING EXTRACTED JSON...")
@@ -4236,10 +4590,13 @@ def call_perplexity_api(messages, model_name, api_key):
         
         headers = {
             "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json; charset=utf-8"
         }
         
-        response = requests.post(url, json=payload, headers=headers)
+        # Ensure UTF-8 encoding for Unicode characters (emojis, etc.)
+        import json
+        json_data = json.dumps(payload, ensure_ascii=False)
+        response = requests.post(url, data=json_data.encode('utf-8'), headers=headers)
         
         if response.status_code == 200:
             result = response.json()
@@ -4280,11 +4637,14 @@ def call_claude_api(messages, model_name, api_key):
         
         headers = {
             "x-api-key": api_key,
-            "Content-Type": "application/json",
+            "Content-Type": "application/json; charset=utf-8",
             "anthropic-version": "2023-06-01"
         }
         
-        response = requests.post(url, json=payload, headers=headers)
+        # Ensure UTF-8 encoding for Unicode characters (emojis, etc.)
+        import json
+        json_data = json.dumps(payload, ensure_ascii=False)
+        response = requests.post(url, data=json_data.encode('utf-8'), headers=headers)
         
         if response.status_code == 200:
             result = response.json()
@@ -4401,18 +4761,19 @@ with st.sidebar:
         key="brand_upload"
     )
     
-    # Add a unique key based on file content to prevent caching
+    # TEMPORARY DEBUG: Force extraction every time
     if uploaded_brand is not None:
-        # Create a unique identifier for this file to prevent caching
+        # Create a unique identifier for this file
         file_content = uploaded_brand.read()
         file_hash = hash(file_content)
         uploaded_brand.seek(0)  # Reset file pointer
         
-        # Clear previous brand config if file changed
-        if st.session_state.get("last_file_hash") != file_hash:
-            st.session_state["brand_config"] = None
-            st.session_state["last_file_hash"] = file_hash
-            st.info("🔄 New file detected - extracting brand colors...")
+        # Debug info
+        st.write(f"🔍 **Debug**: File '{uploaded_brand.name}' ({len(file_content)} bytes)")
+        
+        # FORCE NEW EXTRACTION (bypass caching for now)
+        st.session_state["brand_config"] = None
+        st.info("🔄 Forcing brand extraction (debug mode)...")
     
     if uploaded_brand is not None and HAS_PPTX:
         try:
@@ -4421,6 +4782,8 @@ with st.sidebar:
             status_text = st.empty()
             
             use_llm = extraction_method.startswith("🤖")
+            
+            st.write(f"🚀 **Starting extraction** - Method: {'LLM' if use_llm else 'Rule-Based'}")
             
             if use_llm and api_key:
                 # Use LLM extraction (experimental)
@@ -4452,10 +4815,12 @@ with st.sidebar:
                 progress_bar.progress(20)
                 
                 uploaded_brand.seek(0)
+                st.write("📄 **Calling brand extractor...**")
                 brand_config = brand_extractor.extract_brand_from_pptx(
                     uploaded_brand,
                     use_llm=False
                 )
+                st.write(f"✅ **Extraction complete!** Found {len(brand_config.get('color_scheme', {}))} colors")
                 
                 progress_bar.progress(80)
                 status_text.text("✅ Rule-based extraction complete!")
@@ -4464,6 +4829,15 @@ with st.sidebar:
             
             # Store configuration
             st.session_state["brand_config"] = brand_config
+            
+        except Exception as e:
+            st.error(f"❌ **Brand extraction failed**: {str(e)}")
+            st.write("**Error details:**")
+            st.code(str(e))
+            import traceback
+            st.write("**Full traceback:**")
+            st.code(traceback.format_exc())
+            brand_config = None
             
             # Debug output to console
             print(f"[STREAMLIT DEBUG] Extracted brand colors from {uploaded_brand.name}:")
@@ -4744,8 +5118,26 @@ Let's start: **What is your company name and give me a brief overview of what yo
                     # Add AI response to history
                     st.session_state.messages.append({"role": "assistant", "content": ai_response})
                     
-                    # Check if JSONs were generated and extract them with comprehensive validation
-                    content_ir, render_plan, validation_results = extract_and_validate_jsons(ai_response)
+                    # Check if this response might contain JSON before attempting extraction
+                    # Only attempt JSON extraction if the response contains JSON-like content
+                    has_json_keywords = "content_ir" in ai_response.lower() and "render_plan" in ai_response.lower()
+                    has_json_structure = "{" in ai_response and "}" in ai_response and len(ai_response) > 500
+                    
+                    if has_json_keywords or has_json_structure:
+                        
+                        # Check if JSONs were generated and extract them with comprehensive validation
+                        content_ir, render_plan, validation_results = extract_and_validate_jsons(ai_response)
+                        
+                        # Check for extraction failure
+                        if content_ir is None and render_plan is None:
+                            st.error("❌ **JSON Extraction Failed**: The AI response contained JSON-like content but extraction failed. Please try regenerating.")
+                            st.info("💡 **Tip**: Make sure the JSON format is correct and complete.")
+                        else:
+                            # Successfully extracted JSONs - continue with processing
+                            pass
+                    else:
+                        # Regular conversation - no JSON extraction needed
+                        content_ir, render_plan, validation_results = None, None, None
                     
                     # AUTOMATED FEEDBACK AND RETRY SYSTEM
                     if content_ir and render_plan and not validation_results.get('overall_valid', False):
@@ -4945,21 +5337,50 @@ Please ensure both JSONs are complete and properly formatted.
                                 llm_feedback = create_validation_feedback_for_llm(validation_results)
                                 
                                 if llm_feedback:
-                                    # Show optional improvement button
-                                    if st.button("🔄 Improve JSON Quality (Optional)", help="Fix validation issues to ensure perfect pitch deck generation"):
-                                        # Add feedback message for LLM to fix issues
-                                        st.session_state.messages.append({"role": "user", "content": llm_feedback})
+                                    # Show detailed validation issues first
+                                    with st.expander("🔍 View Validation Issues", expanded=False):
+                                        st.text(llm_feedback[:500] + "..." if len(llm_feedback) > 500 else llm_feedback)
+                                    
+                                    # Show optional improvement button with better styling
+                                    st.markdown("---")
+                                    
+                                    col1, col2 = st.columns([1, 2])
+                                    with col1:
+                                        improve_button = st.button(
+                                            "🔄 Improve JSON Quality", 
+                                            help="Fix validation issues to ensure perfect pitch deck generation",
+                                            type="primary",
+                                            use_container_width=True
+                                        )
+                                    with col2:
+                                        if improve_button:
+                                            st.info("🚀 Sending improvement request to AI...")
+                                    
+                                    if improve_button:
+                                        try:
+                                            # Add feedback message for LLM to fix issues
+                                            st.session_state.messages.append({"role": "user", "content": llm_feedback})
+                                            
+                                            with st.spinner("🔄 Improving JSON quality..."):
+                                                retry_response = call_llm_api(
+                                                    st.session_state.messages,
+                                                    selected_model,
+                                                    api_key,
+                                                    api_service
+                                                )
+                                            
+                                            if retry_response:
+                                                st.session_state.messages.append({"role": "assistant", "content": retry_response})
+                                                st.success("✅ JSON improvement completed! Page will refresh with updated content.")
+                                                st.rerun()
+                                            else:
+                                                st.error("❌ Failed to get response from AI. Please try again or check API configuration.")
                                         
-                                        with st.spinner("🔄 Improving JSON quality..."):
-                                            retry_response = call_llm_api(
-                                                st.session_state.messages,
-                                                selected_model,
-                                                api_key,
-                                                api_service
-                                            )
-                                        
-                                        st.session_state.messages.append({"role": "assistant", "content": retry_response})
-                                        st.rerun()
+                                        except Exception as e:
+                                            st.error(f"❌ Error during JSON improvement: {str(e)}")
+                                            st.error("Please check your API key and internet connection.")
+                                else:
+                                    st.info("ℹ️ No specific improvements identified by validation system.")
                             
                             # Show next steps
                             st.info("""
@@ -6641,11 +7062,19 @@ def apply_basic_automatic_fixes(content_ir, render_plan, validation_result):
         if not slide_info.get('valid', True):
             print(f"🔧 Fixing slide: {slide_name}")
             
-            # Fix missing metrics array in key_metrics (Slide 4 issue)
+            # Fix missing metrics array in key_metrics (Slide 2 issue)
             if slide_name == 'historical_financial_performance':
                 for slide in fixed_render_plan.get('slides', []):
                     if slide.get('template') == 'historical_financial_performance':
-                        key_metrics = slide.get('data', {}).get('key_metrics', {})
+                        slide_data = slide.get('data', {})
+                        key_metrics = slide_data.get('key_metrics', {})
+                        
+                        # Ensure key_metrics is a dictionary
+                        if not isinstance(key_metrics, dict):
+                            slide_data['key_metrics'] = {}
+                            key_metrics = slide_data['key_metrics']
+                        
+                        # Check if metrics array is missing or empty
                         if 'metrics' not in key_metrics or not key_metrics['metrics']:
                             key_metrics['metrics'] = ["120%", "38.0", "5.7", "300"]
                             print("✅ Fixed missing metrics array in key_metrics")
@@ -6666,6 +7095,49 @@ def apply_basic_automatic_fixes(content_ir, render_plan, validation_result):
                                     elif i == 1:
                                         item['methodology'] = "Trading Multiples (EV/EBITDA)"
                             print("✅ Fixed duplicate methodology names")
+            
+            # Fix management team profile limit (Slide 1 issue)
+            if slide_name == 'management_team':
+                for slide in fixed_render_plan.get('slides', []):
+                    if slide.get('template') == 'management_team':
+                        # Check if using content_ir_key approach
+                        if 'content_ir_key' in slide:
+                            content_key = slide['content_ir_key']
+                            if content_key in fixed_content_ir:
+                                mgmt_data = fixed_content_ir[content_key]
+                            else:
+                                continue
+                        else:
+                            if 'management_team' in fixed_content_ir:
+                                mgmt_data = fixed_content_ir['management_team']
+                            else:
+                                continue
+                        
+                        left_profiles = mgmt_data.get('left_column_profiles', [])
+                        right_profiles = mgmt_data.get('right_column_profiles', [])
+                        total_profiles = len(left_profiles) + len(right_profiles)
+                        
+                        if total_profiles > 6:
+                            # Truncate to max 6 profiles (3 per column)
+                            mgmt_data['left_column_profiles'] = left_profiles[:3]
+                            mgmt_data['right_column_profiles'] = right_profiles[:3]
+                            print(f"✅ Fixed management team: truncated from {total_profiles} to 6 profiles")
+                        
+                        # Fix missing names in profiles
+                        for column_name, profiles in [('left_column_profiles', mgmt_data.get('left_column_profiles', [])), ('right_column_profiles', mgmt_data.get('right_column_profiles', []))]:
+                            for i, profile in enumerate(profiles):
+                                if 'name' not in profile or not profile['name'] or '[' in str(profile.get('name', '')):
+                                    # Generate name from role_title
+                                    role_title = profile.get('role_title', 'Executive')
+                                    if 'Chief' in role_title:
+                                        profile['name'] = f"Chief Executive {i+1}"
+                                    elif 'VP' in role_title or 'Vice President' in role_title:
+                                        profile['name'] = f"VP Executive {i+1}"
+                                    elif 'Director' in role_title:
+                                        profile['name'] = f"Director {i+1}"
+                                    else:
+                                        profile['name'] = f"Executive {i+1}"
+                                    print(f"✅ Fixed missing name for {column_name} profile {i+1}: {profile['name']}")
             
             # Add missing required fields with defaults
             empty_fields = slide_info.get('empty_fields', [])

@@ -163,100 +163,7 @@ def _apply_standard_header_and_title(slide, title_text, brand_config=None, compa
     underline_shape.line.fill.background()
 
 
-def get_brand_styling(brand_config=None, color_scheme=None, typography=None):
-    """Extract brand styling or use defaults - reusable across all functions"""
-    if brand_config:
-        colors = {}
-        
-        # Handle different color formats that might be in brand_config
-        if 'color_scheme' in brand_config:
-            # Standard format: brand_config['color_scheme']
-            brand_colors = brand_config['color_scheme']
-            for name, color in brand_colors.items():
-                if isinstance(color, tuple) and len(color) == 3:
-                    # Convert tuple (r, g, b) to RGBColor
-                    r, g, b = color
-                    colors[name] = RGBColor(r, g, b)
-                elif isinstance(color, str) and color.startswith('#'):
-                    # Convert hex to RGBColor
-                    hex_color = color.lstrip('#')
-                    colors[name] = RGBColor(
-                        int(hex_color[0:2], 16),
-                        int(hex_color[2:4], 16), 
-                        int(hex_color[4:6], 16)
-                    )
-                elif hasattr(color, 'r'):  # Already RGBColor
-                    colors[name] = color
-                else:
-                    # Fallback to default
-                    colors[name] = RGBColor(24, 58, 88)
-        
-        # Handle the actual format from brand extraction: list of tuples
-        elif 'extracted_colors' in brand_config:
-            extracted_colors = brand_config['extracted_colors']
-            if isinstance(extracted_colors, list):
-                for name, color_value in extracted_colors:
-                    if isinstance(color_value, str) and color_value.startswith('#'):
-                        # Convert hex to RGBColor
-                        hex_color = color_value.lstrip('#')
-                        colors[name] = RGBColor(
-                            int(hex_color[0:2], 16),
-                            int(hex_color[2:4], 16), 
-                            int(hex_color[4:6], 16)
-                        )
-                    elif isinstance(color_value, tuple) and len(color_value) == 3:
-                        # Convert tuple (r, g, b) to RGBColor
-                        r, g, b = color_value
-                        colors[name] = RGBColor(r, g, b)
-                    else:
-                        # Fallback to default
-                        colors[name] = RGBColor(24, 58, 88)  # Default blue
-        
-        # Ensure all required colors are present
-        default_colors = {
-            "primary": RGBColor(24, 58, 88),
-            "secondary": RGBColor(181, 151, 91),
-            "accent": RGBColor(64, 64, 64),
-            "text": RGBColor(64, 64, 64),
-            "background": RGBColor(255, 255, 255),
-            "light_grey": RGBColor(240, 240, 240),
-            "footer_grey": RGBColor(128, 128, 128)
-        }
-        
-        for name, default_color in default_colors.items():
-            if name not in colors:
-                colors[name] = default_color
-        
-        # Handle typography
-        brand_fonts = brand_config.get('typography', {})
-        fonts = {
-            "primary_font": brand_fonts.get('primary_font', 'Arial'),
-            "title_size": Pt(brand_fonts.get('title_size', 24)),
-            "header_size": Pt(brand_fonts.get('header_size', 14)),
-            "body_size": Pt(brand_fonts.get('body_size', 11)),
-            "small_size": Pt(brand_fonts.get('small_size', 9))
-        }
-    else:
-        # Use passed parameters or defaults
-        colors = color_scheme or {
-            "primary": RGBColor(24, 58, 88),
-            "secondary": RGBColor(181, 151, 91),
-            "accent": RGBColor(64, 64, 64),
-            "text": RGBColor(64, 64, 64),
-            "background": RGBColor(255, 255, 255),
-            "light_grey": RGBColor(240, 240, 240),
-            "footer_grey": RGBColor(128, 128, 128)
-        }
-        
-        fonts = typography or {
-            "primary_font": 'Arial',
-            "title_size": Pt(24),
-            "header_size": Pt(14),
-            "body_size": Pt(11),
-            "small_size": Pt(9)
-        }
-    
-    return colors, fonts
+
 
 
 def ensure_prs(prs=None):
@@ -970,17 +877,17 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
                        "Key operational metrics will be displayed here when data is available.", 
                        12, colors["text"], False, PP_ALIGN.CENTER)
     
-    # Dynamic metrics layout
-    metrics_left_col = table_left + Inches(0.3)
-    metrics_right_col = table_left + Inches(2.8)
-    col_width = Inches(2.2)
+    # FIXED: Dynamic metrics layout with better spacing to prevent overlap
+    metrics_left_col = table_left + Inches(0.2)
+    metrics_right_col = table_left + Inches(3.2)  # Increased spacing
+    col_width = Inches(2.0)  # Reduced width to prevent overlap
     
     # Left column metrics (first half)
     left_metrics = metric_keys[:len(metric_keys)//2]
     for i, key in enumerate(left_metrics):
         metric_data = metrics[key]
         
-        # FIXED: Handle both string and object metric formats
+        # FIXED: Handle string, object, and numeric metric formats
         if isinstance(metric_data, str):
             # String format: convert to object structure
             label = key.replace('_', ' ').title()
@@ -990,16 +897,26 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
             # Object format: use existing structure
             label = metric_data.get('label', key.replace('_', ' ').title())
             value = metric_data.get('value', '')
+        elif isinstance(metric_data, (int, float)):
+            # Numeric format: format appropriately
+            label = key.replace('_', ' ').title()
+            if key.endswith('_m'):  # Millions indicator
+                value = f"{metric_data}M"
+            elif key.endswith('_k'):  # Thousands indicator  
+                value = f"{metric_data}K"
+            else:
+                value = f"{metric_data:,}"  # Add commas for large numbers
+            print(f"[DEBUG] Converting numeric metric '{key}': {metric_data} → {value}")
         else:
             # Fallback for other types
             label = key.replace('_', ' ').title()
             value = str(metric_data)
             print(f"[DEBUG] Unknown metric format for '{key}': {type(metric_data)}")
         
-        y_offset = Inches(0.2 + i * 0.55)
-        add_clean_text(slide, metrics_left_col, metrics_box_top + y_offset, col_width, Inches(0.2), 
-                       label, 10, colors["text"])
-        add_clean_text(slide, metrics_left_col, metrics_box_top + y_offset + Inches(0.2), col_width, Inches(0.25), 
+        y_offset = Inches(0.2 + i * 0.6)  # Increased spacing
+        add_clean_text(slide, metrics_left_col, metrics_box_top + y_offset, col_width, Inches(0.18), 
+                       label, 9, colors["text"])  # Smaller font
+        add_clean_text(slide, metrics_left_col, metrics_box_top + y_offset + Inches(0.18), col_width, Inches(0.22), 
                        value, 16, colors["primary"], True)
     
     # Right column metrics (second half)
@@ -1007,7 +924,7 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
     for i, key in enumerate(right_metrics):
         metric_data = metrics[key]
         
-        # FIXED: Handle both string and object metric formats
+        # FIXED: Handle string, object, and numeric metric formats
         if isinstance(metric_data, str):
             # String format: convert to object structure
             label = key.replace('_', ' ').title()
@@ -1017,16 +934,26 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
             # Object format: use existing structure
             label = metric_data.get('label', key.replace('_', ' ').title())
             value = metric_data.get('value', '')
+        elif isinstance(metric_data, (int, float)):
+            # Numeric format: format appropriately
+            label = key.replace('_', ' ').title()
+            if key.endswith('_m'):  # Millions indicator
+                value = f"{metric_data}M"
+            elif key.endswith('_k'):  # Thousands indicator  
+                value = f"{metric_data}K"
+            else:
+                value = f"{metric_data:,}"  # Add commas for large numbers
+            print(f"[DEBUG] Converting numeric metric '{key}': {metric_data} → {value}")
         else:
             # Fallback for other types
             label = key.replace('_', ' ').title()
             value = str(metric_data)
             print(f"[DEBUG] Unknown metric format for '{key}': {type(metric_data)}")
         
-        y_offset = Inches(0.2 + i * 0.55)
-        add_clean_text(slide, metrics_right_col, metrics_box_top + y_offset, col_width, Inches(0.2), 
-                       label, 10, colors["text"])
-        add_clean_text(slide, metrics_right_col, metrics_box_top + y_offset + Inches(0.2), col_width, Inches(0.25), 
+        y_offset = Inches(0.2 + i * 0.6)  # Increased spacing
+        add_clean_text(slide, metrics_right_col, metrics_box_top + y_offset, col_width, Inches(0.18), 
+                       label, 9, colors["text"])  # Smaller font
+        add_clean_text(slide, metrics_right_col, metrics_box_top + y_offset + Inches(0.18), col_width, Inches(0.22), 
                        value, 16, colors["primary"], True)
     
     # Get today's date
@@ -1059,7 +986,7 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
     return prs
 
 
-def render_competitive_positioning_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, **kwargs):
+def render_competitive_positioning_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, content_ir=None, **kwargs):
     """
     Render an ENHANCED competitive positioning slide matching iCar Asia format
     Features: 5-column assessment table with star ratings, clean layout, comprehensive data
@@ -1147,7 +1074,29 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
     
     chart_data = ChartData()
     chart_data.categories = [comp['name'] for comp in competitors_data]
-    chart_data.add_series('Revenue ($M)', [comp['revenue'] for comp in competitors_data])
+    
+    # CRITICAL FIX: Ensure all revenue values are numeric for chart creation
+    chart_revenues = []
+    for comp in competitors_data:
+        revenue = comp.get('revenue', 0)
+        # Convert to float, handle various formats
+        if isinstance(revenue, (int, float)) and revenue is not None:
+            chart_revenues.append(float(revenue))
+        elif isinstance(revenue, str):
+            try:
+                # Extract numbers from string (handle "50M", "$50", etc.)
+                import re
+                numbers = re.findall(r'\d+\.?\d*', str(revenue))
+                if numbers:
+                    chart_revenues.append(float(numbers[0]))
+                else:
+                    chart_revenues.append(0.1)  # Small value for empty data
+            except:
+                chart_revenues.append(0.1)
+        else:
+            chart_revenues.append(0.1)
+    
+    chart_data.add_series('Revenue ($M)', chart_revenues)
     
     # Add chart
     chart_left = Inches(0.5)
@@ -1177,19 +1126,39 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
     value_axis.tick_labels.font.size = Pt(9)
     value_axis.tick_labels.font.name = fonts["primary_font"]
     
-    # FIXED: Dynamic axis scaling for competitor revenue data
-    revenue_values = [comp['revenue'] for comp in competitors_data]
-    if revenue_values:
+    # CRITICAL FIX: Dynamic axis scaling with proper numeric conversion
+    revenue_values = []
+    for comp in competitors_data:
+        revenue = comp.get('revenue', 0)
+        # Convert to float, handle string values and None
+        if isinstance(revenue, (int, float)) and revenue is not None:
+            revenue_values.append(float(revenue))
+        elif isinstance(revenue, str):
+            try:
+                # Extract numbers from string (handle "50M", "$50", etc.)
+                import re
+                numbers = re.findall(r'\d+\.?\d*', str(revenue))
+                if numbers:
+                    revenue_values.append(float(numbers[0]))
+                else:
+                    revenue_values.append(0)
+            except:
+                revenue_values.append(0)
+        else:
+            revenue_values.append(0)
+    
+    if revenue_values and max(revenue_values) > 0:
         data_max = max(revenue_values)
         # Set axis maximum to 120% of highest value
         dynamic_max = int(data_max * 1.2)
-        value_axis.maximum_scale = dynamic_max
+        value_axis.maximum_scale = max(dynamic_max, 10)  # Minimum scale of 10
         print(f"[DEBUG] Competitive chart axis scaled: max {data_max:,} → {dynamic_max:,}")
     else:
-        value_axis.maximum_scale = 500  # Fallback
+        value_axis.maximum_scale = 100  # Better fallback for empty data
+        print(f"[DEBUG] Using fallback axis scale: 100")
     
     # Highlight the user's company (first in list or matching company name) in secondary color
-    user_company_name = content_ir.get('entities', {}).get('company', {}).get('name', '')
+    user_company_name = (content_ir or {}).get('entities', {}).get('company', {}).get('name', '')
     series = chart.series[0]
     points = series.points
     for i, point in enumerate(points):
@@ -2163,34 +2132,64 @@ def render_historical_financial_performance_slide(data=None, color_scheme=None, 
     metrics_y = Inches(4.4)
     metrics = metrics_section.get('metrics', [])
     
+    # FIXED: Handle both string and object formats for metrics
+    processed_metrics = []
+    for i, metric in enumerate(metrics):
+        if isinstance(metric, str):
+            # Convert string to structured format
+            processed_metrics.append({
+                'title': f'Key Metric {i+1}',
+                'value': metric,
+                'period': '(Historical)',
+                'note': 'Key performance indicator'
+            })
+        elif isinstance(metric, dict):
+            # Ensure all required fields exist
+            processed_metrics.append({
+                'title': metric.get('title', f'Key Metric {i+1}'),
+                'value': metric.get('value', 'N/A'),
+                'period': metric.get('period', '(Historical)'),
+                'note': metric.get('note', 'Key performance indicator')
+            })
+        else:
+            # Fallback for other types
+            processed_metrics.append({
+                'title': f'Key Metric {i+1}',
+                'value': str(metric),
+                'period': '(Historical)',
+                'note': 'Key performance indicator'
+            })
+    
     # If no metrics provided, create default ones
-    if not metrics:
-        metrics = [
+    if not processed_metrics:
+        processed_metrics = [
             {
-                'title': 'Patient Growth (CAGR)',
-                'value': '12.4%',
-                'period': '(2020-2024)',
-                'note': '✓ Consistent growth despite pandemic disruptions'
+                'title': 'Revenue Growth',
+                'value': '25%',
+                'period': '(CAGR)',
+                'note': 'Consistent growth trajectory'
             },
             {
-                'title': 'Patient Retention Rate',
-                'value': '87%',
+                'title': 'EBITDA Margin',
+                'value': '18%',
                 'period': '(2024)',
-                'note': '✓ Premium market segment leading indicator'
+                'note': 'Strong profitability'
             },
             {
-                'title': 'Avg. Revenue Per Patient',
-                'value': '$980',
-                'period': 'USD (2024)',
-                'note': '↗ +8.2% increase from 2023'
+                'title': 'Customer Base',
+                'value': '500+',
+                'period': '(Enterprise)',
+                'note': 'Growing customer portfolio'
             },
             {
-                'title': 'Corporate Contracts',
-                'value': '35+',
-                'period': '(2024)',
-                'note': '● Major financial institutions & MNCs'
+                'title': 'Market Position',
+                'value': 'Top 3',
+                'period': '(Industry)',
+                'note': 'Leading market position'
             }
         ]
+    
+    metrics = processed_metrics
     
     # Calculate positions to fit exactly 4 boxes across slide width
     slide_content_width = Inches(12.5)  # Total usable width
@@ -2231,10 +2230,10 @@ def render_historical_financial_performance_slide(data=None, color_scheme=None, 
             add_clean_text(slide, x_pos + Inches(0.1), metrics_y + Inches(0.4), box_width - Inches(0.2), Inches(0.3), 
                            str(metric), 10, colors["text"], False)
     
-    # Revenue Growth section
+    # Key Drivers of Revenue Growth section - FIXED TITLE
     revenue_section = (data or {}).get('revenue_growth', {})
     covid_y = Inches(5.7)
-    section_title = revenue_section.get('title', 'Revenue Growth')
+    section_title = revenue_section.get('title', 'Key Growth Drivers')
     add_clean_text(slide, Inches(1), covid_y, Inches(7), Inches(0.2), 
                    section_title, 12, colors["primary"], True)
     
@@ -2345,8 +2344,8 @@ def render_business_overview_slide(data=None, color_scheme=None, typography=None
     company_desc = slide_data.get('description', 'Leading healthcare services provider with comprehensive medical care and operational excellence.')
     print(f"[DEBUG] Company description: {company_desc}")
     
-    # FIXED: Reduced width to make room for highlights box and proper text wrapping
-    add_clean_text(slide, Inches(0.8), Inches(1.3), Inches(7.0), Inches(1.2), 
+    # FIXED: Better positioning to avoid overlap with highlights
+    add_clean_text(slide, Inches(0.8), Inches(1.3), Inches(6.5), Inches(1.0), 
                    company_desc, 12, colors["text"])
     
     # Timeline elements - FIXED POSITIONING AND SPACING
@@ -2359,8 +2358,9 @@ def render_business_overview_slide(data=None, color_scheme=None, typography=None
     timeline_y = Inches(2.6)  # Moved down slightly to accommodate longer description text
     
     try:
-        # Start year circle
-        start_year = timeline_data.get('start_year', '2015')
+        # Start year circle - FIXED: Convert integer years to strings
+        start_year_raw = timeline_data.get('start_year', '2015')
+        start_year = str(start_year_raw)  # Ensure it's a string for display
         circle1 = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(1), timeline_y, Inches(0.12), Inches(0.12))
         circle1.fill.solid()
         circle1.fill.fore_color.rgb = colors["secondary"]
@@ -2373,8 +2373,9 @@ def render_business_overview_slide(data=None, color_scheme=None, typography=None
         line.fill.fore_color.rgb = colors["secondary"]
         line.line.fill.background()
         
-        # End year circle
-        end_year = timeline_data.get('end_year', '2024')
+        # End year circle - FIXED: Convert integer years to strings
+        end_year_raw = timeline_data.get('end_year', '2024')
+        end_year = str(end_year_raw)  # Ensure it's a string for display
         circle2 = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(5), timeline_y, Inches(0.12), Inches(0.12))
         circle2.fill.solid()
         circle2.fill.fore_color.rgb = colors["secondary"]
@@ -2393,18 +2394,18 @@ def render_business_overview_slide(data=None, color_scheme=None, typography=None
     except Exception as e:
         print(f"[DEBUG] Timeline creation error: {e}")
     
-    # Operational Highlights box - COMPLETELY REPOSITIONED TO AVOID OVERLAP
+    # Operational Highlights box - REPOSITIONED TO RIGHT SIDE WITH PROPER MARGINS
     try:
-        highlights_bg = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8.0), Inches(1.3), 
-                                               Inches(4.8), Inches(5.8))  # Full height utilization
+        highlights_bg = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8.2), Inches(1.3), 
+                                               Inches(4.6), Inches(5.6))  # Better margins
         highlights_bg.fill.solid()
         highlights_bg.fill.fore_color.rgb = colors["light_grey"]
         highlights_bg.line.fill.background()
         highlights_bg.shadow.inherit = False
         
-        # Highlights title
+        # Highlights title  
         highlights_title = slide_data.get('highlights_title', 'Key Operational Highlights')
-        add_clean_text(slide, Inches(8.2), Inches(1.4), Inches(4.4), Inches(0.3), 
+        add_clean_text(slide, Inches(8.3), Inches(1.4), Inches(4.2), Inches(0.3), 
                        highlights_title, 12, colors["primary"], True, PP_ALIGN.CENTER)
         
         # Enhanced highlight items with more detail - SUPPORT FOR RICH CONTENT
@@ -2594,11 +2595,15 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
     for i, transaction in enumerate(transactions):
         multiple_raw = transaction.get('ev_revenue_multiple', 0)
         
-        # Convert multiple to float (handle string formats like "50x", "25.5x", etc.)
+        # Convert multiple to float (handle string formats like "50x", "25.5x", "N/A", etc.)
         try:
             if isinstance(multiple_raw, str):
-                # Remove 'x' and convert to float
-                multiple = float(multiple_raw.replace('x', '').replace('X', '').strip())
+                # Handle N/A, n/a, and other non-numeric values
+                if multiple_raw.lower() in ['n/a', 'na', '-', '']:
+                    multiple = 0
+                else:
+                    # Remove 'x' and convert to float
+                    multiple = float(multiple_raw.replace('x', '').replace('X', '').strip())
             else:
                 multiple = float(multiple_raw) if multiple_raw else 0
         except (ValueError, TypeError):
@@ -2607,12 +2612,25 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
         # Scale bar height properly - max 1.5 inches total
         max_bar_height = Inches(1.5)
         if multiple > 0:
-            # Find the max multiple to scale properly
-            max_multiple = max([
-                float(str(t.get('ev_revenue_multiple', '0')).replace('x', '').replace('X', '').strip() or '0')
-                for t in transactions
-            ])
-            if max_multiple > 0:
+            # Find the max multiple to scale properly - FIXED: Handle N/A values
+            multiples = []
+            for t in transactions:
+                try:
+                    mult_raw = t.get('ev_revenue_multiple', '0')
+                    if isinstance(mult_raw, str):
+                        # Handle N/A, n/a, and other non-numeric values
+                        if mult_raw.lower() in ['n/a', 'na', '-', '']:
+                            continue
+                        mult_val = float(mult_raw.replace('x', '').replace('X', '').strip())
+                    else:
+                        mult_val = float(mult_raw) if mult_raw else 0
+                    if mult_val > 0:
+                        multiples.append(mult_val)
+                except (ValueError, TypeError):
+                    continue
+            
+            if multiples:
+                max_multiple = max(multiples)
                 # Scale relative to max, with maximum height of 1.5 inches
                 bar_height = Inches((multiple / max_multiple) * 1.5)
             else:
@@ -3292,6 +3310,17 @@ def render_growth_strategy_slide(data=None, color_scheme=None, typography=None, 
     footer_right_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
     
     return prs
+
+
+# ALIAS FUNCTION: Handle naming mismatch between template name and function name
+def render_growth_strategy_projections_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, **kwargs):
+    """
+    Alias for render_growth_strategy_slide to handle template name mismatch.
+    The template is called 'growth_strategy_projections' but the function was named 'growth_strategy'.
+    """
+    return render_growth_strategy_slide(data=data, color_scheme=color_scheme, typography=typography, 
+                                      company_name=company_name, prs=prs, brand_config=brand_config, **kwargs)
+
 
 def render_buyer_profiles_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, **kwargs):
     """
