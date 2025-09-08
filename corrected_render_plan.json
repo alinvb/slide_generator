@@ -1,0 +1,467 @@
+{
+  "slides": [
+    {
+      "template": "business_overview",
+      "data": {
+        "title": "Business Overview",
+        "description": "Breadlife is Indonesia's leading Japanese-inspired artisan bakery chain, owned by The Daily Company (DailyCo). Known for its fresh, preservative-free breads, Breadlife operates over 130 outlets in major cities and transit hubs, serving both B2C retail and institutional B2B clients.",
+        "timeline": {
+          "start_year": "2021",
+          "end_year": "2024"
+        },
+        "highlights": [
+          "Largest Japanese-style artisan bakery network in Indonesia",
+          "Rapid expansion with 100+ new outlets since 2021 acquisition",
+          "Consistent double-digit revenue and EBITDA growth post-acquisition"
+        ],
+        "services": [
+          "Artisan sweet and savory breads",
+          "Whole cakes and celebration products",
+          "Packaged soft buns and B2B snack boxes"
+        ],
+        "positioning_desc": "Premium yet affordable, health-forward bakery catering to urban consumers seeking fresh, innovative, and quality baked goods."
+      }
+    },
+    {
+      "template": "investor_considerations",
+      "data": {
+        "title": "Investor Considerations",
+        "considerations": [
+          "Intensifying competition in Indonesia's bakery sector from local and international players",
+          "Managing supply chain and input cost volatility (wheat, dairy)",
+          "Sustaining growth momentum post rapid expansion phase",
+          "Ability to maintain product innovation and consumer engagement"
+        ],
+        "mitigants": [
+          "Strong brand loyalty and high repeat purchase rates",
+          "Centralized procurement and long-term supplier contracts",
+          "Proven track record of outlet-level profitability and disciplined expansion",
+          "Continuous menu innovation driven by in-house R&D team"
+        ]
+      }
+    },
+    {
+      "template": "product_service_footprint",
+      "data": {
+        "title": "Product & Service Footprint",
+        "services": [
+          {
+            "title": "Artisan Sweet Breads",
+            "desc": "Wide range of Japanese-inspired sweet breads with signature fillings, baked fresh daily."
+          },
+          {
+            "title": "Savory Breads & Snacks",
+            "desc": "Popular choices include Yakitari, spicy chicken floss buns, and cheese breads catering to diverse tastes."
+          },
+          {
+            "title": "Cakes & Celebration Products",
+            "desc": "Whole cakes, chiffon cakes, and party cakes for birthdays and gifting occasions."
+          },
+          {
+            "title": "Packaged Soft Buns & Bundles",
+            "desc": "Multi-pack soft buns and convenient snack boxes for families, groups, and B2B clients."
+          }
+        ],
+        "coverage_table": [
+          {"region": "Jakarta", "outlets": "45"},
+          {"region": "Bandung", "outlets": "25"},
+          {"region": "Surabaya", "outlets": "20"},
+          {"region": "Other Cities", "outlets": "40+"}
+        ],
+        "metrics": {
+          "total_locations": "130+",
+          "annual_patients": "1,000,000+",
+          "retention_rate": "75%",
+          "corporate_contracts": "40+"
+        }
+      }
+    },
+    {
+      "template": "historical_financial_performance",
+      "data": {
+        "title": "Historical Financial Performance",
+        "chart": {
+          "categories": [
+            "2020",
+            "2021",
+            "2022",
+            "2023",
+            "2024E"
+          ],
+          "revenue": [
+            120,
+            145,
+            180,
+            210,
+            240
+          ],
+          "ebitda": [
+            18,
+            24,
+            31,
+            40,
+            47
+          ]
+        },
+        "key_metrics": {
+          "metrics": [
+            {
+              "label": "Revenue CAGR (2020-2024E)",
+              "value": "18%"
+            },
+            {
+              "label": "EBITDA Margin (2024E)",
+              "value": "19.6%"
+            },
+            {
+              "label": "Store Count Growth",
+              "value": "+100 outlets since 2021"
+            },
+            {
+              "label": "EBITDA Positive Since",
+              "value": "2022"
+            }
+          ]
+        },
+        "revenue_growth": {
+          "description": "Breadlife achieved a 150% revenue increase from 2022 to 2024, outpacing Indonesia's bakery market CAGR and demonstrating strong post-acquisition momentum."
+        },
+        "banker_view": {
+          "summary": "Breadlife's financial trajectory reflects robust operational leverage and scalability, with margin expansion driven by central production and disciplined outlet growth."
+        }
+      }
+    },
+    {
+      "template": "management_team",
+      "data": {
+        "title": "Management Team",
+        "left_column_profiles": [
+          {
+            "role_title": "Chief Executive Officer",
+            "experience_bullets": [
+              "15+ years in F&B and retail expansion across Southeast Asia",
+              "Former Regional Director at a leading Asian QSR chain",
+              "Expert in multi-unit operations and brand scaling",
+              "MBA from National University of Singapore"
+            ]
+          },
+          {
+            "role_title": "Chief Operating Officer",
+            "experience_bullets": [
+              "Built and managed supply chain for 100+ outlets",
+              "Ex-Head of Operations at a major Indonesian bakery",
+              "Implemented lean manufacturing for central kitchen",
+              "Certified Six Sigma Black Belt"
+            ]
+          }
+        ],
+        "right_column_profiles": [
+          {
+            "role_title": "Chief Financial Officer",
+            "experience_bullets": [
+              "Oversaw finance for F&B conglomerates in Indonesia",
+              "Led M&A and integration of Breadlife into DailyCo",
+              "Implemented ERP systems for multi-brand groups",
+              "Chartered Accountant (Indonesia)"
+            ]
+          },
+          {
+            "role_title": "Head of Product & Innovation",
+            "experience_bullets": [
+              "Developed 25+ market-leading bakery SKUs",
+              "Former R&D Head at Japanese-style bakery",
+              "Expert in flavor innovation and food trends",
+              "Graduate of Tokyo Institute of Culinary Arts"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "template": "growth_strategy_projections",
+      "data": {
+        "slide_data": {
+          "title": "Growth Strategy & Projections",
+          "growth_strategy": {
+            "strategies": [
+              "Accelerate outlet expansion in secondary Indonesian cities",
+              "Expand B2B institutional sales and corporate catering partnerships",
+              "Invest in digital ordering, loyalty programs, and e-commerce to boost urban sales"
+            ]
+          },
+          "financial_projections": {
+            "categories": [
+              "2024E",
+              "2025E",
+              "2026E"
+            ],
+            "revenue": [
+              240,
+              280,
+              320
+            ],
+            "ebitda": [
+              47,
+              56,
+              64
+            ]
+          }
+        }
+      }
+    },
+    {
+      "template": "competitive_positioning",
+      "data": {
+        "title": "Competitive Positioning",
+        "competitors": [
+          {
+            "name": "PT Nippon Indosari Corpindo (Sari Roti)",
+            "revenue": 260
+          },
+          {
+            "name": "Sriboga Raturaya (Holland Bakery)",
+            "revenue": 180
+          },
+          {
+            "name": "PT Breadtalk Indonesia",
+            "revenue": 110
+          }
+        ],
+        "assessment": [
+          ["Provider", "Scale", "Quality", "Innovation", "Distribution"],
+          ["Breadlife", "●●●●", "●●●●●", "●●●●●", "●●●●"],
+          ["Sari Roti", "●●●●●", "●●●●", "●●●", "●●●●●"],
+          ["Holland Bakery", "●●●", "●●●●", "●●●●", "●●●"],
+          ["BreadTalk", "●●", "●●●", "●●", "●●"]
+        ],
+        "barriers": [
+          {
+            "title": "Brand Recognition",
+            "desc": "Established brand recognition in urban markets with strong customer loyalty"
+          },
+          {
+            "title": "Production Quality",
+            "desc": "Centralized production ensures quality and consistency across all outlets"
+          },
+          {
+            "title": "Location Access",
+            "desc": "Strong relationships with mall and transit landlords for prime locations"
+          }
+        ],
+        "advantages": [
+          {
+            "title": "Product Innovation",
+            "desc": "Fresh, preservative-free offering with daily innovation and Japanese techniques"
+          },
+          {
+            "title": "Operational Excellence",
+            "desc": "High outlet-level profitability and scalable cost structure"
+          },
+          {
+            "title": "Diversified Model",
+            "desc": "Hybrid B2C/B2B model for diversified growth and revenue streams"
+          }
+        ]
+      }
+    },
+    {
+      "template": "valuation_overview",
+      "data": {
+        "title": "Valuation Overview",
+        "valuation_data": [
+          {
+            "methodology": "Precedent Transactions",
+            "enterprise_value": "US$150M",
+            "commentary": "Based on 1.0x–1.2x forward revenue and 8–9x EBITDA multiples for Indonesian bakery transactions",
+            "metric": "EV/Revenue",
+            "22a_multiple": "1.0x",
+            "23e_multiple": "1.2x"
+          },
+          {
+            "methodology": "Public Comps (Sari Roti)",
+            "enterprise_value": "US$175M",
+            "commentary": "Implied by 1.2x revenue and 9.5x EBITDA, in line with Sari Roti (IDX:ROTI) trading multiples",
+            "metric": "EV/EBITDA",
+            "22a_multiple": "8.5x",
+            "23e_multiple": "9.5x"
+          },
+          {
+            "methodology": "Discounted Cash Flow (DCF)",
+            "enterprise_value": "US$165M",
+            "commentary": "Assumes 12% discount rate, 5% terminal growth, and continued EBITDA margin expansion",
+            "metric": "NPV",
+            "22a_multiple": "N/A",
+            "23e_multiple": "N/A"
+          }
+        ]
+      }
+    },
+    {
+      "template": "precedent_transactions",
+      "data": {
+        "title": "Precedent Transactions",
+        "transactions": [
+          {
+            "target": "PT Nippon Indosari Corpindo (Sari Roti)",
+            "acquirer": "Public (IDX:ROTI)",
+            "date": "2021",
+            "country": "Indonesia",
+            "enterprise_value": 350,
+            "revenue": 260,
+            "ev_revenue_multiple": 1.35
+          },
+          {
+            "target": "BreadTalk Indonesia",
+            "acquirer": "Auric Pacific Group",
+            "date": "2020",
+            "country": "Indonesia",
+            "enterprise_value": 120,
+            "revenue": 100,
+            "ev_revenue_multiple": 1.2
+          },
+          {
+            "target": "Holland Bakery",
+            "acquirer": "Sriboga Raturaya",
+            "date": "2023",
+            "country": "Indonesia",
+            "enterprise_value": 200,
+            "revenue": 180,
+            "ev_revenue_multiple": 1.11
+          }
+        ]
+      }
+    },
+    {
+      "template": "margin_cost_resilience",
+      "data": {
+        "title": "Margin & Cost Resilience",
+        "chart_title": "Margin Performance & Cost Management",
+        "chart_data": {
+          "categories": [
+            "2020",
+            "2021",
+            "2022",
+            "2023",
+            "2024E"
+          ],
+          "values": [
+            15.0,
+            16.6,
+            17.2,
+            19.0,
+            19.6
+          ]
+        },
+        "cost_management": {
+          "items": [
+            {
+              "title": "Centralized Procurement",
+              "description": "Bulk purchasing of wheat and dairy to hedge input price volatility and reduce per-unit costs"
+            },
+            {
+              "title": "Lean Outlet Operations",
+              "description": "Standardized processes and training to keep labor and wastage costs low across all locations"
+            }
+          ]
+        },
+        "risk_mitigation": {
+          "main_strategy": "Maintain flexible pricing and product mix to respond to raw material fluctuations and changing consumer trends"
+        }
+      }
+    },
+    {
+      "template": "sea_conglomerates",
+      "data": [
+        {
+          "name": "Salim Group",
+          "country": "Indonesia",
+          "description": "One of Southeast Asia's largest conglomerates with interests in FMCG (via Indofood), retail, and financial services"
+        },
+        {
+          "name": "Jardine Matheson",
+          "country": "Singapore/Hong Kong",
+          "description": "Diversified conglomerate with major holdings in retail, automotive, and food distribution across Asia"
+        },
+        {
+          "name": "Sinar Mas Group",
+          "country": "Indonesia",
+          "description": "Major player in consumer goods, agribusiness, and real estate, with a growing footprint in food retail"
+        }
+      ]
+    },
+    {
+      "template": "buyer_profiles",
+      "content_ir_key": "strategic_buyers",
+      "data": {
+        "title": "Strategic Buyer Profiles",
+        "table_headers": ["Buyer Name", "Strategic Rationale", "Key Synergies", "Concerns", "Fit"],
+        "table_rows": [
+          {
+            "buyer_name": "PT Nippon Indosari Corpindo Tbk (Sari Roti)",
+            "description": "Leading Indonesian bakery company with extensive distribution network",
+            "strategic_rationale": "Expand premium and Japanese-style bakery segment, leverage Breadlife's urban footprint and innovation",
+            "key_synergies": "Production integration, distribution network, product cross-selling",
+            "concerns": "Brand integration challenges, valuation expectations",
+            "fit_score": "High (9/10)",
+            "financial_capacity": "Strong balance sheet for acquisitions"
+          },
+          {
+            "buyer_name": "PT Sriboga Raturaya (Holland Bakery)",
+            "description": "Premium bakery chain with strong brand recognition",
+            "strategic_rationale": "Diversify into preservative-free, health-oriented bakery segment and reach younger customers",
+            "key_synergies": "Brand diversification, B2B client expansion, shared logistics",
+            "concerns": "Market overlap, integration complexity",
+            "fit_score": "High (8/10)",
+            "financial_capacity": "Adequate for strategic acquisition"
+          },
+          {
+            "buyer_name": "Yamazaki Baking Co., Ltd.",
+            "description": "Japanese bakery giant seeking Southeast Asia expansion",
+            "strategic_rationale": "Accelerate Southeast Asia expansion using Breadlife's local expertise and market access",
+            "key_synergies": "Product innovation, joint procurement, regional expansion",
+            "concerns": "Cultural integration, regulatory compliance",
+            "fit_score": "Medium-High (8/10)",
+            "financial_capacity": "Significant international expansion budget"
+          }
+        ]
+      }
+    },
+    {
+      "template": "buyer_profiles",
+      "content_ir_key": "financial_buyers",
+      "data": {
+        "title": "Financial Buyer Profiles",
+        "table_headers": ["Buyer Name", "Strategic Rationale", "Key Synergies", "Concerns", "Fit"],
+        "table_rows": [
+          {
+            "buyer_name": "Creador",
+            "description": "Southeast Asian private equity with consumer focus",
+            "strategic_rationale": "Attractive consumer growth story with margin expansion in Indonesia's bakery sector",
+            "key_synergies": "Regional F&B roll-up platform, operational enhancements, exit to strategic",
+            "concerns": "Valuation discipline, exit timeline",
+            "fit_score": "High (9/10)",
+            "financial_capacity": "Strong consumer sector allocation"
+          },
+          {
+            "buyer_name": "Northstar Group",
+            "description": "Indonesian-focused private equity with retail expertise",
+            "strategic_rationale": "Scalable platform in resilient F&B, strong management, and brand equity",
+            "key_synergies": "Network access, digitalization support, value creation for IPO",
+            "concerns": "Competitive process, control preferences",
+            "fit_score": "High (9/10)",
+            "financial_capacity": "Significant dry powder for growth"
+          },
+          {
+            "buyer_name": "Navis Capital Partners",
+            "description": "Southeast Asian private equity with F&B experience",
+            "strategic_rationale": "Exposure to Indonesia's fast-growing food retail, proven unit economics",
+            "key_synergies": "Operational improvement, cross-border M&A, strategic governance",
+            "concerns": "Integration complexity, market timing",
+            "fit_score": "High (8/10)",
+            "financial_capacity": "Strong regional presence"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,527 @@
+{
+  "slides": [
+    {
+      "template": "business_overview",
+      "data": {
+        "title": "Business Overview",
+        "description": "Arab Bank is a leading universal MENA bank, offering corporate, retail, and wealth management services across 27 countries. With over 600 branches and a robust digital banking platform, it serves millions of clients and maintains a strong capital base.",
+        "timeline": {
+          "start_year": 1930,
+          "end_year": 2025
+        },
+        "highlights": [
+          "Robust capital base ($12.5B equity)",
+          "Pan-Arab cross-border franchise",
+          "Award-winning digital transformation",
+          "Consistent net profit growth (6% YoY in 2025)"
+        ],
+        "services": [
+          "Corporate and Institutional Banking",
+          "Retail & Consumer Banking",
+          "Wealth Management"
+        ],
+        "positioning_desc": "Arab Bank is positioned as the premier MENA cross-border financial institution, recognized for stability, digital innovation, and comprehensive client coverage."
+      }
+    },
+    {
+      "template": "investor_considerations",
+      "data": {
+        "title": "Investor Considerations",
+        "considerations": [
+          "Exposure to regional geopolitical risk",
+          "Currency and FX volatility",
+          "Regulatory compliance across 27 markets",
+          "Competitive pressure from GCC banks"
+        ],
+        "mitigants": [
+          "Strong capital base and liquidity",
+          "Geographic diversification",
+          "Advanced risk management systems",
+          "Prudent credit controls"
+        ]
+      }
+    },
+    {
+      "template": "product_service_footprint",
+      "data": {
+        "title": "Product & Service Footprint",
+        "services": [
+          {
+            "title": "Corporate and Institutional Banking",
+            "desc": "Comprehensive lending, trade finance, and treasury solutions for large clients"
+          },
+          {
+            "title": "Consumer Banking",
+            "desc": "Retail deposits, loans, cards, and digital services for individuals"
+          },
+          {
+            "title": "Wealth Management",
+            "desc": "Private banking, investment advisory, and asset management for HNWIs"
+          },
+          {
+            "title": "Treasury & Capital Markets",
+            "desc": "FX, money markets, and investment products for institutional clients"
+          }
+        ],
+        "coverage_table": [
+          ["Region", "Business Segment", "Assets/Products", "Coverage Details"],
+          ["MENA", "Corporate Banking", "Loans, Trade Finance", "Levant, GCC, North Africa"],
+          ["Europe", "Private Banking", "Wealth Management", "Switzerland, UK, France"],
+          ["Asia", "Treasury", "FX, Derivatives", "Singapore, Hong Kong branches"]
+        ],
+        "metrics": {
+          "branches": 600,
+          "countries": 27,
+          "aum_usd_b": 18,
+          "corporate_clients": 4000,
+          "retail_clients": 2500000
+        }
+      }
+    },
+    {
+      "template": "historical_financial_performance",
+      "data": {
+        "title": "Historical Financial Performance",
+        "chart": {
+          "title": "Revenue and EBITDA Growth (2021-2025E)",
+          "categories": ["2021", "2022", "2023", "2024", "2025E"],
+          "revenue": [4400, 4800, 5000, 5300, 5500],
+          "ebitda": [1200, 1280, 1350, 1450, 1520]
+        },
+        "key_metrics": {
+          "metrics": [
+            "Consistent 6% YoY net income growth",
+            "Assets up 9% to $75.2B in 2025",
+            "Loans $39.8B; Deposits $55.3B",
+            "EBITDA margin stable at ~27%"
+          ]
+        },
+        "revenue_growth": {
+          "title": "Revenue Growth Drivers",
+          "points": [
+            "Corporate and institutional lending expansion",
+            "Digital and retail banking growth",
+            "Cross-border transaction volume increase"
+          ]
+        },
+        "banker_view": {
+          "title": "Banker's Perspective",
+          "text": "Arab Bank's financial performance demonstrates resilience and prudent growth despite regional headwinds, positioning it well for continued value creation."
+        }
+      }
+    },
+    {
+      "template": "management_team",
+      "data": {
+        "title": "Management Team",
+        "left_column_profiles": [
+          {
+            "role_title": "Chairman of the Board",
+            "experience_bullets": [
+              "Over 40 years in banking leadership",
+              "Chairman since 2012",
+              "Led Arab Bank through major regional expansion",
+              "Active in global financial forums"
+            ]
+          },
+          {
+            "role_title": "Chief Executive Officer",
+            "experience_bullets": [
+              "More than 30 years in international banking",
+              "Drove digital transformation strategy",
+              "Former CEO of regional banking subsidiaries",
+              "Expertise in risk management and operations"
+            ]
+          }
+        ],
+        "right_column_profiles": [
+          {
+            "role_title": "Chief Financial Officer",
+            "experience_bullets": [
+              "25 years of experience in financial management",
+              "Led multi-country finance reporting teams",
+              "Oversaw bank's capital optimization",
+              "Instrumental in recent M&A integration"
+            ]
+          },
+          {
+            "role_title": "Chief Digital Officer",
+            "experience_bullets": [
+              "20 years in banking technology",
+              "Launched award-winning digital banking platform",
+              "Background in fintech partnerships",
+              "Focus on customer-centric innovation"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "template": "growth_strategy_projections",
+      "data": {
+        "slide_data": {
+          "title": "Growth Strategy & Projections",
+          "growth_strategy": {
+            "strategies": [
+              "Expand corporate banking market share in GCC and Levant",
+              "Accelerate digital transformation and fintech partnerships",
+              "Grow wealth management and private banking in Europe/Asia",
+              "Leverage regional M&A for network expansion"
+            ]
+          },
+          "financial_projections": {
+            "categories": ["2025E", "2026E", "2027E"],
+            "revenue": [5500, 5850, 6200],
+            "ebitda": [1520, 1610, 1700]
+          }
+        }
+      }
+    },
+    {
+      "template": "competitive_positioning",
+      "data": {
+        "title": "Competitive Positioning",
+        "competitors": [
+          {"name": "Arab Bank", "revenue": 5300},
+          {"name": "First Abu Dhabi Bank (FAB)", "revenue": 10000},
+          {"name": "Qatar National Bank (QNB)", "revenue": 15000},
+          {"name": "Emirates NBD", "revenue": 8000},
+          {"name": "Abu Dhabi Islamic Bank (ADIB)", "revenue": 2500}
+        ],
+        "assessment": [
+          ["Company", "Market Share", "Tech Platform", "Coverage", "Revenue (USD M)"],
+          ["Arab Bank", "⭐⭐⭐⭐ (Strong MENA)", "⭐⭐⭐⭐ (Digital, API)", "27 countries, 600+ branches", "$5,300M"],
+          ["FAB", "⭐⭐⭐⭐⭐ (UAE leader)", "⭐⭐⭐⭐ (Advanced digital)", "20+ countries, strong GCC", "$10,000M"],
+          ["QNB", "⭐⭐⭐⭐⭐ (GCC leader)", "⭐⭐⭐⭐ (Corporate focus)", ">30 countries, global", "$15,000M"],
+          ["Emirates NBD", "⭐⭐⭐⭐ (UAE)", "⭐⭐⭐⭐⭐ (Top digital)", "15 countries, GCC/UAE focus", "$8,000M"],
+          ["ADIB", "⭐⭐⭐ (Islamic niche)", "⭐⭐⭐ (Modernizing)", "4+ countries, growing", "$2,500M"]
+        ],
+        "advantages": [
+          "Pan-Arab cross-border franchise",
+          "Award-winning digital banking",
+          "Diversified product suite",
+          "Strong profitability and risk controls",
+          "Robust correspondent banking network"
+        ],
+        "barriers": [
+          "Regulatory complexity across 27+ markets",
+          "Significant capital requirements",
+          "Trusted legacy brand relationships",
+          "Integrated multi-country digital infrastructure"
+        ]
+      }
+    },
+    {
+      "template": "valuation_overview",
+      "data": {
+        "title": "Valuation Overview",
+        "valuation_data": [
+          {
+            "methodology": "Public Market Capitalization",
+            "enterprise_value": "$5.3B",
+            "metric": "Market Cap",
+            "22a_multiple": "n/a",
+            "23e_multiple": "n/a",
+            "commentary": "Arab Bank's market capitalization as of September 2025 is $5.3B, based on Amman Stock Exchange closing price."
+          },
+          {
+            "methodology": "EV/Revenue Multiple",
+            "enterprise_value": "$6.0B",
+            "metric": "Revenue $5.3B (2025E)",
+            "22a_multiple": "1.5x",
+            "23e_multiple": "1.5x",
+            "commentary": "Arab Bank trades at 1.5x EV/Revenue, consistent with regional banking sector norms and public market valuations."
+          },
+          {
+            "methodology": "Price/Earnings (P/E) Multiple",
+            "enterprise_value": "$5.15B",
+            "metric": "Net Profit $1.0B (2025E)",
+            "22a_multiple": "5.15x",
+            "23e_multiple": "5.15x",
+            "commentary": "Current P/E multiple for Arab Bank is 5.15x, in line with GCC peer average of 6-7x."
+          },
+          {
+            "methodology": "Price/Book Value",
+            "enterprise_value": "$4.0B - $5.3B",
+            "metric": "Equity $12.5B (2025)",
+            "22a_multiple": "0.32x",
+            "23e_multiple": "0.42x",
+            "commentary": "Arab Bank trades at a discount to book value (P/B 0.32x-0.42x) due to regional risk factors, while UAE peer banks trade at 1.1x-1.3x."
+          },
+          {
+            "methodology": "Regional Precedent Transactions",
+            "enterprise_value": "1.2x - 1.4x Book Value",
+            "metric": "Recent MENA Bank M&A",
+            "22a_multiple": "1.2x",
+            "23e_multiple": "1.4x",
+            "commentary": "Recent GCC bank transactions (Emirates NBD, Mashreq, Commercial Bank of Dubai) valued at 1.1x-1.3x book value. Arab Bank's discount reflects risk premium."
+          }
+        ]
+      }
+    },
+    {
+      "template": "precedent_transactions",
+      "data": {
+        "title": "Precedent Transactions",
+        "transactions": [
+          {
+            "target": "Commercial Bank of Dubai",
+            "acquirer": "Emirates NBD",
+            "date": "2023-11",
+            "country": "UAE",
+            "enterprise_value": 3600,
+            "revenue": 1200,
+            "ev_revenue_multiple": 3.0
+          },
+          {
+            "target": "Mashreq Bank",
+            "acquirer": "First Abu Dhabi Bank",
+            "date": "2024-04",
+            "country": "UAE",
+            "enterprise_value": 4100,
+            "revenue": 1500,
+            "ev_revenue_multiple": 2.73
+          },
+          {
+            "target": "Bank Audi",
+            "acquirer": "Arab Bank",
+            "date": "2022-08",
+            "country": "Lebanon",
+            "enterprise_value": 2100,
+            "revenue": 820,
+            "ev_revenue_multiple": 2.56
+          }
+        ]
+      }
+    },
+    {
+      "template": "investor_process_overview",
+      "data": {
+        "title": "Investor Process Overview",
+        "diligence_topics": [
+          "Credit quality and NPL ratios",
+          "Capital adequacy and regulatory compliance",
+          "IT infrastructure and cyber risk",
+          "Geopolitical exposure and risk management",
+          "Management track record"
+        ],
+        "synergy_opportunities": [
+          "Cross-border client migration",
+          "IT and digital platform integration",
+          "Product cross-sell (retail, corporate)"
+        ],
+        "risk_factors": [
+          "Regional political instability",
+          "Currency and FX volatility",
+          "Regulatory changes affecting capital"
+        ],
+        "mitigants": [
+          "Diversified geographic footprint",
+          "Strong capital and liquidity buffers",
+          "Robust risk controls and compliance"
+        ],
+        "timeline": [
+          "Weeks 1-2: Investor outreach and NDA execution",
+          "Weeks 3-4: Dataroom access and initial diligence",
+          "Weeks 5-6: Management presentations",
+          "Weeks 7-10: Deep dive diligence, site visits",
+          "Weeks 11-12: Non-binding offers",
+          "Weeks 13-16: Final negotiations, binding offers",
+          "Weeks 17-20: Documentation and closing"
+        ]
+      }
+    },
+    {
+      "template": "margin_cost_resilience",
+      "data": {
+        "title": "Margin & Cost Resilience",
+        "chart_title": "EBITDA Margin Trend (2021-2025E)",
+        "chart_data": {
+          "categories": ["2021", "2022", "2023", "2024", "2025E"],
+          "values": [27.3, 26.7, 27.0, 27.4, 27.6]
+        },
+        "cost_management": {
+          "items": [
+            {
+              "title": "Centralized loan management",
+              "description": "Streamlined approvals and credit risk monitoring reduced costs by 8%."
+            },
+            {
+              "title": "Branch network optimization",
+              "description": "Consolidation and automation lowered fixed costs across 8 markets."
+            },
+            {
+              "title": "Digital migration",
+              "description": "Shifted 55% of transactions to digital, cutting processing costs."
+            }
+          ]
+        },
+        "risk_mitigation": {
+          "main_strategy": "Maintain robust capital, diversify lending, and invest in cybersecurity to protect margins and resilience."
+        }
+      }
+    },
+    {
+      "template": "sea_conglomerates",
+      "data": {
+        "title": "Global Conglomerate Buyers",
+        "sea_conglomerates": [
+          {
+            "name": "Mitsubishi UFJ Financial Group",
+            "country": "Japan",
+            "description": "Asia's largest financial group with global corporate banking reach",
+            "key_shareholders": "Japanese institutional investors",
+            "key_financials": "Assets: $3.2T, Net income: $12B",
+            "contact": "Moelis Tokyo Team"
+          },
+          {
+            "name": "Temasek Holdings",
+            "country": "Singapore",
+            "description": "Sovereign wealth fund, major global financial investor",
+            "key_shareholders": "Singapore government",
+            "key_financials": "AUM: $300B+",
+            "contact": "Moelis Singapore Team"
+          },
+          {
+            "name": "Qatar Investment Authority",
+            "country": "Qatar",
+            "description": "Sovereign wealth fund with major banking investments",
+            "key_shareholders": "State of Qatar",
+            "key_financials": "AUM: $475B",
+            "contact": "Moelis Middle East Team"
+          },
+          {
+            "name": "SoftBank Group",
+            "country": "Japan",
+            "description": "Global tech and financial conglomerate",
+            "key_shareholders": "Masayoshi Son, Japanese institutions",
+            "key_financials": "Assets: $350B",
+            "contact": "Moelis APAC Team"
+          },
+          {
+            "name": "Saudi National Bank",
+            "country": "Saudi Arabia",
+            "description": "Largest bank in Saudi Arabia, growing regional influence",
+            "key_shareholders": "Saudi Public Investment Fund",
+            "key_financials": "Assets: $250B, Net profit: $4.5B",
+            "contact": "Moelis GCC Team"
+          }
+        ]
+      }
+    },
+    {
+      "template": "buyer_profiles",
+      "content_ir_key": "strategic_buyers",
+      "data": {
+        "title": "Strategic Buyer Profiles",
+        "table_headers": [
+          "Buyer Name",
+          "Description",
+          "Strategic Rationale",
+          "Key Synergies",
+          "Fit",
+          "Financial Capacity"
+        ],
+        "table_rows": [
+          {
+            "buyer_name": "First Abu Dhabi Bank (FAB)",
+            "description": "UAE's largest bank with strong regional presence",
+            "strategic_rationale": "Expand into Levant; unlock cross-border synergies",
+            "key_synergies": "Corporate banking, trade finance, digital integration",
+            "fit": "High (9/10)",
+            "financial_capacity": "Very High"
+          },
+          {
+            "buyer_name": "Emirates NBD",
+            "description": "Top GCC bank, leader in digital banking",
+            "strategic_rationale": "Scale regional retail and SME platforms",
+            "key_synergies": "Retail banking, digital, treasury",
+            "fit": "High (8/10)",
+            "financial_capacity": "High"
+          },
+          {
+            "buyer_name": "Qatar National Bank (QNB)",
+            "description": "Largest bank in the Middle East by assets",
+            "strategic_rationale": "Broaden Middle East network",
+            "key_synergies": "Wealth management, network, FX",
+            "fit": "Medium (7/10)",
+            "financial_capacity": "Very High"
+          },
+          {
+            "buyer_name": "National Bank of Kuwait",
+            "description": "Market leader in Kuwait with regional ambitions",
+            "strategic_rationale": "Enhance Levantine presence",
+            "key_synergies": "Corporate lending, regional ops",
+            "fit": "Medium (7/10)",
+            "financial_capacity": "High"
+          },
+          {
+            "buyer_name": "Abu Dhabi Islamic Bank (ADIB)",
+            "description": "Leading Islamic bank with growth ambitions",
+            "strategic_rationale": "Diversify into conventional banking",
+            "key_synergies": "Islamic products, retail expansion",
+            "fit": "Medium (6/10)",
+            "financial_capacity": "High"
+          }
+        ]
+      }
+    },
+    {
+      "template": "buyer_profiles",
+      "content_ir_key": "financial_buyers",
+      "data": {
+        "title": "Financial Buyer Profiles",
+        "table_headers": [
+          "Buyer Name",
+          "Description",
+          "Strategic Rationale",
+          "Key Synergies",
+          "Fit",
+          "Financial Capacity"
+        ],
+        "table_rows": [
+          {
+            "buyer_name": "Abraaj Capital",
+            "description": "Leading MENA-focused private equity investor",
+            "strategic_rationale": "Leverage turnaround and digital growth",
+            "key_synergies": "Operational efficiency, fintech scaling",
+            "fit": "High (8/10)",
+            "financial_capacity": "High"
+          },
+          {
+            "buyer_name": "Carlyle Group",
+            "description": "Global PE firm with emerging markets focus",
+            "strategic_rationale": "Banking sector platform investment",
+            "key_synergies": "Governance, capital optimization",
+            "fit": "Medium (7/10)",
+            "financial_capacity": "Very High"
+          },
+          {
+            "buyer_name": "Blackstone",
+            "description": "Top global alternative asset manager",
+            "strategic_rationale": "Regional banking consolidation play",
+            "key_synergies": "Risk management, inorganic growth",
+            "fit": "Medium (7/10)",
+            "financial_capacity": "Very High"
+          },
+          {
+            "buyer_name": "Gulf Capital",
+            "description": "MENA PE platform with financial services focus",
+            "strategic_rationale": "Drive regional value creation",
+            "key_synergies": "Network, digital, cost efficiencies",
+            "fit": "High (8/10)",
+            "financial_capacity": "High"
+          },
+          {
+            "buyer_name": "KKR & Co",
+            "description": "Global investment firm with MENA presence",
+            "strategic_rationale": "Financial services consolidation thesis",
+            "key_synergies": "Technology investment, operational scale",
+            "fit": "Medium (7/10)",
+            "financial_capacity": "Very High"
+          }
+        ]
+      }
+    }
+  ]
+}

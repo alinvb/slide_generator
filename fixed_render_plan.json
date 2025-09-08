@@ -1,0 +1,651 @@
+{
+  "slides": [
+    {
+      "template": "business_overview",
+      "data": {
+        "title": "Business Overview",
+        "description": "LlamaIndex is a leading AI infrastructure company enabling developers and enterprises to build knowledge assistants and agentic workflows over unstructured data.",
+        "timeline": {
+          "start_year": 2023,
+          "end_year": 2025
+        },
+        "highlights": [
+          "Rapidly scaled from open-source project to 3M+ monthly downloads and 300+ enterprise clients.",
+          "Enterprise-grade cloud platform (LlamaCloud) and document parser (LlamaParse) powering knowledge management for Fortune 500s.",
+          "Strategic partnerships with Salesforce, KPMG, and major global investors accelerate innovation and adoption."
+        ],
+        "services": [
+          "LlamaIndex Framework for developer-led agentic RAG and knowledge assistant solutions.",
+          "LlamaCloud for secure, scalable, production-grade ingestion and retrieval of unstructured enterprise data.",
+          "LlamaParse for advanced, high-fidelity extraction from PDFs, PowerPoints, and complex documents."
+        ],
+        "positioning_desc": "LlamaIndex is positioned as the enterprise standard for connecting LLMs to private, complex data—trusted by leading global organizations."
+      }
+    },
+    {
+      "template": "investor_considerations",
+      "data": {
+        "title": "Investor Considerations",
+        "considerations": [
+          "Intense competition from other AI infra and RAG platforms",
+          "Rapid pace of AI technology evolution and platform fragmentation",
+          "Dependence on key engineering and product talent",
+          "Enterprise sales cycles and security/compliance hurdles"
+        ],
+        "mitigants": [
+          "Continuous R&D, connector expansion, and rapid feature rollout",
+          "Retention and incentive plans for core team",
+          "Robust security, privacy, and compliance certifications",
+          "Focus on high-value enterprise verticals and global partnerships"
+        ]
+      }
+    },
+    {
+      "template": "product_service_footprint",
+      "data": {
+        "title": "Product & Service Footprint",
+        "services": [
+          {
+            "title": "LlamaIndex Framework",
+            "desc": "Open-source framework for building LLM-powered knowledge assistants and agentic workflows over enterprise data."
+          },
+          {
+            "title": "LlamaCloud",
+            "desc": "Secure, scalable SaaS and on-premise platform for ingesting, indexing, and retrieving unstructured enterprise data."
+          },
+          {
+            "title": "LlamaParse",
+            "desc": "Advanced parser for extracting structured data from complex documents, PDFs, and PowerPoints for enterprise RAG."
+          },
+          {
+            "title": "LlamaHub & Data Connectors",
+            "desc": "Library of connectors for apps like Notion, Slack, Google Docs, and SQL, enabling seamless workflow automation."
+          }
+        ],
+        "coverage_table": [
+          [
+            "Region",
+            "Market Segment",
+            "Major Assets/Products",
+            "Coverage Details"
+          ],
+          [
+            "United States",
+            "Finance, Tech, Services",
+            "LlamaCloud, LlamaParse, Framework",
+            "Enterprise deployments, Fortune 500 clients"
+          ],
+          [
+            "Europe",
+            "Consulting, Manufacturing",
+            "LlamaCloud, LlamaParse, Connectors",
+            "KPMG, industry leaders, RAG and AI workflow standardization"
+          ],
+          [
+            "Asia",
+            "Tech, Financial Services",
+            "LlamaCloud, Framework, Data Connectors",
+            "Adoption in India, Singapore, Japan; growing in SE Asia"
+          ],
+          [
+            "Global",
+            "Open Source/Dev Community",
+            "LlamaIndex Framework, LlamaHub",
+            "3M+ monthly downloads, developer adoption worldwide"
+          ]
+        ],
+        "metrics": {
+          "monthly_downloads_m": 3,
+          "pages_processed_m": 150,
+          "enterprise_clients": 300,
+          "waitlist_organizations": 10000
+        }
+      }
+    },
+    {
+      "template": "historical_financial_performance",
+      "data": {
+        "title": "Historical Financial Performance",
+        "chart": {
+          "title": "Revenue & EBITDA (2020–2024E)",
+          "categories": [
+            "2020",
+            "2021",
+            "2022",
+            "2023",
+            "2024E"
+          ],
+          "revenue": [
+            1.2,
+            4.0,
+            9.5,
+            21.0,
+            38.0
+          ],
+          "ebitda": [
+            -2.0,
+            -1.0,
+            -0.5,
+            1.2,
+            5.7
+          ]
+        },
+        "key_metrics": {
+          "title": "Key Metrics",
+          "metrics": [
+            "120%",
+            "38.0",
+            "5.7",
+            "300"
+          ]
+        },
+        "revenue_growth": {
+          "title": "Revenue Growth",
+          "points": [
+            "2020–2024E CAGR: 120%",
+            "Strong cloud adoption drives scaling",
+            "Enterprise customer base expands rapidly"
+          ]
+        },
+        "banker_view": {
+          "title": "Banker View",
+          "text": "LlamaIndex's high ARR growth, operational leverage, and enterprise traction match leading SaaS benchmarks."
+        }
+      }
+    },
+    {
+      "template": "management_team",
+      "data": {
+        "title": "Management Team",
+        "left_column_profiles": [
+          {
+            "role_title": "Chief Executive Officer (CEO)",
+            "experience_bullets": [
+              "Co-founder of LlamaIndex; led company from open-source project to enterprise SaaS adoption.",
+              "Former applied research scientist at Uber focused on AI/ML infrastructure.",
+              "Speaker at major AI industry conferences and recognized RAG pioneer.",
+              "Holds Computer Science degrees from Princeton and Stanford.",
+              "Passionate about developer experience and enterprise AI deployment."
+            ]
+          },
+          {
+            "role_title": "Chief Technology Officer (CTO)",
+            "experience_bullets": [
+              "Co-founder of LlamaIndex; architect of LlamaCloud and core agent platform.",
+              "Early engineer at Uber with focus on distributed backend systems.",
+              "Expert in open-source AI/ML stack and developer tooling.",
+              "Drives reliability, scalability, and developer-first product design.",
+              "Holds a degree in Computer Science."
+            ]
+          }
+        ],
+        "right_column_profiles": [
+          {
+            "role_title": "Founding Account Executive",
+            "experience_bullets": [
+              "Sales/customer success leader; drove enterprise adoption including Fortune 500 clients.",
+              "Built go-to-market and customer enablement programs at high-growth SaaS/AI startups.",
+              "Former enterprise sales leader at multiple technology companies.",
+              "Instrumental in scaling LlamaIndex's enterprise waitlist.",
+              "Focuses on onboarding, scaling, and customer support."
+            ]
+          },
+          {
+            "role_title": "Founding AI Engineer, Customer Facing",
+            "experience_bullets": [
+              "Specialist in customer-facing AI engineering and technical implementation.",
+              "Leads onboarding and integration for key enterprise deployments.",
+              "AI/ML engineering and applied research background.",
+              "Manages client success with LlamaCloud and custom agent solutions.",
+              "Focuses on bespoke AI workflow development."
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "template": "growth_strategy_projections",
+      "data": {
+        "title": "Growth Strategy & Financial Projections",
+        "slide_data": {
+          "title": "Growth Strategy & Projections",
+          "growth_strategy": {
+            "strategies": [
+              "Accelerate enterprise cloud (LlamaCloud) and advanced document parser (LlamaParse) rollouts.",
+              "Expand industry-specific agent workflows for finance, legal, and market research.",
+              "Scale developer ecosystem and open-source adoption via LlamaHub integrations and new connectors.",
+              "Drive international expansion into EMEA and APAC with regional partnerships.",
+              "Invest in R&D for multimodal (text+image) and structured output agent capabilities."
+            ]
+          },
+          "financial_projections": {
+            "categories": [
+              "2023",
+              "2024E",
+              "2025E"
+            ],
+            "revenue": [
+              21.0,
+              38.0,
+              66.0
+            ],
+            "ebitda": [
+              1.2,
+              5.7,
+              15.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "template": "competitive_positioning",
+      "data": {
+        "title": "Competitive Positioning",
+        "competitors": [
+          {
+            "name": "LangChain",
+            "revenue": 30
+          },
+          {
+            "name": "CrewAI",
+            "revenue": 5
+          },
+          {
+            "name": "OpenAI Assistants API",
+            "revenue": 300
+          },
+          {
+            "name": "Haystack",
+            "revenue": 8
+          },
+          {
+            "name": "Eden AI",
+            "revenue": 10
+          }
+        ],
+        "assessment": [
+          [
+            "Company",
+            "Market Focus",
+            "Connectors/Indexing",
+            "Enterprise Adoption",
+            "Factuality/Traceability"
+          ],
+          [
+            "LlamaIndex",
+            "⭐⭐⭐⭐⭐",
+            "⭐⭐⭐⭐⭐",
+            "⭐⭐⭐⭐",
+            "⭐⭐⭐⭐⭐"
+          ],
+          [
+            "LangChain",
+            "⭐⭐⭐⭐",
+            "⭐⭐⭐⭐",
+            "⭐⭐⭐⭐",
+            "⭐⭐⭐⭐"
+          ],
+          [
+            "CrewAI",
+            "⭐⭐⭐",
+            "⭐⭐⭐",
+            "⭐⭐",
+            "⭐⭐⭐"
+          ],
+          [
+            "OpenAI API",
+            "⭐⭐⭐⭐",
+            "⭐⭐",
+            "⭐⭐⭐⭐",
+            "⭐⭐⭐⭐"
+          ],
+          [
+            "Haystack",
+            "⭐⭐⭐⭐",
+            "⭐⭐⭐⭐",
+            "⭐⭐⭐",
+            "⭐⭐⭐⭐"
+          ],
+          [
+            "Eden AI",
+            "⭐⭐⭐",
+            "⭐⭐⭐⭐",
+            "⭐⭐⭐",
+            "⭐⭐⭐⭐"
+          ]
+        ],
+        "barriers": [
+          {
+            "title": "Retrieval Quality",
+            "desc": "Requires deep expertise and evaluation to replicate LlamaIndex's retrieval reliability."
+          },
+          {
+            "title": "Connector Ecosystem",
+            "desc": "Comprehensive, well-documented connectors are difficult and slow to match."
+          },
+          {
+            "title": "Enterprise Security",
+            "desc": "Proven security and compliance for enterprise is challenging for new entrants."
+          }
+        ],
+        "advantages": [
+          {
+            "title": "Data-centric Agent Design",
+            "desc": "Excels at retrieval over complex, private, and heterogeneous data."
+          },
+          {
+            "title": "Grounded Retrieval",
+            "desc": "Reduces hallucination risk via robust citation and source-tracing."
+          },
+          {
+            "title": "Production-Grade Reliability",
+            "desc": "Favored by enterprises for reliability, context control, and traceability."
+          }
+        ]
+      }
+    },
+    {
+      "template": "valuation_overview",
+      "data": {
+        "title": "Valuation Overview",
+        "valuation_data": [
+          {
+            "methodology": "Trading Multiples (EV/Revenue)",
+            "enterprise_value": "$76–114M",
+            "metric": "EV/Revenue",
+            "22a_multiple": "3.6x",
+            "23e_multiple": "3.0x",
+            "commentary": "Based on annualized run-rate revenue and peer SaaS/AI benchmarks."
+          },
+          {
+            "methodology": "Trading Multiples (EV/EBITDA)",
+            "enterprise_value": "$76–114M",
+            "metric": "EV/EBITDA",
+            "22a_multiple": "n/a",
+            "23e_multiple": "40x",
+            "commentary": "Early-stage EBITDA is low/negative; multiples reflect high-growth SaaS benchmarks."
+          },
+          {
+            "methodology": "Discounted Cash Flow (DCF)",
+            "enterprise_value": "$90–120M",
+            "metric": "DCF",
+            "22a_multiple": "n/a",
+            "23e_multiple": "n/a",
+            "commentary": "Assumes 120–150% CAGR, margin expansion, and sector risk premium."
+          }
+        ]
+      }
+    },
+    {
+      "template": "precedent_transactions",
+      "data": {
+        "title": "Precedent Transactions",
+        "transactions": [
+          {
+            "target": "Reka AI",
+            "acquirer": "Salesforce Ventures",
+            "date": "Q2 2025",
+            "country": "USA",
+            "enterprise_value": "$10B",
+            "revenue": "$200M",
+            "ev_revenue_multiple": "50x"
+          },
+          {
+            "target": "EliseAI",
+            "acquirer": "General Catalyst",
+            "date": "Q1 2025",
+            "country": "USA",
+            "enterprise_value": "$2.2B",
+            "revenue": "$70M",
+            "ev_revenue_multiple": "31x"
+          },
+          {
+            "target": "Cohere",
+            "acquirer": "Oracle",
+            "date": "Q4 2024",
+            "country": "Canada",
+            "enterprise_value": "$2.1B",
+            "revenue": "$75M",
+            "ev_revenue_multiple": "28x"
+          },
+          {
+            "target": "Mistral AI",
+            "acquirer": "Andreessen Horowitz",
+            "date": "Q3 2024",
+            "country": "France",
+            "enterprise_value": "$500M",
+            "revenue": "$20M",
+            "ev_revenue_multiple": "25x"
+          },
+          {
+            "target": "Glean",
+            "acquirer": "Sequoia Capital",
+            "date": "Q1 2024",
+            "country": "USA",
+            "enterprise_value": "$1.2B",
+            "revenue": "$60M",
+            "ev_revenue_multiple": "20x"
+          }
+        ]
+      }
+    },
+    {
+      "template": "margin_cost_resilience",
+      "data": {
+        "title": "Margin & Cost Resilience",
+        "chart_title": "EBITDA Margin Trend",
+        "chart_data": {
+          "categories": [
+            "2021",
+            "2022",
+            "2023",
+            "2024E",
+            "2025E"
+          ],
+          "values": [
+            -25,
+            -5,
+            5.7,
+            15.0,
+            22.7
+          ]
+        },
+        "cost_management": {
+          "items": [
+            {
+              "title": "Hybrid Cloud & GPU-as-a-Service",
+              "description": "Leverage hybrid infrastructure and on-demand GPU clusters to minimize CapEx and optimize cloud spend."
+            },
+            {
+              "title": "Architectural Automation & Reuse",
+              "description": "Automate retraining, anomaly detection, and enforce reuse before new model training to reduce redundant costs."
+            },
+            {
+              "title": "Negotiated Cloud Pricing",
+              "description": "Secure committed use discounts and reserved instances to reduce compute costs by up to 60%."
+            },
+            {
+              "title": "FinOps & Cost Visibility",
+              "description": "Implement real-time cost tracking, owner assignment, and approval workflows for new workloads."
+            }
+          ]
+        },
+        "risk_mitigation": {
+          "main_strategy": "Enforce FinOps, security controls, and scalable automation to maintain EBITDA margin resilience as scale grows."
+        }
+      }
+    },
+    {
+      "template": "sea_conglomerates",
+      "data": {
+        "title": "Global Conglomerates",
+        "data": [
+          {
+            "name": "NVIDIA",
+            "country": "USA",
+            "description": "World's largest AI chipmaker and cloud infra leader.",
+            "key_shareholders": "Institutional, retail",
+            "key_financials": "Market cap $4T; leading AI infra revenue",
+            "contact": "N/A"
+          },
+          {
+            "name": "Microsoft",
+            "country": "USA",
+            "description": "Leading global cloud and enterprise software provider.",
+            "key_shareholders": "Institutional, retail",
+            "key_financials": "Market cap $3.2T; $282B revenue",
+            "contact": "N/A"
+          },
+          {
+            "name": "Alphabet (Google)",
+            "country": "USA",
+            "description": "Global leader in AI, cloud, and search.",
+            "key_shareholders": "Institutional, retail",
+            "key_financials": "Market cap $2T+; $350B revenue",
+            "contact": "N/A"
+          },
+          {
+            "name": "International Holding Co.",
+            "country": "UAE",
+            "description": "Abu Dhabi-based conglomerate in AI, healthcare, agri, real estate.",
+            "key_shareholders": "Abu Dhabi investors",
+            "key_financials": "Market cap $240B",
+            "contact": "N/A"
+          },
+          {
+            "name": "Tencent",
+            "country": "China",
+            "description": "Tech conglomerate in cloud, fintech, and gaming.",
+            "key_shareholders": "Institutional, retail",
+            "key_financials": "Market cap ~$600B",
+            "contact": "N/A"
+          }
+        ]
+      }
+    },
+    {
+      "template": "buyer_profiles",
+      "data": {
+        "title": "Strategic Buyer Profiles",
+        "table_headers": [
+          "Buyer Name",
+          "Description",
+          "Strategic Rationale",
+          "Key Synergies",
+          "Fit"
+        ],
+        "table_rows": [
+          {
+            "buyer_name": "NVIDIA",
+            "strategic_rationale": "World's largest AI chipmaker and GPU/cloud infrastructure leader.",
+            "key_synergies": "Expand AI infrastructure and accelerate agentic platform adoption for enterprise customers.",
+            "fit": "High (9/10) - Strategic AI infra alignment"
+          },
+          {
+            "buyer_name": "Microsoft",
+            "strategic_rationale": "Leading global cloud, enterprise software, and AI provider (Azure, Copilot).",
+            "key_synergies": "Broaden Azure AI suite and integrate advanced document/agent tech for enterprise clients.",
+            "fit": "High (9/10) - Platform & cloud synergy"
+          },
+          {
+            "buyer_name": "Alphabet (Google)",
+            "strategic_rationale": "Global leader in AI research, cloud, and enterprise platforms.",
+            "key_synergies": "Strengthen Gemini/GCP AI ecosystem and enterprise knowledge search capabilities.",
+            "fit": "High (8/10) - Enterprise AI expansion"
+          },
+          {
+            "buyer_name": "International Holding Co.",
+            "strategic_rationale": "Abu Dhabi-based conglomerate in AI, healthcare, real estate, and agri.",
+            "key_synergies": "Diversify AI and knowledge management for regional/global clients.",
+            "fit": "Medium (7/10) - New tech diversification"
+          }
+        ],
+        "subtitle": "",
+        "company": ""
+      },
+      "content_ir_key": "strategic_buyers"
+    },
+    {
+      "template": "buyer_profiles",
+      "data": {
+        "title": "Financial Buyer Profiles",
+        "table_headers": [
+          "Buyer Name",
+          "Description",
+          "Strategic Rationale",
+          "Key Synergies",
+          "Fit"
+        ],
+        "table_rows": [
+          {
+            "buyer_name": "Sequoia Capital",
+            "strategic_rationale": "Top global VC with deep SaaS/AI portfolio.",
+            "key_synergies": "Invest in next-gen AI infra platforms with high ARR growth and global enterprise adoption.",
+            "fit": "High (9/10) - Proven SaaS investor"
+          },
+          {
+            "buyer_name": "Andreessen Horowitz",
+            "strategic_rationale": "Leading VC with strong AI and developer tool focus.",
+            "key_synergies": "Back high-growth, open-source AI platforms shaping data-centric enterprise AI.",
+            "fit": "High (8/10) - Open source/AI focus"
+          },
+          {
+            "buyer_name": "SoftBank Vision Fund",
+            "strategic_rationale": "Global tech investor in AI, cloud, and infrastructure.",
+            "key_synergies": "Invest in differentiated AI infrastructure for next-gen enterprise digital transformation.",
+            "fit": "Medium (7/10) - Global scale, broad portfolio"
+          },
+          {
+            "buyer_name": "Khosla Ventures",
+            "strategic_rationale": "Venture fund with focus on deep tech and AI.",
+            "key_synergies": "Early-stage AI and infra investor seeking category leaders.",
+            "fit": "Medium (7/10) - Deep tech focus"
+          }
+        ],
+        "subtitle": "",
+        "company": ""
+      },
+      "content_ir_key": "financial_buyers"
+    },
+    {
+      "template": "investor_process_overview",
+      "data": {
+        "title": "Investor Process Overview",
+        "diligence_topics": [
+          "Team and technical talent depth",
+          "Intellectual property (code base, connectors, agentic workflows)",
+          "Enterprise traction, customer use cases, and reference checks",
+          "Recurring revenue growth and margin trends",
+          "Security, data privacy, and compliance",
+          "Go-to-market channels and ecosystem integrations"
+        ],
+        "synergy_opportunities": [
+          "Integrate agentic RAG platform into larger AI/cloud suites",
+          "Acquire AI talent and proven product team",
+          "Cross-sell to enterprise client base",
+          "Leverage proprietary connectors and parsing pipelines"
+        ],
+        "risk_factors": [
+          "Rapid changes in AI technology and buyer priorities",
+          "Intense competition from other frameworks and cloud providers",
+          "Integration and culture fit challenges",
+          "Reliance on key technical talent"
+        ],
+        "mitigants": [
+          "Retention plans and incentives for core team",
+          "Performance-milestone-based earn-outs",
+          "IP escrow/documentation for all pipelines",
+          "Customer transition programs post-acquisition"
+        ],
+        "timeline": [
+          "Preparation: 2–3 weeks – NDA, data room, initial buyer list",
+          "Initial diligence: 3–4 weeks – Tech/code review, customer calls",
+          "Deep diligence: 4–5 weeks – Financials, IP, team interviews, security",
+          "Final offers: 2 weeks – Negotiation, board approvals",
+          "Signing/closing: 2–3 weeks – SPA/APA, regulatory, final close"
+        ]
+      }
+    }
+  ]
+}
