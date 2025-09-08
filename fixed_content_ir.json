@@ -37,6 +37,7 @@
   "management_team": {
     "left_column_profiles": [
       {
+        "name": "Jerry Liu",
         "role_title": "Chief Executive Officer (CEO)",
         "experience_bullets": [
           "Co-founder of LlamaIndex; led company from open-source project to enterprise SaaS adoption.",
@@ -47,7 +48,8 @@
         ]
       },
       {
-        "role_title": "Chief Technology Officer (CTO)",
+        "name": "Simon Suo",
+        "role_title": "Chief Technology Officer (CTO)", 
         "experience_bullets": [
           "Co-founder of LlamaIndex; architect of LlamaCloud and core agent platform.",
           "Early engineer at Uber with focus on distributed backend systems.",
@@ -59,6 +61,7 @@
     ],
     "right_column_profiles": [
       {
+        "name": "Andrei Fajardo",
         "role_title": "Founding Account Executive",
         "experience_bullets": [
           "Sales/customer success leader; drove enterprise adoption including Fortune 500 clients.",
@@ -69,6 +72,7 @@
         ]
       },
       {
+        "name": "Logan Markewich", 
         "role_title": "Founding AI Engineer, Customer Facing",
         "experience_bullets": [
           "Specialist in customer-facing AI engineering and technical implementation.",

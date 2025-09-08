@@ -369,7 +369,19 @@ def render_management_team_slide(data=None, color_scheme=None, typography=None, 
         title_frame.word_wrap = True
         
         p = title_frame.paragraphs[0]
-        p.text = profile_data.get('role_title', 'Role Title')
+        # Display both name and role title
+        name = profile_data.get('name', '')
+        role_title = profile_data.get('role_title', 'Role Title')
+        
+        if name and role_title:
+            p.text = f"{name}\n{role_title}"
+        elif name:
+            p.text = name
+        elif role_title:
+            p.text = role_title
+        else:
+            p.text = 'Name\nRole Title'
+            
         p.font.name = fonts["primary_font"]
         p.font.size = fonts["header_size"]
         p.font.color.rgb = colors["primary"]
@@ -416,18 +428,34 @@ def render_management_team_slide(data=None, color_scheme=None, typography=None, 
     # Combine all profiles for 3-column layout
     all_profiles = left_profiles + right_profiles
     
-    # 3-column layout parameters - add modest top margin for better visual appearance
-    start_y = Inches(1.45)  # Small top margin after title for better spacing
-    column_width = Inches(4.0)  # Narrower columns to fit 3
-    column_spacing = Inches(0.15)  # Small gap between columns
+    # Adaptive layout: use 2-column for 4 profiles, 3-column for 6+ profiles
+    total_profiles_count = len(all_profiles)
     
-    # Calculate column positions
-    col1_x = Inches(0.3)  # Left margin
-    col2_x = col1_x + column_width + column_spacing
-    col3_x = col2_x + column_width + column_spacing
-    
-    # Distribute profiles across 3 columns (2 profiles per column for 6 total)
-    profiles_per_column = 2
+    if total_profiles_count <= 4:
+        # 2-column layout for better centering with 4 profiles
+        start_y = Inches(1.45)
+        column_width = Inches(5.5)  # Wider columns for 2-column layout
+        column_spacing = Inches(0.8)  # More spacing between columns
+        
+        # Center the 2 columns
+        total_width = 2 * column_width + column_spacing
+        start_x = (Inches(13.333) - total_width) / 2  # Center horizontally
+        
+        col1_x = start_x
+        col2_x = col1_x + column_width + column_spacing
+        
+        profiles_per_column = 2  # 2 profiles per column
+    else:
+        # 3-column layout for 6+ profiles
+        start_y = Inches(1.45)
+        column_width = Inches(4.0)
+        column_spacing = Inches(0.15)
+        
+        col1_x = Inches(0.3)
+        col2_x = col1_x + column_width + column_spacing
+        col3_x = col2_x + column_width + column_spacing
+        
+        profiles_per_column = 2
     
     # Column 1 profiles
     current_y = start_y
@@ -446,14 +474,15 @@ def render_management_team_slide(data=None, color_scheme=None, typography=None, 
         if i < start_idx + profiles_per_column - 1:  # Don't add spacing after last profile in column
             current_y += profile_spacing
     
-    # Column 3 profiles
-    current_y = start_y
-    start_idx = profiles_per_column * 2
-    for i in range(start_idx, min(start_idx + profiles_per_column, len(all_profiles))):
-        profile = all_profiles[i]
-        current_y = add_management_profile(col3_x, current_y, column_width, profile)
-        if i < start_idx + profiles_per_column - 1:  # Don't add spacing after last profile in column
-            current_y += profile_spacing
+    # Column 3 profiles (only for 3-column layout)
+    if total_profiles_count > 4:
+        current_y = start_y
+        start_idx = profiles_per_column * 2
+        for i in range(start_idx, min(start_idx + profiles_per_column, len(all_profiles))):
+            profile = all_profiles[i]
+            current_y = add_management_profile(col3_x, current_y, column_width, profile)
+            if i < start_idx + profiles_per_column - 1:  # Don't add spacing after last profile in column
+                current_y += profile_spacing
     
     # Footer with minimal bottom padding
     from datetime import datetime
