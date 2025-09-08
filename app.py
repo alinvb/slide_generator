@@ -3797,11 +3797,6 @@ def normalize_plan(plan: dict) -> dict:
         slides_out.append(s)
     plan["slides"] = slides_out
     return plan
-    slides_out = []
-    for s in slides_in:
-        s = normalize_buyer_profiles_slide(s)
-        s = normalize_valuation_overview_slide(s)
-        slides_out.append(s)
     plan["slides"] = slides_out
     return plan
 # --- END: Normalizers ---

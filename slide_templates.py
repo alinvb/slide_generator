@@ -1147,7 +1147,29 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
     
     chart_data = ChartData()
     chart_data.categories = [comp['name'] for comp in competitors_data]
-    chart_data.add_series('Revenue ($M)', [comp['revenue'] for comp in competitors_data])
+    
+    # CRITICAL FIX: Ensure all revenue values are numeric for chart creation
+    chart_revenues = []
+    for comp in competitors_data:
+        revenue = comp.get('revenue', 0)
+        # Convert to float, handle various formats
+        if isinstance(revenue, (int, float)) and revenue is not None:
+            chart_revenues.append(float(revenue))
+        elif isinstance(revenue, str):
+            try:
+                # Extract numbers from string (handle "50M", "$50", etc.)
+                import re
+                numbers = re.findall(r'\d+\.?\d*', str(revenue))
+                if numbers:
+                    chart_revenues.append(float(numbers[0]))
+                else:
+                    chart_revenues.append(0.1)  # Small value for empty data
+            except:
+                chart_revenues.append(0.1)
+        else:
+            chart_revenues.append(0.1)
+    
+    chart_data.add_series('Revenue ($M)', chart_revenues)
     
     # Add chart
     chart_left = Inches(0.5)
@@ -1177,16 +1199,36 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
     value_axis.tick_labels.font.size = Pt(9)
     value_axis.tick_labels.font.name = fonts["primary_font"]
     
-    # FIXED: Dynamic axis scaling for competitor revenue data
-    revenue_values = [comp['revenue'] for comp in competitors_data]
-    if revenue_values:
+    # CRITICAL FIX: Dynamic axis scaling with proper numeric conversion
+    revenue_values = []
+    for comp in competitors_data:
+        revenue = comp.get('revenue', 0)
+        # Convert to float, handle string values and None
+        if isinstance(revenue, (int, float)) and revenue is not None:
+            revenue_values.append(float(revenue))
+        elif isinstance(revenue, str):
+            try:
+                # Extract numbers from string (handle "50M", "$50", etc.)
+                import re
+                numbers = re.findall(r'\d+\.?\d*', str(revenue))
+                if numbers:
+                    revenue_values.append(float(numbers[0]))
+                else:
+                    revenue_values.append(0)
+            except:
+                revenue_values.append(0)
+        else:
+            revenue_values.append(0)
+    
+    if revenue_values and max(revenue_values) > 0:
         data_max = max(revenue_values)
         # Set axis maximum to 120% of highest value
         dynamic_max = int(data_max * 1.2)
-        value_axis.maximum_scale = dynamic_max
+        value_axis.maximum_scale = max(dynamic_max, 10)  # Minimum scale of 10
         print(f"[DEBUG] Competitive chart axis scaled: max {data_max:,} → {dynamic_max:,}")
     else:
-        value_axis.maximum_scale = 500  # Fallback
+        value_axis.maximum_scale = 100  # Better fallback for empty data
+        print(f"[DEBUG] Using fallback axis scale: 100")
     
     # Highlight the user's company (first in list or matching company name) in secondary color
     user_company_name = content_ir.get('entities', {}).get('company', {}).get('name', '')
