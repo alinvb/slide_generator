@@ -4735,31 +4735,45 @@ You MUST generate TWO separate JSONs:
                         temp_messages = st.session_state.messages + [{"role": "user", "content": completion_prompt}]
                         
                         # Add system override for COMPLETE JSON-only generation with slide restrictions
-                        enhanced_messages = temp_messages + [{"role": "system", "content": f"""🚨 SYSTEM OVERRIDE - GENERATE BOTH JSONS NOW
+                        enhanced_messages = temp_messages + [{"role": "system", "content": f"""🚨 SYSTEM OVERRIDE - MANDATORY TWO JSON FORMAT
 
-OUTPUT EXACTLY THIS FORMAT (NO OTHER TEXT):
+YOU MUST OUTPUT EXACTLY THIS TEMPLATE (NO OTHER TEXT):
 
 CONTENT IR JSON:
 {{
-  "entities": {{...}},
-  "facts": {{...}},
-  "management_team": {{...}},
-  "strategic_buyers": [...],
-  "financial_buyers": [...],
-  ... (business data only)
+  "entities": {{"company": {{"name": "Qi Card"}}}},
+  "facts": {{"years": ["2021", "2022", "2023", "2024"], "revenue_usd_m": [50, 75, 100, 120], "ebitda_usd_m": [5, 10, 15, 20], "ebitda_margins": [10.0, 13.3, 15.0, 16.7]}},
+  "management_team": {{"left_column_profiles": [], "right_column_profiles": []}},
+  "strategic_buyers": [],
+  "financial_buyers": [],
+  "business_overview_data": {{}},
+  "product_service_data": {{}},
+  "growth_strategy_data": {{}},
+  "competitive_analysis": {{}},
+  "precedent_transactions": [],
+  "valuation_data": [],
+  "margin_cost_data": {{}},
+  "sea_conglomerates": [],
+  "investor_considerations": {{}},
+  "investor_process_data": {{}}
 }}
 
 RENDER PLAN JSON:
 {{
   "slides": [
-    {{"template": "business_overview", "data": {{...}}}},
-    {{"template": "historical_financial_performance", "data": {{...}}}},
-    ... ({len(slide_list)} slide objects total)
+    {{"template": "business_overview", "data": {{"title": "Business Overview"}}}},
+    {{"template": "historical_financial_performance", "data": {{"title": "Financial Performance"}}}},
+    {{"template": "product_service_footprint", "data": {{"title": "Product Portfolio"}}}}
   ]
 }}
 
-CRITICAL: Content IR = business data, Render Plan = slides array
-FAILURE = MISSING RENDER PLAN JSON"""}]
+⚠️ CRITICAL RULES:
+1. NO SLIDES ARRAY IN CONTENT IR JSON
+2. NO BUSINESS DATA IN RENDER PLAN JSON  
+3. TWO SEPARATE JSON OBJECTS WITH CLEAR MARKERS
+4. APPROVED SLIDES ONLY: {', '.join(slide_list)}
+
+FAILURE = NOT FOLLOWING THIS EXACT FORMAT"""}]
                         
                         with st.spinner(f"🚀 Interview complete! Generating {len(slide_list)} relevant slides... (Max 2 minutes)"):
                             try:
@@ -4789,6 +4803,24 @@ FAILURE = MISSING RENDER PLAN JSON"""}]
                                 ai_response = ai_response + "\n\n" + retry_response
                             except Exception as e:
                                 st.error(f"Retry failed: {str(e)}")
+                        
+                        # CRITICAL: Extract and validate JSONs from automatic generation
+                        try:
+                            content_ir, render_plan = extract_jsons_from_response(ai_response)
+                            if content_ir and render_plan:
+                                st.success("✅ Both Content IR and Render Plan JSONs successfully generated!")
+                                
+                                # Store in session state for download
+                                st.session_state['content_ir_json'] = content_ir
+                                st.session_state['render_plan_json'] = render_plan
+                            elif content_ir and not render_plan:
+                                st.error("❌ Only Content IR generated - Render Plan missing")
+                            elif render_plan and not content_ir:
+                                st.error("❌ Only Render Plan generated - Content IR missing") 
+                            else:
+                                st.error("❌ No valid JSONs extracted from AI response")
+                        except Exception as e:
+                            st.error(f"❌ JSON extraction failed: {str(e)}")
                         
                         # Add completion message indicating automatic JSON generation
                         completion_message = f"Perfect! I've analyzed our conversation and will generate {len(slide_list)} relevant slides based on the information provided.\n\n📊 **Slides to Include**: {', '.join(slide_list)}\n\n" + ai_response
