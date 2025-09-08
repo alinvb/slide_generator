@@ -4700,8 +4700,21 @@ Generate the JSON structures now with this adaptive approach."""
                         # Create a temporary message for JSON generation
                         temp_messages = st.session_state.messages + [{"role": "user", "content": completion_prompt}]
                         
-                        # Add system override for JSON-only generation
-                        enhanced_messages = temp_messages + [{"role": "system", "content": "🚨 SYSTEM OVERRIDE: You MUST respond with ONLY JSON structures. No explanations, no research, no questions. Start immediately with 'CONTENT IR JSON:' followed by complete JSON."}]
+                        # Add system override for COMPLETE JSON-only generation
+                        enhanced_messages = temp_messages + [{"role": "system", "content": """🚨 CRITICAL SYSTEM OVERRIDE: 
+You MUST respond with BOTH complete JSON structures. NO PARTIAL RESPONSES ALLOWED.
+
+MANDATORY OUTPUT FORMAT:
+1. Start with 'CONTENT IR JSON:' followed by complete Content IR JSON
+2. Then 'RENDER PLAN JSON:' followed by complete Render Plan JSON  
+
+⛔ FAILURE CONDITIONS (DO NOT DO):
+- Stopping after only Content IR JSON
+- Incomplete JSON structures
+- Any explanatory text
+- Research or questions
+
+✅ SUCCESS CONDITION: BOTH JSONs must be complete and valid."""}]
                         
                         with st.spinner(f"🚀 Interview complete! Generating {len(slide_list)} relevant slides... (Max 2 minutes)"):
                             try:
@@ -4768,6 +4781,17 @@ Generate the JSON structures now with this adaptive approach."""
                         # Check if JSONs were generated and extract them with comprehensive validation
                         content_ir, render_plan, validation_results = extract_and_validate_jsons(ai_response)
                         
+                        # STRICT VALIDATION: Ensure both JSONs were successfully extracted
+                        if content_ir is None or render_plan is None:
+                            st.error("🚨 **CRITICAL GENERATION FAILURE**: Incomplete JSON response detected.")
+                            if content_ir is None:
+                                st.error("❌ **Content IR JSON missing or invalid**")
+                            if render_plan is None:
+                                st.error("❌ **Render Plan JSON missing or invalid**")
+                            st.warning("⚠️ **System Requirement**: Both JSONs must be present and valid for processing.")
+                            st.info("💡 **Solution**: Click '🚀 Generate JSON Now' again to retry complete generation.")
+                            return  # Stop processing incomplete responses
+                        
                         # Check for extraction failure
                         if content_ir is None and render_plan is None:
                             st.error("❌ **JSON Extraction Failed**: The AI response contained JSON-like content but extraction failed. Please try regenerating.")
@@ -4776,20 +4800,20 @@ Generate the JSON structures now with this adaptive approach."""
                             # Successfully extracted JSONs - continue with processing
                             st.success(f"✅ **JSON Extraction Successful!** Found {'Content IR' if content_ir else 'No Content IR'} and {'Render Plan' if render_plan else 'No Render Plan'}")
                             
-                            # Handle partial JSON generation - Create render plan if missing
-                            if content_ir and not render_plan:
-                                st.warning("⚠️ **Partial Generation Detected**: Content IR found but Render Plan missing. Generating adaptive render plan...")
+                            # STRICT REQUIREMENT: Both JSONs must be present for auto-population
+                            if not (content_ir and render_plan):
+                                st.error("❌ **INCOMPLETE JSON GENERATION**: Both Content IR and Render Plan JSONs are required for auto-population.")
+                                if content_ir and not render_plan:
+                                    st.error("🚨 **Missing Render Plan JSON**: The system only generated Content IR. This is a generation failure.")
+                                elif render_plan and not content_ir:
+                                    st.error("🚨 **Missing Content IR JSON**: The system only generated Render Plan. This is a generation failure.")
+                                else:
+                                    st.error("🚨 **No JSONs Generated**: The system failed to generate any valid JSONs.")
                                 
-                                # Generate adaptive render plan from the content IR
-                                try:
-                                    from adaptive_slide_generator import generate_adaptive_presentation
-                                    slide_list, adaptive_render_plan, analysis_report = generate_adaptive_presentation(st.session_state.messages)
-                                    render_plan = adaptive_render_plan
-                                    st.success("✅ **Render Plan Auto-Generated** from conversation analysis!")
-                                except Exception as e:
-                                    st.error(f"❌ Failed to generate render plan: {str(e)}")
+                                st.warning("⚠️ **Action Required**: Please try clicking '🚀 Generate JSON Now' again to get complete JSON generation.")
+                                return  # Stop processing - do not proceed with partial JSONs
                             
-                            # Add manual trigger for auto-population (now works with partial JSONs)
+                            # ONLY proceed if we have BOTH complete JSONs
                             if content_ir and render_plan:
                                 if st.button("🚀 **Force Auto-Populate JSONs Now**", key="force_populate", type="primary"):
                                     print(f"[FORCE AUTO-POPULATE] Manual trigger activated...")

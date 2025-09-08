@@ -479,7 +479,13 @@ RENDER PLAN JSON:
   "slides": [complete_slide_array_here]
 }}
 
-⚠️ CRITICAL: Do NOT write any explanatory text before the JSON. Do NOT write "Based on our conversation" or "Here are the JSON files". Start IMMEDIATELY with "CONTENT IR JSON:" followed by the complete JSON structure.
+🚨 CRITICAL REQUIREMENTS - ZERO TOLERANCE:
+1. You MUST generate BOTH JSONs - Content IR AND Render Plan
+2. Do NOT stop after generating only Content IR JSON
+3. Do NOT write explanatory text before the JSONs
+4. Start IMMEDIATELY with "CONTENT IR JSON:" followed by complete JSON
+5. Then immediately follow with "RENDER PLAN JSON:" and complete JSON
+6. FAILURE TO PROVIDE BOTH JSONS WILL CAUSE SYSTEM ERROR
 
 {self.create_enhanced_system_prompt()}
 
