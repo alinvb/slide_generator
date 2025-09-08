@@ -18,12 +18,39 @@ class ResearchFlowHandler:
             "search for", "look up", "investigate", "research it"
         ]
         
-        self.satisfaction_questions = [
+        # Context-specific satisfaction questions based on research content
+        self.topic_specific_questions = {
+            "financial": [
+                "Are you satisfied with these financial figures, or would you like me to research more details about their revenue breakdown, growth drivers, or profitability trends?",
+                "Does this financial information meet your needs, or should I investigate specific areas like their cost structure, margin analysis, or historical performance trends?"
+            ],
+            "management": [
+                "Are you satisfied with these management profiles, or would you like me to research more details about their backgrounds, previous achievements, or leadership experience?",
+                "Does this management information help, or should I investigate specific areas like their track records, compensation, or key strategic decisions?"
+            ],
+            "competitive": [
+                "Are you satisfied with this competitive analysis, or would you like me to research more details about specific competitors, market positioning, or competitive advantages?",
+                "Does this competitive landscape information help, or should I investigate specific areas like market share data, pricing strategies, or differentiation factors?"
+            ],
+            "business_model": [
+                "Are you satisfied with this business model overview, or would you like me to research more details about their revenue streams, customer segments, or operational structure?",
+                "Does this business information help, or should I investigate specific areas like their value proposition, distribution channels, or key partnerships?"
+            ],
+            "market": [
+                "Are you satisfied with this market analysis, or would you like me to research more details about market size, growth trends, or regulatory factors?",
+                "Does this market information help, or should I investigate specific areas like customer behavior, market dynamics, or emerging opportunities?"
+            ],
+            "valuation": [
+                "Are you satisfied with this valuation information, or would you like me to research more details about comparable transactions, valuation methodologies, or market multiples?",
+                "Does this valuation data help, or should I investigate specific areas like precedent deals, trading multiples, or valuation drivers?"
+            ]
+        }
+        
+        # Generic fallback questions
+        self.generic_satisfaction_questions = [
             "Are you satisfied with this information, or would you like me to research something more specific?",
             "Is this research helpful, or should I investigate any particular aspect in more detail?", 
-            "Does this research answer your needs, or would you like me to dig deeper into any specific area?",
-            "Are you happy with this research, or should I look into something more particular?",
-            "Is this sufficient, or would you like me to research any specific aspect in more depth?"
+            "Does this research answer your needs, or would you like me to dig deeper into any specific area?"
         ]
     
     def detect_research_request(self, user_message: str) -> bool:
@@ -89,18 +116,55 @@ class ResearchFlowHandler:
         # Check if last AI response was research
         if self.detect_research_response(last_ai_response):
             # Check if AI already asked satisfaction question
+            all_satisfaction_questions = []
+            for questions in self.topic_specific_questions.values():
+                all_satisfaction_questions.extend(questions)
+            all_satisfaction_questions.extend(self.generic_satisfaction_questions)
+            
             satisfaction_asked = any(
-                question.lower().replace("?", "") in last_ai_response.lower() 
-                for question in self.satisfaction_questions
+                question.lower().replace("?", "")[:50] in last_ai_response.lower() 
+                for question in all_satisfaction_questions
             )
             
             if not satisfaction_asked:
-                # Need to add satisfaction check
-                import random
-                satisfaction_question = random.choice(self.satisfaction_questions)
+                # Analyze content and provide contextual satisfaction question
+                satisfaction_question = self._generate_contextual_satisfaction_question(last_ai_response)
                 return True, satisfaction_question
         
         return False, ""
+    
+    def _generate_contextual_satisfaction_question(self, ai_response: str) -> str:
+        """
+        Generate a contextual satisfaction question based on the content of the AI response
+        """
+        response_lower = ai_response.lower()
+        
+        # Analyze content to determine the most appropriate contextual question
+        content_indicators = {
+            "financial": ["revenue", "profit", "ebitda", "financial", "earnings", "sales", "million", "billion", "growth rate"],
+            "management": ["ceo", "cfo", "founder", "executive", "management", "leadership", "director", "president"],
+            "competitive": ["competitor", "competition", "market share", "positioning", "advantages", "differentiation"],
+            "business_model": ["business model", "revenue stream", "customers", "operations", "services", "products"],
+            "market": ["market size", "industry", "market trends", "regulatory", "market analysis", "sector"],
+            "valuation": ["valuation", "multiple", "transaction", "deal", "acquisition", "enterprise value"]
+        }
+        
+        # Score each topic based on keyword matches
+        topic_scores = {}
+        for topic, keywords in content_indicators.items():
+            score = sum(1 for keyword in keywords if keyword in response_lower)
+            if score > 0:
+                topic_scores[topic] = score
+        
+        # Get the topic with the highest score
+        if topic_scores:
+            best_topic = max(topic_scores, key=topic_scores.get)
+            import random
+            return random.choice(self.topic_specific_questions[best_topic])
+        
+        # Fallback to generic question if no specific topic detected
+        import random
+        return random.choice(self.generic_satisfaction_questions)
     
     def get_enhanced_research_prompt(self, original_prompt: str, topic: str) -> str:
         """
