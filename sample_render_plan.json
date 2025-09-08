@@ -1,0 +1,442 @@
+{
+  "presentation_title": "TechFlow Innovations - Strategic Sale Opportunity",
+  "total_slides": 18,
+  "slides": [
+    {
+      "slide_number": 1,
+      "title": "Investment Opportunity Overview",
+      "slide_type": "cover_slide",
+      "content_sections": [
+        {
+          "type": "title",
+          "content": "TechFlow Innovations"
+        },
+        {
+          "type": "subtitle", 
+          "content": "Leading Enterprise Workflow Automation Platform"
+        },
+        {
+          "type": "transaction_details",
+          "content": "Strategic Sale Opportunity | Target Valuation: $2.5B - $3.0B"
+        },
+        {
+          "type": "confidentiality_notice",
+          "content": "Confidential - Goldman Sachs Technology Group"
+        }
+      ],
+      "design_notes": "Professional blue theme with company logo, clean typography"
+    },
+    {
+      "slide_number": 2,
+      "title": "Executive Summary",
+      "slide_type": "executive_summary",
+      "content_sections": [
+        {
+          "type": "company_snapshot",
+          "content": "TechFlow Innovations: $180M revenue, 42% growth, 25% EBITDA margin"
+        },
+        {
+          "type": "key_metrics",
+          "content": "850+ employees, 1,200+ enterprise clients, 96% retention rate"
+        },
+        {
+          "type": "investment_thesis",
+          "content": "Market-leading AI platform with exceptional unit economics and international expansion opportunity"
+        },
+        {
+          "type": "strategic_rationale",
+          "content": "Strong competitive moats through proprietary technology and deep customer relationships"
+        }
+      ],
+      "design_notes": "Executive summary format with key metrics highlighted in callout boxes"
+    },
+    {
+      "slide_number": 3,
+      "title": "Company Overview",
+      "slide_type": "company_overview",
+      "content_sections": [
+        {
+          "type": "company_description",
+          "content": "Leading provider of enterprise workflow automation software serving Fortune 500 companies"
+        },
+        {
+          "type": "founding_details",
+          "content": "Founded 2015, Austin Texas headquarters, 850+ employees"
+        },
+        {
+          "type": "business_model",
+          "content": "SaaS subscription model with professional services, 85% gross margins"
+        },
+        {
+          "type": "geographic_footprint",
+          "content": "North America (65%), Europe (25%), Asia-Pacific (10%)"
+        }
+      ],
+      "design_notes": "Company timeline with key milestones, geographic revenue breakdown chart"
+    },
+    {
+      "slide_number": 4,
+      "title": "Market Opportunity",
+      "slide_type": "market_analysis",
+      "content_sections": [
+        {
+          "type": "market_size",
+          "content": "$45B global workflow automation market growing at 12% CAGR"
+        },
+        {
+          "type": "market_drivers",
+          "content": "Digital transformation, remote work adoption, AI automation trends"
+        },
+        {
+          "type": "target_segments",
+          "content": "Large Enterprise, Mid-market, Government & Public Sector"
+        },
+        {
+          "type": "competitive_positioning",
+          "content": "Leading position in AI-driven automation with strong competitive moats"
+        }
+      ],
+      "design_notes": "Market sizing chart, competitive landscape diagram, growth drivers infographic"
+    },
+    {
+      "slide_number": 5,
+      "title": "Financial Performance",
+      "slide_type": "financial_highlights",
+      "content_sections": [
+        {
+          "type": "revenue_growth",
+          "content": "42% CAGR: $85M (2021) → $127M (2022) → $180M (2023)"
+        },
+        {
+          "type": "profitability",
+          "content": "Strong margins: 85% gross, 25% EBITDA with consistent improvement"
+        },
+        {
+          "type": "projections",
+          "content": "2024E: $250M revenue, $70M EBITDA | 2025E: $340M revenue, $102M EBITDA"
+        },
+        {
+          "type": "unit_economics",
+          "content": "Exceptional SaaS metrics with 96% customer retention and expanding ARR"
+        }
+      ],
+      "design_notes": "Revenue and EBITDA charts, margin trend analysis, forward projections"
+    },
+    {
+      "slide_number": 6,
+      "title": "Technology Platform",
+      "slide_type": "product_overview",
+      "content_sections": [
+        {
+          "type": "platform_overview",
+          "content": "AI-driven workflow automation with 15+ proprietary patents"
+        },
+        {
+          "type": "key_features",
+          "content": "Deep ERP integration, scalable cloud architecture, industry-specific modules"
+        },
+        {
+          "type": "competitive_advantages",
+          "content": "Proprietary AI algorithms, high switching costs, network effects"
+        },
+        {
+          "type": "innovation_pipeline",
+          "content": "Continuous R&D investment in AI/ML capabilities and vertical solutions"
+        }
+      ],
+      "design_notes": "Platform architecture diagram, feature comparison matrix, patent portfolio"
+    },
+    {
+      "slide_number": 7,
+      "title": "Customer Base & Retention",
+      "slide_type": "customer_analysis",
+      "content_sections": [
+        {
+          "type": "customer_profile",
+          "content": "1,200+ enterprise clients across diverse industries and geographies"
+        },
+        {
+          "type": "retention_metrics",
+          "content": "96% retention rate with expanding wallet share and upsell success"
+        },
+        {
+          "type": "customer_concentration",
+          "content": "Well-diversified base: Top 10 customers represent 35% of revenue"
+        },
+        {
+          "type": "case_studies",
+          "content": "Fortune 500 success stories demonstrating ROI and operational impact"
+        }
+      ],
+      "design_notes": "Customer logos, retention trend chart, revenue concentration analysis"
+    },
+    {
+      "slide_number": 8,
+      "title": "Growth Strategy",
+      "slide_type": "growth_strategy",
+      "content_sections": [
+        {
+          "type": "growth_pillars",
+          "content": "Geographic expansion, product innovation, strategic partnerships, M&A"
+        },
+        {
+          "type": "international_opportunity",
+          "content": "Asia-Pacific expansion with 30%+ market growth potential"
+        },
+        {
+          "type": "product_roadmap",
+          "content": "Vertical-specific modules and advanced AI capabilities"
+        },
+        {
+          "type": "partnership_strategy",
+          "content": "System integrator alliances and technology partnerships"
+        }
+      ],
+      "design_notes": "Growth strategy roadmap, international expansion map, partnership ecosystem"
+    },
+    {
+      "slide_number": 9,
+      "title": "Management Team",
+      "slide_type": "management_team",
+      "content_sections": [
+        {
+          "type": "leadership_overview",
+          "content": "Experienced team with proven track record in enterprise software"
+        },
+        {
+          "type": "key_executives",
+          "content": "CEO, CTO, CFO profiles with relevant experience and achievements"
+        },
+        {
+          "type": "organizational_strength",
+          "content": "Deep technical expertise and strong execution capabilities"
+        },
+        {
+          "type": "retention_strategy",
+          "content": "Competitive compensation and equity retention programs"
+        }
+      ],
+      "design_notes": "Executive team photos and bios, organizational chart, tenure analysis"
+    },
+    {
+      "slide_number": 10,
+      "title": "Strategic Rationale",
+      "slide_type": "investment_thesis",
+      "content_sections": [
+        {
+          "type": "investment_highlights",
+          "content": "Market leadership, exceptional economics, growth opportunity, strong team"
+        },
+        {
+          "type": "buyer_synergies",
+          "content": "Cross-selling opportunities, technology integration, market expansion"
+        },
+        {
+          "type": "value_creation",
+          "content": "Multiple expansion through scale, efficiency, and market leadership"
+        },
+        {
+          "type": "competitive_moats",
+          "content": "Technology patents, customer switching costs, network effects"
+        }
+      ],
+      "design_notes": "Investment thesis framework, synergy analysis, value creation waterfall"
+    },
+    {
+      "slide_number": 11,
+      "title": "Potential Strategic Buyers",
+      "slide_type": "buyer_analysis",
+      "content_sections": [
+        {
+          "type": "strategic_acquirers",
+          "content": "Microsoft, Salesforce, Oracle, ServiceNow, Workday"
+        },
+        {
+          "type": "strategic_rationale",
+          "content": "Portfolio expansion, cross-selling, technology enhancement"
+        },
+        {
+          "type": "precedent_transactions",
+          "content": "Recent enterprise software M&A with comparable multiples"
+        },
+        {
+          "type": "fit_analysis",
+          "content": "Strategic fit assessment for each potential buyer category"
+        }
+      ],
+      "design_notes": "Buyer logos and profiles, strategic fit matrix, precedent transaction analysis"
+    },
+    {
+      "slide_number": 12,
+      "title": "Private Equity Interest",
+      "slide_type": "pe_analysis", 
+      "content_sections": [
+        {
+          "type": "pe_targets",
+          "content": "Vista Equity Partners, Thoma Bravo, Francisco Partners, Advent International"
+        },
+        {
+          "type": "investment_rationale",
+          "content": "Strong cash generation, growth optimization, operational improvements"
+        },
+        {
+          "type": "value_creation_levers",
+          "content": "International expansion, add-on acquisitions, operational efficiency"
+        },
+        {
+          "type": "exit_scenarios",
+          "content": "Strategic sale or IPO opportunities within 3-5 year timeframe"
+        }
+      ],
+      "design_notes": "PE firm logos, value creation framework, exit scenario analysis"
+    },
+    {
+      "slide_number": 13,
+      "title": "Valuation Analysis",
+      "slide_type": "valuation",
+      "content_sections": [
+        {
+          "type": "valuation_methodology",
+          "content": "Comparable company analysis, precedent transactions, DCF analysis"
+        },
+        {
+          "type": "trading_multiples",
+          "content": "EV/Revenue: 12-15x, EV/EBITDA: 45-55x based on public comps"
+        },
+        {
+          "type": "precedent_multiples",
+          "content": "Recent enterprise software transactions: 10-18x revenue multiples"
+        },
+        {
+          "type": "target_valuation",
+          "content": "$2.5B - $3.0B target range (14-17x 2023 revenue)"
+        }
+      ],
+      "design_notes": "Valuation bridge, comparable company analysis, transaction multiples chart"
+    },
+    {
+      "slide_number": 14,
+      "title": "Risk Factors",
+      "slide_type": "risk_analysis",
+      "content_sections": [
+        {
+          "type": "competitive_risks",
+          "content": "Large tech incumbent competition and new market entrants"
+        },
+        {
+          "type": "customer_risks",
+          "content": "Customer concentration and retention challenges"
+        },
+        {
+          "type": "operational_risks", 
+          "content": "Key personnel dependency and scaling challenges"
+        },
+        {
+          "type": "regulatory_risks",
+          "content": "Data privacy regulations and compliance requirements"
+        }
+      ],
+      "design_notes": "Risk assessment matrix, mitigation strategies, impact analysis"
+    },
+    {
+      "slide_number": 15,
+      "title": "Transaction Process",
+      "slide_type": "process_timeline",
+      "content_sections": [
+        {
+          "type": "phase_1",
+          "content": "Information Memorandum Distribution (Weeks 1-2)"
+        },
+        {
+          "type": "phase_2", 
+          "content": "First Round Bids & Initial Diligence (Weeks 3-4)"
+        },
+        {
+          "type": "phase_3",
+          "content": "Management Presentations & Site Visits (Weeks 5-6)"
+        },
+        {
+          "type": "phase_4",
+          "content": "Final Bids & Buyer Selection (Weeks 7-8)"
+        },
+        {
+          "type": "phase_5",
+          "content": "Definitive Agreement & Closing (Weeks 9-12)"
+        }
+      ],
+      "design_notes": "Process timeline with key milestones and deliverables"
+    },
+    {
+      "slide_number": 16,
+      "title": "Next Steps",
+      "slide_type": "next_steps",
+      "content_sections": [
+        {
+          "type": "immediate_actions",
+          "content": "Execute confidentiality agreements and distribute information memorandum"
+        },
+        {
+          "type": "due_diligence",
+          "content": "Set up data room and coordinate management presentations"
+        },
+        {
+          "type": "bid_process",
+          "content": "Manage buyer process and facilitate competitive dynamics"
+        },
+        {
+          "type": "execution",
+          "content": "Support negotiation and closing process optimization"
+        }
+      ],
+      "design_notes": "Action items checklist, timeline tracker, responsibility matrix"
+    },
+    {
+      "slide_number": 17,
+      "title": "Appendix",
+      "slide_type": "appendix_divider",
+      "content_sections": [
+        {
+          "type": "appendix_title",
+          "content": "Supporting Materials & Detailed Analysis"
+        },
+        {
+          "type": "appendix_contents",
+          "content": "Financial models, market research, customer references, technical details"
+        }
+      ],
+      "design_notes": "Simple divider slide for appendix materials"
+    },
+    {
+      "slide_number": 18,
+      "title": "Contact Information",
+      "slide_type": "contact_info",
+      "content_sections": [
+        {
+          "type": "investment_bank",
+          "content": "Goldman Sachs - Technology Group"
+        },
+        {
+          "type": "lead_banker",
+          "content": "Managing Director - Technology Investment Banking"
+        },
+        {
+          "type": "transaction_code",
+          "content": "Project Aurora - Confidential"
+        },
+        {
+          "type": "contact_details",
+          "content": "Direct line and email for transaction inquiries"
+        }
+      ],
+      "design_notes": "Professional contact slide with Goldman Sachs branding"
+    }
+  ],
+  "design_specifications": {
+    "theme": "Professional investment banking template",
+    "color_scheme": "Navy blue primary, light blue accents, white backgrounds",
+    "typography": "Arial/Helvetica for headers, Calibri for body text",
+    "chart_style": "Clean business charts with consistent color palette",
+    "logo_placement": "Goldman Sachs logo bottom right, company logo top left"
+  },
+  "presentation_notes": "Comprehensive investment banking pitch deck covering all essential elements for a strategic sale process. Designed for senior executive and board-level presentations with supporting appendix materials."
+}

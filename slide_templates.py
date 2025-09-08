@@ -752,6 +752,13 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
     # Create table from data
     raw_table_data = slide_data.get('coverage_table', [])
     
+    # DEBUG: Print what we received
+    print(f"[DEBUG] Raw coverage_table data: {raw_table_data}")
+    print(f"[DEBUG] Coverage table type: {type(raw_table_data)}")
+    if raw_table_data:
+        print(f"[DEBUG] First item type: {type(raw_table_data[0]) if raw_table_data else 'None'}")
+        print(f"[DEBUG] Table length: {len(raw_table_data)}")
+    
     # FIXED: Handle both object array and 2D array formats for coverage table
     table_data = []
     if raw_table_data and isinstance(raw_table_data[0], dict):
@@ -788,15 +795,13 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
                     ["when available", "from data source"]
                 ]
     else:
-        # Fallback to default data
+        # Create simple fallback if no table data provided
         table_data = [
-            ["Region", "Outlets"],
-            ["Jakarta", "45"],
-            ["Bandung", "25"], 
-            ["Surabaya", "20"],
-            ["Other Cities", "40+"]
+            ["Region", "Status"],
+            ["No data", "Please provide"],
+            ["coverage_table", "in JSON data"]
         ]
-        print(f"[DEBUG] Using default coverage table data")
+        print(f"[DEBUG] No coverage_table data found - using minimal fallback")
     
     if table_data:  # Only create table if data exists
         rows, cols = len(table_data), len(table_data[0])

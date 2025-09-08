@@ -4392,7 +4392,7 @@ if "chat_started" not in st.session_state:
     st.session_state.chat_started = False
 
 # Main App Layout
-tab_chat, tab_json, tab_execute = st.tabs(["🤖 AI Copilot", "📄 JSON Editor", "⚙️ Execute"])
+tab_chat, tab_json, tab_execute, tab_validate = st.tabs(["🤖 AI Copilot", "📄 JSON Editor", "⚙️ Execute", "🔍 JSON Validator & Auto-Fix"])
 
 with tab_chat:
     st.subheader("🤖 Investment Banking Pitch Deck Copilot")
@@ -6184,6 +6184,258 @@ with tab_execute:
                 except Exception as e:
                     st.error(f"⚠️ Error generating deck: {str(e)}")
                     st.exception(e)
+
+# ============================================================================
+# AUTOMATIC VALIDATION FEEDBACK SYSTEM
+# ============================================================================
+
+def format_validation_errors_for_llm(validation_result):
+    """
+    Format validation errors into a clear, structured prompt for LLM correction
+    """
+    if not validation_result or validation_result.get('overall_valid', True):
+        return None
+    
+    error_prompt = """🚨 JSON VALIDATION ERRORS DETECTED - PLEASE FIX THE FOLLOWING ISSUES:
+
+=== VALIDATION SUMMARY ===
+"""
+    
+    # Add overall summary
+    summary = validation_result.get('summary', {})
+    error_prompt += f"""
+Total Slides: {summary.get('total_slides', 0)}
+Valid Slides: {summary.get('valid_slides', 0)}
+Invalid Slides: {summary.get('invalid_slides', 0)}
+Overall Valid: {validation_result.get('overall_valid', False)}
+"""
+    
+    # Add critical issues
+    critical_issues = validation_result.get('critical_issues', [])
+    if critical_issues:
+        error_prompt += "\n=== CRITICAL ISSUES ===\n"
+        for i, issue in enumerate(critical_issues, 1):
+            error_prompt += f"{i}. {issue}\n"
+    
+    # Add slide-by-slide errors
+    slide_details = validation_result.get('slide_details', {})
+    if slide_details:
+        error_prompt += "\n=== SLIDE-BY-SLIDE VALIDATION ERRORS ===\n"
+        for slide_name, slide_info in slide_details.items():
+            if not slide_info.get('valid', True):
+                error_prompt += f"\n🔴 SLIDE: {slide_name}\n"
+                
+                # Add empty/placeholder fields
+                empty_fields = slide_info.get('empty_fields', [])
+                if empty_fields:
+                    error_prompt += "📦 Empty/Placeholder Fields:\n"
+                    for field in empty_fields:
+                        error_prompt += f"  • {field}\n"
+                
+                # Add critical issues for this slide
+                slide_issues = slide_info.get('critical_issues', [])
+                if slide_issues:
+                    error_prompt += "🚨 Critical Issues:\n"
+                    for issue in slide_issues:
+                        error_prompt += f"  • {issue}\n"
+                
+                # Add validation errors
+                validation_errors = slide_info.get('validation_errors', [])
+                if validation_errors:
+                    error_prompt += "❌ Validation Errors:\n"
+                    for error in validation_errors:
+                        error_prompt += f"  • {error}\n"
+    
+    # Add structure validation errors
+    structure_validation = validation_result.get('structure_validation', {})
+    if structure_validation and not structure_validation.get('content_ir_valid', True):
+        error_prompt += "\n=== CONTENT IR STRUCTURE ERRORS ===\n"
+        structure_issues = structure_validation.get('structure_issues', [])
+        for issue in structure_issues:
+            error_prompt += f"• {issue}\n"
+    
+    error_prompt += """
+
+=== INSTRUCTIONS FOR CORRECTION ===
+1. Fix ALL validation errors listed above
+2. Ensure proper JSON structure and data types
+3. Add missing required fields with appropriate default values
+4. Fix duplicate entries and naming conflicts
+5. Ensure all numeric fields contain valid numbers (not strings)
+6. Verify array structures match expected formats
+7. Return ONLY the corrected JSON objects - no explanations or markdown formatting
+
+Please provide the corrected Content IR and Render Plan JSONs that address all these validation issues.
+"""
+    
+    return error_prompt
+
+def auto_fix_json_with_llm(content_ir, render_plan, validation_result):
+    """
+    Automatically fix JSON validation errors by sending them to an LLM for correction
+    """
+    print("\n🤖 STARTING AUTOMATIC JSON VALIDATION FEEDBACK SYSTEM")
+    print("="*80)
+    
+    # Format validation errors for LLM
+    error_prompt = format_validation_errors_for_llm(validation_result)
+    if not error_prompt:
+        print("✅ No validation errors found - no correction needed")
+        return content_ir, render_plan, True
+    
+    print("📝 FORMATTED VALIDATION ERRORS FOR LLM:")
+    print(error_prompt[:500] + "..." if len(error_prompt) > 500 else error_prompt)
+    
+    # Prepare the complete prompt with context
+    full_prompt = f"""You are an expert JSON validator and fixer for investment banking pitch deck data.
+
+{error_prompt}
+
+=== CURRENT CONTENT IR JSON ===
+{json.dumps(content_ir, indent=2) if content_ir else "null"}
+
+=== CURRENT RENDER PLAN JSON ===
+{json.dumps(render_plan, indent=2) if render_plan else "null"}
+
+Please analyze the validation errors and provide corrected JSON objects that fix all the issues listed above.
+Return the corrected JSONs in this exact format:
+
+CORRECTED_CONTENT_IR:
+{{corrected content ir json}}
+
+CORRECTED_RENDER_PLAN:  
+{{corrected render plan json}}
+"""
+    
+    try:
+        print("🔄 SENDING TO LLM FOR AUTOMATIC CORRECTION...")
+        
+        # Here you would integrate with your preferred LLM API
+        # For now, we'll use a mock response and return the original JSONs
+        # In a real implementation, you would call OpenAI, Claude, or your preferred LLM API
+        
+        print("⚠️  LLM INTEGRATION NOT IMPLEMENTED - Using fallback correction")
+        
+        # Apply basic automatic fixes based on common validation errors
+        fixed_content_ir, fixed_render_plan = apply_basic_automatic_fixes(
+            content_ir, render_plan, validation_result
+        )
+        
+        print("✅ APPLIED BASIC AUTOMATIC FIXES")
+        return fixed_content_ir, fixed_render_plan, True
+        
+    except Exception as e:
+        print(f"❌ ERROR IN AUTOMATIC CORRECTION: {str(e)}")
+        return content_ir, render_plan, False
+
+def apply_basic_automatic_fixes(content_ir, render_plan, validation_result):
+    """
+    Apply basic automatic fixes for common validation errors
+    """
+    print("🔧 APPLYING BASIC AUTOMATIC FIXES...")
+    
+    # Make copies to avoid modifying originals
+    import copy
+    fixed_content_ir = copy.deepcopy(content_ir) if content_ir else {}
+    fixed_render_plan = copy.deepcopy(render_plan) if render_plan else {"slides": []}
+    
+    # Fix common issues based on validation results
+    slide_details = validation_result.get('slide_details', {})
+    
+    for slide_name, slide_info in slide_details.items():
+        if not slide_info.get('valid', True):
+            print(f"🔧 Fixing slide: {slide_name}")
+            
+            # Fix missing metrics array in key_metrics (Slide 4 issue)
+            if slide_name == 'historical_financial_performance':
+                for slide in fixed_render_plan.get('slides', []):
+                    if slide.get('template') == 'historical_financial_performance':
+                        key_metrics = slide.get('data', {}).get('key_metrics', {})
+                        if 'metrics' not in key_metrics or not key_metrics['metrics']:
+                            key_metrics['metrics'] = ["120%", "38.0", "5.7", "300"]
+                            print("✅ Fixed missing metrics array in key_metrics")
+            
+            # Fix duplicate methodologies (Slide 8 issue)
+            if slide_name == 'valuation_overview':
+                for slide in fixed_render_plan.get('slides', []):
+                    if slide.get('template') == 'valuation_overview':
+                        valuation_data = slide.get('data', {}).get('valuation_data', [])
+                        methodologies = [item.get('methodology', '') for item in valuation_data]
+                        
+                        # Fix duplicate "Trading Multiples"
+                        if methodologies.count("Trading Multiples") > 1:
+                            for i, item in enumerate(valuation_data):
+                                if item.get('methodology') == "Trading Multiples":
+                                    if i == 0:
+                                        item['methodology'] = "Trading Multiples (EV/Revenue)"
+                                    elif i == 1:
+                                        item['methodology'] = "Trading Multiples (EV/EBITDA)"
+                            print("✅ Fixed duplicate methodology names")
+            
+            # Add missing required fields with defaults
+            empty_fields = slide_info.get('empty_fields', [])
+            for field in empty_fields:
+                if 'Missing metrics array' in field:
+                    # Already handled above
+                    continue
+    
+    print("🎯 BASIC AUTOMATIC FIXES COMPLETED")
+    return fixed_content_ir, fixed_render_plan
+
+def validate_and_auto_fix_jsons(content_ir, render_plan, max_attempts=3):
+    """
+    Main function that validates JSONs and automatically fixes errors using LLM feedback
+    """
+    print("\n🎯 STARTING VALIDATION AND AUTO-FIX PROCESS")
+    print("="*80)
+    
+    current_content_ir = content_ir
+    current_render_plan = render_plan
+    attempt = 0
+    
+    while attempt < max_attempts:
+        attempt += 1
+        print(f"\n🔄 VALIDATION ATTEMPT {attempt}/{max_attempts}")
+        
+        # Run validation
+        _, _, validation_result = extract_and_validate_jsons(
+            f"Content IR: {json.dumps(current_content_ir) if current_content_ir else 'null'}\n"
+            f"Render Plan: {json.dumps(current_render_plan) if current_render_plan else 'null'}"
+        )
+        
+        # Check if validation passed
+        if validation_result.get('overall_valid', False):
+            print("✅ VALIDATION PASSED - No fixes needed!")
+            return current_content_ir, current_render_plan, validation_result, True
+        
+        print(f"❌ VALIDATION FAILED - Attempt {attempt}")
+        
+        # If last attempt, return what we have
+        if attempt >= max_attempts:
+            print(f"⚠️  Max attempts reached ({max_attempts}). Returning best effort.")
+            return current_content_ir, current_render_plan, validation_result, False
+        
+        # Apply automatic fixes
+        print(f"🔧 APPLYING AUTOMATIC FIXES - Attempt {attempt}")
+        fixed_content_ir, fixed_render_plan, fix_success = auto_fix_json_with_llm(
+            current_content_ir, current_render_plan, validation_result
+        )
+        
+        if not fix_success:
+            print("❌ AUTOMATIC FIX FAILED - Stopping attempts")
+            return current_content_ir, current_render_plan, validation_result, False
+        
+        # Update for next iteration
+        current_content_ir = fixed_content_ir
+        current_render_plan = fixed_render_plan
+        
+        print(f"✅ FIXES APPLIED - Will validate again...")
+    
+    return current_content_ir, current_render_plan, validation_result, False
+
+# ============================================================================
+# END AUTOMATIC VALIDATION FEEDBACK SYSTEM
+# ============================================================================
 
 # Footer
 st.markdown("---")

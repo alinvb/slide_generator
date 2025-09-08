@@ -683,3 +683,2457 @@ Collecting usage statistics. To deactivate, set browser.gatherUsageStats to fals
 
   URL: http://0.0.0.0:8501
 
+  Stopping...
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8501
+
+  Stopping...
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8501
+
+  Stopping...
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8501
+
+  Stopping...
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8501
+
+  Stopping...
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8501
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 4056
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 4056 characters
+📝 Response Preview (first 500 chars):
+Databricks is a unified, cloud-based data, analytics, and AI platform that enables organizations to process, store, analyze, and manage large-scale data workloads while supporting advanced analytics and machine learning[1][2][3][4]. Founded in 2013 by the original creators of Apache Spark, Databricks integrates open-source technologies such as Spark, Delta Lake, MLflow, and others, and is designed to work across major cloud providers including AWS, Azure, and Google Cloud[4][2].
+
+**Essential con...
+
+📝 Response Preview (last 500 chars):
+.../ML, BI                                         |
+| Founded            | 2013, by creators of Apache Spark                                                            |
+| Revenue (2023)     | $1.6 billion[4]                                                                              |
+| Recent Acquisitions| MosaicML, Okera, Redash, 8080 Labs, Arcion, Tabular, Neon[4]                                 |
+
+If you need specific details about Databricks’ features, architecture, or pricing, let me know.
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 5464
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 5464 characters
+📝 Response Preview (first 500 chars):
+Here’s a detailed product/service footprint for Databricks as of 2025, fully researched from current authoritative sources:
+
+**Main Offerings (Products/Services):**
+
+1. **Databricks Data Intelligence Platform:**  
+   A unified platform that integrates data engineering, analytics, and AI/ML workflows. It accelerates innovation by breaking down silos between data science, engineering, and business, supporting the full data lifecycle from ETL to production AI[1][2].
+
+2. **Delta Lake:**  
+   An open...
+
+📝 Response Preview (last 500 chars):
+...ative platform for data, analytics, and AI, with a deep footprint in North America, EMEA, and APAC. Their platform integrates proprietary and open-source technologies, supports multi-cloud operations, and emphasizes unified governance, open data sharing, and rapid deployment of data apps and AI workloads[1][2][3][4][5].
+
+Would you like to review or customize any of the specific product/service descriptions, coverage regions, or operational metrics above? If not, I will proceed to the next topic.
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 526
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 526 characters
+📝 Response Preview (first 500 chars):
+Understood. Let’s continue with the next topic:
+
+**Historical Financial Performance**
+
+Please provide 3–5 years of Databricks’ financial data:  
+- Annual revenue  
+- EBITDA  
+- EBITDA margins  
+- Growth rates  
+- Key operational metrics (such as customer count, data processed, or cloud usage, if available)  
+
+If you do not have these details, I can search for the most recent available figures and ask for your consent to use them. Would you like me to proceed with a search for Databricks’ histori...
+
+📝 Response Preview (last 500 chars):
+... with the next topic:
+
+**Historical Financial Performance**
+
+Please provide 3–5 years of Databricks’ financial data:  
+- Annual revenue  
+- EBITDA  
+- EBITDA margins  
+- Growth rates  
+- Key operational metrics (such as customer count, data processed, or cloud usage, if available)  
+
+If you do not have these details, I can search for the most recent available figures and ask for your consent to use them. Would you like me to proceed with a search for Databricks’ historical financial performance?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 2666
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 2666 characters
+📝 Response Preview (first 500 chars):
+Based on the latest available research, here is Databricks’ historical financial performance with key metrics for 2020–2025:
+
+**Revenue & Growth (Annual Recurring Revenue / Run Rate):**
+- 2020: $350 million[3]
+- 2021: $600 million (interpolated from growth trajectory)
+- 2022: $1 billion[3]
+- 2023: $1.9 billion[5]
+- 2024: $3.0 billion[1][2][5]
+- 2025: $3.7 billion (July)[1][2][4]
+
+**Growth Rates:**
+- 2023–2024: +60%[1][5]
+- 2024–2025: +23% (from $3.0B to $3.7B, July-on-July)[1][2]
+- Net revenue r...
+
+📝 Response Preview (last 500 chars):
+...aS business model strength[1][2][4].
+- The company became free cash flow positive for the first time in early 2025, but is still not GAAP profitable[2][4].
+- Customer growth and ACV continue to scale, with over 11,500 customers and 500+ large enterprise customers at $1M+ ARR[1][4].
+
+**Sources:**  
+- Sacra[1]  
+- StockAnalysis[2]  
+- Blocks & Files[3]  
+- SaaStr[4]  
+- GenerativeValue[5]
+
+Would you like to use these researched figures for your pitch deck? If yes, I will proceed to the next topic.
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 520
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 520 characters
+📝 Response Preview (first 500 chars):
+Thank you for confirming. Now, let's proceed to the **Management Team** topic.
+
+Please provide details on 4–6 key Databricks executives, including:
+- Role/title (e.g., CEO, CFO, CTO, etc.)
+- Their backgrounds and relevant experience (3–5 bullet points for each: education, previous roles, notable achievements)
+
+If you do not have this information, I can research Databricks’ current leadership and ask for consent before using it in your pitch deck. Would you like me to search for Databricks’ manag...
+
+📝 Response Preview (last 500 chars):
+...ming. Now, let's proceed to the **Management Team** topic.
+
+Please provide details on 4–6 key Databricks executives, including:
+- Role/title (e.g., CEO, CFO, CTO, etc.)
+- Their backgrounds and relevant experience (3–5 bullet points for each: education, previous roles, notable achievements)
+
+If you do not have this information, I can research Databricks’ current leadership and ask for consent before using it in your pitch deck. Would you like me to search for Databricks’ management team profiles?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 5003
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 5003 characters
+📝 Response Preview (first 500 chars):
+Here is a fully researched product/service footprint for Databricks in 2025, based on current authoritative sources:
+
+---
+
+**Main Offerings (Titles & Descriptions):**
+
+- **Delta Lake:**  
+  Provides a reliable storage layer for the Lakehouse with ACID transactions, time travel (versioning), schema enforcement/evolution, and unified batch/streaming. Built on open formats (Parquet), enabling robust data management across cloud environments[1].
+
+- **Unity Catalog:**  
+  Delivers unified governance ...
+
+📝 Response Preview (last 500 chars):
+...oration, monetization        |
+
+---
+
+**Operational Metrics:**
+
+- **Supported clouds:** AWS, Azure, Google Cloud[2][5]
+- **Active regions:** Americas, EMEA, APAC[2][3]
+- **Open-source projects:** Delta Lake, MLflow, Apache Spark[1]
+- **Customer base:** 10,000+ organizations globally[2]
+- **Data processed:** Petabyte-scale workloads[1][5]
+
+---
+
+If you’d like to adjust or add specific product features, coverage regions, or operational metrics, let me know. Otherwise, I’ll proceed to the next topic.
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 2818
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 2818 characters
+📝 Response Preview (first 500 chars):
+Thank you for your consent. Now, let’s move to the **Management Team** for Databricks. Here are the 2025 profiles of key executives, with role titles and detailed experience backgrounds based on current public sources:
+
+---
+
+**Left Column Profiles**
+- **Ali Ghodsi – Chief Executive Officer, Co-founder**
+  - Co-founded Databricks and has served as CEO since 2016
+  - PhD in Computer Science from KTH Royal Institute of Technology
+  - Former researcher at UC Berkeley, co-creator of Apache Spark
+  - ...
+
+📝 Response Preview (last 500 chars):
+... adjust any profiles, let me know. Otherwise, I’ll proceed to the next topic: **Growth Strategy & Projections**.
+
+What is Databricks’ growth strategy over the next 2-3 years?  
+- Please provide specific expansion plans, strategic initiatives, and financial projections (revenue, EBITDA, or other KPIs for 2025–2027).  
+- If you want, I can research recent public statements and investor presentations for Databricks’ growth outlook and share for your approval. Would you like me to proceed with that?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 3291
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 3291 characters
+📝 Response Preview (first 500 chars):
+Databricks’ growth strategy for 2025–2027 is centered on aggressive expansion, technical innovation, and leadership in enterprise AI and data platforms. The company projects sustained annual sales growth **exceeding 40% for both 2025 and 2026**, with revenue expected to reach approximately **$5.4 billion by early 2027**[1][2].
+
+**Key Growth Strategies:**
+
+- **Strategic Acquisitions:**  
+  Databricks continues to enhance its AI and data platform capabilities through acquisitions targeting AI deve...
+
+📝 Response Preview (last 500 chars):
+...         | >40%        | AI product launches, new verticals             |
+| 2027   | >5.4                   | >20%        | Continued acquisitions, deeper AI integration  |
+
+Databricks is leveraging its unified Lakehouse platform, native AI/ML capabilities, and accelerated global expansion to drive rapid growth and set new industry benchmarks[1][2][3][4][5].
+
+Would you like to use these researched strategies and financial projections for your pitch deck? If yes, I will proceed to the next topic.
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 666
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 666 characters
+📝 Response Preview (first 500 chars):
+Thank you for catching that. We have already completed the product/service footprint topic. Let’s proceed to the next required topic:
+
+**Competitive Positioning**
+
+Please provide:
+- Your main competitors (industry-specific, e.g., Snowflake, Google BigQuery, AWS Redshift, Microsoft Azure Synapse, etc.)
+- How you compare to these competitors in terms of market position, technology, and differentiation
+- Your key competitive advantages and any major barriers to entry in your segment
+
+If you want, I...
+
+📝 Response Preview (last 500 chars):
+...ease provide:
+- Your main competitors (industry-specific, e.g., Snowflake, Google BigQuery, AWS Redshift, Microsoft Azure Synapse, etc.)
+- How you compare to these competitors in terms of market position, technology, and differentiation
+- Your key competitive advantages and any major barriers to entry in your segment
+
+If you want, I can research and present a full competitive landscape for Databricks (2025) and share the results for your approval. Would you like me to proceed with this research?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 4213
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 4213 characters
+📝 Response Preview (first 500 chars):
+Based on current 2025 research, **Databricks’ main competitors** are major cloud and data platform providers specializing in large-scale analytics, warehousing, and unified data/AI workflows. These include:
+
+**Key Competitors:**
+- **Snowflake:** Cloud-native data warehouse with strong multi-cloud support, known for ease of use and fast scaling. Excels at structured analytics and business intelligence use cases; strong in financial services and retail[1][4][5].
+- **Google BigQuery:** Serverless, ...
+
+📝 Response Preview (last 500 chars):
+...services can increase dependence on Databricks’ ecosystem[3][5].
+
+**Summary of Differentiation:**
+Databricks stands out through the **Lakehouse platform**, open-source innovation, and integrated AI/ML lifecycle. Competitors like Snowflake and BigQuery excel in ease of use and BI, while Databricks leads in unified analytics and advanced AI for large, data-driven enterprises[1][2][3][4][5].
+
+Would you like to review or adjust any of these details, or proceed to the next topic (Valuation Overview)?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 3202
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 3202 characters
+📝 Response Preview (first 500 chars):
+Now let’s cover **Valuation Overview** for Databricks, using the latest available public and investor sources:
+
+### Valuation Methodologies & Key Results
+
+**1. Latest Private Funding Round (Series K, August 2025)**
+- **Enterprise Value:** $100+ billion  
+- **Metric:** Post-money valuation from private capital raise  
+- **Commentary:**  
+  Achieved after a highly oversubscribed round led by existing investors, following $10B Series J and $5.25B debt financing just seven months prior. The round re...
+
+📝 Response Preview (last 500 chars):
+...Series K, premium for AI/Agent leadership        |
+| Trading Multiples  | $100B           | EV/Revenue       | 27x          | 27x          | Higher than Snowflake, justified by growth/AI platform          |
+| DCF                | $90–110B        | DCF              | n/a          | n/a          | Supported by sustained high growth, FCF margin, platform effect |
+
+Would you like to review or adjust any assumptions or methodology? If not, I will proceed to the next topic: **Precedent Transactions**.
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 1712
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 1712 characters
+📝 Response Preview (first 500 chars):
+Now let’s cover **Precedent Transactions** for Databricks and its segment, using the latest available public and investor sources:
+
+### Recent Industry Transactions (2023–2025)
+
+| Target        | Acquirer    | Date         | Country         | Enterprise Value | Revenue | EV/Revenue Multiple |
+|---------------|-------------|--------------|-----------------|------------------|---------|---------------------|
+| Neon          | Databricks  | May 2025     | USA             | $1.1B (est.)     | N/A   ...
+
+📝 Response Preview (last 500 chars):
+...rless Postgres/AI agent databases[2][3].
+- Most deals in the space are valued at $650M–$1.3B, with revenue multiples typically not publicly disclosed due to early-stage/high-growth targets.
+- Public market comps (Snowflake, Databricks at $100B+ EV) are trading at 24–27x forward revenue, reflecting very strong investor demand and secular AI/data tailwinds.
+
+Would you like to add any other transactions or adjust these entries? If not, I will proceed to the next topic: **Margin & Cost Resilience**.
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 2548
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 2548 characters
+📝 Response Preview (first 500 chars):
+Now let’s cover **Margin & Cost Resilience** for Databricks using the latest available research:
+
+---
+
+**Margin & Cost Resilience**
+
+**Key Chart Data (2021–2025):**
+
+- **Gross Margins**:  
+  - 2021: 85%  
+  - 2022: 85%  
+  - 2023: 85%  
+  - 2024: 80%  
+  - 2025: 80% (as of June–July)[1][2][3]
+- **Net Revenue Retention:**  
+  - 2024: 140%[1][2]
+- **Free Cash Flow Positive:**  
+  - Achieved in Q1 2025[2][4]
+
+---
+
+**Cost Management Initiatives:**
+
+- **Cloud-Native Infrastructure Optimization:**  
+ ...
+
+📝 Response Preview (last 500 chars):
+...  Maintains non-GAAP gross margins above 80% despite industry cost pressures and competitive pricing[1][2][4].
+
+---
+
+**Summary Table—Gross Margins (2021–2025):**
+
+| Year | Gross Margin |
+|------|--------------|
+| 2021 | 85%          |
+| 2022 | 85%          |
+| 2023 | 85%          |
+| 2024 | 80%          |
+| 2025 | 80%          |
+
+---
+
+Would you like to review or adjust any of these margin/cost resilience details, or should I proceed to the next topic: **Global Conglomerates (Potential Buyers)**?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 2650
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 2650 characters
+📝 Response Preview (first 500 chars):
+Now let’s address **Global Conglomerates (Potential Buyers)** for Databricks, focusing on international strategic acquirers and industry leaders who could be interested in a major data & AI platform. Here are four researched examples:
+
+---
+
+**Global Conglomerates – Strategic Interest in Databricks (2025)**
+
+1. **Microsoft Corp. (USA)**
+   - **Description:** Global technology leader with deep cloud, AI, and enterprise software expertise.
+   - **Key Shareholders:** Vanguard, BlackRock, Bill Gates,...
+
+📝 Response Preview (last 500 chars):
+...y Financials:** $32B revenue (2023), strong balance sheet, global reach.
+   - **Strategic Rationale:** Already partners with Databricks; potential acquisition would deepen SAP’s AI/data stack and expand cloud services for global clients.
+   - **Contact:** N/A (corporate development, Walldorf HQ)
+
+---
+
+Would you like to adjust or add to these global conglomerate profiles? If not, I will move to the final required topic: **Investor Process Overview** (diligence topics, synergies, risks, timeline).
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 3644
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 3644 characters
+📝 Response Preview (first 500 chars):
+Here is a researched and up-to-date **Investor Process Overview** for Databricks, tailored for a pitch deck and reflecting current investor expectations as of September 2025:
+
+---
+
+**Diligence Topics**
+- **Product & Technology:**  
+  - Depth and scalability of Lakehouse architecture, Agent Bricks AI platform, and Lakebase operational database[2][3].
+  - Open-source roadmap (Spark, Delta Lake, MLflow) and proprietary innovation.
+- **Financials:**  
+  - Revenue growth (>$3.7B run-rate), gross marg...
+
+📝 Response Preview (last 500 chars):
+...** Deep dive diligence (product, financial, legal, tech, customer)  
+4. **Weeks 9–10:** Indications of interest and initial bids  
+5. **Weeks 11–12:** Final round, confirmatory diligence, and negotiation  
+6. **Weeks 13–14:** Signing, announcement, and regulatory filings  
+7. **IPO Alternative:** Potential filing in late 2025 depending on market conditions[4][5]
+
+---
+
+Would you like to make any adjustments, or shall I proceed to generate your complete, validated JSON files for pitch deck slides?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 21647
+[JSON EXTRACTION DEBUG] Found Content IR marker: 'CONTENT IR JSON:' at position 147
+[JSON EXTRACTION DEBUG] Found Render Plan marker: 'RENDER PLAN JSON:' at position 20012
+[JSON EXTRACTION DEBUG] Extracted Content IR JSON (length: 19831)
+[JSON CLEAN] Input length: 19831
+[JSON CLEAN] JSON parse error: Expecting value: line 10 column 22 (char 214)
+❌ Failed to parse Content IR JSON: Expecting value: line 10 column 22 (char 214)
+[JSON REPAIR] Advanced repair disabled - returning original JSON
+❌ Advanced repair also failed for Content IR
+[JSON EXTRACTION DEBUG] Extracted Render Plan JSON (length: 1500)
+[JSON CLEAN] Input length: 1500
+[JSON CLEAN] JSON is valid as-is
+✅ Successfully parsed Render Plan JSON
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON CLEAN] Input length: 19831
+[JSON CLEAN] JSON parse error: Expecting value: line 10 column 22 (char 214)
+❌ Failed to parse JSON block 1: Expecting value: line 10 column 22 (char 214)
+[JSON CLEAN] Input length: 1500
+[JSON CLEAN] JSON is valid as-is
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+[JSON CLEAN] Input length: 19831
+[JSON CLEAN] JSON parse error: Expecting value: line 10 column 22 (char 214)
+[JSON CLEAN] Input length: 1500
+[JSON CLEAN] JSON is valid as-is
+[JSON EXTRACTION DEBUG] Render Plan keys: ['slides']
+[JSON EXTRACTION DEBUG] Number of slides: 13
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ✅ Found
+
+🔧 NORMALIZING EXTRACTED JSON...
+[NORMALIZATION] Starting JSON normalization...
+
+🏗️ STRUCTURE VALIDATION:
+[STRUCTURE VALIDATION] Starting validation against examples...
+[STRUCTURE VALIDATION] Validating Render Plan structure...
+[STRUCTURE VALIDATION] ✓ Render Plan has 13 slides
+[STRUCTURE VALIDATION] ✓ All slides have required fields
+[STRUCTURE VALIDATION] ⚠️  Validation issues found: 0 issues
+
+📋 SLIDE-BY-SLIDE VALIDATION:
+[31m──[0m[31m────────────────────────[0m[31m [0m[1;31mTraceback [0m[1;2;31m(most recent call last)[0m[31m [0m[31m─────────────────────────[0m[31m──[0m
+[31m [0m [2m/usr/local/lib/python3.12/site-packages/streamlit/runtime/scriptrunner/[0m[1mexec_code.py[0m: [31m [0m
+[31m [0m 128 in exec_func_with_error_handling                                                 [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m [2m/usr/local/lib/python3.12/site-packages/streamlit/runtime/scriptrunner/[0m[1mscript_runner[0m [31m [0m
+[31m [0m [1m.py[0m:669 in code_to_exec                                                              [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m [2m/home/user/webapp/[0m[1mapp.py[0m:4458 in <module>                                            [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m   [2m4455 [0m[2m│   │   │   │   │   [0mst.session_state.messages.append({[33m"[0m[33mrole[0m[33m"[0m: [33m"[0m[33massistant[0m[33m"[0m, [33m"[0m[33mc[0m [31m [0m
+[31m [0m   [2m4456 [0m[2m│   │   │   │   │   [0m                                                          [31m [0m
+[31m [0m   [2m4457 [0m[2m│   │   │   │   │   [0m[2m# Check if JSONs were generated and extract them with com[0m [31m [0m
+[31m [0m [31m❱ [0m4458 [2m│   │   │   │   │   [0mcontent_ir, render_plan, validation_results = [1;4mextract_and[0m [31m [0m
+[31m [0m   [2m4459 [0m[2m│   │   │   │   │   [0m                                                          [31m [0m
+[31m [0m   [2m4460 [0m[2m│   │   │   │   │   [0m[2m# Debug extraction if it failed[0m                           [31m [0m
+[31m [0m   [2m4461 [0m[2m│   │   │   │   │   [0m[94mif[0m [95mnot[0m content_ir [95mand[0m [95mnot[0m render_plan:                    [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m [2m/home/user/webapp/[0m[1mapp.py[0m:3545 in extract_and_validate_jsons                          [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m   [2m3542 [0m[2m│   [0m                                                                          [31m [0m
+[31m [0m   [2m3543 [0m[2m│   [0m[2m# Perform comprehensive slide validation[0m                                  [31m [0m
+[31m [0m   [2m3544 [0m[2m│   [0m[96mprint[0m([33m"[0m[33m\n[0m[33m📋 SLIDE-BY-SLIDE VALIDATION:[0m[33m"[0m)                                  [31m [0m
+[31m [0m [31m❱ [0m3545 [2m│   [0mvalidation_results = [1;4mvalidate_individual_slides(content_ir, render_plan)[0m  [31m [0m
+[31m [0m   [2m3546 [0m[2m│   [0m                                                                          [31m [0m
+[31m [0m   [2m3547 [0m[2m│   [0m[2m# Add example-based structure validation results[0m                          [31m [0m
+[31m [0m   [2m3548 [0m[2m│   [0mvalidation_results[[33m'[0m[33mstructure_validation[0m[33m'[0m] = structure_validation         [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m [2m/home/user/webapp/[0m[1mapp.py[0m:1003 in validate_individual_slides                          [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m   [2m1000 [0m[2m│   │   [0m[2m# Template-specific validation[0m                                        [31m [0m
+[31m [0m   [2m1001 [0m[2m│   │   [0m[94mif[0m template [95min[0m template_validators:                                   [31m [0m
+[31m [0m   [2m1002 [0m[2m│   │   │   [0mtemplate_validator = template_validators[template]                [31m [0m
+[31m [0m [31m❱ [0m1003 [2m│   │   │   [0mtemplate_validation = [1;4mtemplate_validator(slide, content_ir)[0m       [31m [0m
+[31m [0m   [2m1004 [0m[2m│   │   │   [0m                                                                  [31m [0m
+[31m [0m   [2m1005 [0m[2m│   │   │   [0mslide_validation[[33m'[0m[33missues[0m[33m'[0m].extend(template_validation.get([33m'[0m[33missues[0m [31m [0m
+[31m [0m   [2m1006 [0m[2m│   │   │   [0mslide_validation[[33m'[0m[33mwarnings[0m[33m'[0m].extend(template_validation.get([33m'[0m[33mwarn[0m [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m [2m/home/user/webapp/[0m[1mapp.py[0m:1299 in validate_management_team_slide                      [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m   [2m1296 [0m[2m│   [0m[94melse[0m:                                                                     [31m [0m
+[31m [0m   [2m1297 [0m[2m│   │   [0m[2m# Check data section[0m                                                  [31m [0m
+[31m [0m   [2m1298 [0m[2m│   │   [0mdata = slide.get([33m'[0m[33mdata[0m[33m'[0m, {})                                          [31m [0m
+[31m [0m [31m❱ [0m1299 [2m│   │   [0m[94mif[0m [1;4;33m'[0m[1;4;33mmanagement_team[0m[1;4;33m'[0m[1;4m [0m[1;4;95mnot[0m[1;4m [0m[1;4;95min[0m[1;4m content_ir[0m:                               [31m [0m
+[31m [0m   [2m1300 [0m[2m│   │   │   [0mvalidation[[33m'[0m[33missues[0m[33m'[0m].append([33m"[0m[33mNo management_team data in Content I[0m [31m [0m
+[31m [0m   [2m1301 [0m[2m│   │   │   [0m[94mreturn[0m validation                                                 [31m [0m
+[31m [0m   [2m1302 [0m[2m│   │   [0mmgmt_data = content_ir[[33m'[0m[33mmanagement_team[0m[33m'[0m]                             [31m [0m
+[31m────────────────────────────────────────────────────────────────────────────────────────[0m
+[1;91mTypeError: [0margument of type [32m'NoneType'[0m is not iterable
+  Stopping...
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8501
+
+  Stopping...
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8501
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 1149
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+[JSON CLEAN] Input length: 906
+[JSON CLEAN] JSON parse error: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 1149 characters
+📝 Response Preview (first 500 chars):
+Perplexity API Error: 401 - <html>
+<head><title>401 Authorization Required</title></head>
+<body>
+<center><h1>401 Authorization Required</h1></center>
+<hr><center>openresty/1.27.4</center>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97bb4688584febcf',t:'MTc1NzMwMTI2NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/ma...
+
+📝 Response Preview (last 500 chars):
+...reateElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
+
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 2133
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 2133 characters
+📝 Response Preview (first 500 chars):
+**LlamaIndex** (also known as "llamaindex") is an open-source framework and API ecosystem designed to build, index, and query knowledge bases using large language models (LLMs). It provides tools for parsing, extracting, and indexing data from a wide range of document formats, making it easier to build Retrieval-Augmented Generation (RAG) and LLM-driven applications[1][2][3].
+
+**Key Features:**
+
+- **Document Parsing:** Handles over 130 file formats (PDF, DOCX, PPTX, HTML, images, etc.), supporti...
+
+📝 Response Preview (last 500 chars):
+...tion_calling_model=True, api_key=api_key)
+response = llm.complete("Paul Graham is ")
+print(response)
+```
+[2][3]
+
+**Documentation & API Reference:**
+- The official documentation provides guides, API references, and code samples for all modules and integrations (SDK, REST, cloud)[1][2][3][4][5].
+
+If you need a specific integration example, architecture explanation, or want to see how to use LlamaIndex for document QA or semantic search, let me know your use case and I can provide a targeted guide.
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+✅ Found markers: ['```']
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 2342
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 2342 characters
+📝 Response Preview (first 500 chars):
+**LlamaIndex** is a venture-backed AI software company founded in 2023 by former Uber research scientists Jerry Liu and Simon Suo[1][2]. The company’s core product is an open-source framework (also called LlamaIndex) that enables developers to build custom AI agents capable of extracting insights, generating reports, and performing actions over unstructured enterprise data such as PDFs, PowerPoints, and data from apps like Notion and Slack[1][2][5].
+
+**Company Overview:**
+- **Founded:** 2023
+- *...
+
+📝 Response Preview (last 500 chars):
+...s more than 3 million monthly downloads of its framework[2].
+- LlamaIndex’s mission is to deliver secure, accurate, and easy-to-use tools for building end-to-end knowledge agents, addressing enterprise needs for scalable, reliable AI[1][2][5].
+
+**In summary:**  
+LlamaIndex is a rapidly growing AI infrastructure company specializing in tools and cloud services for building and deploying LLM-powered agents over unstructured business data, with a strong open-source and enterprise presence[1][2][5].
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 3450
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 3450 characters
+📝 Response Preview (first 500 chars):
+Here is a detailed research summary on **LlamaIndex** the company, based on the latest available sources:
+
+---
+
+**Overview & Founding**
+- **LlamaIndex** is an AI infrastructure company founded in 2023 by former Uber research scientists Jerry Liu and Simon Suo[3].
+- Originally launched as a simple open-source project in late 2022, the framework rapidly grew in adoption and became a full-fledged company focused on enabling AI agents for enterprise data workflows[1][3].
+
+**Core Product & Technology...
+
+📝 Response Preview (last 500 chars):
+...s to remain at the forefront of agentic AI for business.
+
+---
+
+**Sources:**
+- [1]: AIM Research – "LlamaIndex is Building AI Agents That Actually Understand Your Data"
+- [3]: TechCrunch – "LlamaIndex launches a cloud service for building unstructured data agents"
+- [4]: LlamaIndex Official Site – "Build Knowledge Assistants over your Enterprise Data"
+- [5]: Landbase – "Companies using LlamaIndex in 2025"
+
+If you need more details about its financials, team, or customer case studies, let me know.
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 3319
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 3319 characters
+📝 Response Preview (first 500 chars):
+Here is a research-based summary of LlamaIndex’s **product/service footprint** and market coverage based on current sources:
+
+---
+
+**Main Offerings**
+
+**1. LlamaIndex Open-Source Framework**
+- A comprehensive, flexible framework that lets developers build custom AI agents and knowledge assistants using LLMs over enterprise data[1][2][4][5].
+- Supports context-aware RAG (retrieval-augmented generation) workflows, enabling LLMs to access and reason over private, unstructured data (e.g., PDFs, Powe...
+
+📝 Response Preview (last 500 chars):
+..., Connectors   | KPMG, professional services, manufacturing clients |
+| Asia           | Tech, Manufacturing  | LlamaCloud, Framework, Data Connectors | Adoption in India, Singapore, Japan                |
+| Global         | Open Source          | LlamaIndex Framework, LlamaHub       | Community and enterprise developer base worldwide  |
+
+---
+
+Let me know if you need further granularity (e.g., specific client case studies, technical deployment details, or more about their integration ecosystem).
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 3437
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 3437 characters
+📝 Response Preview (first 500 chars):
+Here is a research summary of **LlamaIndex's product/service footprint and market coverage** based on the latest credible sources:
+
+---
+
+### **Main Offerings**
+
+- **LlamaIndex Framework:**  
+  A flexible, developer-first framework for building intelligent knowledge assistants and agentic workflows using LLMs connected to enterprise data. Enables integration of AI with data from PDFs, databases, apps like Slack, Notion, and more[1][2][3][4][5].
+
+- **LlamaCloud:**  
+  A secure, scalable SaaS and o...
+
+📝 Response Preview (last 500 chars):
+...       | 3M+ monthly downloads, developer adoption worldwide              |
+
+---
+
+### **Key Metrics**
+
+- **3M+ monthly downloads** of the open-source LlamaIndex framework[5].
+- **LlamaParse has processed over 150 million pages** for enterprise clients[2][5].
+- **LlamaCloud** supports large-scale, secure, production deployments for enterprises worldwide[2][4][5].
+
+---
+
+**If you need more granular details (e.g., specific client examples, technical architecture, or operational KPIs), let me know.**
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 2772
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 2772 characters
+📝 Response Preview (first 500 chars):
+Thank you for pointing out the repetition. Here is a summary of LlamaIndex’s product/service footprint and market coverage, based on the latest research:
+
+---
+
+## **LlamaIndex Product/Service Footprint**
+
+### **Main Offerings**
+
+- **LlamaIndex Framework**
+  - An open-source data orchestration framework for building LLM-powered applications, such as knowledge assistants, chatbots, and Q&A systems, over custom enterprise data[1][4][5].
+  - Integrates with various data sources (PDFs, PowerPoints, N...
+
+📝 Response Preview (last 500 chars):
+...deployments |
+| Europe         | Consulting, Industry | Framework, Connectors                | Adoption in manufacturing, legal, and services  |
+| Asia           | Tech, Manufacturing  | Framework, Data Connectors           | Growing adoption in India, Japan, Singapore     |
+| Global         | Open Source          | Framework, LlamaHub                  | Large developer and enterprise user base        |
+
+---
+
+If you need more specific examples or technical details about deployments, let me know.
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 439
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 439 characters
+📝 Response Preview (first 500 chars):
+Thank you for confirming! Let's proceed to the next systematic topic: **historical financial performance**.
+
+Please provide 3-5 years of financial data for LlamaIndex:
+- Annual revenue (USD)
+- EBITDA (USD)
+- EBITDA margins (%)
+- Growth rates (YoY revenue and/or EBITDA)
+- Any key operational metrics (downloads, page volume, customer count, etc.)
+
+If you do not have these figures, let me know and I can research them with your permission.
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 3315
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 3315 characters
+📝 Response Preview (first 500 chars):
+Here is a research-backed summary of **LlamaIndex’s historical financial performance and capabilities in financial data extraction**, as described in current sources:
+
+---
+
+### **LlamaIndex Financial Data Extraction Capabilities**
+
+- **Automated Parsing of Financial Documents:**  
+  LlamaIndex enables rapid parsing of 10-Ks, 10-Qs, earnings decks, and other financial statements to surface key financial metrics such as revenue, margins, and cash flows. This automation can reduce manual data extra...
+
+📝 Response Preview (last 500 chars):
+...ed extraction minimize human error and ensure consistent, reliable data[1][4].
+
+---
+
+If you need actual revenue, EBITDA, or margin numbers for LlamaIndex as a company, these are not publicly disclosed in available sources. If you wish, I can continue searching for more specific figures or use industry benchmarks with your approval.
+
+Would you like to proceed with these operational impact metrics and extraction capabilities, or do you require estimated company-level financials for the pitch deck?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 2340
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 2340 characters
+📝 Response Preview (first 500 chars):
+There is **no publicly available revenue, EBITDA, or margin data for LlamaIndex as a private company** in current sources[2][4][5]. LlamaIndex is a venture-backed startup and, like most private software infrastructure companies, does not disclose its financials. Here’s how you can proceed for your pitch deck:
+
+---
+
+### **Industry Benchmarks for Early-Stage AI Infrastructure Startups (2023–2025)**
+
+Based on comparable companies and industry reports, the following are reasonable *illustrative benc...
+
+📝 Response Preview (last 500 chars):
+...ies.
+- Your pitch deck should clearly label these as *illustrative* or *industry-based estimates* and not actuals.
+- For credibility: note that LlamaIndex’s open-source/community traction and enterprise adoption have accelerated rapidly, in line with these benchmarks[2][5].
+
+---
+
+If you want to use these numbers in your pitch deck, please confirm and I’ll proceed to format the financials and charts accordingly. If you want a more conservative or aggressive scenario, let me know your preferences.
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 983
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 983 characters
+📝 Response Preview (first 500 chars):
+Thank you for confirming. There is **no publicly disclosed revenue or EBITDA data for LlamaIndex as a private company**[2][3]. However, based on industry benchmarks for high-growth AI infrastructure startups and operational metrics disclosed by LlamaIndex (such as 3M+ monthly downloads and 150M+ pages processed), it is typical to use *illustrative financials* for pitch decks in this scenario.
+
+**I will proceed with:**
+- Revenue and EBITDA estimates based on industry benchmarks for comparable AI ...
+
+📝 Response Preview (last 500 chars):
+...or comparable AI SaaS startups (as described above).
+- Clearly labeling these as *industry-based estimates* for transparency.
+- Including operational highlights (downloads, enterprise customers, usage) to further demonstrate business scale.
+
+Let me know if you have any specific preferences for the financial projection range, or if you want to proceed with the standard benchmark scenario described. If you are ready, I will use these numbers for the financial slides and continue to the next topic.
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 1353
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 1353 characters
+📝 Response Preview (first 500 chars):
+Thank you for confirming. Here’s a summary of what’s available:
+
+- **LlamaIndex is a private, venture-backed company and does not disclose actual revenue or EBITDA figures in public filings or press releases as of 2025[2][4].**
+- **Industry benchmarks for similar-stage AI infrastructure companies** indicate early revenues typically start in the low single-digit millions (USD), often with negative EBITDA in the first years, turning positive as enterprise cloud adoption scales.
+- **Operational met...
+
+📝 Response Preview (last 500 chars):
+...ed industry benchmarks* (such as those shared above), along with these operational metrics, and note that actual financials are not publicly disclosed for LlamaIndex[2][4]. This approach is both standard and credible for high-growth, private AI software companies.
+
+Ready to proceed with these benchmarked numbers and operational highlights for your financial performance slides? If so, I will move to the next required topic: **management team**. If you need any more on the financials, let me know.
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 540
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 540 characters
+📝 Response Preview (first 500 chars):
+Now let's move to the **management team** for your pitch deck.
+
+Please provide the following for LlamaIndex:
+- Names and role titles of at least 4-6 key executives (e.g., CEO, CTO, Head of Product, etc.)
+- For each, a detailed background (3-5 bullet points) covering their relevant experience, previous roles, education, and notable achievements
+
+If you do not have this information, I can research the current LlamaIndex management team and present my findings for your review and approval. Would yo...
+
+📝 Response Preview (last 500 chars):
+...* for your pitch deck.
+
+Please provide the following for LlamaIndex:
+- Names and role titles of at least 4-6 key executives (e.g., CEO, CTO, Head of Product, etc.)
+- For each, a detailed background (3-5 bullet points) covering their relevant experience, previous roles, education, and notable achievements
+
+If you do not have this information, I can research the current LlamaIndex management team and present my findings for your review and approval. Would you like me to proceed with this research?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 2498
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 2498 characters
+📝 Response Preview (first 500 chars):
+Here is the most recent and verifiable information on the **LlamaIndex management team**:
+
+---
+
+**1. Jerry Liu – Co-Founder & Chief Executive Officer**
+- Former applied research scientist at Uber, focusing on AI/ML infrastructure and large-scale agentic systems[2][5].
+- Led the development and open-sourcing of LlamaIndex, scaling the project from inception to millions of downloads and Fortune 500 adoption[1][2].
+- Speaker at Data + AI Summit and The AI Conference 2025; recognized thought leader ...
+
+📝 Response Preview (last 500 chars):
+...rt for key enterprise deployments in finance, consulting, and manufacturing.
+- Background in AI/ML engineering and applied research (details on prior roles not disclosed in public sources).
+- Focuses on client success with LlamaCloud and bespoke agent solutions.
+
+---
+
+If you would like more detail on other executives, or want to confirm/add additional team members, let me know! If this covers your management slide requirements, I will proceed to the next topic: **growth strategy & projections**.
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 698
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 698 characters
+📝 Response Preview (first 500 chars):
+Now let's proceed to the next required topic: **growth strategy & financial projections**.
+
+Please provide details on:
+- LlamaIndex’s growth strategy and major expansion plans (e.g., new products, geographic expansion, partnerships, R&D investments)
+- Strategic initiatives for the next 2-3 years (enterprise cloud rollout, agent platform enhancements, etc.)
+- Financial projections for the next 2–3 years (expected revenue and EBITDA, if available)
+
+If you do not have this information, I can resear...
+
+📝 Response Preview (last 500 chars):
+...eographic expansion, partnerships, R&D investments)
+- Strategic initiatives for the next 2-3 years (enterprise cloud rollout, agent platform enhancements, etc.)
+- Financial projections for the next 2–3 years (expected revenue and EBITDA, if available)
+
+If you do not have this information, I can research industry benchmarks, recent funding announcements, and company statements to build a realistic, investor-ready growth strategy and projection scenario. Would you like me to research this for you?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 3177
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 3177 characters
+📝 Response Preview (first 500 chars):
+Here is a research-backed summary of **LlamaIndex’s growth strategy and financial projections** based on the most recent credible sources:
+
+---
+
+### **Growth Strategy (2024–2026)**
+
+- **Platform Expansion & R&D Acceleration**
+  - LlamaIndex raised $19 million in Series A funding in mid-2025 (total funding: $27.5M), led by Norwest and Greylock, specifically to expand its team and accelerate development of its core generative AI agent platform[1].
+  - Strategic focus on improving security, accurac...
+
+📝 Response Preview (last 500 chars):
+...al, finance, market research).
+- Launch enhanced multimodal agentic workflows (text + image data parsing).
+- Grow enterprise customer base from 300+ to 1,000+ by end of 2026.
+- Deepen partnerships with cloud providers and consulting firms to drive global adoption.
+- Continue sponsoring developer events and expanding open-source ecosystem.
+
+---
+
+**If you need a formatted slide with this data or want to adjust projections, let me know. Ready to proceed to the next topic: competitive positioning?**
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 4284
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 4284 characters
+📝 Response Preview (first 500 chars):
+Now let's discuss **competitive positioning** for LlamaIndex. Please review this research-based summary:
+
+---
+
+### **Main Competitors**
+
+- **LangChain:** Modular framework for building LLM-powered apps and agents, widely adopted for complex orchestration and integrations[4][5].
+- **CrewAI:** Multi-agent orchestration platform, especially strong for research flows and advanced agent collaboration[4][5].
+- **OpenAI Assistants API:** GPT-native agent framework, suitable for apps tightly coupled to ...
+
+📝 Response Preview (last 500 chars):
+...⭐⭐⭐⭐                     | Multilingual chatbots, hybrid search              |
+
+---
+
+**Barriers to Entry:**
+- Requires deep expertise in retrieval quality and evaluation to match LlamaIndex’s reliability[5].
+- Comprehensive, well-documented connectors and proven enterprise security are challenging to replicate[5].
+
+**If you have any additional competitors to include, or want to highlight specific differentiators or quantitative metrics, let me know! Ready to proceed to valuation overview next?**
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 2245
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 2245 characters
+📝 Response Preview (first 500 chars):
+Here is a valuation overview for LlamaIndex based on the most recent industry data and available benchmarks:
+
+---
+
+### **Valuation Overview**
+
+- **Total Funding:**  
+  LlamaIndex has raised $27.5 million to date, including a $19 million Series A in March 2025 led by Norwest Venture Partners and Greylock[1][3].
+
+- **Enterprise Value Estimate:**  
+  According to Dealroom, LlamaIndex’s **enterprise value is estimated at $76–114 million as of early 2025**[2].  
+  (Note: The company has not publicly ...
+
+📝 Response Preview (last 500 chars):
+...owth:** 120–150% CAGR from 2023–2025, in line with benchmarks for high-growth AI SaaS firms.
+  - **EBITDA Margins:** Negative to low single-digit, improving as platform scales and cloud revenue grows.
+  - **Risk Factors:** Enterprise adoption cycles, competitive intensity, data security and reliability requirements.
+
+---
+
+**If you need more detail on methodology, sensitivity analysis, or want to discuss strategic rationale for investors, let me know. Ready to proceed to precedent transactions?**
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 2090
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 2090 characters
+📝 Response Preview (first 500 chars):
+Here is a summary of **precedent transactions and valuation benchmarks for AI infrastructure startups in 2025**, using current industry data and recent transactions:
+
+---
+
+### Precedent Transactions & Valuation Multiples
+
+**AI Infrastructure and LLM Platform Valuation Benchmarks (2025):**
+- **Early-stage AI startups:** 10x–50x revenue multiples[1][2][3][4].
+- **Growth-stage AI startups:** 8x–20x revenue multiples[3].
+- **Series A median valuation:** $45M–$50M; exceptional infra/LLM startups exce...
+
+📝 Response Preview (last 500 chars):
+...customer retention and high ARR[2][3][4].
+- Median revenue multiples for AI startups in 2025: **20x–30x** at Series A/B; exceptional outliers (Reka AI, EliseAI) reach 30x–50x[1][2][4].
+- Investors prioritize proprietary models, platform defensibility, and expansion potential in setting these high valuations[3][4].
+
+---
+
+**Let me know if you want to include more specific company transactions or need a formatted table for your deck. Ready to proceed to the next topic: margin and cost resilience?**
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 642
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 642 characters
+📝 Response Preview (first 500 chars):
+Now let's continue to the required topic: **margin & cost resilience**.
+
+Please provide details for LlamaIndex on:
+- Cost management initiatives (e.g., cloud optimization, R&D efficiency, customer support automation)
+- Margin stability (how you maintain or improve gross/EBITDA margins)
+- Risk mitigation strategies (e.g., security controls, reliability engineering, vendor management)
+
+If you do not have this data, I can research industry best practices for AI infrastructure startups and benchmark...
+
+📝 Response Preview (last 500 chars):
+...es (e.g., cloud optimization, R&D efficiency, customer support automation)
+- Margin stability (how you maintain or improve gross/EBITDA margins)
+- Risk mitigation strategies (e.g., security controls, reliability engineering, vendor management)
+
+If you do not have this data, I can research industry best practices for AI infrastructure startups and benchmark typical margin/cost resilience approaches, then present my findings for your review and approval. Would you like me to research this for you?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 3847
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 3847 characters
+📝 Response Preview (first 500 chars):
+Here is a research-backed summary of **margin and cost resilience strategies for AI infrastructure companies like LlamaIndex**, based on current 2025 best practices and industry sources:
+
+---
+
+### **Cost Management Initiatives**
+
+- **Energy-Efficient Infrastructure:**  
+  Invest in power-efficient hardware and advanced cooling solutions (like liquid/immersion cooling) to reduce electricity costs—one of the largest operational expenses for AI workloads[1].
+
+- **Hybrid Cloud and GPU-as-a-Service:*...
+
+📝 Response Preview (last 500 chars):
+...ce audits|
+
+---
+
+**Key Insight:**  
+Top AI infrastructure companies in 2025 achieve up to **40% lower cloud and compute costs** through strategic cloud contracts, automation, and a culture of efficiency and reuse[5]. Margin resilience is underpinned by transparency, architectural leverage, and proactive risk management.
+
+Let me know if you'd like these findings formatted for your margin/cost resilience slide or if you have any company-specific programs to add. Ready to proceed to the next topic?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 726
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 726 characters
+📝 Response Preview (first 500 chars):
+Now let's move to the next required topic: **global conglomerates who might be interested in LlamaIndex or similar AI infrastructure companies**.
+
+For this slide, I need:
+- Names of 4–5 major global conglomerates (from any region) with a brief description
+- Each conglomerate’s country of origin
+- Strategic rationale for their interest in AI infrastructure (10–20 words)
+- Key shareholders (if available)
+- Key financials (if available)
+- Contact information (if available; otherwise "N/A" is accept...
+
+📝 Response Preview (last 500 chars):
+...ion) with a brief description
+- Each conglomerate’s country of origin
+- Strategic rationale for their interest in AI infrastructure (10–20 words)
+- Key shareholders (if available)
+- Key financials (if available)
+- Contact information (if available; otherwise "N/A" is acceptable)
+
+Would you like me to research and propose a set of relevant conglomerates (e.g., SoftBank, Temasek, Alphabet, Tata Group, Samsung, etc.) with rationale and supporting details for your review before finalizing the slide?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 3647
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 3647 characters
+📝 Response Preview (first 500 chars):
+Here is a research-based list of **global conglomerates and major strategic players in AI infrastructure and technology** who might be interested in acquiring or investing in companies like LlamaIndex. This list includes top tech and diversified conglomerates from multiple regions with rationale for their interest:
+
+---
+
+### **Global Conglomerates & Strategic Rationale**
+
+| Name                         | Country      | Description                                                                 |...
+
+📝 Response Preview (last 500 chars):
+... systems to strengthen their cloud, enterprise, and generative AI offerings[1][2][3][4][5].
+- **Regional conglomerates (IHC, TSMC, Tencent, SoftBank)** are investing to diversify portfolios, expand into AI-driven enterprise solutions, and leverage proprietary infrastructure for global growth and technology leadership[4][5].
+
+If you need additional details on shareholders or want contact points for partnership teams, let me know. Ready to proceed to the final topic: **investor process overview**?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 3996
+[JSON EXTRACTION DEBUG] Fallback to code block extraction...
+[JSON EXTRACTION DEBUG] Attempting aggressive extraction...
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 3996 characters
+📝 Response Preview (first 500 chars):
+Here is a research-based **investor process overview for AI infrastructure M&A in 2025**, tailored for LlamaIndex or similar companies:
+
+---
+
+### **Key Diligence Topics**
+- **Team & Talent:**  
+  Acquirers place high value on lean, technical teams capable of rapid innovation, scalability, and execution in AI/ML product development[1].
+- **Intellectual Property & Technology:**  
+  Review of proprietary models, code base, data pipelines, and uniqueness of retrieval or agentic workflows[1][4].
+- **...
+
+📝 Response Preview (last 500 chars):
+...                   |
+
+---
+
+**Sources:**  
+[1] Aventis Advisors – AI M&A 2025  
+[2] Ropes & Gray – Artificial Intelligence H1 2025 Global Report  
+[3] Corum Group – Surging AI M&A Market  
+[4] Copy.ai – AI Acquisition Strategies 2025  
+[5] Finro Financial Consulting – AI M&A Valuation 2025
+
+---
+
+If you need this formatted for your deck (slide structure, diligence topics, timeline bullets, etc.), let me know.  
+**You now have complete data for all 14 required sections. Ready for JSON generation?**
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 34812
+[JSON EXTRACTION DEBUG] Found Content IR marker: 'CONTENT IR JSON:' at position 147
+[JSON EXTRACTION DEBUG] Found Render Plan marker: 'RENDER PLAN JSON:' at position 18140
+[JSON EXTRACTION DEBUG] Extracted Content IR JSON (length: 17959)
+[JSON CLEAN] Input length: 17959
+[JSON CLEAN] JSON is valid as-is
+✅ Successfully parsed Content IR JSON
+[JSON EXTRACTION DEBUG] Extracted Render Plan JSON (length: 16537)
+[JSON CLEAN] Input length: 16537
+[JSON CLEAN] JSON is valid as-is
+✅ Successfully parsed Render Plan JSON
+[JSON EXTRACTION DEBUG] Content IR keys: ['entities', 'facts', 'management_team', 'strategic_buyers', 'financial_buyers', 'competitive_analysis', 'precedent_transactions', 'valuation_data', 'product_service_data', 'business_overview_data', 'growth_strategy_data', 'investor_process_data', 'margin_cost_data', 'sea_conglomerates', 'investor_considerations']
+[JSON EXTRACTION DEBUG] Render Plan keys: ['slides']
+[JSON EXTRACTION DEBUG] Number of slides: 14
+
+📊 EXTRACTION RESULTS:
+Content IR: ✅ Found
+Render Plan: ✅ Found
+
+🔧 NORMALIZING EXTRACTED JSON...
+[NORMALIZATION] Starting JSON normalization...
+
+🏗️ STRUCTURE VALIDATION:
+[STRUCTURE VALIDATION] Starting validation against examples...
+[STRUCTURE VALIDATION] Validating Content IR structure...
+[STRUCTURE VALIDATION] ✓ Content IR has all required sections
+[STRUCTURE VALIDATION] ✓ Management team structure is correct
+[STRUCTURE VALIDATION] ✓ strategic_buyers is properly formatted array
+[STRUCTURE VALIDATION] ✓ financial_buyers is properly formatted array
+[STRUCTURE VALIDATION] Validating Render Plan structure...
+[STRUCTURE VALIDATION] ✓ Render Plan has 14 slides
+[STRUCTURE VALIDATION] ✓ All slides have required fields
+[STRUCTURE VALIDATION] ✅ Both Content IR and Render Plan structures are valid!
+
+📋 SLIDE-BY-SLIDE VALIDATION:
+
+📈 VALIDATION SUMMARY:
+Structure Quality: 100%
+Overall Valid: ❌ No
+Critical Issues: 0
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION COMPLETED
+================================================================================
+
+🔍 AUTO-ENHANCING MANAGEMENT TEAM DATA...
+🔍 Found executive information in conversation (127852 characters)
+✅ Management team already has good data (4 profiles)
+[JSON CLEAN] Input length: 19089
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 23269
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 19089
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 23269
+[JSON CLEAN] JSON is valid as-is
+  Stopping...
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8501
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 19114
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 23036
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 19634
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 23560
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 19634
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 23560
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 19634
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 23560
+[JSON CLEAN] JSON is valid as-is
+🔍 Validating data for PowerPoint compatibility...
+✅ PowerPoint validation completed successfully
+[DEBUG] Applying automatic JSON fixes before rendering...
+============================================================
+COMPREHENSIVE JSON FIXING
+============================================================
+[FIX] Fixing content IR with sections: ['entities', 'facts', 'management_team', 'strategic_buyers', 'financial_buyers', 'competitive_analysis', 'precedent_transactions', 'valuation_data', 'product_service_data', 'business_overview_data', 'growth_strategy_data', 'investor_process_data', 'margin_cost_data', 'sea_conglomerates', 'investor_considerations']
+[FIX] Adding missing section: charts
+[FIX] Fixing render plan with 14 slides
+
+[FIX] Processing slide 1: business_overview
+[FIX] Fixing data for template: business_overview
+[FIX] Converted start_year from int to string: 2023
+[FIX] Converted end_year from int to string: 2025
+[FIX] Added years_note: (2+ years of operation)
+
+[FIX] Processing slide 2: investor_considerations
+[FIX] Fixing data for template: investor_considerations
+
+[FIX] Processing slide 3: product_service_footprint
+[FIX] Fixing data for template: product_service_footprint
+
+[FIX] Processing slide 4: historical_financial_performance
+[FIX] Fixing data for template: historical_financial_performance
+[FIX] Fixed nested key_metrics structure
+
+[FIX] Processing slide 5: management_team
+[FIX] Fixing data for template: management_team
+
+[FIX] Processing slide 6: growth_strategy_projections
+[FIX] Fixing data for template: growth_strategy_projections
+
+[FIX] Processing slide 7: competitive_positioning
+[FIX] Fixing data for template: competitive_positioning
+[FIX] Competitive positioning data structure checked
+
+[FIX] Processing slide 8: valuation_overview
+[FIX] Fixing data for template: valuation_overview
+
+[FIX] Processing slide 9: precedent_transactions
+[FIX] Fixing data for template: precedent_transactions
+
+[FIX] Processing slide 10: margin_cost_resilience
+[FIX] Fixing data for template: margin_cost_resilience
+[FIX] Converted main_strategy from string to object
+[FIX] Added missing banker_view to risk_mitigation
+
+[FIX] Processing slide 11: sea_conglomerates
+[FIX] Fixing data for template: sea_conglomerates
+[FIX] Moved nested sea_conglomerates data to top level
+
+[FIX] Processing slide 12: buyer_profiles
+[FIX] Fixing data for template: buyer_profiles
+[FIX] Added missing field 'description' to buyer profile
+[FIX] Added missing field 'concerns' to buyer profile
+[FIX] Added missing field 'fit_score' to buyer profile
+[FIX] Added missing field 'financial_capacity' to buyer profile
+[FIX] Added missing field 'description' to buyer profile
+[FIX] Added missing field 'concerns' to buyer profile
+[FIX] Added missing field 'fit_score' to buyer profile
+[FIX] Added missing field 'financial_capacity' to buyer profile
+[FIX] Added missing field 'description' to buyer profile
+[FIX] Added missing field 'concerns' to buyer profile
+[FIX] Added missing field 'fit_score' to buyer profile
+[FIX] Added missing field 'financial_capacity' to buyer profile
+[FIX] Added missing field 'description' to buyer profile
+[FIX] Added missing field 'concerns' to buyer profile
+[FIX] Added missing field 'fit_score' to buyer profile
+[FIX] Added missing field 'financial_capacity' to buyer profile
+
+[FIX] Processing slide 13: buyer_profiles
+[FIX] Fixing data for template: buyer_profiles
+[FIX] Added missing field 'description' to buyer profile
+[FIX] Added missing field 'concerns' to buyer profile
+[FIX] Added missing field 'fit_score' to buyer profile
+[FIX] Added missing field 'financial_capacity' to buyer profile
+[FIX] Added missing field 'description' to buyer profile
+[FIX] Added missing field 'concerns' to buyer profile
+[FIX] Added missing field 'fit_score' to buyer profile
+[FIX] Added missing field 'financial_capacity' to buyer profile
+[FIX] Added missing field 'description' to buyer profile
+[FIX] Added missing field 'concerns' to buyer profile
+[FIX] Added missing field 'fit_score' to buyer profile
+[FIX] Added missing field 'financial_capacity' to buyer profile
+[FIX] Added missing field 'description' to buyer profile
+[FIX] Added missing field 'concerns' to buyer profile
+[FIX] Added missing field 'fit_score' to buyer profile
+[FIX] Added missing field 'financial_capacity' to buyer profile
+
+[FIX] Processing slide 14: investor_process_overview
+[FIX] Fixing data for template: investor_process_overview
+
+============================================================
+FIXING COMPLETE
+============================================================
+[DEBUG] JSON fixes applied successfully
+[DEBUG] Processing 14 slides
+[DEBUG] Slide 1: template='business_overview', data keys=['title', 'description', 'timeline', 'highlights', 'services', 'positioning_desc']
+[DEBUG] Slide 1: Found renderer for 'business_overview': render_business_overview_slide
+[DEBUG] Business overview data keys: ['title', 'description', 'timeline', 'highlights', 'services', 'positioning_desc']
+[DEBUG] Company description: LlamaIndex is a leading AI infrastructure company enabling developers and enterprises to build knowledge assistants and agentic workflows over unstructured data.
+[DEBUG] Slide 2: template='investor_considerations', data keys=['title', 'considerations', 'mitigants']
+[DEBUG] Slide 2: Found renderer for 'investor_considerations': render_investor_considerations_slide
+[DEBUG] Slide 3: template='product_service_footprint', data keys=['title', 'services', 'coverage_table', 'metrics']
+[DEBUG] Slide 3: Found renderer for 'product_service_footprint': render_product_service_footprint_slide
+[DEBUG] Using default coverage table data
+[DEBUG] Using direct metrics format with 4 metrics
+[DEBUG] Unknown metric format for 'monthly_downloads_m': <class 'int'>
+[DEBUG] Unknown metric format for 'pages_processed_m': <class 'int'>
+[DEBUG] Unknown metric format for 'enterprise_clients': <class 'int'>
+[DEBUG] Unknown metric format for 'waitlist_organizations': <class 'int'>
+[DEBUG] Slide 4: template='historical_financial_performance', data keys=['title', 'chart', 'key_metrics', 'revenue_growth', 'banker_view']
+[DEBUG] Slide 4: Found renderer for 'historical_financial_performance': render_historical_financial_performance_slide
+[DEBUG] Historical chart categories: ['2020', '2021', '2022', '2023', '2024E']
+[DEBUG] Historical chart revenue: [1.2, 4.0, 9.5, 21.0, 38.0]
+[DEBUG] Historical chart ebitda: [-2.0, -1.0, -0.5, 1.2, 5.7]
+[DEBUG] Successfully converted chart data to numeric
+[DEBUG] Chart axis scaled: range -2.0 to 38.0 → axis 0 to 45
+[DEBUG] Slide 5: template='management_team', data keys=['title', 'left_column_profiles', 'right_column_profiles']
+[DEBUG] Slide 5: Found renderer for 'management_team': render_management_team_slide
+[DEBUG] Slide 6: template='growth_strategy_projections', data keys=['title', 'slide_data']
+[DEBUG] Slide 6: Found renderer for 'growth_strategy_projections': render_growth_strategy_slide
+[DEBUG] Growth Strategy: Found 5 strategies in growth_strategy.strategies
+[DEBUG] Growth Strategy Chart: 3 categories, 3 revenue points, 3 ebitda points
+[DEBUG] Growth Strategy: No assumptions found, using 6 default assumptions
+[DEBUG] Slide 7: template='competitive_positioning', data keys=['title', 'competitors', 'assessment', 'barriers', 'advantages']
+[DEBUG] Slide 7: Found renderer for 'competitive_positioning': render_competitive_positioning_slide
+[DEBUG] Competitive chart axis scaled: max 300 → 360
+[DEBUG] Raw assessment type: <class 'list'>, length: 7
+[DEBUG] First assessment item type: <class 'str'>, value: ['Company', 'Market Focus', 'Connectors/Indexing', 'Enterprise Adoption', 'Factuality/Traceability']
+[DEBUG] Creating fallback assessment table
+[DEBUG] Using fallback assessment data based on user's competitive data
+[DEBUG] Slide 8: template='valuation_overview', data keys=['title', 'valuation_data', '__hide_metric_col', '__hide_22a_col', '__hide_23e_col']
+[DEBUG] Slide 8: Found renderer for 'valuation_overview': render_valuation_overview_slide
+[DEBUG] Valuation slide - 3 data rows
+[DEBUG] Processing valuation row 1: Trading Multiples (EV/Revenue)
+[DEBUG] Processing valuation row 2: Trading Multiples (EV/EBITDA)
+[DEBUG] Processing valuation row 3: Discounted Cash Flow (DCF)
+[DEBUG] Slide 9: template='precedent_transactions', data keys=['title', 'transactions']
+[DEBUG] Slide 9: Found renderer for 'precedent_transactions': render_precedent_transactions_slide
+[DEBUG] Precedent transactions: Found 5 transactions
+[DEBUG] Precedent transactions: Found 5 transactions
+[DEBUG] Precedent transactions: Found 5 transactions
+Error calling renderer: '>' not supported between instances of 'str' and 'int'
+[DEBUG] Slide 10: template='margin_cost_resilience', data keys=['title', 'chart_title', 'chart_data', 'cost_management', 'risk_mitigation']
+[DEBUG] Slide 10: Found renderer for 'margin_cost_resilience': render_margin_cost_resilience_slide
+[DEBUG] Margin cost resilience data keys: ['title', 'chart_title', 'chart_data', 'cost_management', 'risk_mitigation']
+[DEBUG] Chart categories: ['2021', '2022', '2023', '2024E', '2025E']
+[DEBUG] Chart values: [-25.0, -5.0, 5.7, 15.0, 22.7]
+[DEBUG] Margin chart axis scaled: max 22.7% → 30%
+[DEBUG] Cost management data available: True
+[DEBUG] Using provided cost management items: 4
+[DEBUG] Risk mitigation data available: True
+[DEBUG] Risk section keys: ['main_strategy', 'banker_view']
+[DEBUG] Using provided risk mitigation data in object format
+[DEBUG] Using provided banker's view
+[DEBUG] Slide 11: template='sea_conglomerates', data keys=['title', 'sea_conglomerates']
+[DEBUG] Slide 11: Found renderer for 'sea_conglomerates': render_sea_conglomerates_slide
+[DEBUG] SEA conglomerates: Found 5 companies
+[DEBUG] First company data: {'name': 'NVIDIA', 'country': 'USA', 'description': "World's largest AI chipmaker and cloud infra leader.", 'key_shareholders': 'Institutional, retail', 'key_financials': 'Market cap $4T; leading AI infra revenue', 'contact': 'N/A'}
+[DEBUG] Input data type: <class 'dict'>
+[DEBUG] Input data keys: ['title', 'sea_conglomerates']
+[DEBUG] Using fallback data: False
+[DEBUG] Slide 12: template='buyer_profiles', data keys=['title', 'table_headers', 'table_rows', 'subtitle', 'company']
+[DEBUG] Slide 12: Found renderer for 'buyer_profiles': render_buyer_profiles_slide
+[DEBUG] Slide 13: template='buyer_profiles', data keys=['title', 'table_headers', 'table_rows', 'subtitle', 'company']
+[DEBUG] Slide 13: Found renderer for 'buyer_profiles': render_buyer_profiles_slide
+[DEBUG] Slide 14: template='investor_process_overview', data keys=['title', 'diligence_topics', 'synergy_opportunities', 'risk_factors', 'mitigants', 'timeline']
+[DEBUG] Slide 14: Found renderer for 'investor_process_overview': render_investor_process_overview_slide
+[DEBUG] Investor process overview data keys: ['title', 'diligence_topics', 'synergy_opportunities', 'risk_factors', 'mitigants', 'timeline']
+[DEBUG] Diligence topics count: 6
+[DEBUG] Risk factors count: 4
+[DEBUG] Mitigants count: 4
+Error in renderer: 'str' object has no attribute 'get'
+[DEBUG] Finished processing. Total slides in presentation: 19
+[JSON CLEAN] Input length: 19634
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 23560
+[JSON CLEAN] JSON is valid as-is
+  Stopping...
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8501
+
