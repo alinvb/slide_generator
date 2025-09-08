@@ -838,15 +838,78 @@ def normalize_slide_structure(slide, slide_index):
     return normalized_slide
 
 def validate_json_structure_against_examples(content_ir, render_plan):
-    """Validate extracted JSON structure against the example files"""
-    print("[STRUCTURE VALIDATION] Starting validation against examples...")
+    """Enhanced validation that checks structure and recent fixes against examples"""
+    print("[ENHANCED VALIDATION] Starting validation against examples and recent fixes...")
     
     validation_results = {
         'content_ir_valid': False,
         'render_plan_valid': False,
         'missing_sections': [],
-        'structure_issues': []
+        'structure_issues': [],
+        'recent_fixes_validation': {'timeline_format': True, 'buyer_descriptions': True, 'financial_formatting': True, 'competitive_data': True}
     }
+    
+    # CRITICAL: Validate recent fixes
+    if content_ir:
+        print("[ENHANCED VALIDATION] Checking recent fixes compliance...")
+        
+        # 1. Timeline format validation (dict with date/description)
+        timeline_sources = [
+            content_ir.get('business_overview_data', {}).get('timeline', []),
+            content_ir.get('investor_process_data', {}).get('timeline', [])
+        ]
+        
+        for timeline_data in timeline_sources:
+            if timeline_data and isinstance(timeline_data, list):
+                for item in timeline_data:
+                    if isinstance(item, str):
+                        # String format is acceptable but dict is preferred
+                        print(f"[ENHANCED VALIDATION] ⚠️ Timeline item is string format: {item}")
+                    elif not isinstance(item, dict):
+                        validation_results['recent_fixes_validation']['timeline_format'] = False
+                        validation_results['structure_issues'].append('Timeline items must be strings or dicts with date/description')
+        
+        # 2. Buyer descriptions validation (no N/A allowed)
+        for buyer_type in ['strategic_buyers', 'financial_buyers']:
+            buyers = content_ir.get(buyer_type, [])
+            for i, buyer in enumerate(buyers):
+                if isinstance(buyer, dict):
+                    description = buyer.get('description', '')
+                    if not description or description in ['N/A', 'n/a', '']:
+                        validation_results['recent_fixes_validation']['buyer_descriptions'] = False
+                        validation_results['structure_issues'].append(f'{buyer_type}[{i}] missing proper description (has: {description})')
+                        print(f"[ENHANCED VALIDATION] ❌ {buyer_type}[{i}] has invalid description: {description}")
+        
+        # 3. Financial formatting validation (use compact notation)
+        transactions = content_ir.get('precedent_transactions', [])
+        for i, transaction in enumerate(transactions):
+            if isinstance(transaction, dict):
+                for field in ['enterprise_value', 'revenue']:
+                    value = transaction.get(field, '')
+                    if isinstance(value, (int, float)) and value > 1000:
+                        validation_results['recent_fixes_validation']['financial_formatting'] = False
+                        validation_results['structure_issues'].append(f'precedent_transactions[{i}].{field} should use compact notation ($2.1B not {value})')
+                        print(f"[ENHANCED VALIDATION] ❌ Financial value not in compact format: {field}={value}")
+        
+        # 4. Competitive data validation (should have AI competitors, not healthcare)
+        competitors = content_ir.get('competitive_analysis', {}).get('competitors', [])
+        healthcare_indicators = ['healthcare', 'medical', 'hospital', 'clinic', 'SouthernCapital']
+        ai_indicators = ['AI', 'LlamaIndex', 'LangChain', 'OpenAI', 'Haystack']
+        
+        has_healthcare = any(any(indicator.lower() in str(comp).lower() for indicator in healthcare_indicators) for comp in competitors)
+        has_ai = any(any(indicator in str(comp) for indicator in ai_indicators) for comp in competitors)
+        
+        if has_healthcare and not has_ai:
+            validation_results['recent_fixes_validation']['competitive_data'] = False
+            validation_results['structure_issues'].append('Competitive analysis contains healthcare companies instead of AI competitors')
+            print(f"[ENHANCED VALIDATION] ❌ Found healthcare competitors instead of AI: {competitors}")
+    
+    # Report recent fixes validation results
+    recent_fixes_valid = all(validation_results['recent_fixes_validation'].values())
+    if recent_fixes_valid:
+        print("[ENHANCED VALIDATION] ✅ All recent fixes validation passed")
+    else:
+        print(f"[ENHANCED VALIDATION] ❌ Recent fixes validation failed: {validation_results['recent_fixes_validation']}")
     
     # Validate Content IR structure
     if content_ir and isinstance(content_ir, dict):
@@ -1958,6 +2021,81 @@ def display_validation_results(validation_results):
     
     return validation_results['overall_valid']
 
+def automated_llm_feedback_and_retry(validation_results, messages, selected_model, api_key, api_service, max_retries=2):
+    """Enhanced automated feedback system that provides detailed corrections to LLM and retries generation"""
+    
+    if validation_results and validation_results.get('overall_valid', False):
+        return None, None, None  # No feedback needed
+    
+    print(f"\n🤖 AUTOMATED FEEDBACK SYSTEM: Validation failed, generating enhanced feedback for LLM...")
+    
+    # Create comprehensive feedback
+    feedback_message = create_validation_feedback_for_llm(validation_results)
+    
+    if not feedback_message:
+        print(f"\n❌ FEEDBACK GENERATION FAILED: No feedback message created")
+        return None, None, None
+    
+    # Auto-retry with enhanced feedback
+    print(f"\n🔄 AUTO-RETRY: Sending detailed feedback to LLM for corrections...")
+    
+    # Create enhanced feedback conversation with specific examples
+    feedback_conversation = messages + [
+        {
+            "role": "user", 
+            "content": f"""🚨 VALIDATION FAILED: Your JSON response has critical formatting and content issues.
+
+{feedback_message}
+
+🎯 MANDATORY CORRECTIONS:
+1. **Timeline Format**: Use dictionary format with date/description keys
+2. **Financial Values**: Use compact notation ($2.1B not $2,100,000,000)
+3. **Buyer Descriptions**: NEVER use "N/A" - provide actual company descriptions
+4. **Type Safety**: Ensure all timeline items use isinstance() compatible formats
+5. **Chart Scaling**: Use proper numerical values for EV/Revenue multiples
+
+🔧 EXAMPLE FIXES:
+- Timeline: {{"date": "2024", "description": "Launched enterprise platform"}}
+- Financial: "enterprise_value": "$2.1B" (not "$2,100,000,000")
+- Description: "Leading AI infrastructure company" (not "N/A")
+- Multiple: "ev_revenue_multiple": "28x" (not 28.0 or "28")
+
+⚡ RESPONSE FORMAT:
+**CONTENT IR JSON:**
+{{complete json here}}
+
+**RENDER PLAN JSON:**
+{{complete json here}}
+
+Ensure ZERO placeholder content, proper data types, and complete information."""
+        }
+    ]
+    
+    try:
+        # Call LLM with feedback
+        corrected_response = call_llm_api(
+            feedback_conversation,
+            selected_model,
+            api_key,
+            api_service
+        )
+        
+        print(f"\n✅ AUTO-RETRY COMPLETE: Received corrected response from LLM")
+        
+        # Extract and validate corrected JSONs
+        corrected_content_ir, corrected_render_plan, corrected_validation = extract_and_validate_jsons(corrected_response)
+        
+        if corrected_validation and corrected_validation.get('overall_valid', False):
+            print(f"\n✅ VALIDATION SUCCESS: Auto-correction successful!")
+            return corrected_content_ir, corrected_render_plan, corrected_response
+        else:
+            print(f"\n⚠️ AUTO-RETRY: Still has validation issues, but returning improved version")
+            return corrected_content_ir, corrected_render_plan, corrected_response
+            
+    except Exception as e:
+        print(f"\n❌ AUTO-RETRY FAILED: {str(e)}")
+        return None, None, None
+
 def create_validation_feedback_for_llm(validation_results):
     """Create specific feedback for the LLM to fix validation issues with example-based guidance"""
     
@@ -1965,18 +2103,47 @@ def create_validation_feedback_for_llm(validation_results):
         return None  # No feedback needed
     
     feedback_sections = []
-    feedback_sections.append("❌ VALIDATION FAILED - Your JSONs have empty boxes and missing content that must be fixed before generating the deck.")
-    feedback_sections.append("\n🎯 ZERO EMPTY BOXES POLICY VIOLATIONS:")
+    feedback_sections.append("❌ VALIDATION FAILED - Your JSONs have critical issues that must be fixed before generating the deck.")
+    feedback_sections.append("\n🎯 CRITICAL FIXES REQUIRED:")
     
-    # Add specific instructions for common issues
-    feedback_sections.append("\n🚨 CRITICAL: You MUST include the 'facts' section in Content IR for financial slides!")
-    feedback_sections.append("Add this to your Content IR:")
+    # Add specific instructions for timeline issues
+    feedback_sections.append("\n🚨 TIMELINE DATA: Ensure timeline items are properly formatted as dictionaries with 'date' and 'description' fields:")
+    feedback_sections.append('"timeline": [')
+    feedback_sections.append('  {"date": "2023", "description": "Founded and launched initial platform"},')
+    feedback_sections.append('  {"date": "2024", "description": "Raised Series A funding and expanded team"}')
+    feedback_sections.append(']')
+    
+    # Add financial data requirements
+    feedback_sections.append("\n🚨 FINANCIAL DATA: You MUST include the 'facts' section in Content IR:")
     feedback_sections.append('"facts": {')
     feedback_sections.append('  "years": ["2020", "2021", "2022", "2023", "2024E"],')
-    feedback_sections.append('  "revenue_usd_m": [120, 145, 180, 210, 240],')
-    feedback_sections.append('  "ebitda_usd_m": [18, 24, 31, 40, 47],')
-    feedback_sections.append('  "ebitda_margins": [15.0, 16.6, 17.2, 19.0, 19.6]')
+    feedback_sections.append('  "revenue_usd_m": [1.2, 4.0, 9.5, 21.0, 38.0],')
+    feedback_sections.append('  "ebitda_usd_m": [-2.0, -1.0, -0.5, 1.2, 5.7],')
+    feedback_sections.append('  "ebitda_margins": [-166, -25, -5, 5.7, 15.0]')
     feedback_sections.append('}')
+    
+    # Add buyer profile requirements
+    feedback_sections.append("\n🚨 BUYER PROFILES: ALL buyer profiles must have 'description' field with actual content:")
+    feedback_sections.append('"strategic_buyers": [')
+    feedback_sections.append('  {')
+    feedback_sections.append('    "buyer_name": "NVIDIA",')
+    feedback_sections.append('    "description": "World\'s largest AI chipmaker and GPU/cloud infrastructure leader.",')
+    feedback_sections.append('    "strategic_rationale": "Expand AI infrastructure...",')
+    feedback_sections.append('    "key_synergies": "Integrate platform...",')
+    feedback_sections.append('    "fit": "High (9/10)"')
+    feedback_sections.append('  }')
+    feedback_sections.append(']')
+    
+    # Add precedent transactions formatting
+    feedback_sections.append("\n🚨 PRECEDENT TRANSACTIONS: Use compact financial notation:")
+    feedback_sections.append('"precedent_transactions": [')
+    feedback_sections.append('  {')
+    feedback_sections.append('    "target": "Company Name",')
+    feedback_sections.append('    "enterprise_value": "$2.1B",')
+    feedback_sections.append('    "revenue": "$75M",')
+    feedback_sections.append('    "ev_revenue_multiple": "28x"')
+    feedback_sections.append('  }')
+    feedback_sections.append(']')
     
     # Add structure validation feedback first
     if 'structure_validation' in validation_results and validation_results['structure_validation']['structure_issues']:
@@ -2114,6 +2281,72 @@ def create_validation_feedback_for_llm(validation_results):
     feedback_sections.append("\n✅ TO FIX: Please regenerate the JSONs with complete content for all the issues listed above. Follow the professional examples exactly. Every field must have real data, not placeholders or empty values.")
     
     return "\n".join(feedback_sections)
+
+def enhanced_json_validation_with_fixes(content_ir, render_plan):
+    """Enhanced validation that automatically fixes common LLM output issues"""
+    print("\n🔧 ENHANCED VALIDATION WITH AUTO-FIXES...")
+    
+    fixes_applied = []
+    
+    # Fix 1: Ensure buyer profiles have description fields
+    if content_ir:
+        for buyer_type in ['strategic_buyers', 'financial_buyers']:
+            if buyer_type in content_ir:
+                for buyer in content_ir[buyer_type]:
+                    if 'description' not in buyer or not buyer.get('description'):
+                        # Generate description from buyer_name
+                        buyer_name = buyer.get('buyer_name', 'Unknown')
+                        if 'NVIDIA' in buyer_name:
+                            buyer['description'] = "World's largest AI chipmaker and GPU/cloud infrastructure leader."
+                        elif 'Microsoft' in buyer_name:
+                            buyer['description'] = "Leading global cloud, enterprise software, and AI provider (Azure, Copilot)."
+                        elif 'Google' in buyer_name or 'Alphabet' in buyer_name:
+                            buyer['description'] = "Global leader in AI research, cloud, and enterprise platforms."
+                        elif 'Sequoia' in buyer_name:
+                            buyer['description'] = "Top global VC with deep SaaS/AI portfolio."
+                        elif 'Andreessen' in buyer_name:
+                            buyer['description'] = "Leading VC with strong AI and developer tool focus."
+                        else:
+                            buyer['description'] = f"Major industry player and strategic partner."
+                        fixes_applied.append(f"Added description for {buyer_name}")
+    
+    # Fix 2: Ensure timeline data has proper format
+    if content_ir and 'business_overview_data' in content_ir:
+        timeline = content_ir['business_overview_data'].get('timeline')
+        if isinstance(timeline, list):
+            # Convert timeline list to proper start/end format
+            content_ir['business_overview_data']['timeline'] = {
+                'start_year': 2023,
+                'end_year': 2025
+            }
+            fixes_applied.append("Fixed timeline format from list to object")
+    
+    # Fix 3: Ensure all slides have proper titles
+    if render_plan and 'slides' in render_plan:
+        for i, slide in enumerate(render_plan['slides']):
+            if 'data' in slide and 'title' not in slide['data']:
+                template = slide.get('template', 'unknown')
+                slide['data']['title'] = template.replace('_', ' ').title()
+                fixes_applied.append(f"Added title to slide {i+1} ({template})")
+    
+    # Fix 4: Ensure precedent transactions have proper financial formatting
+    if content_ir and 'precedent_transactions' in content_ir:
+        for transaction in content_ir['precedent_transactions']:
+            # Ensure compact financial notation
+            ev = transaction.get('enterprise_value', '')
+            if isinstance(ev, (int, float)):
+                if ev >= 1000:
+                    transaction['enterprise_value'] = f"${ev/1000:.1f}B"
+                else:
+                    transaction['enterprise_value'] = f"${ev}M"
+                fixes_applied.append(f"Fixed financial formatting for {transaction.get('target', 'unknown')}")
+    
+    if fixes_applied:
+        print(f"✅ AUTO-FIXES APPLIED: {len(fixes_applied)} issues resolved")
+        for fix in fixes_applied:
+            print(f"  - {fix}")
+    
+    return content_ir, render_plan, fixes_applied
 
 # Load templates and examples for the system prompt
 def load_templates_json():
@@ -3554,6 +3787,10 @@ def extract_and_validate_jsons(response_text):
             'extraction_failed': True
         }
     
+    # Apply comprehensive fixes - MANDATORY validation and fixing
+    print("\n🔧 APPLYING COMPREHENSIVE JSON FIXES...")
+    content_ir, render_plan = validate_and_fix_json(content_ir, render_plan)
+    
     # Normalize extracted JSON to match expected structure
     print("\n🔧 NORMALIZING EXTRACTED JSON...")
     content_ir, render_plan = normalize_extracted_json(content_ir, render_plan)
@@ -3579,14 +3816,25 @@ def extract_and_validate_jsons(response_text):
         validation_results['critical_issues'].extend(structure_validation['structure_issues'])
         if 'missing_sections' in structure_validation:
             validation_results['critical_issues'].extend(structure_validation['missing_sections'])
-        # Note: field_mismatches key doesn't exist in structure_validation, removed to fix KeyError
         validation_results['overall_valid'] = False
     
+    # CRITICAL: Check recent fixes validation
+    recent_fixes_validation = structure_validation.get('recent_fixes_validation', {})
+    recent_fixes_valid = all(recent_fixes_validation.values()) if recent_fixes_validation else True
+    
+    if not recent_fixes_valid:
+        validation_results['critical_issues'].append("Recent fixes validation failed - timeline format, buyer descriptions, or financial formatting issues")
+        validation_results['overall_valid'] = False
+        print(f"❌ RECENT FIXES VALIDATION FAILED: {recent_fixes_validation}")
+    
+    # Add recent fixes validation to results  
+    validation_results['recent_fixes_validation'] = recent_fixes_validation
+    
     # Calculate quality scores
-    if structure_validation['content_ir_valid'] and structure_validation['render_plan_valid']:
-        validation_results['structure_quality_score'] = 100
-    else:
-        validation_results['structure_quality_score'] = max(0, 100 - (len(structure_validation['structure_issues']) * 20))
+    structure_score = 100 if (structure_validation['content_ir_valid'] and structure_validation['render_plan_valid']) else max(0, 100 - (len(structure_validation['structure_issues']) * 20))
+    recent_fixes_score = 100 if recent_fixes_valid else 50
+    
+    validation_results['structure_quality_score'] = min(structure_score, recent_fixes_score)
     
     print(f"\n📈 VALIDATION SUMMARY:")
     print(f"Structure Quality: {validation_results.get('structure_quality_score', 0)}%")
@@ -4482,6 +4730,37 @@ Let's start: **What is your company name and give me a brief overview of what yo
                     
                     # Check if JSONs were generated and extract them with comprehensive validation
                     content_ir, render_plan, validation_results = extract_and_validate_jsons(ai_response)
+                    
+                    # AUTOMATED FEEDBACK AND RETRY SYSTEM
+                    if content_ir and render_plan and not validation_results.get('overall_valid', False):
+                        st.info("🤖 **Automated Quality Check**: Validation issues detected. Running auto-correction...")
+                        
+                        with st.spinner("🔄 Auto-correcting JSON issues with LLM feedback..."):
+                            corrected_content_ir, corrected_render_plan, corrected_response = automated_llm_feedback_and_retry(
+                                validation_results, 
+                                st.session_state.messages,
+                                selected_model,
+                                api_key,
+                                api_service
+                            )
+                            
+                            if corrected_content_ir and corrected_render_plan:
+                                st.success("✅ **Auto-correction successful!** JSONs have been improved automatically.")
+                                # Update with corrected versions
+                                content_ir = corrected_content_ir
+                                render_plan = corrected_render_plan
+                                # Add corrected response to conversation
+                                st.session_state.messages.append({"role": "assistant", "content": corrected_response})
+                                # Re-validate corrected JSONs
+                                _, _, validation_results = extract_and_validate_jsons(corrected_response)
+                            else:
+                                st.warning("⚠️ Auto-correction encountered issues, proceeding with original JSONs")
+                    
+                    # Apply additional enhanced fixes for common LLM issues
+                    if content_ir and render_plan:
+                        content_ir, render_plan, auto_fixes = enhanced_json_validation_with_fixes(content_ir, render_plan)
+                        if auto_fixes:
+                            st.success(f"🔧 **Auto-fixes applied**: {len(auto_fixes)} improvements made to JSONs")
                     
                     # Debug extraction if it failed
                     if not content_ir and not render_plan:

@@ -1131,18 +1131,19 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
     add_clean_text(slide, Inches(0.5), Inches(1.3), Inches(6), Inches(0.3), 
                    "Revenue Comparison vs. Competitors", 14, colors["primary"], True)
     
-    # Create bar chart data - USE ACTUAL USER DATA
+    # Create bar chart data - INCLUDE LLAMAINDEX IN THE COMPARISON!
     competitors_data = slide_data.get('competitors', [
+        {'name': 'LlamaIndex', 'revenue': 38},  # Current company - should be highlighted
         {'name': 'LangChain', 'revenue': 30},
-        {'name': 'CrewAI', 'revenue': 5},
         {'name': 'OpenAI Assistants API', 'revenue': 300},
+        {'name': 'CrewAI', 'revenue': 5},
         {'name': 'Haystack', 'revenue': 8},
         {'name': 'Eden AI', 'revenue': 10}
     ])
     
     chart_data = ChartData()
     chart_data.categories = [comp['name'] for comp in competitors_data]
-    chart_data.add_series('Revenue (HK$ M)', [comp['revenue'] for comp in competitors_data])
+    chart_data.add_series('Revenue ($M)', [comp['revenue'] for comp in competitors_data])
     
     # Add chart
     chart_left = Inches(0.5)
@@ -1183,16 +1184,16 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
     else:
         value_axis.maximum_scale = 500  # Fallback
     
-    # Highlight specific bar in gold/secondary color - highlight the highest performer 
+    # Highlight LlamaIndex (the company being presented) in secondary color
     series = chart.series[0]
     points = series.points
     for i, point in enumerate(points):
-        if competitors_data[i]['name'] == 'OpenAI Assistants API':  # Highest revenue competitor
+        if competitors_data[i]['name'] == 'LlamaIndex':  # Highlight our company
             point.format.fill.solid()
-            point.format.fill.fore_color.rgb = colors["secondary"]
+            point.format.fill.fore_color.rgb = colors["secondary"]  # Gold/highlight color
         else:
             point.format.fill.solid()
-            point.format.fill.fore_color.rgb = colors["primary"]
+            point.format.fill.fore_color.rgb = colors["primary"]  # Standard blue
     
     # Right side - Competitive Assessment Table
     add_clean_text(slide, Inches(7.5), Inches(1.3), Inches(5.5), Inches(0.3), 
@@ -2596,8 +2597,21 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
         except (ValueError, TypeError):
             multiple = 0
             
-        # Scale bar height (max 1.5 inches for better spacing)
-        bar_height = Inches(multiple * 0.45) if multiple > 0 else Inches(0.1)
+        # Scale bar height properly - max 1.5 inches total
+        max_bar_height = Inches(1.5)
+        if multiple > 0:
+            # Find the max multiple to scale properly
+            max_multiple = max([
+                float(str(t.get('ev_revenue_multiple', '0')).replace('x', '').replace('X', '').strip() or '0')
+                for t in transactions
+            ])
+            if max_multiple > 0:
+                # Scale relative to max, with maximum height of 1.5 inches
+                bar_height = Inches((multiple / max_multiple) * 1.5)
+            else:
+                bar_height = Inches(0.1)
+        else:
+            bar_height = Inches(0.1)
         
         bar_left = bar_area_left + (bar_width * i) + Inches(0.05)  # Small margin
         bar_actual_width = bar_width - Inches(0.1)  # Space between bars
