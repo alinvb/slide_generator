@@ -1131,15 +1131,19 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
     add_clean_text(slide, Inches(0.5), Inches(1.3), Inches(6), Inches(0.3), 
                    "Revenue Comparison vs. Competitors", 14, colors["primary"], True)
     
-    # Create bar chart data - INCLUDE LLAMAINDEX IN THE COMPARISON!
-    competitors_data = slide_data.get('competitors', [
-        {'name': 'LlamaIndex', 'revenue': 38},  # Current company - should be highlighted
-        {'name': 'LangChain', 'revenue': 30},
-        {'name': 'OpenAI Assistants API', 'revenue': 300},
-        {'name': 'CrewAI', 'revenue': 5},
-        {'name': 'Haystack', 'revenue': 8},
-        {'name': 'Eden AI', 'revenue': 10}
-    ])
+    # Create bar chart data from user's competitive analysis
+    competitors_data = slide_data.get('competitors', [])
+    
+    # If no competitors provided, create generic placeholder data
+    if not competitors_data:
+        company_name = content_ir.get('entities', {}).get('company', {}).get('name', 'Company')
+        competitors_data = [
+            {'name': company_name, 'revenue': 50},  # User's company
+            {'name': 'Competitor A', 'revenue': 45},
+            {'name': 'Competitor B', 'revenue': 60},
+            {'name': 'Competitor C', 'revenue': 35},
+            {'name': 'Market Leader', 'revenue': 80}
+        ]
     
     chart_data = ChartData()
     chart_data.categories = [comp['name'] for comp in competitors_data]
@@ -1184,11 +1188,14 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
     else:
         value_axis.maximum_scale = 500  # Fallback
     
-    # Highlight LlamaIndex (the company being presented) in secondary color
+    # Highlight the user's company (first in list or matching company name) in secondary color
+    user_company_name = content_ir.get('entities', {}).get('company', {}).get('name', '')
     series = chart.series[0]
     points = series.points
     for i, point in enumerate(points):
-        if competitors_data[i]['name'] == 'LlamaIndex':  # Highlight our company
+        competitor_name = competitors_data[i]['name']
+        # Highlight if it's the user's company (exact match) or first competitor (assumed to be user's company)
+        if (user_company_name and competitor_name == user_company_name) or i == 0:
             point.format.fill.solid()
             point.format.fill.fore_color.rgb = colors["secondary"]  # Gold/highlight color
         else:

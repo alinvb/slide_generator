@@ -846,7 +846,7 @@ def validate_json_structure_against_examples(content_ir, render_plan):
         'render_plan_valid': False,
         'missing_sections': [],
         'structure_issues': [],
-        'recent_fixes_validation': {'timeline_format': True, 'buyer_descriptions': True, 'financial_formatting': True, 'competitive_data': True}
+        'recent_fixes_validation': {'timeline_format': True, 'buyer_descriptions': True, 'financial_formatting': True, 'competitive_structure': True}
     }
     
     # CRITICAL: Validate recent fixes
@@ -891,18 +891,21 @@ def validate_json_structure_against_examples(content_ir, render_plan):
                         validation_results['structure_issues'].append(f'precedent_transactions[{i}].{field} should use compact notation ($2.1B not {value})')
                         print(f"[ENHANCED VALIDATION] ❌ Financial value not in compact format: {field}={value}")
         
-        # 4. Competitive data validation (should have AI competitors, not healthcare)
+        # 4. Competitive data validation (generic - ensure competitors exist)
         competitors = content_ir.get('competitive_analysis', {}).get('competitors', [])
-        healthcare_indicators = ['healthcare', 'medical', 'hospital', 'clinic', 'SouthernCapital']
-        ai_indicators = ['AI', 'LlamaIndex', 'LangChain', 'OpenAI', 'Haystack']
         
-        has_healthcare = any(any(indicator.lower() in str(comp).lower() for indicator in healthcare_indicators) for comp in competitors)
-        has_ai = any(any(indicator in str(comp) for indicator in ai_indicators) for comp in competitors)
-        
-        if has_healthcare and not has_ai:
-            validation_results['recent_fixes_validation']['competitive_data'] = False
-            validation_results['structure_issues'].append('Competitive analysis contains healthcare companies instead of AI competitors')
-            print(f"[ENHANCED VALIDATION] ❌ Found healthcare competitors instead of AI: {competitors}")
+        if not competitors:
+            validation_results['recent_fixes_validation']['competitive_structure'] = False
+            validation_results['structure_issues'].append('Competitive analysis must include competitor companies')
+            print(f"[ENHANCED VALIDATION] ❌ No competitors found in competitive analysis")
+        else:
+            # Just validate that competitors have proper structure (name and revenue)
+            for i, comp in enumerate(competitors):
+                if isinstance(comp, dict):
+                    if not comp.get('name') or comp.get('revenue') is None:
+                        validation_results['recent_fixes_validation']['competitive_structure'] = False
+                        validation_results['structure_issues'].append(f'Competitor {i} missing required name or revenue field')
+                        print(f"[ENHANCED VALIDATION] ❌ Competitor {i} has invalid structure: {comp}")
     
     # Report recent fixes validation results
     recent_fixes_valid = all(validation_results['recent_fixes_validation'].values())
