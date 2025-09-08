@@ -3016,13 +3016,13 @@ def analyze_conversation_progress(messages):
             "keywords": ["precedent", "transactions", "m&a", "acquisitions", "deals", "transaction multiples"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip precedent", "skip transactions"]),
-            "next_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. 🚨 CRITICAL: Focus EXCLUSIVELY on REGIONALLY RELEVANT companies. Prioritize: (1) Middle Eastern companies (UAE, Saudi, Qatar, etc.), (2) Asian companies (Malaysia, Singapore, Indonesia, India, China), (3) Companies with strong regional presence/operations in your market. AVOID typical Western conglomerates unless they have significant regional operations. I need 4-5 strategic buyers with company name, strategic rationale (3-30 words), key synergies, fit assessment, and financial capacity."
+            "next_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT companies based on YOUR company's location and market presence. Consider companies from your region/country AND major players with operations in your market. Avoid generic global lists - tailor suggestions to your specific geographic and industry context. I need 4-5 strategic buyers with company name, strategic rationale (3-30 words), key synergies, fit assessment, and financial capacity."
         },
         "strategic_buyers": {
             "keywords": ["strategic buyers", "strategic", "acquirer", "acquisition", "corporate buyer", "industry player", "strategic rationale", "synergies"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip strategic", "skip buyer"]),
-            "next_question": "Now let's identify financial buyers—private equity firms, VCs, and other financial investors. 🚨 CRITICAL: Focus EXCLUSIVELY on REGIONALLY RELEVANT funds. Prioritize: (1) Middle Eastern sovereign wealth funds (PIF, ADIA, QIA, Mubadala), (2) Asian PE/VC funds, (3) Islamic finance institutions, (4) Regional family offices and investment firms. AVOID typical Western PE firms unless they have dedicated regional offices/focus. I need 4-5 financial buyers with fund name, investment rationale (3-30 words), key synergies, fit assessment, and financial capacity."
+            "next_question": "Now let's identify financial buyers—private equity firms, VCs, and other financial investors. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT funds based on YOUR company's location and market. Consider local/regional funds, sovereign wealth funds, and international funds with strong presence in your market. Tailor suggestions to your geographic context rather than generic global lists. I need 4-5 financial buyers with fund name, investment rationale (3-30 words), key synergies, fit assessment, and financial capacity."
         },
         "financial_buyers": {
             "keywords": ["financial buyers", "private equity", "pe", "vc", "venture capital", "financial investor", "fund", "investment rationale"],
@@ -3034,7 +3034,7 @@ def analyze_conversation_progress(messages):
             "keywords": ["margin", "cost", "resilience", "stability", "profitability", "efficiency", "cost management"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip margin", "skip cost"]),
-            "next_question": "Let's identify potential global conglomerates and strategic acquirers. 🚨 CRITICAL: Focus EXCLUSIVELY on REGIONALLY RELEVANT conglomerates. Prioritize: (1) Middle Eastern conglomerates (Emaar, ADNOC, Aramco subsidiaries, Dubai Holdings, etc.), (2) Asian conglomerates (Reliance, Tata, Grab, Gojek, regional champions), (3) Southeast Asian business groups with regional presence. AVOID Western multinationals like GE, IBM, Microsoft unless they have major regional operations. I need at least 4-5 truly regionally relevant conglomerates with strong local market knowledge."
+            "next_question": "Let's identify potential global conglomerates and strategic acquirers. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT conglomerates based on YOUR company's location and industry. Consider major conglomerates from your region/country AND international conglomerates with significant operations in your market. Prioritize companies that understand your local market dynamics and regulatory environment. I need at least 4-5 regionally relevant conglomerates with strong market knowledge in your geography."
         },
         "sea_conglomerates": {
             "keywords": ["conglomerate", "global", "international", "multinational", "strategic acquirer"],
