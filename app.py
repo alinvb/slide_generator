@@ -947,6 +947,17 @@ def validate_individual_slides(content_ir, render_plan):
         }
     }
     
+    # Safety checks for None values
+    if not content_ir:
+        validation_results['critical_issues'].append("Content IR is None or empty")
+        validation_results['overall_valid'] = False
+        return validation_results
+        
+    if not render_plan or 'slides' not in render_plan:
+        validation_results['critical_issues'].append("Render Plan is None or has no slides")
+        validation_results['overall_valid'] = False
+        return validation_results
+    
     if not render_plan or 'slides' not in render_plan:
         validation_results['critical_issues'].append("No render plan or slides found")
         validation_results['overall_valid'] = False
@@ -1286,7 +1297,17 @@ def validate_management_team_slide(slide, content_ir):
     """Validate management team slide - FIXED for correct field names"""
     validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
     
+    # Handle None content_ir
+    if not content_ir:
+        validation['warnings'].append("No Content IR provided for validation")
+        return validation
+    
     # Check if using content_ir_key approach
+    # Add safety check for content_ir
+    if not content_ir:
+        validation['warnings'].append("Content IR is empty or None")
+        return validation
+        
     if 'content_ir_key' in slide:
         content_key = slide['content_ir_key']
         if content_key not in content_ir:
@@ -1768,7 +1789,11 @@ def validate_sea_conglomerates_slide(slide, content_ir):
     """Validate global conglomerates slide (previously SEA conglomerates)"""
     validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
     
-    # Check content_ir for sea_conglomerates data
+    # Safety check and check content_ir for sea_conglomerates data
+    if not content_ir:
+        validation['warnings'].append("Content IR is empty")
+        return validation
+        
     if 'sea_conglomerates' not in content_ir:
         validation['issues'].append("Missing sea_conglomerates section in Content IR")
     elif not content_ir['sea_conglomerates'] or len(content_ir['sea_conglomerates']) == 0:
@@ -3221,19 +3246,20 @@ def analyze_conversation_progress(messages):
                 is_covered = detailed_process or ai_process_research
             
             elif topic_name == "strategic_buyers" or topic_name == "financial_buyers":
-                # MUCH STRICTER - must have comprehensive buyer profiles explicitly discussed
-                buyer_indicators = ["acquisition", "acquirer", "fund", "capital", "equity", "investment", "rationale", "synerg", "fit assessment", "capacity", "strategic fit", "financial capacity"]
+                # RELAXED - allow AI research and reasonable buyer content detection
+                buyer_indicators = ["acquisition", "acquirer", "fund", "capital", "equity", "investment", "rationale", "synerg", "fit", "capacity", "strategic", "financial", "buyer", "private equity", "corporation", "conglomerate"]
                 found_buyers = [indicator for indicator in buyer_indicators if indicator in conversation_text]
                 
-                # Look for comprehensive buyer profile content - NO GENERIC DETECTION
-                import re
-                # Only count if explicit buyer profiles were discussed
-                profile_discussion = ("strategic rationale" in conversation_text or "investment rationale" in conversation_text) and "fit assessment" in conversation_text
+                # Look for buyer content - can be from AI research or user discussion
+                has_buyer_context = len(found_buyers) >= 3
+                has_research_response = "research" in conversation_text or "here" in conversation_text or "based on" in conversation_text
                 
-                # Must have actual detailed buyer discussion, not just mentions
-                detailed_buyer_content = (len(found_buyers) >= 5 and profile_discussion and 
-                                        ("high" in conversation_text and "medium" in conversation_text))
-                ai_buyer_research = False  # Disable for now to force explicit coverage
+                # Accept if substantial buyer discussion OR AI research
+                detailed_buyer_content = has_buyer_context and (
+                    "strategic" in conversation_text or "financial" in conversation_text or 
+                    "rationale" in conversation_text or "synerg" in conversation_text
+                )
+                ai_buyer_research = has_research_response and has_buyer_context
                 
                 is_covered = detailed_buyer_content or ai_buyer_research
             
