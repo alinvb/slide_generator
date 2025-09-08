@@ -1,0 +1,208 @@
+{
+  "entities": {
+    "company": {
+      "name": "Test Company Ltd",
+      "description": "A test company for demonstration",
+      "founded": "2020",
+      "headquarters": "Singapore"
+    }
+  },
+  "facts": {
+    "years": [
+      "2021",
+      "2022",
+      "2023",
+      "2024E"
+    ],
+    "revenue_usd_m": [
+      10,
+      15,
+      22,
+      30
+    ],
+    "ebitda_usd_m": [
+      2,
+      3.5,
+      5.5,
+      8
+    ],
+    "ebitda_margins": [
+      20.0,
+      23.3,
+      25.0,
+      26.7
+    ]
+  },
+  "management_team": {
+    "left_column_profiles": [
+      {
+        "role_title": "Chief Executive Officer",
+        "experience_bullets": [
+          "15+ years of experience in technology and business development",
+          "Previously served as VP at leading tech companies",
+          "Expert in scaling startup organizations",
+          "MBA from top business school"
+        ]
+      },
+      {
+        "role_title": "Chief Financial Officer",
+        "experience_bullets": [
+          "12+ years of finance and accounting experience",
+          "Previously CFO at successful startup",
+          "Expert in financial planning and fundraising",
+          "CPA certified"
+        ]
+      }
+    ],
+    "right_column_profiles": [
+      {
+        "role_title": "Chief Technology Officer",
+        "experience_bullets": [
+          "20+ years of technology leadership experience",
+          "Previously CTO at major software company",
+          "Expert in cloud architecture and AI/ML",
+          "Computer Science PhD"
+        ]
+      }
+    ]
+  },
+  "strategic_buyers": [
+    {
+      "buyer_name": "TechCorp Inc",
+      "strategic_rationale": "Technology synergies and market expansion",
+      "fit": "High (9/10)"
+    },
+    {
+      "buyer_name": "Global Solutions Ltd",
+      "strategic_rationale": "Product portfolio complementarity",
+      "fit": "Medium (7/10)"
+    },
+    {
+      "buyer_name": "Innovation Systems Corp",
+      "strategic_rationale": "Digital transformation and platform integration",
+      "fit": "High (8/10)"
+    },
+    {
+      "buyer_name": "Enterprise Tech Holdings",
+      "strategic_rationale": "Customer base expansion and cross-selling",
+      "fit": "Medium (6/10)"
+    },
+    {
+      "buyer_name": "Digital Ventures Group",
+      "strategic_rationale": "AI/ML capabilities and data analytics synergies",
+      "fit": "High (9/10)"
+    }
+  ],
+  "financial_buyers": [
+    {
+      "buyer_name": "Growth Capital Partners",
+      "strategic_rationale": "Strong growth potential in target sector",
+      "fit": "High (8/10)"
+    },
+    {
+      "buyer_name": "Tech Investment Fund",
+      "strategic_rationale": "Specialized technology investment focus",
+      "fit": "High (9/10)"
+    },
+    {
+      "buyer_name": "Asia Pacific Growth Equity",
+      "strategic_rationale": "Regional expertise and scaling experience",
+      "fit": "High (8/10)"
+    },
+    {
+      "buyer_name": "Digital Transformation Capital",
+      "strategic_rationale": "Deep sector knowledge and operational support",
+      "fit": "Medium (7/10)"
+    },
+    {
+      "buyer_name": "Emerging Markets PE Fund",
+      "strategic_rationale": "Portfolio expansion in high-growth markets",
+      "fit": "Medium (6/10)"
+    }
+  ],
+  "sea_conglomerates": [
+    {
+      "buyer_name": "Singapore Holdings Pte Ltd",
+      "strategic_rationale": "Regional expansion and technology integration",
+      "fit": "High (8/10)"
+    },
+    {
+      "buyer_name": "Temasek Portfolio Company",
+      "strategic_rationale": "Government-linked investment and market access",
+      "fit": "High (9/10)"
+    },
+    {
+      "buyer_name": "Genting Berhad Malaysia",
+      "strategic_rationale": "Diversification into technology sector",
+      "fit": "Medium (7/10)"
+    },
+    {
+      "buyer_name": "Salim Group Indonesia",
+      "strategic_rationale": "Digital transformation of traditional business",
+      "fit": "High (8/10)"
+    },
+    {
+      "buyer_name": "Ayala Corporation Philippines",
+      "strategic_rationale": "Innovation and technology modernization",
+      "fit": "Medium (6/10)"
+    }
+  ],
+  "competitive_analysis": {
+    "competitors": [
+      "Competitor A",
+      "Competitor B",
+      "Competitor C"
+    ],
+    "assessment": [
+      [
+        "Company",
+        "Market Share",
+        "Technology",
+        "Revenue"
+      ],
+      [
+        "Test Company",
+        "15%",
+        "Advanced",
+        "$30M"
+      ],
+      [
+        "Competitor A",
+        "25%",
+        "Standard",
+        "$45M"
+      ],
+      [
+        "Competitor B",
+        "20%",
+        "Advanced",
+        "$40M"
+      ]
+    ]
+  },
+  "precedent_transactions": [
+    {
+      "target": "Similar Company A",
+      "acquirer": "Large Corp",
+      "date": "2024",
+      "enterprise_value": 150,
+      "revenue": 25,
+      "ev_revenue_multiple": 6.0
+    }
+  ],
+  "valuation_data": {
+    "methodologies": [
+      "DCF",
+      "Comparable Companies",
+      "Precedent Transactions"
+    ],
+    "dcf_assumptions": {
+      "growth_rates": [
+        15,
+        12,
+        10
+      ],
+      "discount_rate": 12.0
+    }
+  }
+}
