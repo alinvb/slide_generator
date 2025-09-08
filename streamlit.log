@@ -6469,3 +6469,21 @@ Collecting usage statistics. To deactivate, set browser.gatherUsageStats to fals
 
   URL: http://0.0.0.0:8502
 
+✅ [PERFECT PROMPTER] Perfect templates loaded successfully
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+  Stopping...
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8502
+

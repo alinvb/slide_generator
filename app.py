@@ -394,6 +394,11 @@ def clean_json_string(json_str):
     
     print(f"[JSON CLEAN] Input length: {len(json_str)}")
     
+    # Skip processing if the string is too short to be a meaningful JSON
+    if len(json_str) < 10:
+        print(f"[JSON CLEAN] String too short ({len(json_str)} chars), likely not valid JSON")
+        return "{}"
+    
     # Only basic cleaning
     json_str = json_str.strip()
     
@@ -445,7 +450,7 @@ def fallback_json_repair(json_str):
     return '{}'
 
 def extract_jsons_from_response(response_text):
-    """Extract both Content IR and Render Plan JSONs from AI response using improved parsing"""
+    """Extract both Content IR and Render Plan JSONs from AI response using robust parsing"""
     content_ir = None
     render_plan = None
     
@@ -454,7 +459,7 @@ def extract_jsons_from_response(response_text):
     # Method 1: Look for specific JSON markers in the response
     content_ir_markers = [
         "CONTENT IR JSON:",
-        "Content IR:",
+        "Content IR:", 
         "content_ir",
         "## CONTENT IR JSON:",
         "**CONTENT IR JSON:**"
@@ -468,101 +473,105 @@ def extract_jsons_from_response(response_text):
         "**RENDER PLAN JSON:**"
     ]
     
-    # Find Content IR section
-    content_ir_start = None
-    content_ir_end = None
-    
-    for marker in content_ir_markers:
-        pos = response_text.find(marker)
-        if pos != -1:
-            content_ir_start = pos + len(marker)
-            print(f"[JSON EXTRACTION DEBUG] Found Content IR marker: '{marker}' at position {pos}")
-            break
-    
-    # Find Render Plan section
-    render_plan_start = None
-    render_plan_end = None
-    
-    for marker in render_plan_markers:
-        pos = response_text.find(marker)
-        if pos != -1:
-            render_plan_start = pos + len(marker)
-            print(f"[JSON EXTRACTION DEBUG] Found Render Plan marker: '{marker}' at position {pos}")
-            break
-    
-    # Extract Content IR JSON
-    if content_ir_start is not None:
-        # Find the start of the JSON (first { after marker)
-        json_start = response_text.find('{', content_ir_start)
-        if json_start != -1:
-            # Find the matching closing brace
-            brace_count = 0
-            content_ir_end = json_start
-            
-            for i in range(json_start, len(response_text)):
-                if response_text[i] == '{':
-                    brace_count += 1
-                elif response_text[i] == '}':
-                    brace_count -= 1
-                    if brace_count == 0:
-                        content_ir_end = i + 1
-                        break
-            
-            if content_ir_end > json_start:
-                content_ir_json = response_text[json_start:content_ir_end]
-                print(f"[JSON EXTRACTION DEBUG] Extracted Content IR JSON (length: {len(content_ir_json)})")
+    # Enhanced JSON extraction with better error handling
+    def extract_json_after_marker(text, markers, json_name):
+        """Extract JSON content after finding a marker"""
+        for marker in markers:
+            pos = text.find(marker)
+            if pos != -1:
+                print(f"[JSON EXTRACTION DEBUG] Found {json_name} marker: '{marker}' at position {pos}")
                 
-                try:
-                    cleaned_json = clean_json_string(content_ir_json)
-                    content_ir = json.loads(cleaned_json)
-                    print(f"✅ Successfully parsed Content IR JSON")
-                except json.JSONDecodeError as e:
-                    print(f"❌ Failed to parse Content IR JSON: {e}")
-                    # Try advanced repair
-                    try:
-                        repaired_json = advanced_json_repair(cleaned_json)
-                        content_ir = json.loads(repaired_json)
-                        print(f"✅ Successfully repaired and parsed Content IR JSON")
-                    except:
-                        print(f"❌ Advanced repair also failed for Content IR")
-                        content_ir = None
-    
-    # Extract Render Plan JSON
-    if render_plan_start is not None:
-        # Find the start of the JSON (first { after marker)
-        json_start = response_text.find('{', render_plan_start)
-        if json_start != -1:
-            # Find the matching closing brace
-            brace_count = 0
-            render_plan_end = json_start
-            
-            for i in range(json_start, len(response_text)):
-                if response_text[i] == '{':
-                    brace_count += 1
-                elif response_text[i] == '}':
-                    brace_count -= 1
-                    if brace_count == 0:
-                        render_plan_end = i + 1
-                        break
-            
-            if render_plan_end > json_start:
-                render_plan_json = response_text[json_start:render_plan_end]
-                print(f"[JSON EXTRACTION DEBUG] Extracted Render Plan JSON (length: {len(render_plan_json)})")
+                # Look for JSON start after the marker
+                start_pos = pos + len(marker)
                 
-                try:
-                    cleaned_json = clean_json_string(render_plan_json)
-                    render_plan = json.loads(cleaned_json)
-                    print(f"✅ Successfully parsed Render Plan JSON")
-                except json.JSONDecodeError as e:
-                    print(f"❌ Failed to parse Render Plan JSON: {e}")
-                    # Try advanced repair
-                    try:
-                        repaired_json = advanced_json_repair(cleaned_json)
-                        render_plan = json.loads(repaired_json)
-                        print(f"✅ Successfully repaired and parsed Render Plan JSON")
-                    except:
-                        print(f"❌ Advanced repair also failed for Render Plan")
-                        render_plan = None
+                # Skip any whitespace, newlines, or markdown formatting
+                while start_pos < len(text) and text[start_pos] in ' \n\r\t`':
+                    start_pos += 1
+                
+                # Handle 'json' keyword in markdown code blocks
+                if text[start_pos:start_pos+4] == 'json':
+                    start_pos += 4
+                    while start_pos < len(text) and text[start_pos] in ' \n\r\t':
+                        start_pos += 1
+                
+                # Find the opening brace
+                json_start = text.find('{', start_pos)
+                if json_start == -1:
+                    print(f"[JSON EXTRACTION DEBUG] No opening brace found for {json_name}")
+                    continue
+                
+                # Find matching closing brace using proper brace counting
+                brace_count = 0
+                json_end = json_start
+                in_string = False
+                escape_next = False
+                
+                for i in range(json_start, len(text)):
+                    char = text[i]
+                    
+                    if escape_next:
+                        escape_next = False
+                        continue
+                    
+                    if char == '\\':
+                        escape_next = True
+                        continue
+                    
+                    if char == '"' and not escape_next:
+                        in_string = not in_string
+                        continue
+                    
+                    if not in_string:
+                        if char == '{':
+                            brace_count += 1
+                        elif char == '}':
+                            brace_count -= 1
+                            if brace_count == 0:
+                                json_end = i + 1
+                                break
+                
+                if json_end > json_start and brace_count == 0:
+                    extracted_json = text[json_start:json_end]
+                    print(f"[JSON EXTRACTION DEBUG] Successfully extracted {json_name} JSON (length: {len(extracted_json)})")
+                    return extracted_json
+                else:
+                    print(f"[JSON EXTRACTION DEBUG] Failed to find matching braces for {json_name}")
+        
+        return None
+    
+    # Extract Content IR
+    content_ir_json = extract_json_after_marker(response_text, content_ir_markers, "Content IR")
+    if content_ir_json:
+        try:
+            cleaned_json = clean_json_string(content_ir_json)
+            content_ir = json.loads(cleaned_json)
+            print(f"✅ Successfully parsed Content IR JSON")
+        except json.JSONDecodeError as e:
+            print(f"❌ Failed to parse Content IR JSON: {e}")
+            try:
+                repaired_json = advanced_json_repair(cleaned_json)
+                content_ir = json.loads(repaired_json)
+                print(f"✅ Successfully repaired and parsed Content IR JSON")
+            except:
+                print(f"❌ Advanced repair also failed for Content IR")
+                content_ir = None
+    
+    # Extract Render Plan  
+    render_plan_json = extract_json_after_marker(response_text, render_plan_markers, "Render Plan")
+    if render_plan_json:
+        try:
+            cleaned_json = clean_json_string(render_plan_json)
+            render_plan = json.loads(cleaned_json)
+            print(f"✅ Successfully parsed Render Plan JSON")
+        except json.JSONDecodeError as e:
+            print(f"❌ Failed to parse Render Plan JSON: {e}")
+            try:
+                repaired_json = advanced_json_repair(cleaned_json)
+                render_plan = json.loads(repaired_json)
+                print(f"✅ Successfully repaired and parsed Render Plan JSON")
+            except:
+                print(f"❌ Advanced repair also failed for Render Plan")
+                render_plan = None
     
     # Method 2: Fallback to code block extraction if markers didn't work
     if not content_ir or not render_plan:
