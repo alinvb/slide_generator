@@ -422,17 +422,31 @@ QUALITY STANDARD: Your JSON must be so perfect that it requires ZERO fixes or va
         
         available_info_count = sum(info_indicators.values())
         
-        prompt = f"""Based on our comprehensive interview covering {available_info_count}/5 key business areas, I now need you to generate the complete JSON structures for this investment banking presentation.
+        # Check if adaptive slide generation information is available
+        adaptive_info = ""
+        if "ADAPTIVE SLIDE GENERATION" in conversation_text or "SLIDES TO GENERATE" in conversation_text:
+            adaptive_info = """
+🎯 ADAPTIVE SLIDE APPROACH DETECTED:
+- Generate ONLY the slides specified in the conversation
+- Focus on quality over quantity  
+- Use actual data for covered topics
+- Professional estimates only for explicitly requested slides
+- Do NOT create slides for unmentioned topics
+            """
+
+        prompt = f"""Based on our comprehensive interview covering {available_info_count}/5 key business areas, I now need you to generate the JSON structures for this investment banking presentation.
 
 CONVERSATION SUMMARY:
 {conversation_text[-2000:]}  # Last 2000 characters
 
 🚨 CRITICAL: You MUST generate JSON files now. This is not a request for more interview questions - this is the JSON generation phase.
 
+{adaptive_info}
+
 YOUR TASK: Generate TWO perfect JSON structures:
 
-1. **CONTENT IR JSON**: Complete business intelligence and data
-2. **RENDER PLAN JSON**: Slide-by-slide presentation structure
+1. **CONTENT IR JSON**: Business intelligence and data (only for relevant sections)
+2. **RENDER PLAN JSON**: Slide-by-slide presentation structure (adaptive slide list)
 
 MANDATORY OUTPUT FORMAT:
 Start your response with:
@@ -450,7 +464,8 @@ Start your response with:
 
 SPECIFIC INSTRUCTIONS FOR THIS COMPANY:
 - Use the actual company information discussed in our conversation
-- Fill any missing details with realistic, professional estimates
+- For adaptive generation: ONLY create sections for slides that were specified
+- Fill missing details with realistic, professional estimates ONLY for requested slides
 - Ensure all financial projections are growth-oriented and realistic
 - Create compelling buyer profiles based on the company's industry
 - Make management team profiles professional and achievement-focused
@@ -458,8 +473,9 @@ SPECIFIC INSTRUCTIONS FOR THIS COMPANY:
 🚨 CRITICAL REMINDER: 
 - DO NOT ask more interview questions
 - DO NOT request additional information  
-- GENERATE the complete JSON structures NOW
-- Your JSON must be FLAWLESS and complete
+- GENERATE the JSON structures NOW (adaptive or complete based on instructions)
+- Focus on QUALITY over quantity - better few great slides than many poor ones
+- Your JSON must be FLAWLESS for the slides you include
 - This goes directly into a $10M+ investment banking presentation
 
 Generate the perfect JSONs immediately:"""

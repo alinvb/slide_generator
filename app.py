@@ -4580,16 +4580,41 @@ Let's start: **What is your company name and give me a brief overview of what yo
             if len(st.session_state.messages) > 4:  # Only show after some conversation
                 col1, col2 = st.columns([3, 1])
                 with col2:
-                    if st.button("🚀 Generate JSON Now", type="secondary", help="Force JSON generation with current information"):
-                        # Force JSON generation regardless of completion status
+                    if st.button("🚀 Generate JSON Now", type="secondary", help="Generate presentation with available information"):
+                        # Force JSON generation with adaptive slide selection
                         from perfect_json_prompter import get_interview_completion_prompt
+                        from adaptive_slide_generator import generate_adaptive_presentation
                         
-                        completion_prompt = "Based on our conversation, please generate the complete JSON structures now. Use the information we've discussed and fill in any missing details with professional, realistic data appropriate for this company."
+                        # Analyze conversation and determine relevant slides
+                        slide_list, adaptive_render_plan, analysis_report = generate_adaptive_presentation(st.session_state.messages)
+                        
+                        # Show user what will be generated
+                        st.info(f"📊 **Adaptive Generation**: Creating {len(slide_list)} slides based on available information")
+                        st.write("**Slides to include:**", ", ".join(slide_list))
+                        
+                        completion_prompt = f"""Based on our conversation, generate JSON structures for ONLY these {len(slide_list)} relevant slides:
+
+🎯 SLIDES TO GENERATE:
+{chr(10).join([f"• {slide}" for slide in slide_list])}
+
+📊 QUALITY GUIDANCE:
+- High quality slides: {analysis_report['quality_summary']['high_quality_slides']}
+- Medium quality slides: {analysis_report['quality_summary']['medium_quality_slides']}
+- Estimated content slides: {analysis_report['quality_summary']['estimated_slides']}
+
+⚡ ADAPTIVE INSTRUCTIONS:
+1. Only create content for the slides listed above
+2. Use actual conversation data for high/medium quality slides  
+3. For estimated content slides, use professional industry-standard information
+4. Do NOT include slides where we lack meaningful information
+5. Quality over quantity - better few great slides than many mediocre ones
+
+Generate the JSON structures now with this adaptive approach."""
                         
                         # Create a temporary message for JSON generation
                         temp_messages = st.session_state.messages + [{"role": "user", "content": completion_prompt}]
                         
-                        with st.spinner("🚀 Generating JSON structures..."):
+                        with st.spinner(f"🚀 Generating {len(slide_list)} relevant slides..."):
                             ai_response = call_llm_api(
                                 temp_messages,
                                 selected_model,
@@ -4598,7 +4623,7 @@ Let's start: **What is your company name and give me a brief overview of what yo
                             )
                         
                         # Add completion message indicating manual JSON generation
-                        completion_message = "🚀 **Manual JSON Generation Triggered**\n\nI'll now generate the JSON structures based on our conversation so far:\n\n" + ai_response
+                        completion_message = f"🚀 **Adaptive JSON Generation Triggered**\n\n📊 Generated {len(slide_list)} slides based on conversation analysis:\n• **Included**: {', '.join(slide_list)}\n• **Quality**: {analysis_report['quality_summary']}\n\n" + ai_response
                         st.session_state.messages.append({"role": "assistant", "content": completion_message})
                         st.rerun()
             
@@ -4630,15 +4655,31 @@ Let's start: **What is your company name and give me a brief overview of what yo
                 else:
                     # Check if interview is complete and should trigger JSON generation
                     if is_complete and not progress_info.get("next_question"):
-                        # Interview is complete - force JSON generation
+                        # Interview is complete - force JSON generation with adaptive slides
                         from perfect_json_prompter import get_interview_completion_prompt
+                        from adaptive_slide_generator import generate_adaptive_presentation
                         
+                        # Analyze conversation and generate adaptive slide list
+                        slide_list, adaptive_render_plan, analysis_report = generate_adaptive_presentation(st.session_state.messages)
+                        
+                        # Create enhanced completion prompt with adaptive slide information
                         completion_prompt = get_interview_completion_prompt(st.session_state.messages)
+                        adaptive_instructions = f"""
+                        
+🎯 ADAPTIVE SLIDE GENERATION: Based on our conversation, generate ONLY these {len(slide_list)} relevant slides:
+{chr(10).join([f"• {slide}" for slide in slide_list])}
+
+📊 Quality Analysis: {analysis_report['quality_summary']}
+
+⚡ IMPORTANT: Only create content for the slides listed above. Do not generate content for slides where we lack sufficient information.
+                        """
+                        
+                        completion_prompt += adaptive_instructions
                         
                         # Create a temporary message for JSON generation
                         temp_messages = st.session_state.messages + [{"role": "user", "content": completion_prompt}]
                         
-                        with st.spinner("🚀 Interview complete! Generating JSON structures..."):
+                        with st.spinner(f"🚀 Interview complete! Generating {len(slide_list)} relevant slides..."):
                             ai_response = call_llm_api(
                                 temp_messages,
                                 selected_model,
@@ -4647,8 +4688,9 @@ Let's start: **What is your company name and give me a brief overview of what yo
                             )
                         
                         # Add completion message indicating automatic JSON generation
-                        st.session_state.messages.append({"role": "assistant", "content": "Perfect! I have all the information needed. Let me generate the complete JSON structures for your pitch deck.\n\n" + ai_response})
-                        ai_response = "Perfect! I have all the information needed. Let me generate the complete JSON structures for your pitch deck.\n\n" + ai_response
+                        completion_message = f"Perfect! I've analyzed our conversation and will generate {len(slide_list)} relevant slides based on the information provided.\n\n📊 **Slides to Include**: {', '.join(slide_list)}\n\n" + ai_response
+                        st.session_state.messages.append({"role": "assistant", "content": completion_message})
+                        ai_response = completion_message
                     else:
                         # Get normal AI response
                         with st.spinner("🤖 Thinking..."):
