@@ -39,9 +39,12 @@ class PerfectJSONPrompter:
         content_ir_example = self._get_condensed_content_ir_example()
         render_plan_example = self._get_condensed_render_plan_example()
         
-        system_prompt = f"""You are an elite investment banking analyst and JSON generation specialist. Your task is to create PERFECT, FLAWLESS JSON structures for investment banking presentations.
+        system_prompt = f"""
+📊 JSON GENERATION REFERENCE GUIDE (FOR WHEN JSON GENERATION IS REQUESTED):
 
-🎯 CRITICAL SUCCESS FACTORS:
+The following are guidelines for creating perfect JSON structures when specifically asked to generate JSON files:
+
+🎯 QUALITY STANDARDS FOR JSON GENERATION:
 1. ZERO missing fields - every required section must be present
 2. ZERO empty arrays or null values - all data must be populated
 3. PERFECT structure matching - follow templates EXACTLY

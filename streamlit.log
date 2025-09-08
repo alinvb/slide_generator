@@ -4711,3 +4711,814 @@ Collecting usage statistics. To deactivate, set browser.gatherUsageStats to fals
 
 Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
 
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8502
+
+✅ [PERFECT PROMPTER] Perfect templates loaded successfully
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 1941 characters
+📝 Response Preview (first 500 chars):
+Saudi Aramco is the national oil company of Saudi Arabia, majority-owned by the state, and recognized as one of the world's largest and most valuable integrated energy and chemicals companies[1][2][4]. Headquartered in Dhahran, it produces more oil daily than any other company and operates the world's largest hydrocarbon network, with significant reserves and operations across Saudi Arabia[1][4].
+
+Key details:
+- **Industry & Operations:** Aramco is engaged in all aspects of the energy industry, ...
+
+📝 Response Preview (last 500 chars):
+... shares began trading on the Saudi Exchange in December 2019, reaching a market capitalization above $2 trillion shortly after listing[1].
+- **Sustainability:** The company is actively working to reduce greenhouse gas emissions and innovate in advanced materials and fuels[4].
+
+Aramco plays a critical role in global energy markets due to its size, reserves, and operational reach, while also investing in technology and sustainability initiatives to shape the future of the energy industry[1][3][4].
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+
+================================================================================
+🔍 JSON EXTRACTION AND PERFECT VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 18250
+[JSON EXTRACTION DEBUG] Found Content IR marker: 'CONTENT IR JSON:' at position 0
+[JSON EXTRACTION DEBUG] Found Render Plan marker: 'RENDER PLAN JSON:' at position 13913
+[JSON EXTRACTION DEBUG] Extracted Content IR JSON (length: 13882)
+[JSON CLEAN] Input length: 13882
+[JSON CLEAN] JSON is valid as-is
+✅ Successfully parsed Content IR JSON
+[JSON EXTRACTION DEBUG] Extracted Render Plan JSON (length: 4307)
+[JSON CLEAN] Input length: 4307
+[JSON CLEAN] JSON is valid as-is
+✅ Successfully parsed Render Plan JSON
+[JSON EXTRACTION DEBUG] Content IR keys: ['entities', 'facts', 'management_team', 'strategic_buyers', 'financial_buyers', 'competitive_analysis', 'precedent_transactions', 'valuation_data', 'product_service_data', 'business_overview_data', 'growth_strategy_data', 'investor_process_data', 'margin_cost_data', 'sea_conglomerates', 'investor_considerations']
+[JSON EXTRACTION DEBUG] Render Plan keys: ['slides']
+[JSON EXTRACTION DEBUG] Number of slides: 3
+
+📊 EXTRACTION RESULTS:
+Content IR: ✅ Found
+Render Plan: ✅ Found
+
+🚀 APPLYING PERFECT JSON VALIDATION AND AUTO-REFINEMENT...
+🎯 PERFECTING CONTENT IR...
+✅ [JSON VALIDATOR] Perfect templates loaded successfully
+🚀 [JSON PERFECTER] Starting validation and refinement for content_ir
+📊 [INTERVIEW EXTRACTOR] Extracted data keys: []
+🔄 [JSON REFINER] Starting auto-refinement for content_ir
+📊 [JSON REFINER] Attempt 1: Score 1.00, Issues: 0
+✅ [JSON REFINER] Perfect JSON achieved in 1 attempts!
+
+🟢 JSON VALIDATION REPORT - CONTENT_IR
+==================================================
+Overall Score: 1.00/1.0
+Status: ✅ PERFECT
+
+📊 METRICS:
+• Issues Found: 0
+• Missing Fields: 0
+• Invalid Types: 0
+• Empty Fields: 0
+
+❗ TOP ISSUES:
+
+
+🔧 RECOMMENDATIONS:
+
+
+✅ Content IR is now PERFECT!
+🎯 PERFECTING RENDER PLAN...
+✅ [JSON VALIDATOR] Perfect templates loaded successfully
+🚀 [JSON PERFECTER] Starting validation and refinement for render_plan
+📊 [INTERVIEW EXTRACTOR] Extracted data keys: []
+🔄 [JSON REFINER] Starting auto-refinement for render_plan
+📊 [JSON REFINER] Attempt 1: Score 1.00, Issues: 0
+✅ [JSON REFINER] Perfect JSON achieved in 1 attempts!
+
+🟢 JSON VALIDATION REPORT - RENDER_PLAN
+==================================================
+Overall Score: 1.00/1.0
+Status: ✅ PERFECT
+
+📊 METRICS:
+• Issues Found: 0
+• Missing Fields: 0
+• Invalid Types: 0
+• Empty Fields: 0
+
+❗ TOP ISSUES:
+
+
+🔧 RECOMMENDATIONS:
+
+
+✅ Render Plan is now PERFECT!
+
+🔧 APPLYING LEGACY COMPATIBILITY FIXES...
+🔧 MANDATORY: Starting validation and fixing process...
+🔧 MANDATORY: Applying comprehensive JSON fixes...
+============================================================
+COMPREHENSIVE JSON FIXING
+============================================================
+[FIX] Fixing content IR with sections: ['entities', 'facts', 'management_team', 'strategic_buyers', 'financial_buyers', 'competitive_analysis', 'precedent_transactions', 'valuation_data', 'product_service_data', 'business_overview_data', 'growth_strategy_data', 'investor_process_data', 'margin_cost_data', 'sea_conglomerates', 'investor_considerations']
+[FIX] Fixing content IR with sections: ['entities', 'facts', 'management_team', 'strategic_buyers', 'financial_buyers', 'competitive_analysis', 'precedent_transactions', 'valuation_data', 'product_service_data', 'business_overview_data', 'growth_strategy_data', 'investor_process_data', 'margin_cost_data', 'sea_conglomerates', 'investor_considerations']
+[FIX] Adding missing section: charts
+[FIX] Fixing render plan with 3 slides
+[FIX] Fixing render plan with 3 slides
+
+[FIX] Processing slide 1: business_overview
+[FIX] Fixing data for template: business_overview
+[FIX] Converted start_year from int to string: 1933
+[FIX] Converted end_year from int to string: 2025
+[FIX] Added years_note: (92+ years of operation)
+
+[FIX] Processing slide 2: buyer_profiles
+[FIX] Fixing data for template: buyer_profiles
+[FIX] Fixing buyer profiles data. Input type: <class 'dict'>
+[FIX] Data keys: ['title', 'table_headers', 'table_rows']
+[FIX] table_rows type: <class 'list'>, length: 3
+[FIX] Processing 3 buyer profile rows
+[FIX] Added missing field 'financial_capacity' to buyer profile row 1
+[FIX] Added missing field 'financial_capacity' to buyer profile row 2
+[FIX] Added missing field 'financial_capacity' to buyer profile row 3
+
+[FIX] Processing slide 3: buyer_profiles
+[FIX] Fixing data for template: buyer_profiles
+[FIX] Fixing buyer profiles data. Input type: <class 'dict'>
+[FIX] Data keys: ['title', 'table_headers', 'table_rows']
+[FIX] table_rows type: <class 'list'>, length: 3
+[FIX] Processing 3 buyer profile rows
+[FIX] Added missing field 'financial_capacity' to buyer profile row 1
+[FIX] Added missing field 'financial_capacity' to buyer profile row 2
+[FIX] Added missing field 'financial_capacity' to buyer profile row 3
+
+============================================================
+FIXING COMPLETE
+============================================================
+🔧 MANDATORY: Required slide count: 14
+🔧 MANDATORY: Required Content IR sections: 16
+🔧 MANDATORY: Required slide order: 14
+🔧 MANDATORY: Checking Content IR sections...
+🔧 MANDATORY: Checking Render Plan slide order...
+❌ CURRENT ORDER: ['business_overview', 'buyer_profiles', 'buyer_profiles']
+✅ REQUIRED ORDER: ['management_team', 'historical_financial_performance', 'margin_cost_resilience', 'investor_considerations', 'competitive_positioning', 'product_service_footprint', 'business_overview', 'precedent_transactions', 'valuation_overview', 'investor_process_overview', 'growth_strategy_projections', 'sea_conglomerates', 'buyer_profiles', 'buyer_profiles']
+🔧 MANDATORY: Adding missing slide: management_team
+🔧 MANDATORY: Adding missing slide: historical_financial_performance
+🔧 MANDATORY: Adding missing slide: margin_cost_resilience
+🔧 MANDATORY: Adding missing slide: investor_considerations
+🔧 MANDATORY: Adding missing slide: competitive_positioning
+🔧 MANDATORY: Adding missing slide: product_service_footprint
+🔧 MANDATORY: Added existing slide: business_overview
+🔧 MANDATORY: Adding missing slide: precedent_transactions
+🔧 MANDATORY: Adding missing slide: valuation_overview
+🔧 MANDATORY: Adding missing investor_process_overview slide
+🔧 MANDATORY: Adding missing slide: growth_strategy_projections
+🔧 MANDATORY: Adding missing slide: sea_conglomerates
+🔧 MANDATORY: Added existing strategic buyers slide
+🔧 MANDATORY: Added existing financial buyers slide
+🔧 MANDATORY: Reordered slides. Final count: 14
+🔧 MANDATORY: Fixing semantic errors...
+🔧 MANDATORY: Final validation...
+✅ Content IR sections: 16
+✅ Render Plan slides: 14
+✅ All Content IR sections present!
+✅ Correct slide count!
+✅ Correct slide order!
+🔧 MANDATORY: Validation and fixing completed!
+
+🔧 NORMALIZING EXTRACTED JSON...
+[NORMALIZATION] Starting JSON normalization...
+
+🏗️ STRUCTURE VALIDATION:
+[ENHANCED VALIDATION] Starting validation against examples and recent fixes...
+[ENHANCED VALIDATION] Checking recent fixes compliance...
+[ENHANCED VALIDATION] ⚠️ Timeline item is string format: Week 1: NDA and data room access
+[ENHANCED VALIDATION] ⚠️ Timeline item is string format: Week 2-4: Management presentations and facility visits
+[ENHANCED VALIDATION] ⚠️ Timeline item is string format: Week 5-6: Diligence and Q&A
+[ENHANCED VALIDATION] ⚠️ Timeline item is string format: Week 7: Indicative offers and negotiations
+[ENHANCED VALIDATION] ✅ All recent fixes validation passed
+[STRUCTURE VALIDATION] Validating Content IR structure...
+[STRUCTURE VALIDATION] ✓ Content IR has all required sections
+[STRUCTURE VALIDATION] ✓ Management team structure is correct
+[STRUCTURE VALIDATION] ✓ strategic_buyers is properly formatted array
+[STRUCTURE VALIDATION] ✓ financial_buyers is properly formatted array
+[STRUCTURE VALIDATION] Validating Render Plan structure...
+[STRUCTURE VALIDATION] ✓ Render Plan has 14 slides
+[STRUCTURE VALIDATION] ✓ All slides have required fields
+[STRUCTURE VALIDATION] ✅ Both Content IR and Render Plan structures are valid!
+
+📋 SLIDE-BY-SLIDE VALIDATION:
+
+📈 VALIDATION SUMMARY:
+Structure Quality: 100%
+Overall Valid: ❌ No
+Critical Issues: 0
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION COMPLETED
+================================================================================
+
+
+🤖 AUTOMATED FEEDBACK SYSTEM: Validation failed, generating enhanced feedback for LLM...
+
+🔄 AUTO-RETRY: Sending detailed feedback to LLM for corrections...
+
+✅ AUTO-RETRY COMPLETE: Received corrected response from LLM
+
+================================================================================
+🔍 JSON EXTRACTION AND PERFECT VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 31358
+[JSON EXTRACTION DEBUG] Found Content IR marker: 'CONTENT IR JSON:' at position 0
+[JSON EXTRACTION DEBUG] Found Render Plan marker: 'RENDER PLAN JSON:' at position 15565
+[JSON EXTRACTION DEBUG] Extracted Content IR JSON (length: 15534)
+[JSON CLEAN] Input length: 15534
+[JSON CLEAN] JSON is valid as-is
+✅ Successfully parsed Content IR JSON
+[JSON EXTRACTION DEBUG] Extracted Render Plan JSON (length: 15763)
+[JSON CLEAN] Input length: 15763
+[JSON CLEAN] JSON is valid as-is
+✅ Successfully parsed Render Plan JSON
+[JSON EXTRACTION DEBUG] Content IR keys: ['entities', 'facts', 'key_metrics', 'revenue_growth', 'management_team', 'strategic_buyers', 'financial_buyers', 'competitive_analysis', 'precedent_transactions', 'valuation_data', 'product_service_data', 'business_overview_data', 'growth_strategy_data', 'investor_process_data', 'margin_cost_data', 'sea_conglomerates', 'investor_considerations']
+[JSON EXTRACTION DEBUG] Render Plan keys: ['slides']
+[JSON EXTRACTION DEBUG] Number of slides: 14
+
+📊 EXTRACTION RESULTS:
+Content IR: ✅ Found
+Render Plan: ✅ Found
+
+🚀 APPLYING PERFECT JSON VALIDATION AND AUTO-REFINEMENT...
+🎯 PERFECTING CONTENT IR...
+✅ [JSON VALIDATOR] Perfect templates loaded successfully
+🚀 [JSON PERFECTER] Starting validation and refinement for content_ir
+📊 [INTERVIEW EXTRACTOR] Extracted data keys: []
+🔄 [JSON REFINER] Starting auto-refinement for content_ir
+📊 [JSON REFINER] Attempt 1: Score 1.00, Issues: 0
+✅ [JSON REFINER] Perfect JSON achieved in 1 attempts!
+
+🟢 JSON VALIDATION REPORT - CONTENT_IR
+==================================================
+Overall Score: 1.00/1.0
+Status: ✅ PERFECT
+
+📊 METRICS:
+• Issues Found: 0
+• Missing Fields: 0
+• Invalid Types: 0
+• Empty Fields: 0
+
+❗ TOP ISSUES:
+
+
+🔧 RECOMMENDATIONS:
+
+
+✅ Content IR is now PERFECT!
+🎯 PERFECTING RENDER PLAN...
+✅ [JSON VALIDATOR] Perfect templates loaded successfully
+🚀 [JSON PERFECTER] Starting validation and refinement for render_plan
+📊 [INTERVIEW EXTRACTOR] Extracted data keys: []
+🔄 [JSON REFINER] Starting auto-refinement for render_plan
+📊 [JSON REFINER] Attempt 1: Score 1.00, Issues: 0
+✅ [JSON REFINER] Perfect JSON achieved in 1 attempts!
+
+🟢 JSON VALIDATION REPORT - RENDER_PLAN
+==================================================
+Overall Score: 1.00/1.0
+Status: ✅ PERFECT
+
+📊 METRICS:
+• Issues Found: 0
+• Missing Fields: 0
+• Invalid Types: 0
+• Empty Fields: 0
+
+❗ TOP ISSUES:
+
+
+🔧 RECOMMENDATIONS:
+
+
+✅ Render Plan is now PERFECT!
+
+🔧 APPLYING LEGACY COMPATIBILITY FIXES...
+🔧 MANDATORY: Starting validation and fixing process...
+🔧 MANDATORY: Applying comprehensive JSON fixes...
+============================================================
+COMPREHENSIVE JSON FIXING
+============================================================
+[FIX] Fixing content IR with sections: ['entities', 'facts', 'key_metrics', 'revenue_growth', 'management_team', 'strategic_buyers', 'financial_buyers', 'competitive_analysis', 'precedent_transactions', 'valuation_data', 'product_service_data', 'business_overview_data', 'growth_strategy_data', 'investor_process_data', 'margin_cost_data', 'sea_conglomerates', 'investor_considerations']
+[FIX] Fixing content IR with sections: ['entities', 'facts', 'key_metrics', 'revenue_growth', 'management_team', 'strategic_buyers', 'financial_buyers', 'competitive_analysis', 'precedent_transactions', 'valuation_data', 'product_service_data', 'business_overview_data', 'growth_strategy_data', 'investor_process_data', 'margin_cost_data', 'sea_conglomerates', 'investor_considerations']
+[FIX] Adding missing section: charts
+[FIX] Fixing render plan with 14 slides
+[FIX] Fixing render plan with 14 slides
+
+[FIX] Processing slide 1: management_team
+[FIX] Fixing data for template: management_team
+
+[FIX] Processing slide 2: historical_financial_performance
+[FIX] Fixing data for template: historical_financial_performance
+[FIX] Converted key_metrics strings to object structure with 4 metrics
+
+[FIX] Processing slide 3: margin_cost_resilience
+[FIX] Fixing data for template: margin_cost_resilience
+[FIX] ERROR processing slide 3 (margin_cost_resilience): 'str' object does not support item assignment
+
+[FIX] Processing slide 4: investor_considerations
+[FIX] Fixing data for template: investor_considerations
+
+[FIX] Processing slide 5: competitive_positioning
+[FIX] Fixing data for template: competitive_positioning
+[FIX] Competitive positioning data structure checked
+
+[FIX] Processing slide 6: product_service_footprint
+[FIX] Fixing data for template: product_service_footprint
+
+[FIX] Processing slide 7: business_overview
+[FIX] Fixing data for template: business_overview
+
+[FIX] Processing slide 8: precedent_transactions
+[FIX] Fixing data for template: precedent_transactions
+
+[FIX] Processing slide 9: valuation_overview
+[FIX] Fixing data for template: valuation_overview
+
+[FIX] Processing slide 10: investor_process_overview
+[FIX] Fixing data for template: investor_process_overview
+
+[FIX] Processing slide 11: growth_strategy_projections
+[FIX] Fixing data for template: growth_strategy_projections
+
+[FIX] Processing slide 12: sea_conglomerates
+[FIX] Fixing data for template: sea_conglomerates
+
+[FIX] Processing slide 13: buyer_profiles
+[FIX] Fixing data for template: buyer_profiles
+[FIX] Fixing buyer profiles data. Input type: <class 'dict'>
+[FIX] Data keys: ['title', 'table_headers']
+
+[FIX] Processing slide 14: buyer_profiles
+[FIX] Fixing data for template: buyer_profiles
+[FIX] Fixing buyer profiles data. Input type: <class 'dict'>
+[FIX] Data keys: ['title', 'table_headers']
+
+============================================================
+FIXING COMPLETE
+============================================================
+🔧 MANDATORY: Required slide count: 14
+🔧 MANDATORY: Required Content IR sections: 16
+🔧 MANDATORY: Required slide order: 14
+🔧 MANDATORY: Checking Content IR sections...
+🔧 MANDATORY: Checking Render Plan slide order...
+❌ CURRENT ORDER: ['management_team', 'historical_financial_performance', 'margin_cost_resilience', 'investor_considerations', 'competitive_positioning', 'product_service_footprint', 'business_overview', 'precedent_transactions', 'valuation_overview', 'investor_process_overview', 'growth_strategy_projections', 'sea_conglomerates', 'buyer_profiles', 'buyer_profiles']
+✅ REQUIRED ORDER: ['management_team', 'historical_financial_performance', 'margin_cost_resilience', 'investor_considerations', 'competitive_positioning', 'product_service_footprint', 'business_overview', 'precedent_transactions', 'valuation_overview', 'investor_process_overview', 'growth_strategy_projections', 'sea_conglomerates', 'buyer_profiles', 'buyer_profiles']
+🔧 MANDATORY: Added existing slide: management_team
+🔧 MANDATORY: Added existing slide: historical_financial_performance
+🔧 MANDATORY: Added existing slide: margin_cost_resilience
+🔧 MANDATORY: Added existing slide: investor_considerations
+🔧 MANDATORY: Added existing slide: competitive_positioning
+🔧 MANDATORY: Added existing slide: product_service_footprint
+🔧 MANDATORY: Added existing slide: business_overview
+🔧 MANDATORY: Added existing slide: precedent_transactions
+🔧 MANDATORY: Added existing slide: valuation_overview
+🔧 MANDATORY: Added existing slide: investor_process_overview
+🔧 MANDATORY: Added existing slide: growth_strategy_projections
+🔧 MANDATORY: Added existing slide: sea_conglomerates
+🔧 MANDATORY: Added existing strategic buyers slide
+🔧 MANDATORY: Added existing financial buyers slide
+🔧 MANDATORY: Reordered slides. Final count: 14
+🔧 MANDATORY: Fixing semantic errors...
+🔧 MANDATORY: Fixing key_metrics structure
+🔧 MANDATORY: Adding table structure to buyer_profiles slide
+🔧 MANDATORY: Adding table structure to buyer_profiles slide
+🔧 MANDATORY: Final validation...
+✅ Content IR sections: 18
+✅ Render Plan slides: 14
+✅ All Content IR sections present!
+✅ Correct slide count!
+✅ Correct slide order!
+🔧 MANDATORY: Validation and fixing completed!
+
+🔧 NORMALIZING EXTRACTED JSON...
+[NORMALIZATION] Starting JSON normalization...
+
+🏗️ STRUCTURE VALIDATION:
+[ENHANCED VALIDATION] Starting validation against examples and recent fixes...
+[ENHANCED VALIDATION] Checking recent fixes compliance...
+[ENHANCED VALIDATION] ✅ All recent fixes validation passed
+[STRUCTURE VALIDATION] Validating Content IR structure...
+[STRUCTURE VALIDATION] ✓ Content IR has all required sections
+[STRUCTURE VALIDATION] ✓ Management team structure is correct
+[STRUCTURE VALIDATION] ✓ strategic_buyers is properly formatted array
+[STRUCTURE VALIDATION] ✓ financial_buyers is properly formatted array
+[STRUCTURE VALIDATION] Validating Render Plan structure...
+[STRUCTURE VALIDATION] ✓ Render Plan has 14 slides
+[STRUCTURE VALIDATION] ✓ All slides have required fields
+[STRUCTURE VALIDATION] ✅ Both Content IR and Render Plan structures are valid!
+
+📋 SLIDE-BY-SLIDE VALIDATION:
+
+📈 VALIDATION SUMMARY:
+Structure Quality: 100%
+Overall Valid: ✅ Yes
+Critical Issues: 0
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION COMPLETED
+================================================================================
+
+
+✅ VALIDATION SUCCESS: Auto-correction successful!
+
+================================================================================
+🔍 JSON EXTRACTION AND PERFECT VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION DEBUG] Starting extraction from response of length: 31358
+[JSON EXTRACTION DEBUG] Found Content IR marker: 'CONTENT IR JSON:' at position 0
+[JSON EXTRACTION DEBUG] Found Render Plan marker: 'RENDER PLAN JSON:' at position 15565
+[JSON EXTRACTION DEBUG] Extracted Content IR JSON (length: 15534)
+[JSON CLEAN] Input length: 15534
+[JSON CLEAN] JSON is valid as-is
+✅ Successfully parsed Content IR JSON
+[JSON EXTRACTION DEBUG] Extracted Render Plan JSON (length: 15763)
+[JSON CLEAN] Input length: 15763
+[JSON CLEAN] JSON is valid as-is
+✅ Successfully parsed Render Plan JSON
+[JSON EXTRACTION DEBUG] Content IR keys: ['entities', 'facts', 'key_metrics', 'revenue_growth', 'management_team', 'strategic_buyers', 'financial_buyers', 'competitive_analysis', 'precedent_transactions', 'valuation_data', 'product_service_data', 'business_overview_data', 'growth_strategy_data', 'investor_process_data', 'margin_cost_data', 'sea_conglomerates', 'investor_considerations']
+[JSON EXTRACTION DEBUG] Render Plan keys: ['slides']
+[JSON EXTRACTION DEBUG] Number of slides: 14
+
+📊 EXTRACTION RESULTS:
+Content IR: ✅ Found
+Render Plan: ✅ Found
+
+🚀 APPLYING PERFECT JSON VALIDATION AND AUTO-REFINEMENT...
+🎯 PERFECTING CONTENT IR...
+✅ [JSON VALIDATOR] Perfect templates loaded successfully
+🚀 [JSON PERFECTER] Starting validation and refinement for content_ir
+📊 [INTERVIEW EXTRACTOR] Extracted data keys: []
+🔄 [JSON REFINER] Starting auto-refinement for content_ir
+📊 [JSON REFINER] Attempt 1: Score 1.00, Issues: 0
+✅ [JSON REFINER] Perfect JSON achieved in 1 attempts!
+
+🟢 JSON VALIDATION REPORT - CONTENT_IR
+==================================================
+Overall Score: 1.00/1.0
+Status: ✅ PERFECT
+
+📊 METRICS:
+• Issues Found: 0
+• Missing Fields: 0
+• Invalid Types: 0
+• Empty Fields: 0
+
+❗ TOP ISSUES:
+
+
+🔧 RECOMMENDATIONS:
+
+
+✅ Content IR is now PERFECT!
+🎯 PERFECTING RENDER PLAN...
+✅ [JSON VALIDATOR] Perfect templates loaded successfully
+🚀 [JSON PERFECTER] Starting validation and refinement for render_plan
+📊 [INTERVIEW EXTRACTOR] Extracted data keys: []
+🔄 [JSON REFINER] Starting auto-refinement for render_plan
+📊 [JSON REFINER] Attempt 1: Score 1.00, Issues: 0
+✅ [JSON REFINER] Perfect JSON achieved in 1 attempts!
+
+🟢 JSON VALIDATION REPORT - RENDER_PLAN
+==================================================
+Overall Score: 1.00/1.0
+Status: ✅ PERFECT
+
+📊 METRICS:
+• Issues Found: 0
+• Missing Fields: 0
+• Invalid Types: 0
+• Empty Fields: 0
+
+❗ TOP ISSUES:
+
+
+🔧 RECOMMENDATIONS:
+
+
+✅ Render Plan is now PERFECT!
+
+🔧 APPLYING LEGACY COMPATIBILITY FIXES...
+🔧 MANDATORY: Starting validation and fixing process...
+🔧 MANDATORY: Applying comprehensive JSON fixes...
+============================================================
+COMPREHENSIVE JSON FIXING
+============================================================
+[FIX] Fixing content IR with sections: ['entities', 'facts', 'key_metrics', 'revenue_growth', 'management_team', 'strategic_buyers', 'financial_buyers', 'competitive_analysis', 'precedent_transactions', 'valuation_data', 'product_service_data', 'business_overview_data', 'growth_strategy_data', 'investor_process_data', 'margin_cost_data', 'sea_conglomerates', 'investor_considerations']
+[FIX] Fixing content IR with sections: ['entities', 'facts', 'key_metrics', 'revenue_growth', 'management_team', 'strategic_buyers', 'financial_buyers', 'competitive_analysis', 'precedent_transactions', 'valuation_data', 'product_service_data', 'business_overview_data', 'growth_strategy_data', 'investor_process_data', 'margin_cost_data', 'sea_conglomerates', 'investor_considerations']
+[FIX] Adding missing section: charts
+[FIX] Fixing render plan with 14 slides
+[FIX] Fixing render plan with 14 slides
+
+[FIX] Processing slide 1: management_team
+[FIX] Fixing data for template: management_team
+
+[FIX] Processing slide 2: historical_financial_performance
+[FIX] Fixing data for template: historical_financial_performance
+[FIX] Converted key_metrics strings to object structure with 4 metrics
+
+[FIX] Processing slide 3: margin_cost_resilience
+[FIX] Fixing data for template: margin_cost_resilience
+[FIX] ERROR processing slide 3 (margin_cost_resilience): 'str' object does not support item assignment
+
+[FIX] Processing slide 4: investor_considerations
+[FIX] Fixing data for template: investor_considerations
+
+[FIX] Processing slide 5: competitive_positioning
+[FIX] Fixing data for template: competitive_positioning
+[FIX] Competitive positioning data structure checked
+
+[FIX] Processing slide 6: product_service_footprint
+[FIX] Fixing data for template: product_service_footprint
+
+[FIX] Processing slide 7: business_overview
+[FIX] Fixing data for template: business_overview
+
+[FIX] Processing slide 8: precedent_transactions
+[FIX] Fixing data for template: precedent_transactions
+
+[FIX] Processing slide 9: valuation_overview
+[FIX] Fixing data for template: valuation_overview
+
+[FIX] Processing slide 10: investor_process_overview
+[FIX] Fixing data for template: investor_process_overview
+
+[FIX] Processing slide 11: growth_strategy_projections
+[FIX] Fixing data for template: growth_strategy_projections
+
+[FIX] Processing slide 12: sea_conglomerates
+[FIX] Fixing data for template: sea_conglomerates
+
+[FIX] Processing slide 13: buyer_profiles
+[FIX] Fixing data for template: buyer_profiles
+[FIX] Fixing buyer profiles data. Input type: <class 'dict'>
+[FIX] Data keys: ['title', 'table_headers']
+
+[FIX] Processing slide 14: buyer_profiles
+[FIX] Fixing data for template: buyer_profiles
+[FIX] Fixing buyer profiles data. Input type: <class 'dict'>
+[FIX] Data keys: ['title', 'table_headers']
+
+============================================================
+FIXING COMPLETE
+============================================================
+🔧 MANDATORY: Required slide count: 14
+🔧 MANDATORY: Required Content IR sections: 16
+🔧 MANDATORY: Required slide order: 14
+🔧 MANDATORY: Checking Content IR sections...
+🔧 MANDATORY: Checking Render Plan slide order...
+❌ CURRENT ORDER: ['management_team', 'historical_financial_performance', 'margin_cost_resilience', 'investor_considerations', 'competitive_positioning', 'product_service_footprint', 'business_overview', 'precedent_transactions', 'valuation_overview', 'investor_process_overview', 'growth_strategy_projections', 'sea_conglomerates', 'buyer_profiles', 'buyer_profiles']
+✅ REQUIRED ORDER: ['management_team', 'historical_financial_performance', 'margin_cost_resilience', 'investor_considerations', 'competitive_positioning', 'product_service_footprint', 'business_overview', 'precedent_transactions', 'valuation_overview', 'investor_process_overview', 'growth_strategy_projections', 'sea_conglomerates', 'buyer_profiles', 'buyer_profiles']
+🔧 MANDATORY: Added existing slide: management_team
+🔧 MANDATORY: Added existing slide: historical_financial_performance
+🔧 MANDATORY: Added existing slide: margin_cost_resilience
+🔧 MANDATORY: Added existing slide: investor_considerations
+🔧 MANDATORY: Added existing slide: competitive_positioning
+🔧 MANDATORY: Added existing slide: product_service_footprint
+🔧 MANDATORY: Added existing slide: business_overview
+🔧 MANDATORY: Added existing slide: precedent_transactions
+🔧 MANDATORY: Added existing slide: valuation_overview
+🔧 MANDATORY: Added existing slide: investor_process_overview
+🔧 MANDATORY: Added existing slide: growth_strategy_projections
+🔧 MANDATORY: Added existing slide: sea_conglomerates
+🔧 MANDATORY: Added existing strategic buyers slide
+🔧 MANDATORY: Added existing financial buyers slide
+🔧 MANDATORY: Reordered slides. Final count: 14
+🔧 MANDATORY: Fixing semantic errors...
+🔧 MANDATORY: Fixing key_metrics structure
+🔧 MANDATORY: Adding table structure to buyer_profiles slide
+🔧 MANDATORY: Adding table structure to buyer_profiles slide
+🔧 MANDATORY: Final validation...
+✅ Content IR sections: 18
+✅ Render Plan slides: 14
+✅ All Content IR sections present!
+✅ Correct slide count!
+✅ Correct slide order!
+🔧 MANDATORY: Validation and fixing completed!
+
+🔧 NORMALIZING EXTRACTED JSON...
+[NORMALIZATION] Starting JSON normalization...
+
+🏗️ STRUCTURE VALIDATION:
+[ENHANCED VALIDATION] Starting validation against examples and recent fixes...
+[ENHANCED VALIDATION] Checking recent fixes compliance...
+[ENHANCED VALIDATION] ✅ All recent fixes validation passed
+[STRUCTURE VALIDATION] Validating Content IR structure...
+[STRUCTURE VALIDATION] ✓ Content IR has all required sections
+[STRUCTURE VALIDATION] ✓ Management team structure is correct
+[STRUCTURE VALIDATION] ✓ strategic_buyers is properly formatted array
+[STRUCTURE VALIDATION] ✓ financial_buyers is properly formatted array
+[STRUCTURE VALIDATION] Validating Render Plan structure...
+[STRUCTURE VALIDATION] ✓ Render Plan has 14 slides
+[STRUCTURE VALIDATION] ✓ All slides have required fields
+[STRUCTURE VALIDATION] ✅ Both Content IR and Render Plan structures are valid!
+
+📋 SLIDE-BY-SLIDE VALIDATION:
+
+📈 VALIDATION SUMMARY:
+Structure Quality: 100%
+Overall Valid: ✅ Yes
+Critical Issues: 0
+================================================================================
+🔍 JSON EXTRACTION AND VALIDATION COMPLETED
+================================================================================
+
+
+🔧 ENHANCED VALIDATION WITH AUTO-FIXES...
+✅ AUTO-FIXES APPLIED: 1 issues resolved
+  - Fixed timeline format from list to object
+🔍 AUTO-ENHANCING MANAGEMENT TEAM DATA...
+🔍 Found executive information in conversation (65331 characters)
+✅ Management team already has good data (6 profiles)
+[JSON CLEAN] Input length: 16191
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 20245
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 16331
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 20390
+[JSON CLEAN] JSON is valid as-is
+  Stopping...
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8502
+
+✅ [PERFECT PROMPTER] Perfect templates loaded successfully
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+  Stopping...
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8502
+
+✅ [PERFECT PROMPTER] Perfect templates loaded successfully
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 17151 characters
+📝 Response Preview (first 500 chars):
+CONTENT IR JSON:
+```json
+{
+  "entities": {
+    "company": {
+      "name": "Saudi Aramco"
+    }
+  },
+  "facts": {
+    "years": [
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025E"
+    ],
+    "revenue_usd_m": [
+      400000,
+      588880,
+      570000,
+      565000,
+      570000
+    ],
+    "ebitda_usd_m": [
+      120000,
+      180000,
+      175000,
+      172000,
+      173000
+    ],
+    "ebitda_margins": [
+      30.0,
+      30.6,
+      30.7,
+      30.5,
+      30.4
+    ]
+  },
+  "m...
+
+📝 Response Preview (last 500 chars):
+...ment",
+            "fit": "High (8/10) - Energy and infrastructure experience"
+          },
+          {
+            "buyer_name": "GIC",
+            "description": "Singapore sovereign wealth fund with global energy investments",
+            "strategic_rationale": "Diversify portfolio with proven energy leader",
+            "key_synergies": "Global network, strategic partnerships",
+            "fit": "High (8/10) - Sovereign investor, stable outlook"
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+✅ Found markers: ['CONTENT IR JSON:', 'RENDER PLAN JSON:', '```json', '```']
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+  Stopping...
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8502
+

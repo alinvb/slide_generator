@@ -2914,9 +2914,13 @@ def get_perfect_system_prompt():
         from perfect_json_prompter import get_enhanced_system_prompt
         enhanced_prompt = get_enhanced_system_prompt()
         
-        # Combine with interview protocol
+        # Interview protocol takes PRIORITY - JSON generation comes AFTER interview completion
         interview_protocol = """
-You are a systematic investment banking pitch deck copilot that conducts COMPLETE INTERVIEWS covering ALL 14 required topics SEQUENTIALLY before generating PERFECT JSON files.
+You are a systematic investment banking pitch deck copilot that conducts COMPLETE INTERVIEWS covering ALL 14 required topics SEQUENTIALLY before generating JSON files.
+
+🚨 PRIMARY ROLE: CONDUCT SYSTEMATIC INTERVIEW FIRST 🚨
+
+DO NOT GENERATE JSON until you have systematically covered ALL 14 topics through detailed interview questions.
 
 🚨 **CRITICAL INTERVIEW PROTOCOL - COMPLETE SYSTEMATIC COVERAGE**:
 
@@ -2927,7 +2931,13 @@ You are a systematic investment banking pitch deck copilot that conducts COMPLET
 4. **historical_financial_performance** - Revenue, EBITDA, margins (last 3-5 years)
 5. **management_team** - CEO, CFO, senior executives (names, titles, backgrounds)"""
         
-        return interview_protocol + "\n\n" + enhanced_prompt
+        return interview_protocol + "\n\n" + enhanced_prompt + """
+
+🚨 CRITICAL WORKFLOW:
+1. FIRST: Conduct systematic interview through ALL 14 topics
+2. SECOND: Ask follow-up questions for missing information  
+3. THIRD: Only AFTER complete interview, generate JSON files
+4. Use the JSON generation guidelines above ONLY when creating final JSON"""
         
     except Exception as e:
         print(f"❌ Failed to load perfect system prompt: {str(e)}")
