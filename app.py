@@ -4558,13 +4558,16 @@ with tab_chat:
 - Valuation & trading precedents
 - Strategic & financial buyer targets
 
-**New Enhanced Features:**
+**Enhanced Interview Features:**
 - I'll ask specific follow-up questions for missing information
-- Say "I don't know" and I'll search for information (with your permission)
+- Say "I don't know" or "research this" and I'll search for information
+- After research, I'll confirm if you're satisfied or want deeper investigation  
 - Say "skip this slide" to exclude any topic you don't want
 - **Zero Empty Boxes Policy**: All slides will have complete content
 
-Let's start: **What is your company name and give me a brief overview of what your business does?**"""
+Let's start: **What is your company name and give me a brief overview of what your business does?**
+
+💡 *Tip: Answer directly first, or say "research this for me" if you want me to find information*"""
                 
                 # Add initial message to session state so it persists
                 st.session_state.messages.append({"role": "assistant", "content": initial_message})
@@ -4660,6 +4663,17 @@ Generate the JSON structures now with this adaptive approach."""
                     st.session_state.messages.append({"role": "assistant", "content": ai_response})
                     st.rerun()
                 else:
+                    # Check for research flow and satisfaction confirmation
+                    from research_flow_handler import research_flow_handler
+                    
+                    needs_check, satisfaction_question = research_flow_handler.needs_satisfaction_check(st.session_state.messages)
+                    
+                    if needs_check:
+                        # Add satisfaction check to conversation
+                        st.session_state.messages.append({"role": "assistant", "content": satisfaction_question})
+                        st.rerun()
+                        return
+                    
                     # Check if interview is complete and should trigger JSON generation
                     if is_complete and not progress_info.get("next_question"):
                         # Interview is complete - force JSON generation with adaptive slides
