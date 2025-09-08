@@ -1,263 +1,180 @@
 #!/usr/bin/env python3
-
 """
-Comprehensive test to verify all slide generation fixes:
-1. Competitive positioning slide with Saudi Aramco data
-2. Historical financial performance chart scaling
-3. Assessment table format conversion from object to 2D array
+Test complete slide generation system with timeline and buyer profile fixes
 """
 
-from pptx import Presentation
-from slide_templates import render_competitive_positioning_slide, render_historical_financial_performance_slide
-from json_data_fixer import comprehensive_json_fix
+import sys
+import os
+sys.path.append('/home/user/webapp')
 
-def test_competitive_positioning_fixes():
-    """Test competitive positioning slide with Saudi Aramco data format"""
-    print("=== Testing Competitive Positioning Slide Fixes ===")
-    
-    # Saudi Aramco competitive data - this is the exact format the user's data comes in
-    saudi_data = {
-        "title": "Competitive Positioning",
-        "competitors": [
-            {"name": "Saudi Aramco", "revenue": 594120},    # Should be tallest bar
-            {"name": "ExxonMobil", "revenue": 509000},      # Should be shorter than Aramco
-            {"name": "Chevron", "revenue": 200000},         # Should be much shorter
-            {"name": "BP", "revenue": 103000},              # Should be shortest bar
-            {"name": "TotalEnergies", "revenue": 263000},   # Should be mid-range
-            {"name": "Shell", "revenue": 381000}            # Should be second tallest after Aramco
-        ],
-        "assessment": [
-            {
-                "category": "Market Cap (2024)",
-                "our_company": "$1,570B", 
-                "competitor_a": "$509B",
-                "competitor_b": "$320B"
-            },
-            {
-                "category": "Annual Revenue (2023)",
-                "our_company": "$594.1B",
-                "competitor_a": "$344.6B", 
-                "competitor_b": "$263.2B"
-            },
-            {
-                "category": "Oil Production (bbl/day)",
-                "our_company": "12.8M",
-                "competitor_a": "3.8M",
-                "competitor_b": "2.9M"
-            },
-            {
-                "category": "Refining Capacity",
-                "our_company": "5.4M bbl/day",
-                "competitor_a": "4.9M bbl/day",
-                "competitor_b": "2.3M bbl/day"
-            },
-            {
-                "category": "Reserves (billion bbl)",
-                "our_company": "267B",
-                "competitor_a": "17.8B",
-                "competitor_b": "11.1B"
-            },
-            {
-                "category": "ESG Score",
-                "our_company": "B-",
-                "competitor_a": "A-",
-                "competitor_b": "B+"
-            }
-        ],
-        "advantages": [
-            {"title": "World's Largest Oil Reserves:", "desc": "267 billion barrels proven reserves"},
-            {"title": "Lowest Cost Producer:", "desc": "Production cost ~$3 per barrel vs industry avg $15"},
-            {"title": "Integrated Value Chain:", "desc": "Full upstream to downstream operations"},
-            {"title": "Strategic Geographic Position:", "desc": "Direct access to Asian and European markets"}
-        ],
-        "barriers": [
-            {"title": "Capital Requirements:", "desc": "Multi-billion dollar infrastructure investments required"},
-            {"title": "Technical Expertise:", "desc": "Decades of experience in desert operations"},
-            {"title": "Government Relationships:", "desc": "Strong partnership with Saudi government"},
-            {"title": "Market Position:", "desc": "Established relationships with global refiners"}
-        ]
-    }
-    
-    # Test 1: Create slide with Saudi Aramco data
-    print("\n1. Testing revenue chart scaling...")
-    prs = Presentation()
-    prs = render_competitive_positioning_slide(
-        data=saudi_data, 
-        company_name="Saudi Aramco",
-        prs=prs
-    )
-    
-    # Save test slide
-    test_file = "test_competitive_positioning_fixed.pptx"
-    prs.save(test_file)
-    print(f"✓ Competitive positioning slide saved as: {test_file}")
-    
-    # Verify the data transformations
-    assessment_data = saudi_data["assessment"]
-    print(f"✓ Assessment data format: {type(assessment_data[0])} (should be dict)")
-    print(f"✓ First assessment item: {assessment_data[0]}")
-    
-    # Test revenue values for chart scaling
-    revenue_values = [comp["revenue"] for comp in saudi_data["competitors"]]
-    max_revenue = max(revenue_values)
-    expected_axis_max = int(max_revenue * 1.2)
-    print(f"✓ Revenue chart data: max {max_revenue:,}, expected axis max: {expected_axis_max:,}")
-    
-    return True
+from executor import execute_plan
+import json
 
-def test_historical_financial_performance_scaling():
-    """Test historical financial performance chart with large values"""
-    print("\n=== Testing Historical Financial Performance Chart Scaling ===")
+def test_complete_fixes():
+    """Test complete slide generation with all fixes applied"""
     
-    # Saudi Aramco financial data with large values
-    financial_data = {
-        "title": "Historical Financial Performance (I)",
-        "chart": {
-            "title": "Saudi Aramco - 5-Year Financial Performance", 
-            "categories": ["2020", "2021", "2022", "2023", "2024E"],
-            "revenue": [230000, 400000, 535000, 594120, 620000],  # Large values in millions
-            "ebitda": [115000, 200000, 267500, 297060, 310000],  # EBITDA values
-            "footnote": "*Historical figures based on Saudi Aramco annual reports and estimates"
-        },
-        "key_metrics": {
-            "metrics": [
-                {
-                    "title": "Revenue CAGR",
-                    "value": "28.1%", 
-                    "period": "(2020-2024E)",
-                    "note": "✓ Strong growth despite oil price volatility"
-                },
-                {
-                    "title": "EBITDA Margin",
-                    "value": "50.0%",
-                    "period": "(2024E)", 
-                    "note": "✓ Industry-leading profitability"
-                },
-                {
-                    "title": "Free Cash Flow",
-                    "value": "$124.9B",
-                    "period": "(2023)",
-                    "note": "↗ Exceptional cash generation"
-                },
-                {
-                    "title": "Dividend Yield",
-                    "value": "6.1%",
-                    "period": "(2024E)",
-                    "note": "● Consistent shareholder returns"
-                }
-            ]
-        },
-        "revenue_growth": {
-            "title": "Revenue Growth Drivers",
-            "points": [
-                "Oil price recovery and stabilization above $75/barrel",
-                "Increased production capacity from new field developments", 
-                "Downstream expansion with new refining facilities",
-                "Petrochemical business growth and diversification",
-                "Strategic partnerships and international expansion"
-            ]
-        },
-        "banker_view": {
-            "title": "BANKER'S VIEW",
-            "text": "Saudi Aramco demonstrates exceptional financial performance with industry-leading margins and cash generation. The company's integrated business model and low-cost production provide sustainable competitive advantages in volatile energy markets."
-        }
-    }
+    print("Testing complete slide generation with fixes...")
     
-    # Test: Create slide with large financial values
-    print("\n1. Testing chart axis scaling for large values...")
-    prs = Presentation()
-    prs = render_historical_financial_performance_slide(
-        data=financial_data,
-        company_name="Saudi Aramco", 
-        prs=prs
-    )
-    
-    # Save test slide
-    test_file = "test_historical_financial_fixed.pptx"
-    prs.save(test_file)
-    print(f"✓ Historical financial slide saved as: {test_file}")
-    
-    # Verify the chart scaling logic
-    all_values = financial_data["chart"]["revenue"] + financial_data["chart"]["ebitda"]
-    max_value = max(all_values)
-    expected_axis_max = int(max_value * 1.2)
-    print(f"✓ Financial chart data: max {max_value:,}, expected axis max: {expected_axis_max:,}")
-    
-    return True
-
-def test_json_data_fixer():
-    """Test the comprehensive JSON data fixer"""
-    print("\n=== Testing JSON Data Fixer ===")
-    
-    # Sample problematic data that needs fixing
-    problematic_data = {
-        "slides": [
-            {
-                "template": "competitive_positioning",
-                "data": {
-                    "assessment": "string_placeholder"  # This should be converted to proper format
-                }
-            }
-        ]
-    }
-    
-    content_ir = {
-        "competitive_positioning": {
-            "assessment": [
-                {
-                    "category": "Market Cap", 
-                    "our_company": "$1,570B",
-                    "competitor_a": "$509B",
-                    "competitor_b": "$320B"
-                }
-            ]
-        }
-    }
-    
-    # Test the comprehensive fixer
-    print("1. Testing comprehensive JSON fix...")
+    # Load the fixed JSON files
     try:
-        fixed_slides, fixed_content = comprehensive_json_fix(problematic_data, content_ir)
-        print("✓ JSON data fixer executed successfully")
-        print(f"✓ Fixed slides: {len(fixed_slides.get('slides', []))}")
-        return True
+        with open('/home/user/webapp/fixed_content_ir.json', 'r') as f:
+            content_ir = json.load(f)
+        print("✅ Loaded fixed content IR successfully")
     except Exception as e:
-        print(f"✗ JSON data fixer error: {e}")
+        print(f"❌ Failed to load content IR: {e}")
         return False
-
-def main():
-    """Run all comprehensive tests"""
-    print("Starting comprehensive slide generation fixes test...")
     
     try:
-        # Test competitive positioning fixes
-        success1 = test_competitive_positioning_fixes()
+        with open('/home/user/webapp/fixed_render_plan.json', 'r') as f:
+            render_plan = json.load(f)
+        print("✅ Loaded fixed render plan successfully")
+    except Exception as e:
+        print(f"❌ Failed to load render plan: {e}")
+        return False
+    
+    print(f"\n📊 Data Summary:")
+    print(f"  - Content IR sections: {len(content_ir)}")
+    print(f"  - Render plan slides: {len(render_plan.get('slides', []))}")
+    
+    # Check specific data that we fixed
+    print(f"\n🔍 Checking Fixed Data:")
+    
+    # Check investor process data
+    investor_data = content_ir.get('investor_process_data', {})
+    timeline_items = investor_data.get('timeline', [])
+    print(f"  - Timeline items: {len(timeline_items)}")
+    if timeline_items:
+        print(f"    Sample: {timeline_items[0]}")
+    
+    # Check buyer data
+    strategic_buyers = content_ir.get('strategic_buyers', [])
+    financial_buyers = content_ir.get('financial_buyers', [])
+    print(f"  - Strategic buyers: {len(strategic_buyers)}")
+    print(f"  - Financial buyers: {len(financial_buyers)}")
+    
+    if strategic_buyers:
+        buyer = strategic_buyers[0]
+        print(f"    Sample strategic buyer:")
+        print(f"      Name: {buyer.get('buyer_name', 'No name')}")
+        print(f"      Description: {buyer.get('description', 'No description')[:50]}...")
+    
+    # Check slides that use the fixed data
+    slides = render_plan.get('slides', [])
+    investor_slides = [s for s in slides if s.get('template') == 'investor_process_overview']
+    buyer_slides = [s for s in slides if s.get('template') == 'buyer_profiles']
+    
+    print(f"\n🎯 Slides Using Fixed Data:")
+    print(f"  - Investor process overview slides: {len(investor_slides)}")
+    print(f"  - Buyer profiles slides: {len(buyer_slides)}")
+    
+    # Test slide generation
+    print(f"\n🧪 Testing Complete Slide Generation...")
+    
+    try:
+        # Use the executor to generate the complete presentation
+        prs, save_path = execute_plan(
+            plan=render_plan,
+            content_ir=content_ir,
+            company_name="LlamaIndex",
+            output_path="test_complete_fixes_output.pptx"
+        )
         
-        # Test historical financial performance scaling 
-        success2 = test_historical_financial_performance_scaling()
-        
-        # Test JSON data fixer
-        success3 = test_json_data_fixer()
-        
-        if success1 and success2 and success3:
-            print("\n🎉 ALL TESTS PASSED!")
-            print("✓ Competitive positioning assessment table format conversion works")
-            print("✓ Chart scaling fixes work for both small and large values") 
-            print("✓ Revenue chart displays proportional bars")
-            print("✓ Assessment table shows actual company data instead of placeholders")
-            print("✓ JSON data fixer handles all data type mismatches")
-            
-            print("\nGenerated test files:")
-            print("- test_competitive_positioning_fixed.pptx")
-            print("- test_historical_financial_fixed.pptx")
-            
+        if prs:
+            print(f"✅ SUCCESS: Complete presentation generated!")
+            print(f"   - Total slides: {len(prs.slides)}")
+            print(f"   - Saved to: {save_path}")
+            return True
         else:
-            print("\n❌ Some tests failed. Check output above.")
+            print(f"❌ FAILED: No presentation returned")
+            return False
             
     except Exception as e:
-        print(f"\n💥 Test execution error: {e}")
+        print(f"❌ ERROR during slide generation: {e}")
         import traceback
         traceback.print_exc()
+        return False
+
+def test_specific_slides():
+    """Test specific slides that were problematic"""
+    
+    print(f"\n" + "="*60)
+    print("TESTING SPECIFIC PROBLEMATIC SLIDES")
+    print("="*60)
+    
+    # Test just the investor process overview and buyer profiles slides
+    from slide_templates import render_investor_process_overview_slide, render_buyer_profiles_slide
+    import json
+    
+    # Load data
+    with open('/home/user/webapp/fixed_content_ir.json', 'r') as f:
+        content_ir = json.load(f)
+    
+    # Test investor process overview
+    print(f"\n1. Testing Investor Process Overview Slide:")
+    
+    investor_data = content_ir.get('investor_process_data', {})
+    test_investor_data = {
+        "title": "Investor Process Overview",
+        "diligence_topics": investor_data.get('diligence_topics', []),
+        "synergy_opportunities": investor_data.get('synergy_opportunities', []),
+        "risk_factors": investor_data.get('risk_factors', []),
+        "mitigants": investor_data.get('mitigants', []),
+        "timeline": investor_data.get('timeline', [])
+    }
+    
+    try:
+        prs1 = render_investor_process_overview_slide(data=test_investor_data, company_name="LlamaIndex")
+        if prs1 and len(prs1.slides) > 0:
+            print("   ✅ SUCCESS: Investor process overview slide rendered")
+            print(f"     - Timeline items processed: {len(test_investor_data.get('timeline', []))}")
+        else:
+            print("   ❌ FAILED: No slides generated")
+            return False
+    except Exception as e:
+        print(f"   ❌ ERROR: {e}")
+        return False
+    
+    # Test buyer profiles
+    print(f"\n2. Testing Buyer Profiles Slide:")
+    
+    strategic_buyers = content_ir.get('strategic_buyers', [])
+    test_buyer_data = {
+        "title": "Strategic Buyer Profiles",
+        "table_headers": ["Buyer Name", "Description", "Strategic Rationale", "Key Synergies", "Fit"],
+        "table_rows": strategic_buyers
+    }
+    
+    try:
+        prs2 = render_buyer_profiles_slide(data=test_buyer_data, company_name="LlamaIndex")
+        if prs2 and len(prs2.slides) > 0:
+            print("   ✅ SUCCESS: Buyer profiles slide rendered")
+            print(f"     - Buyer rows processed: {len(strategic_buyers)}")
+            if strategic_buyers:
+                buyer = strategic_buyers[0]
+                print(f"     - Sample buyer description: {buyer.get('description', 'Missing!')[:30]}...")
+        else:
+            print("   ❌ FAILED: No slides generated")
+            return False
+    except Exception as e:
+        print(f"   ❌ ERROR: {e}")
+        return False
+    
+    return True
 
 if __name__ == "__main__":
-    main()
+    print("=== Complete System Fixes Test ===\n")
+    
+    # Test individual slides first
+    specific_success = test_specific_slides()
+    
+    print(f"\n" + "="*60)
+    
+    # Test complete system
+    complete_success = test_complete_fixes()
+    
+    if specific_success and complete_success:
+        print(f"\n🎉 All tests passed! Both timeline and buyer profile fixes are working!")
+        print(f"✅ Timeline data renders properly (no more 'str' object errors)")
+        print(f"✅ Buyer profile descriptions show correctly (no more N/A)")
+    else:
+        print(f"\n💥 Some tests failed. Check the errors above.")

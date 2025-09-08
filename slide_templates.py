@@ -428,16 +428,16 @@ def render_management_team_slide(data=None, color_scheme=None, typography=None, 
     # Combine all profiles for 3-column layout
     all_profiles = left_profiles + right_profiles
     
-    # Adaptive layout: use 2-column for 4 profiles, 3-column for 6+ profiles
+    # Dynamic layout logic: ≤4 profiles = centered 2-column, ≥5 profiles = left-aligned 3-column
     total_profiles_count = len(all_profiles)
     
     if total_profiles_count <= 4:
-        # 2-column layout for better centering with 4 profiles
+        # Centered 2-column layout for 4 or fewer profiles
         start_y = Inches(1.45)
         column_width = Inches(5.5)  # Wider columns for 2-column layout
         column_spacing = Inches(0.8)  # More spacing between columns
         
-        # Center the 2 columns
+        # Center the 2 columns horizontally on the slide
         total_width = 2 * column_width + column_spacing
         start_x = (Inches(13.333) - total_width) / 2  # Center horizontally
         
@@ -445,17 +445,22 @@ def render_management_team_slide(data=None, color_scheme=None, typography=None, 
         col2_x = col1_x + column_width + column_spacing
         
         profiles_per_column = 2  # 2 profiles per column
+        layout_type = "2-column-centered"
     else:
-        # 3-column layout for 6+ profiles
+        # Left-aligned 3-column layout for 5 or more profiles
         start_y = Inches(1.45)
-        column_width = Inches(4.0)
-        column_spacing = Inches(0.15)
+        column_width = Inches(4.0)  # Narrower columns for 3-column layout
+        column_spacing = Inches(0.15)  # Tighter spacing for more columns
         
+        # Left-aligned positioning
         col1_x = Inches(0.3)
         col2_x = col1_x + column_width + column_spacing
         col3_x = col2_x + column_width + column_spacing
         
-        profiles_per_column = 2
+        profiles_per_column = 2  # 2 profiles per column (fits up to 6 profiles)
+        layout_type = "3-column-left-aligned"
+        
+    print(f"[DEBUG] Management team: {total_profiles_count} profiles → using {layout_type}")
     
     # Column 1 profiles
     current_y = start_y
@@ -474,8 +479,8 @@ def render_management_team_slide(data=None, color_scheme=None, typography=None, 
         if i < start_idx + profiles_per_column - 1:  # Don't add spacing after last profile in column
             current_y += profile_spacing
     
-    # Column 3 profiles (only for 3-column layout)
-    if total_profiles_count > 4:
+    # Column 3 profiles (only for 3-column layout with 5+ profiles)
+    if total_profiles_count >= 5:
         current_y = start_y
         start_idx = profiles_per_column * 2
         for i in range(start_idx, min(start_idx + profiles_per_column, len(all_profiles))):
@@ -1574,8 +1579,12 @@ def render_investor_process_overview_slide(data=None, color_scheme=None, typogra
             marker.fill.fore_color.rgb = colors["secondary"]
             marker.line.fill.background()
             
-            # Combined date and description with better alignment
-            combined_text = f"{item.get('date', '')}: {item.get('description', '')}"
+            # Handle both string and dict timeline items
+            if isinstance(item, dict):
+                combined_text = f"{item.get('date', '')}: {item.get('description', '')}"
+            else:
+                # Handle string format like "Preparation: 2–3 weeks – NDA, data room, initial buyer list"
+                combined_text = str(item)
             add_clean_text(slide, Inches(7.3), y_pos, Inches(5.5), Inches(0.22), 
                            combined_text, 9, colors["text"])  # Increased font size from 8 to 9
     else:
@@ -1592,8 +1601,12 @@ def render_investor_process_overview_slide(data=None, color_scheme=None, typogra
             marker.fill.fore_color.rgb = colors["secondary"]
             marker.line.fill.background()
             
-            # Combined date and description with better alignment
-            combined_text = f"{item.get('date', '')}: {item.get('description', '')}"
+            # Handle both string and dict timeline items
+            if isinstance(item, dict):
+                combined_text = f"{item.get('date', '')}: {item.get('description', '')}"
+            else:
+                # Handle string format like "Preparation: 2–3 weeks – NDA, data room, initial buyer list"
+                combined_text = str(item)
             add_clean_text(slide, Inches(7.3), y_pos, Inches(5.5), Inches(0.22), 
                            combined_text, 9, colors["text"])  # Increased font size from 8 to 9
     
@@ -2571,7 +2584,18 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
     bar_top = Inches(2.3)  # Moved down to avoid title overlap
     
     for i, transaction in enumerate(transactions):
-        multiple = transaction.get('ev_revenue_multiple', 0)
+        multiple_raw = transaction.get('ev_revenue_multiple', 0)
+        
+        # Convert multiple to float (handle string formats like "50x", "25.5x", etc.)
+        try:
+            if isinstance(multiple_raw, str):
+                # Remove 'x' and convert to float
+                multiple = float(multiple_raw.replace('x', '').replace('X', '').strip())
+            else:
+                multiple = float(multiple_raw) if multiple_raw else 0
+        except (ValueError, TypeError):
+            multiple = 0
+            
         # Scale bar height (max 1.5 inches for better spacing)
         bar_height = Inches(multiple * 0.45) if multiple > 0 else Inches(0.1)
         
@@ -2594,7 +2618,11 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
                 bar_actual_width, Inches(0.2)
             )
             label_frame = label_shape.text_frame
-            label_frame.text = f"{multiple:.1f}x"
+            # Safe formatting for the multiple value
+            try:
+                label_frame.text = f"{multiple:.1f}x"
+            except (ValueError, TypeError):
+                label_frame.text = f"{multiple}x"
             label_para = label_frame.paragraphs[0]
             label_para.font.name = fonts["primary_font"]
             label_para.font.size = Pt(9)
@@ -2664,14 +2692,61 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
         if len(acquirer) > 15:
             acquirer = acquirer[:15] + '...'
             
+        # Convert financial values to proper format with numeric handling
+        def convert_financial_value(value, prefix="$"):
+            """Convert financial string values like '$10B', '$5.2M' to numeric format"""
+            if not value or value == 'N/A':
+                return 'N/A'
+            
+            try:
+                if isinstance(value, str):
+                    # Remove prefix symbols and spaces
+                    clean_value = value.replace('$', '').replace(',', '').strip()
+                    
+                    # Handle suffixes like B, M, K
+                    multiplier = 1
+                    if clean_value.upper().endswith('B'):
+                        multiplier = 1_000_000_000
+                        clean_value = clean_value[:-1]
+                    elif clean_value.upper().endswith('M'):
+                        multiplier = 1_000_000
+                        clean_value = clean_value[:-1]
+                    elif clean_value.upper().endswith('K'):
+                        multiplier = 1_000
+                        clean_value = clean_value[:-1]
+                    
+                    numeric_value = float(clean_value) * multiplier
+                    return f"{prefix}{numeric_value:,.0f}"
+                else:
+                    # Already numeric
+                    return f"{prefix}{float(value):,.0f}"
+            except (ValueError, TypeError):
+                return 'N/A'
+        
+        def convert_multiple_value(value):
+            """Convert multiple string values like '50x', '25.5x' to formatted string"""
+            if not value:
+                return 'N/A'
+            
+            try:
+                if isinstance(value, str):
+                    # Remove 'x' and convert to float
+                    clean_value = value.replace('x', '').replace('X', '').strip()
+                    numeric_value = float(clean_value)
+                    return f"{numeric_value:.1f}x"
+                else:
+                    return f"{float(value):.1f}x"
+            except (ValueError, TypeError):
+                return 'N/A'
+        
         data_values = [
             transaction.get('date', 'N/A'),
             target,
             acquirer,
             transaction.get('country', 'N/A'),
-            f"${transaction.get('enterprise_value', 0):,.0f}" if transaction.get('enterprise_value') else 'N/A',
-            f"${transaction.get('revenue', 0):,.0f}" if transaction.get('revenue') else 'N/A',
-            f"{transaction.get('ev_revenue_multiple', 0):.1f}x" if transaction.get('ev_revenue_multiple') else 'N/A'
+            convert_financial_value(transaction.get('enterprise_value')),
+            convert_financial_value(transaction.get('revenue')),
+            convert_multiple_value(transaction.get('ev_revenue_multiple'))
         ]
         
         for row_idx, value in enumerate(data_values):

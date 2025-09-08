@@ -128,15 +128,33 @@ def fix_buyer_profiles_data(data: Dict[str, Any]) -> Dict[str, Any]:
     # Ensure proper table structure for buyer profiles
     if 'table_rows' in fixed_data and isinstance(fixed_data['table_rows'], list):
         for row in fixed_data['table_rows']:
-            # Ensure all required fields exist
+            # Ensure all required fields exist with proper field name mapping
             required_fields = [
                 'buyer_name', 'description', 'strategic_rationale', 
-                'key_synergies', 'concerns', 'fit_score', 'financial_capacity'
+                'key_synergies', 'fit', 'financial_capacity'
             ]
+            
+            # Handle field name variations and defaults
             for field in required_fields:
                 if field not in row:
-                    row[field] = 'N/A'
-                    print(f"[FIX] Added missing field '{field}' to buyer profile")
+                    # Map variations or provide defaults
+                    if field == 'fit' and 'fit_score' in row:
+                        row['fit'] = row['fit_score']  # Use fit_score if fit is missing
+                    elif field == 'key_synergies' and 'synergies' in row:
+                        row['key_synergies'] = row['synergies']  # Use synergies if key_synergies is missing
+                    else:
+                        # Only set to N/A if the field is truly missing
+                        row[field] = 'N/A'
+                        print(f"[FIX] Added missing field '{field}' to buyer profile")
+            
+            # Clean up any legacy fields that might cause confusion
+            legacy_fields = ['concerns', 'fit_score']
+            for legacy_field in legacy_fields:
+                if legacy_field in row and legacy_field != 'fit_score':
+                    # Don't remove fit_score as it might be used as fallback for fit
+                    if legacy_field == 'concerns' and row[legacy_field] == 'N/A':
+                        del row[legacy_field]
+                        print(f"[FIX] Removed legacy field '{legacy_field}' with N/A value")
     
     return fixed_data
 
