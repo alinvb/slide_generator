@@ -14,12 +14,17 @@ from catalog_loader import TemplateCatalog
 from brand_extractor import BrandExtractor
 from executive_search import ExecutiveSearchEngine, auto_generate_management_data
 
-def validate_and_fix_json(content_ir, render_plan):
+def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
     """
     MANDATORY validation and fixing function that enforces all requirements
     Uses comprehensive JSON data fixer for all structure issues
     """
     print("🔧 MANDATORY: Starting validation and fixing process...")
+    
+    # Prevent multiple executions that cause duplication
+    if _already_fixed:
+        print("🔧 MANDATORY: JSON already fixed, skipping to prevent duplication")
+        return content_ir, render_plan
     
     # Import the comprehensive data fixer
     from json_data_fixer import comprehensive_json_fix
@@ -36,13 +41,13 @@ def validate_and_fix_json(content_ir, render_plan):
         'growth_strategy_data', 'investor_process_data', 'margin_cost_data'
     ]
     
-    # Required slide order - EXACTLY 14 slides
+    # Required slide order - EXACTLY 13 slides (NO DUPLICATES)
     required_slide_order = [
         'management_team', 'historical_financial_performance', 'margin_cost_resilience',
         'investor_considerations', 'competitive_positioning', 'product_service_footprint',
         'business_overview', 'precedent_transactions', 'valuation_overview',
         'investor_process_overview', 'growth_strategy_projections', 'sea_conglomerates',
-        'buyer_profiles', 'buyer_profiles'
+        'buyer_profiles'
     ]
     
     print(f"🔧 MANDATORY: Required slide count: {len(required_slide_order)}")
@@ -133,8 +138,11 @@ def validate_and_fix_json(content_ir, render_plan):
     print(f"❌ CURRENT ORDER: {current_slides}")
     print(f"✅ REQUIRED ORDER: {required_slide_order}")
     
-    # Reorder slides to match required order
+    # CRITICAL FIX: Reorder slides to match required order WITHOUT duplication
     existing_slides = {slide['template']: slide for slide in render_plan.get('slides', [])}
+    
+    # Create new ordered slides list instead of appending to existing
+    ordered_slides = []
     
     for i, template in enumerate(required_slide_order):
         if template in existing_slides:
@@ -142,12 +150,13 @@ def validate_and_fix_json(content_ir, render_plan):
             # Ensure title field exists
             if 'data' in slide and 'title' not in slide['data']:
                 slide['data']['title'] = f"{template.replace('_', ' ').title()}"
-            fixed_render_plan['slides'].append(slide)
+            ordered_slides.append(slide)
+            print(f"🔧 MANDATORY: Added existing slide: {template}")
         else:
             # Add missing slide - CRITICAL FIX
             if template == 'investor_process_overview':
                 print("🔧 MANDATORY: Adding missing investor_process_overview slide")
-                fixed_render_plan['slides'].append({
+                ordered_slides.append({
                     "template": "investor_process_overview",
                     "data": {
                         "title": "Comprehensive Investor Process Overview",
@@ -160,13 +169,17 @@ def validate_and_fix_json(content_ir, render_plan):
                 })
             else:
                 print(f"🔧 MANDATORY: Adding missing slide: {template}")
-                fixed_render_plan['slides'].append({
+                ordered_slides.append({
                     "template": template,
                     "data": {
                         "title": template.replace('_', ' ').title(),
                         "placeholder": "Data will be populated from Content IR"
                     }
                 })
+    
+    # Replace the slides list with the ordered one to prevent duplication
+    fixed_render_plan['slides'] = ordered_slides
+    print(f"🔧 MANDATORY: Reordered slides. Final count: {len(ordered_slides)}")
     
     # MANDATORY: Fix all semantic errors
     print("🔧 MANDATORY: Fixing semantic errors...")
@@ -5829,7 +5842,7 @@ Generate the interview questions, collect responses, then generate Content IR an
                                     
                                     # MANDATORY VALIDATION AND FIXING - ALWAYS EXECUTE
                                     st.info("🔧 MANDATORY: Validating and fixing JSON structure...")
-                                    fixed_content_ir, fixed_render_plan = validate_and_fix_json(content_ir, render_plan)
+                                    fixed_content_ir, fixed_render_plan = validate_and_fix_json(content_ir, render_plan, _already_fixed=True)
                                     
                                     # Update the response with fixed JSONs
                                     completion_response = f"""Content IR JSON:

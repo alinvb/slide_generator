@@ -8,6 +8,30 @@ import json
 from typing import Dict, Any, List, Union
 import copy
 
+def validate_data_structure(data: Any, expected_type: type, context: str = "") -> bool:
+    """Validate data structure and log issues"""
+    if not isinstance(data, expected_type):
+        print(f"[VALIDATION ERROR] {context}: Expected {expected_type.__name__}, got {type(data).__name__}")
+        return False
+    return True
+
+def safe_dict_access(data: Any, key: str, default: Any = None, context: str = "") -> Any:
+    """Safely access dictionary key with validation"""
+    if not isinstance(data, dict):
+        print(f"[VALIDATION ERROR] {context}: Cannot access key '{key}' - data is not a dictionary (got {type(data).__name__})")
+        return default
+    return data.get(key, default)
+
+def safe_list_access(data: Any, index: int, default: Any = None, context: str = "") -> Any:
+    """Safely access list index with validation"""
+    if not isinstance(data, list):
+        print(f"[VALIDATION ERROR] {context}: Cannot access index {index} - data is not a list (got {type(data).__name__})")
+        return default
+    if index >= len(data):
+        print(f"[VALIDATION ERROR] {context}: Index {index} out of range for list of length {len(data)}")
+        return default
+    return data[index]
+
 def fix_business_overview_data(data: Dict[str, Any]) -> Dict[str, Any]:
     """Fix business overview slide data structure issues"""
     fixed_data = copy.deepcopy(data)
@@ -111,13 +135,20 @@ def fix_sea_conglomerates_data(data: Dict[str, Any]) -> Dict[str, Any]:
     """Fix sea conglomerates slide data structure issues"""
     fixed_data = copy.deepcopy(data)
     
-    # Fix nested data structure
-    if 'data' in fixed_data and 'data' not in fixed_data.get('data', {}):
-        # Move nested data to top level
-        if isinstance(fixed_data['data'], list):
-            fixed_data['sea_conglomerates'] = fixed_data['data']
+    # Fix nested data structure with validation
+    if 'data' in fixed_data:
+        data_value = safe_dict_access(fixed_data, 'data', context="sea_conglomerates_data")
+        if isinstance(data_value, list):
+            fixed_data['sea_conglomerates'] = data_value
             del fixed_data['data']
             print(f"[FIX] Moved nested sea_conglomerates data to top level")
+        elif isinstance(data_value, dict) and 'data' not in data_value:
+            # Handle double-nested structure
+            nested_data = safe_dict_access(data_value, 'data', context="sea_conglomerates_nested")
+            if isinstance(nested_data, list):
+                fixed_data['sea_conglomerates'] = nested_data
+                del fixed_data['data']
+                print(f"[FIX] Moved double-nested sea_conglomerates data to top level")
     
     return fixed_data
 
@@ -127,7 +158,33 @@ def fix_buyer_profiles_data(data: Dict[str, Any]) -> Dict[str, Any]:
     
     # Ensure proper table structure for buyer profiles
     if 'table_rows' in fixed_data and isinstance(fixed_data['table_rows'], list):
-        for row in fixed_data['table_rows']:
+        print(f"[FIX] Processing {len(fixed_data['table_rows'])} buyer profile rows")
+        
+        for i, row in enumerate(fixed_data['table_rows']):
+            # CRITICAL FIX: Check if row is a list (2D array format) and convert to dict
+            if isinstance(row, list):
+                print(f"[FIX] Converting row {i+1} from list format to dictionary format")
+                # Convert list format to dictionary format
+                # Expected order: buyer_name, description, strategic_rationale, key_synergies, fit, financial_capacity
+                field_names = ['buyer_name', 'description', 'strategic_rationale', 'key_synergies', 'fit', 'financial_capacity']
+                row_dict = {}
+                for j, value in enumerate(row):
+                    if j < len(field_names):
+                        row_dict[field_names[j]] = value if value is not None else 'N/A'
+                    else:
+                        # Handle extra columns
+                        row_dict[f'extra_field_{j}'] = value if value is not None else 'N/A'
+                
+                # Replace the list with the dictionary
+                fixed_data['table_rows'][i] = row_dict
+                row = row_dict  # Update row reference for further processing
+                print(f"[FIX] Converted row {i+1} to dictionary with {len(row_dict)} fields")
+            
+            # Ensure row is a dictionary before proceeding
+            if not isinstance(row, dict):
+                print(f"[FIX] ERROR: Row {i+1} is not a dictionary or list, skipping")
+                continue
+            
             # Ensure all required fields exist with proper field name mapping
             required_fields = [
                 'buyer_name', 'description', 'strategic_rationale', 
@@ -140,12 +197,14 @@ def fix_buyer_profiles_data(data: Dict[str, Any]) -> Dict[str, Any]:
                     # Map variations or provide defaults
                     if field == 'fit' and 'fit_score' in row:
                         row['fit'] = row['fit_score']  # Use fit_score if fit is missing
+                        print(f"[FIX] Mapped 'fit_score' to 'fit' for row {i+1}")
                     elif field == 'key_synergies' and 'synergies' in row:
                         row['key_synergies'] = row['synergies']  # Use synergies if key_synergies is missing
+                        print(f"[FIX] Mapped 'synergies' to 'key_synergies' for row {i+1}")
                     else:
                         # Only set to N/A if the field is truly missing
                         row[field] = 'N/A'
-                        print(f"[FIX] Added missing field '{field}' to buyer profile")
+                        print(f"[FIX] Added missing field '{field}' to buyer profile row {i+1}")
             
             # Clean up any legacy fields that might cause confusion
             legacy_fields = ['concerns', 'fit_score']
@@ -154,7 +213,7 @@ def fix_buyer_profiles_data(data: Dict[str, Any]) -> Dict[str, Any]:
                     # Don't remove fit_score as it might be used as fallback for fit
                     if legacy_field == 'concerns' and row[legacy_field] == 'N/A':
                         del row[legacy_field]
-                        print(f"[FIX] Removed legacy field '{legacy_field}' with N/A value")
+                        print(f"[FIX] Removed legacy field '{legacy_field}' with N/A value from row {i+1}")
     
     return fixed_data
 
@@ -379,13 +438,26 @@ def fix_growth_strategy_data(data: Dict[str, Any]) -> Dict[str, Any]:
 def fix_render_plan(render_plan: Dict[str, Any]) -> Dict[str, Any]:
     """Fix entire render plan by fixing each slide's data"""
     
-    print(f"[FIX] Fixing render plan with {len(render_plan.get('slides', []))} slides")
+    # Validate input structure
+    if not validate_data_structure(render_plan, dict, "fix_render_plan"):
+        return {"slides": []}
+    
+    slides = safe_dict_access(render_plan, 'slides', [], "fix_render_plan")
+    if not validate_data_structure(slides, list, "fix_render_plan.slides"):
+        return {"slides": []}
+    
+    print(f"[FIX] Fixing render plan with {len(slides)} slides")
     
     fixed_plan = copy.deepcopy(render_plan)
     
-    for i, slide in enumerate(fixed_plan.get('slides', [])):
-        template = slide.get('template')
-        data = slide.get('data', {})
+    for i, slide in enumerate(slides):
+        # Validate slide structure
+        if not validate_data_structure(slide, dict, f"fix_render_plan.slide_{i+1}"):
+            print(f"[FIX] Skipping invalid slide {i+1}")
+            continue
+            
+        template = safe_dict_access(slide, 'template', '', f"fix_render_plan.slide_{i+1}")
+        data = safe_dict_access(slide, 'data', {}, f"fix_render_plan.slide_{i+1}")
         
         print(f"\n[FIX] Processing slide {i+1}: {template}")
         
@@ -394,9 +466,14 @@ def fix_render_plan(render_plan: Dict[str, Any]) -> Dict[str, Any]:
             data['title'] = template.replace('_', ' ').title()
             print(f"[FIX] Added missing title: {data['title']}")
         
-        # Apply template-specific fixes
-        fixed_data = fix_slide_data(template, data)
-        slide['data'] = fixed_data
+        # Apply template-specific fixes with error handling
+        try:
+            fixed_data = fix_slide_data(template, data)
+            fixed_plan['slides'][i]['data'] = fixed_data
+        except Exception as e:
+            print(f"[FIX] ERROR processing slide {i+1} ({template}): {str(e)}")
+            # Keep original data if fixing fails
+            fixed_plan['slides'][i]['data'] = data
     
     return fixed_plan
 
@@ -459,17 +536,35 @@ def comprehensive_json_fix(slides_json: Dict[str, Any], content_ir_json: Dict[st
     print("COMPREHENSIVE JSON FIXING")
     print("=" * 60)
     
-    # Fix content IR first
-    fixed_content_ir = fix_content_ir(content_ir_json)
-    
-    # Fix render plan
-    fixed_render_plan = fix_render_plan(slides_json)
-    
-    print("\n" + "=" * 60)
-    print("FIXING COMPLETE")
-    print("=" * 60)
-    
-    return fixed_render_plan, fixed_content_ir
+    # Validate inputs with error handling
+    try:
+        if not validate_data_structure(slides_json, dict, "comprehensive_json_fix.slides_json"):
+            print("[FIX] Invalid slides_json structure, creating empty plan")
+            slides_json = {"slides": []}
+        
+        if not validate_data_structure(content_ir_json, dict, "comprehensive_json_fix.content_ir_json"):
+            print("[FIX] Invalid content_ir_json structure, creating empty IR")
+            content_ir_json = {}
+        
+        # Fix content IR first
+        print(f"[FIX] Fixing content IR with sections: {list(content_ir_json.keys())}")
+        fixed_content_ir = fix_content_ir(content_ir_json)
+        
+        # Fix render plan
+        print(f"[FIX] Fixing render plan with {len(safe_dict_access(slides_json, 'slides', [], 'comprehensive_json_fix'))} slides")
+        fixed_render_plan = fix_render_plan(slides_json)
+        
+        print("\n" + "=" * 60)
+        print("FIXING COMPLETE")
+        print("=" * 60)
+        
+        return fixed_render_plan, fixed_content_ir
+        
+    except Exception as e:
+        print(f"[FIX] ERROR in comprehensive_json_fix: {str(e)}")
+        print(f"[FIX] Returning original data structures")
+        print("=" * 60)
+        return slides_json, content_ir_json
 
 if __name__ == "__main__":
     # Test with sample data
