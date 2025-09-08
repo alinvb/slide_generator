@@ -3155,7 +3155,21 @@ def analyze_conversation_progress(messages):
                     is_covered = True
             
             # Special handling for specific topics that need very specific content
-            if topic_name == "management_team":
+            if topic_name == "business_overview":
+                # Business overview is more lenient - just need company name and basic description
+                business_indicators = ["company", "business", "firm", "corporation", "startup", "organization"]
+                description_indicators = ["provide", "provides", "offer", "offers", "do", "does", "specialize", "focus", "automation", "software", "services", "products"]
+                
+                found_business = [indicator for indicator in business_indicators if indicator in conversation_text]
+                found_description = [indicator for indicator in description_indicators if indicator in conversation_text]
+                
+                # More lenient - just need company mention + any business description
+                basic_overview = len(found_business) >= 1 and len(found_description) >= 1
+                ai_overview_research = has_research_response and len(found_business) >= 1
+                
+                is_covered = basic_overview or ai_overview_research
+                
+            elif topic_name == "management_team":
                 # Require actual executive titles and names/backgrounds - stricter validation
                 management_indicators = ["ceo", "cfo", "cto", "founder", "president", "director", "executive", "years of experience", "previously", "background in", "chief executive", "chief financial", "chief technology"]
                 found_mgmt = [indicator for indicator in management_indicators if indicator in conversation_text]
