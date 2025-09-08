@@ -142,7 +142,7 @@ class AdaptiveSlideGenerator:
                 "has_minimum": has_minimum,
                 "keyword_count": len(found_keywords),
                 "description": requirements["description"],
-                "recommended": final_score >= 0.4 and has_minimum  # 40% threshold + minimum keywords
+                "recommended": final_score >= 0.6 and has_minimum  # 60% threshold + minimum keywords for high confidence
             }
         
         return slide_analysis
@@ -180,50 +180,63 @@ class AdaptiveSlideGenerator:
             
             if slide_info.get("recommended", False):
                 core_slides.append(slide_name)
-            elif slide_info.get("score", 0) >= 0.25:  # Lower threshold for optional
+            elif slide_info.get("score", 0) >= 0.5:  # Higher threshold for optional - must have substantial content
                 optional_slides.append(slide_name)
         
-        # Ensure minimum viable deck (at least 3 slides) and allow up to all 14 slides
+        # Start with only high-quality core slides
         selected_slides = core_slides
         
+        # Only add optional slides if they have very high scores (real content, not just keyword matches)
+        if len(selected_slides) < 8:  # Only consider adding more if we don't already have many
+            high_quality_optional = [
+                slide for slide in optional_slides 
+                if analysis.get(slide, {}).get("score", 0) >= 0.65  # Very high threshold - must have detailed content
+            ]
+            selected_slides.extend(high_quality_optional)
+        
+        # Ensure minimum viable deck (at least 3 slides) ONLY if we don't have enough high-quality slides
         if len(selected_slides) < 3:
-            # Add highest scoring optional slides to reach minimum
-            optional_by_score = sorted(
-                optional_slides,
+            # Add highest scoring slides to reach minimum
+            all_slides_by_score = sorted(
+                slide_priority,
                 key=lambda x: analysis.get(x, {}).get("score", 0),
                 reverse=True
             )
-            needed = 3 - len(selected_slides)
-            selected_slides.extend(optional_by_score[:needed])
+            for slide in all_slides_by_score:
+                if slide not in selected_slides:
+                    selected_slides.append(slide)
+                if len(selected_slides) >= 3:
+                    break
         
-        # Add all remaining high-scoring optional slides (no artificial 8-slide limit)
-        # This allows for comprehensive 3-14 slide decks as requested
-        remaining_optional = [slide for slide in optional_slides if slide not in selected_slides]
-        high_scoring_optional = [
-            slide for slide in remaining_optional 
-            if analysis.get(slide, {}).get("score", 0) >= 0.35  # Lower threshold for comprehensive coverage
-        ]
-        selected_slides.extend(high_scoring_optional)
-        
-        # Handle buyer profiles (can be split into strategic/financial)
+        # Handle buyer profiles - ONLY include if explicitly discussed
         if "buyer_profiles" in selected_slides:
             buyer_analysis = analysis.get("buyer_profiles", {})
             conversation_text = " ".join([msg.get("content", "") for msg in messages if msg.get("role") != "system"]).lower()
             
-            # Check if we have both strategic and financial buyer content
-            has_strategic = any(term in conversation_text for term in ["strategic", "corporate", "industry player"])
-            has_financial = any(term in conversation_text for term in ["private equity", "financial", "pe fund", "vc"])
+            # STRICT CHECK: Only include buyer slides if there's substantial buyer discussion
+            has_detailed_buyer_discussion = (
+                buyer_analysis.get("score", 0) >= 0.7 and  # Very high score required
+                buyer_analysis.get("keyword_count", 0) >= 3  # Multiple buyer-related keywords
+            )
             
-            # Replace buyer_profiles with specific buyer types
             selected_slides.remove("buyer_profiles")
-            if has_strategic:
-                selected_slides.append("strategic_buyers")
-            if has_financial:
-                selected_slides.append("financial_buyers")
             
-            # If neither specific type detected, add both for completeness
-            if not has_strategic and not has_financial and buyer_analysis.get("score", 0) >= 0.4:
-                selected_slides.extend(["strategic_buyers", "financial_buyers"])
+            if has_detailed_buyer_discussion:
+                # Check for specific buyer type mentions
+                has_strategic = any(term in conversation_text for term in ["strategic buyer", "corporate acquirer", "industry player", "strategic acquisition"])
+                has_financial = any(term in conversation_text for term in ["private equity", "pe fund", "financial buyer", "vc fund", "investment fund"])
+                
+                if has_strategic:
+                    selected_slides.append("strategic_buyers")
+                if has_financial:
+                    selected_slides.append("financial_buyers")
+                
+                # Only add both if there was explicit discussion about both types
+                if not has_strategic and not has_financial:
+                    # Don't assume - only add if there was general buyer discussion
+                    if any(term in conversation_text for term in ["buyers", "acquirers", "who would buy", "potential buyers"]):
+                        selected_slides.extend(["strategic_buyers", "financial_buyers"])
+            # If no detailed buyer discussion, don't add any buyer slides
         
         # Generate analysis report
         report = {
