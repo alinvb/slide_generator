@@ -1461,13 +1461,21 @@ def validate_historical_financial_performance_slide(slide, content_ir):
         elif not data[field]:
             validation['empty_fields'].append(f"Empty {description}")
     
-    # Validate chart data
+    # Validate chart data with more specific feedback
     if 'chart' in data and isinstance(data['chart'], dict):
         chart = data['chart']
         chart_required = ['categories', 'revenue', 'ebitda']
         for field in chart_required:
-            if field not in chart or not chart[field]:
-                validation['empty_fields'].append(f"Missing chart {field} data")
+            if field not in chart:
+                validation['missing_fields'].append(f"Missing Financial performance chart data: '{field}' field required")
+            elif not chart[field]:
+                validation['empty_fields'].append(f"Empty Financial performance chart data: '{field}' field is empty")
+            elif isinstance(chart[field], list) and len(chart[field]) == 0:
+                validation['empty_fields'].append(f"Empty Financial performance chart data: '{field}' array is empty")
+    elif 'chart' in data and not isinstance(data['chart'], dict):
+        validation['issues'].append("Financial performance chart data must be a dictionary/object")
+    elif 'chart' not in data:
+        validation['missing_fields'].append("Missing Financial performance chart data")
     
     # Validate key metrics - MUST have exactly 4 numeric metrics
     if 'key_metrics' in data and isinstance(data['key_metrics'], dict):
@@ -5023,21 +5031,50 @@ Please ensure both JSONs are complete and properly formatted.
                                 llm_feedback = create_validation_feedback_for_llm(validation_results)
                                 
                                 if llm_feedback:
-                                    # Show optional improvement button
-                                    if st.button("🔄 Improve JSON Quality (Optional)", help="Fix validation issues to ensure perfect pitch deck generation"):
-                                        # Add feedback message for LLM to fix issues
-                                        st.session_state.messages.append({"role": "user", "content": llm_feedback})
+                                    # Show detailed validation issues first
+                                    with st.expander("🔍 View Validation Issues", expanded=False):
+                                        st.text(llm_feedback[:500] + "..." if len(llm_feedback) > 500 else llm_feedback)
+                                    
+                                    # Show optional improvement button with better styling
+                                    st.markdown("---")
+                                    
+                                    col1, col2 = st.columns([1, 2])
+                                    with col1:
+                                        improve_button = st.button(
+                                            "🔄 Improve JSON Quality", 
+                                            help="Fix validation issues to ensure perfect pitch deck generation",
+                                            type="primary",
+                                            use_container_width=True
+                                        )
+                                    with col2:
+                                        if improve_button:
+                                            st.info("🚀 Sending improvement request to AI...")
+                                    
+                                    if improve_button:
+                                        try:
+                                            # Add feedback message for LLM to fix issues
+                                            st.session_state.messages.append({"role": "user", "content": llm_feedback})
+                                            
+                                            with st.spinner("🔄 Improving JSON quality..."):
+                                                retry_response = call_llm_api(
+                                                    st.session_state.messages,
+                                                    selected_model,
+                                                    api_key,
+                                                    api_service
+                                                )
+                                            
+                                            if retry_response:
+                                                st.session_state.messages.append({"role": "assistant", "content": retry_response})
+                                                st.success("✅ JSON improvement completed! Page will refresh with updated content.")
+                                                st.rerun()
+                                            else:
+                                                st.error("❌ Failed to get response from AI. Please try again or check API configuration.")
                                         
-                                        with st.spinner("🔄 Improving JSON quality..."):
-                                            retry_response = call_llm_api(
-                                                st.session_state.messages,
-                                                selected_model,
-                                                api_key,
-                                                api_service
-                                            )
-                                        
-                                        st.session_state.messages.append({"role": "assistant", "content": retry_response})
-                                        st.rerun()
+                                        except Exception as e:
+                                            st.error(f"❌ Error during JSON improvement: {str(e)}")
+                                            st.error("Please check your API key and internet connection.")
+                                else:
+                                    st.info("ℹ️ No specific improvements identified by validation system.")
                             
                             # Show next steps
                             st.info("""
