@@ -39,9 +39,9 @@ class PerfectJSONPrompter:
     def create_enhanced_system_prompt(self) -> str:
         """Create the systematic interview prompt that conducts proper 14-topic interview"""
         
-        # Get condensed examples of perfect structure for reference
-        content_ir_example = self._get_condensed_content_ir_example()
-        render_plan_example = self._get_condensed_render_plan_example()
+        # Simple examples for reference
+        content_ir_example = {"entities": {"company": {"name": "Example Corp"}}, "facts": {"years": ["2022", "2023"], "revenue_usd_m": [100, 120]}}
+        render_plan_example = {"slides": [{"template": "business_overview", "data": {"title": "Business Overview"}}]}
         
         system_prompt = f"""
 🎯 SYSTEMATIC INVESTMENT BANKING INTERVIEW PROTOCOL:
@@ -219,8 +219,22 @@ QUALITY STANDARD: Your JSON must be so perfect that it requires ZERO fixes or va
 
 def get_enhanced_system_prompt():
     """Global function to get enhanced system prompt with investment banker capabilities"""
-    prompter = PerfectJSONPrompter()
-    return prompter.get_enhanced_system_prompt()
+    try:
+        prompter = PerfectJSONPrompter()
+        return prompter.get_enhanced_system_prompt()
+    except Exception as e:
+        print(f"❌ Error loading enhanced system prompt: {e}")
+        # Return fallback investment banker prompt
+        return """You are a highly trained, astute investment banker conducting systematic interviews for pitch deck creation.
+
+**INVESTMENT BANKER EXPERTISE:**
+- DCF Analysis with detailed assumptions
+- Valuation Methodologies (DCF, Trading Multiples, Precedent Transactions)  
+- Precedent Transaction Analysis with proper multiples
+- Verifiable References: EVERY answer must include sources [1][2][3]
+- Professional Standards: No unverifiable data
+
+Conduct complete 14-topic interviews before generating JSON files."""
     
     def _get_condensed_content_ir_example(self) -> Dict[str, Any]:
         """Get a condensed but complete example of perfect Content IR structure"""
