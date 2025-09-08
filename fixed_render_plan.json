@@ -562,26 +562,30 @@
         "table_rows": [
           {
             "buyer_name": "NVIDIA",
-            "strategic_rationale": "World's largest AI chipmaker and GPU/cloud infrastructure leader.",
-            "key_synergies": "Expand AI infrastructure and accelerate agentic platform adoption for enterprise customers.",
+            "description": "World's largest AI chipmaker and GPU/cloud infrastructure leader.",
+            "strategic_rationale": "Expand AI infrastructure and accelerate agentic platform adoption for enterprise customers.",
+            "key_synergies": "Integrate LlamaIndex's platform with NVIDIA AI infrastructure and developer ecosystem.",
             "fit": "High (9/10) - Strategic AI infra alignment"
           },
           {
             "buyer_name": "Microsoft",
-            "strategic_rationale": "Leading global cloud, enterprise software, and AI provider (Azure, Copilot).",
-            "key_synergies": "Broaden Azure AI suite and integrate advanced document/agent tech for enterprise clients.",
+            "description": "Leading global cloud, enterprise software, and AI provider (Azure, Copilot).",
+            "strategic_rationale": "Broaden Azure AI suite and integrate advanced document/agent tech for enterprise clients.",
+            "key_synergies": "Cross-sell LlamaIndex with Azure, enhance Copilot and enterprise AI search.",
             "fit": "High (9/10) - Platform & cloud synergy"
           },
           {
             "buyer_name": "Alphabet (Google)",
-            "strategic_rationale": "Global leader in AI research, cloud, and enterprise platforms.",
-            "key_synergies": "Strengthen Gemini/GCP AI ecosystem and enterprise knowledge search capabilities.",
+            "description": "Global leader in AI research, cloud, and enterprise platforms.",
+            "strategic_rationale": "Strengthen Gemini/GCP AI ecosystem and enterprise knowledge search capabilities.",
+            "key_synergies": "Integrate LlamaIndex into Google Cloud, drive RAG/agent innovation.",
             "fit": "High (8/10) - Enterprise AI expansion"
           },
           {
             "buyer_name": "International Holding Co.",
-            "strategic_rationale": "Abu Dhabi-based conglomerate in AI, healthcare, real estate, and agri.",
-            "key_synergies": "Diversify AI and knowledge management for regional/global clients.",
+            "description": "Abu Dhabi-based conglomerate in AI, healthcare, real estate, and agri.",
+            "strategic_rationale": "Diversify AI and knowledge management for regional/global clients.",
+            "key_synergies": "Expand LlamaIndex in MENA and global portfolio companies.",
             "fit": "Medium (7/10) - New tech diversification"
           }
         ],
@@ -604,26 +608,30 @@
         "table_rows": [
           {
             "buyer_name": "Sequoia Capital",
-            "strategic_rationale": "Top global VC with deep SaaS/AI portfolio.",
-            "key_synergies": "Invest in next-gen AI infra platforms with high ARR growth and global enterprise adoption.",
+            "description": "Top global VC with deep SaaS/AI portfolio.",
+            "strategic_rationale": "Invest in next-gen AI infra platforms with high ARR growth and global enterprise adoption.",
+            "key_synergies": "Accelerate go-to-market, leverage Sequoia's AI expertise.",
             "fit": "High (9/10) - Proven SaaS investor"
           },
           {
-            "buyer_name": "Andreessen Horowitz",
-            "strategic_rationale": "Leading VC with strong AI and developer tool focus.",
-            "key_synergies": "Back high-growth, open-source AI platforms shaping data-centric enterprise AI.",
+            "buyer_name": "Andreessen Horowitz", 
+            "description": "Leading VC with strong AI and developer tool focus.",
+            "strategic_rationale": "Back high-growth, open-source AI platforms shaping data-centric enterprise AI.",
+            "key_synergies": "Support ecosystem expansion and future funding.",
             "fit": "High (8/10) - Open source/AI focus"
           },
           {
             "buyer_name": "SoftBank Vision Fund",
-            "strategic_rationale": "Global tech investor in AI, cloud, and infrastructure.",
-            "key_synergies": "Invest in differentiated AI infrastructure for next-gen enterprise digital transformation.",
+            "description": "Global tech investor in AI, cloud, and infrastructure.",
+            "strategic_rationale": "Invest in differentiated AI infrastructure for next-gen enterprise digital transformation.",
+            "key_synergies": "Global expansion and enterprise client access.",
             "fit": "Medium (7/10) - Global scale, broad portfolio"
           },
           {
             "buyer_name": "Khosla Ventures",
-            "strategic_rationale": "Venture fund with focus on deep tech and AI.",
-            "key_synergies": "Early-stage AI and infra investor seeking category leaders.",
+            "description": "Venture fund with focus on deep tech and AI.",
+            "strategic_rationale": "Early-stage AI and infra investor seeking category leaders.",
+            "key_synergies": "Technical expertise and founder support.",
             "fit": "Medium (7/10) - Deep tech focus"
           }
         ],

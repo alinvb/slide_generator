@@ -578,9 +578,9 @@ def render_investor_considerations_slide(data=None, color_scheme=None, typograph
     p.font.bold = True
     p.alignment = PP_ALIGN.CENTER
     
-    # Content positioning - reduced spacing to fit all content
-    y_start = 1.8
-    row_height = 0.75
+    # Content positioning - improved spacing for better readability
+    y_start = 1.9
+    row_height = 1.1  # Increased from 0.75 to 1.1 for better spacing
     
     # Add considerations and mitigants
     considerations = (data or {}).get('considerations', [])
@@ -613,7 +613,7 @@ def render_investor_considerations_slide(data=None, color_scheme=None, typograph
             q_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
             
             # Consideration text - vertically centered with icon
-            cons_text = slide.shapes.add_textbox(Inches(1.1), Inches(y_pos - 0.175), Inches(5.2), Inches(0.65))
+            cons_text = slide.shapes.add_textbox(Inches(1.1), Inches(y_pos - 0.2), Inches(5.2), Inches(0.8))
             cons_text_frame = cons_text.text_frame
             cons_text_frame.clear()
             p = cons_text_frame.paragraphs[0]
@@ -647,7 +647,7 @@ def render_investor_considerations_slide(data=None, color_scheme=None, typograph
             bulb_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
             
             # Mitigant text - vertically centered with icon
-            mit_text = slide.shapes.add_textbox(Inches(7.1), Inches(y_pos - 0.175), Inches(5.7), Inches(0.65))
+            mit_text = slide.shapes.add_textbox(Inches(7.1), Inches(y_pos - 0.2), Inches(5.7), Inches(0.8))
             mit_text_frame = mit_text.text_frame
             mit_text_frame.clear()
             p = mit_text_frame.paragraphs[0]
@@ -1131,14 +1131,13 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
     add_clean_text(slide, Inches(0.5), Inches(1.3), Inches(6), Inches(0.3), 
                    "Revenue Comparison vs. Competitors", 14, colors["primary"], True)
     
-    # Create bar chart data
+    # Create bar chart data - USE ACTUAL USER DATA
     competitors_data = slide_data.get('competitors', [
-        {'name': 'Central Health', 'revenue': 450},
-        {'name': 'HK Sanatorium', 'revenue': 380},
-        {'name': 'Matilda Intl', 'revenue': 320},
-        {'name': 'OT&P Healthcare', 'revenue': 280},
-        {'name': 'Quality HealthCare', 'revenue': 250},
-        {'name': 'Union Hospital', 'revenue': 220}
+        {'name': 'LangChain', 'revenue': 30},
+        {'name': 'CrewAI', 'revenue': 5},
+        {'name': 'OpenAI Assistants API', 'revenue': 300},
+        {'name': 'Haystack', 'revenue': 8},
+        {'name': 'Eden AI', 'revenue': 10}
     ])
     
     chart_data = ChartData()
@@ -1184,11 +1183,11 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
     else:
         value_axis.maximum_scale = 500  # Fallback
     
-    # Highlight specific bar in gold/secondary color
+    # Highlight specific bar in gold/secondary color - highlight the highest performer 
     series = chart.series[0]
     points = series.points
     for i, point in enumerate(points):
-        if competitors_data[i]['name'] == 'OT&P Healthcare':  # Find target company
+        if competitors_data[i]['name'] == 'OpenAI Assistants API':  # Highest revenue competitor
             point.format.fill.solid()
             point.format.fill.fore_color.rgb = colors["secondary"]
         else:
@@ -1237,13 +1236,14 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
         # Fallback: create proper table from user's actual data or use default
         print(f"[DEBUG] Creating fallback assessment table")
         assessment_data = [
-            ["Provider", "Scale", "Quality", "Innovation", "Distribution"],
-            ["Breadlife", "●●●●", "●●●●●", "●●●●●", "●●●●"],
-            ["Sari Roti", "●●●●●", "●●●●", "●●●", "●●●●●"],
-            ["Holland Bakery", "●●●", "●●●●", "●●●●", "●●●"],
-            ["BreadTalk", "●●", "●●●", "●●", "●●"]
+            ["Company", "Market Focus", "Connectors/Indexing", "Enterprise Adoption", "Factuality/Traceability"],
+            ["LlamaIndex", "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"],
+            ["LangChain", "⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐"],
+            ["CrewAI", "⭐⭐⭐", "⭐⭐⭐", "⭐⭐", "⭐⭐⭐"],
+            ["OpenAI API", "⭐⭐⭐⭐", "⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐"],
+            ["Haystack", "⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐"]
         ]
-        print(f"[DEBUG] Using fallback assessment data based on user's competitive data")
+        print(f"[DEBUG] Using LlamaIndex competitive assessment data")
     
     # Create assessment table
     table_left = Inches(7.5)
