@@ -3311,7 +3311,7 @@ def analyze_conversation_progress(messages):
             "keywords": ["valuation", "multiple", "methodology", "worth", "assumptions", "enterprise value", "dcf", "comparable"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip valuation", "skip multiple"]),
-            "next_question": "Now let's examine precedent transactions. Are there recent M&A transactions in your industry or similar markets that we should analyze? I need target company, acquirer, date, enterprise value, revenue, and multiples."
+            "next_question": "Now let's examine precedent transactions. 🚨 IMPORTANT: Focus ONLY on private market M&A transactions where one company acquired another company (NOT public market transactions, IPOs, or funding rounds like Series A/B/C/etc.). I need recent corporate acquisitions in your industry with: target company name, acquiring company name (must be a specific corporation/entity, NOT 'public market' or 'series K'), transaction date, enterprise value, target revenue, and valuation multiples. Exclude any transactions that are public offerings or venture funding rounds."
         },
         "precedent_transactions": {
             "keywords": ["precedent", "transactions", "m&a", "acquisitions", "deals", "transaction multiples"],

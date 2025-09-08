@@ -175,7 +175,31 @@ def fix_precedent_transactions_data(data: Dict[str, Any]) -> Dict[str, Any]:
     fixed_data = copy.deepcopy(data)
     
     if 'transactions' in fixed_data and isinstance(fixed_data['transactions'], list):
+        valid_transactions = []
+        
         for transaction in fixed_data['transactions']:
+            # Validate acquirer - must be a real company, not public market or funding rounds
+            acquirer = transaction.get('acquirer', '').lower().strip()
+            invalid_acquirers = [
+                'public market', 'public markets', 'ipo', 'initial public offering',
+                'series a', 'series b', 'series c', 'series d', 'series e', 'series f', 
+                'series g', 'series h', 'series i', 'series j', 'series k', 'series l',
+                'seed round', 'pre-seed', 'angel round', 'venture round', 'funding round',
+                'private placement', 'equity raise', 'capital raise'
+            ]
+            
+            # Check if acquirer is invalid
+            is_invalid = False
+            for invalid_term in invalid_acquirers:
+                if invalid_term in acquirer:
+                    is_invalid = True
+                    print(f"[FILTER] Excluding transaction with invalid acquirer: {transaction.get('acquirer', 'Unknown')}")
+                    break
+            
+            # Skip invalid transactions
+            if is_invalid or not acquirer or len(acquirer) < 3:
+                continue
+                
             # Ensure enterprise_value and revenue exist and calculate multiple
             if 'enterprise_value' not in transaction or 'revenue' not in transaction:
                 enterprise_value = transaction.get('enterprise_value', transaction.get('revenue', 100) * 3.0)
@@ -192,6 +216,13 @@ def fix_precedent_transactions_data(data: Dict[str, Any]) -> Dict[str, Any]:
                 else:
                     transaction['ev_revenue_multiple'] = 0.0
                 print(f"[FIX] Calculated EV/Revenue multiple: {transaction['ev_revenue_multiple']}")
+            
+            valid_transactions.append(transaction)
+        
+        # Update with only valid transactions
+        fixed_data['transactions'] = valid_transactions
+        if len(valid_transactions) != len(data.get('transactions', [])):
+            print(f"[FILTER] Filtered transactions: {len(data.get('transactions', []))} -> {len(valid_transactions)} (removed funding rounds/public markets)")
     
     return fixed_data
 
