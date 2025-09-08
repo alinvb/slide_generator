@@ -4688,7 +4688,9 @@ Generate the JSON structures now with this adaptive approach."""
                     # Check for research flow and satisfaction confirmation
                     from research_flow_handler import research_flow_handler
                     
-                    needs_check, satisfaction_question = research_flow_handler.needs_satisfaction_check(st.session_state.messages)
+                    # Pass current topic context to satisfaction checker
+                    current_topic = progress_info.get("next_topic", "business_overview")
+                    needs_check, satisfaction_question = research_flow_handler.needs_satisfaction_check(st.session_state.messages, current_topic)
                     
                     if needs_check:
                         # Add satisfaction check to conversation

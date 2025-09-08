@@ -33,8 +33,9 @@ class ResearchFlowHandler:
                 "Does this competitive landscape information help, or should I investigate specific areas like market share data, pricing strategies, or differentiation factors?"
             ],
             "business_model": [
-                "Are you satisfied with this business model overview, or would you like me to research more details about their revenue streams, customer segments, or operational structure?",
-                "Does this business information help, or should I investigate specific areas like their value proposition, distribution channels, or key partnerships?"
+                "Are you satisfied with this company overview, or would you like me to research more details about their business model, organizational structure, or company history?",
+                "Does this business information help, or should I investigate specific areas like their founding story, key milestones, or corporate structure?",
+                "Is this company overview sufficient, or would you like me to research more details about their mission, vision, or core business operations?"
             ],
             "market": [
                 "Are you satisfied with this market analysis, or would you like me to research more details about market size, growth trends, or regulatory factors?",
@@ -93,7 +94,7 @@ class ResearchFlowHandler:
         
         return (has_research_signals or has_citations) and is_substantial
     
-    def needs_satisfaction_check(self, conversation_messages: List[Dict[str, Any]]) -> Tuple[bool, str]:
+    def needs_satisfaction_check(self, conversation_messages: List[Dict[str, Any]], current_topic: str = None) -> Tuple[bool, str]:
         """
         Check if the conversation needs a satisfaction check after research
         """
@@ -127,19 +128,44 @@ class ResearchFlowHandler:
             )
             
             if not satisfaction_asked:
-                # Analyze content and provide contextual satisfaction question
-                satisfaction_question = self._generate_contextual_satisfaction_question(last_ai_response)
+                # Analyze content and provide contextual satisfaction question based on current topic
+                satisfaction_question = self._generate_contextual_satisfaction_question(last_ai_response, current_topic)
                 return True, satisfaction_question
         
         return False, ""
     
-    def _generate_contextual_satisfaction_question(self, ai_response: str) -> str:
+    def _generate_contextual_satisfaction_question(self, ai_response: str, current_topic: str = None) -> str:
         """
-        Generate a contextual satisfaction question based on the content of the AI response
+        Generate a contextual satisfaction question based on the current interview topic
         """
+        
+        # Map interview topics to satisfaction question categories
+        topic_mapping = {
+            "business_overview": "business_model",
+            "product_service_footprint": "business_model", 
+            "historical_financial_performance": "financial",
+            "management_team": "management",
+            "growth_strategy_projections": "market",
+            "competitive_positioning": "competitive",
+            "precedent_transactions": "valuation",
+            "valuation_overview": "valuation",
+            "strategic_buyers": "market",
+            "financial_buyers": "financial",
+            "sea_conglomerates": "market", 
+            "margin_cost_resilience": "financial",
+            "investor_considerations": "market",
+            "investor_process_overview": "business_model"
+        }
+        
+        # Use current topic if provided
+        if current_topic and current_topic in topic_mapping:
+            question_category = topic_mapping[current_topic]
+            import random
+            return random.choice(self.topic_specific_questions[question_category])
+        
+        # Fallback: analyze content (original behavior)
         response_lower = ai_response.lower()
         
-        # Analyze content to determine the most appropriate contextual question
         content_indicators = {
             "financial": ["revenue", "profit", "ebitda", "financial", "earnings", "sales", "million", "billion", "growth rate"],
             "management": ["ceo", "cfo", "founder", "executive", "management", "leadership", "director", "president"],
