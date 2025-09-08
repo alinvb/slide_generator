@@ -3320,13 +3320,13 @@ def analyze_conversation_progress(messages):
             "next_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT companies based on YOUR company's location and market presence. Consider companies from your region/country AND major players with operations in your market. Avoid generic global lists - tailor suggestions to your specific geographic and industry context. I need 4-5 strategic buyers with company name, strategic rationale (3-30 words), key synergies, fit assessment, and financial capacity. If you don't have this information, I can research strategic buyers for your industry and region."
         },
         "strategic_buyers": {
-            "keywords": ["strategic buyers", "strategic", "acquirer", "acquisition", "corporate buyer", "industry player", "strategic rationale", "synergies"],
+            "keywords": ["strategic buyers", "strategic buyer", "strategic rationale", "corporate buyer", "industry player", "strategic acquisition", "strategic synergies", "strategic fit"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip strategic", "skip buyer"]),
             "next_question": "Now let's identify financial buyers—private equity firms, VCs, and other financial investors. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT funds based on YOUR company's location and market. Consider local/regional funds, sovereign wealth funds, and international funds with strong presence in your market. Tailor suggestions to your geographic context rather than generic global lists. I need 4-5 financial buyers with fund name, investment rationale (3-30 words), key synergies, fit assessment, and financial capacity. If you don't have this information, I can research relevant PE firms and financial investors in your market."
         },
         "financial_buyers": {
-            "keywords": ["financial buyers", "private equity", "pe", "vc", "venture capital", "financial investor", "fund", "investment rationale"],
+            "keywords": ["financial buyers", "financial buyer", "private equity", "pe fund", "vc fund", "venture capital", "financial investor", "investment fund", "financial rationale", "financial synergies"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip financial", "skip pe"]),
             "next_question": "Finally, what would the investment/acquisition process look like? I need: diligence topics investors would focus on, key synergy opportunities, main risk factors and mitigation strategies, and expected timeline for the transaction process."
@@ -3338,7 +3338,7 @@ def analyze_conversation_progress(messages):
             "next_question": "Let's identify potential global conglomerates and strategic acquirers. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT conglomerates based on YOUR company's location and industry. Consider major conglomerates from your region/country AND international conglomerates with significant operations in your market. Prioritize companies that understand your local market dynamics and regulatory environment. I need at least 4-5 regionally relevant conglomerates with strong market knowledge in your geography."
         },
         "sea_conglomerates": {
-            "keywords": ["conglomerate", "global", "international", "multinational", "strategic acquirer"],
+            "keywords": ["conglomerate", "global conglomerate", "multinational conglomerate", "international conglomerate", "holding company", "diversified corporation", "multinational corporation", "global corporation"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip conglomerate", "skip global"]),
             "next_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT companies based on YOUR company's location and market presence. Consider companies from your region/country AND major players with operations in your market. Avoid generic global lists - tailor suggestions to your specific geographic and industry context. I need 4-5 strategic buyers with company name, strategic rationale (3-30 words), key synergies, fit assessment, and financial capacity. If you don't have this information, I can research strategic buyers for your industry and region."
@@ -3498,13 +3498,28 @@ def analyze_conversation_progress(messages):
                 is_covered = detailed_margins or ai_margin_research
             
             elif topic_name == "sea_conglomerates":
-                # Require actual conglomerate names and details
-                conglomerate_indicators = ["conglomerate", "global", "international", "multinational", "strategic acquirer", "corporation", "holding"]
-                found_conglomerates = [indicator for indicator in conglomerate_indicators if indicator in conversation_text]
+                # SPECIFIC detection for global conglomerates - avoid confusion with strategic/financial buyers
+                conglomerate_specific_indicators = [
+                    "conglomerate", "global conglomerate", "multinational conglomerate", 
+                    "international conglomerate", "holding company", "diversified corporation",
+                    "multinational corporation", "global corporation"
+                ]
+                geographic_indicators = ["global", "international", "multinational", "worldwide", "regions", "countries"]
                 
-                # Must have specific conglomerate discussion
-                detailed_conglomerates = len(found_conglomerates) >= 3 and ("conglomerate" in conversation_text or "multinational" in conversation_text)
-                ai_conglomerate_research = has_research_response and len(found_conglomerates) >= 2 and "global" in conversation_text
+                # Check for conglomerate-specific content - must be explicitly about conglomerates
+                found_conglomerate_specific = [indicator for indicator in conglomerate_specific_indicators if indicator in conversation_text]
+                found_geographic = [indicator for indicator in geographic_indicators if indicator in conversation_text]
+                
+                # Must have explicit conglomerate discussion - not just "strategic acquirer"
+                has_conglomerate_context = len(found_conglomerate_specific) >= 1 and len(found_geographic) >= 1
+                has_research_response = "research" in conversation_text or "here" in conversation_text or "based on" in conversation_text
+                
+                # Require explicit conglomerate terminology to avoid strategic buyer confusion
+                detailed_conglomerates = has_conglomerate_context and (
+                    "conglomerate" in conversation_text or "multinational corporation" in conversation_text or
+                    "holding company" in conversation_text or "global corporation" in conversation_text
+                )
+                ai_conglomerate_research = has_research_response and has_conglomerate_context and "conglomerate" in conversation_text
                 
                 is_covered = detailed_conglomerates or ai_conglomerate_research
             
@@ -3519,23 +3534,57 @@ def analyze_conversation_progress(messages):
                 
                 is_covered = detailed_process or ai_process_research
             
-            elif topic_name == "strategic_buyers" or topic_name == "financial_buyers":
-                # RELAXED - allow AI research and reasonable buyer content detection
-                buyer_indicators = ["acquisition", "acquirer", "fund", "capital", "equity", "investment", "rationale", "synerg", "fit", "capacity", "strategic", "financial", "buyer", "private equity", "corporation", "conglomerate"]
-                found_buyers = [indicator for indicator in buyer_indicators if indicator in conversation_text]
+            elif topic_name == "strategic_buyers":
+                # SPECIFIC detection for strategic buyers - avoid confusion with sea_conglomerates
+                strategic_specific_indicators = [
+                    "strategic buyer", "strategic rationale", "strategic synergies", 
+                    "corporate buyer", "industry player", "strategic acquisition",
+                    "strategic fit", "strategic acquirer", "synergies"
+                ]
+                general_buyer_indicators = ["acquisition", "acquirer", "investment", "fit", "capacity"]
                 
-                # Look for buyer content - can be from AI research or user discussion
-                has_buyer_context = len(found_buyers) >= 3
+                # Check for strategic-specific content
+                found_strategic_specific = [indicator for indicator in strategic_specific_indicators if indicator in conversation_text]
+                found_general_buyers = [indicator for indicator in general_buyer_indicators if indicator in conversation_text]
+                
+                # Must have strategic-specific indicators to avoid conglomerate confusion
+                has_strategic_context = len(found_strategic_specific) >= 1 and len(found_general_buyers) >= 2
                 has_research_response = "research" in conversation_text or "here" in conversation_text or "based on" in conversation_text
                 
-                # Accept if substantial buyer discussion OR AI research
-                detailed_buyer_content = has_buyer_context and (
-                    "strategic" in conversation_text or "financial" in conversation_text or 
-                    "rationale" in conversation_text or "synerg" in conversation_text
+                # More stringent requirements - must explicitly mention strategic buyer context
+                detailed_strategic_content = has_strategic_context and (
+                    "strategic buyer" in conversation_text or "strategic rationale" in conversation_text or 
+                    "strategic synergies" in conversation_text or "corporate buyer" in conversation_text
                 )
-                ai_buyer_research = has_research_response and has_buyer_context
+                ai_strategic_research = has_research_response and has_strategic_context and "strategic" in conversation_text
                 
-                is_covered = detailed_buyer_content or ai_buyer_research
+                is_covered = detailed_strategic_content or ai_strategic_research
+            
+            elif topic_name == "financial_buyers":
+                # SPECIFIC detection for financial buyers - avoid confusion with sea_conglomerates  
+                financial_specific_indicators = [
+                    "financial buyer", "private equity", "pe fund", "vc fund", 
+                    "venture capital", "financial investor", "investment fund", 
+                    "financial rationale", "financial synergies"
+                ]
+                general_buyer_indicators = ["fund", "capital", "equity", "investment", "fit", "capacity"]
+                
+                # Check for financial-specific content
+                found_financial_specific = [indicator for indicator in financial_specific_indicators if indicator in conversation_text]
+                found_general_buyers = [indicator for indicator in general_buyer_indicators if indicator in conversation_text]
+                
+                # Must have financial-specific indicators
+                has_financial_context = len(found_financial_specific) >= 1 and len(found_general_buyers) >= 2
+                has_research_response = "research" in conversation_text or "here" in conversation_text or "based on" in conversation_text
+                
+                # More stringent requirements - must explicitly mention financial buyer context
+                detailed_financial_content = has_financial_context and (
+                    "financial buyer" in conversation_text or "private equity" in conversation_text or 
+                    "financial rationale" in conversation_text or "pe fund" in conversation_text
+                )
+                ai_financial_research = has_research_response and has_financial_context and ("financial" in conversation_text or "private equity" in conversation_text)
+                
+                is_covered = detailed_financial_content or ai_financial_research
             
             if is_covered:
                 topic_info["covered"] = True

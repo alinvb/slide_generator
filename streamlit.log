@@ -4699,3 +4699,15 @@ COMPREHENSIVE JSON FIXING
 [31m [0m   [2m150 [0m[2m│   │   │   [0m[2m# Clean up any legacy fields that might cause confusion[0m            [31m [0m
 [31m────────────────────────────────────────────────────────────────────────────────────────[0m
 [1;91mTypeError: [0mlist indices must be integers or slices, not str
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
