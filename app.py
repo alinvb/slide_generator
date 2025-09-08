@@ -4507,8 +4507,34 @@ Generate the JSON structures now with this adaptive approach."""
                         # Create a temporary message for JSON generation
                         temp_messages = st.session_state.messages + [{"role": "user", "content": completion_prompt}]
                         
-                        # Add timeout and stronger instructions
-                        enhanced_messages = temp_messages + [{"role": "system", "content": "🚨 SYSTEM OVERRIDE: You MUST respond with ONLY JSON structures. No explanations, no research, no questions. Start immediately with 'CONTENT IR JSON:' followed by complete JSON."}]
+                        # Use proper JSON generation system prompt instead of override
+                        from perfect_json_prompter import PerfectJSONPrompter
+                        prompter = PerfectJSONPrompter()
+                        
+                        # Get the enhanced system prompt with proper JSON format
+                        enhanced_system_prompt = prompter.get_enhanced_system_prompt()
+                        
+                        # Add JSON generation trigger to system prompt
+                        json_trigger_prompt = enhanced_system_prompt + f"""
+
+🚨 IMMEDIATE JSON GENERATION REQUIRED 🚨
+
+Based on the conversation above, you must now generate JSON structures for these {len(slide_list)} slides:
+{chr(10).join([f"• {slide}" for slide in slide_list])}
+
+⚡ CRITICAL: Use the EXACT JSON format specified in the guidelines above:
+- Content IR must use entities/facts/management_team structure (NOT slides array)
+- Render Plan must use slides array with template/data structure
+- Follow ALL validation checkpoints
+- Include ALL required sections with complete data
+
+Start immediately with 'CONTENT IR JSON:' followed by the complete JSON, then 'RENDER Plan JSON:' with the render plan.
+"""
+                        
+                        # Replace the messages to use proper system prompt
+                        enhanced_messages = [
+                            {"role": "system", "content": json_trigger_prompt}
+                        ] + st.session_state.messages + [{"role": "user", "content": completion_prompt}]
                         
                         with st.spinner(f"🚀 Generating {len(slide_list)} relevant slides... (Max 2 minutes)"):
                             try:
