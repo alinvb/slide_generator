@@ -4560,11 +4560,31 @@ Start immediately with 'CONTENT IR JSON:' followed by the complete JSON, then 'R
                                 st.session_state['render_plan_json'] = render_plan
                                 st.session_state['validation_results'] = validation_results
                                 
+                                # AUTOMATIC AUTO-POPULATION: Same logic as Force Auto-Populate button
+                                company_name_extracted = "Unknown_Company"
+                                if content_ir and 'entities' in content_ir and 'company' in content_ir['entities']:
+                                    company_name_extracted = content_ir['entities']['company'].get('name', 'Unknown_Company')
+                                
+                                files_data = create_downloadable_files(content_ir, render_plan, company_name_extracted)
+                                
+                                # Update session state for auto-population
+                                st.session_state["generated_content_ir"] = files_data['content_ir_json']
+                                st.session_state["generated_render_plan"] = files_data['render_plan_json']
+                                st.session_state["files_ready"] = True
+                                st.session_state["files_data"] = files_data
+                                st.session_state["auto_populated"] = True
+                                
                                 # Show validation summary
                                 if validation_results and validation_results.get('overall_valid', False):
                                     st.success(f"🎯 Validation: {validation_results['summary']['valid_slides']}/{validation_results['summary']['total_slides']} slides validated successfully!")
                                 else:
                                     st.warning("⚠️ JSONs generated but some validation issues detected (auto-fixes applied)")
+                                
+                                # Show auto-population success
+                                st.balloons()
+                                st.success("🚀 **Auto-Population Complete!** JSONs have been automatically populated!")
+                                st.info("💡 **Switch to JSON Editor tab** to see the populated JSONs and download files!")
+                                
                             else:
                                 st.error("❌ Manual generation failed - missing JSONs despite response")
                                 
