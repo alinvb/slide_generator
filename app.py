@@ -4687,12 +4687,19 @@ Generate the JSON structures now with this adaptive approach."""
                         completion_prompt = get_interview_completion_prompt(st.session_state.messages)
                         adaptive_instructions = f"""
                         
-🎯 ADAPTIVE SLIDE GENERATION: Based on our conversation, generate ONLY these {len(slide_list)} relevant slides:
-{chr(10).join([f"• {slide}" for slide in slide_list])}
+🚨 CRITICAL: ADAPTIVE SLIDE RESTRICTION ENFORCED 🚨
 
-📊 Quality Analysis: {analysis_report['quality_summary']}
+You MUST generate Content IR JSON containing EXACTLY {len(slide_list)} slides - NO MORE, NO LESS.
 
-⚡ IMPORTANT: Only create content for the slides listed above. Do not generate content for slides where we lack sufficient information.
+✅ APPROVED SLIDES TO GENERATE:
+{chr(10).join([f"{i+1}. {slide}" for i, slide in enumerate(slide_list)])}
+
+❌ FORBIDDEN: Do NOT create any other slides beyond the {len(slide_list)} listed above.
+❌ FORBIDDEN: Do NOT include slides for: {', '.join([s for s in ['strategic_buyers', 'financial_buyers', 'valuation_overview', 'precedent_transactions', 'competitive_positioning', 'margin_cost_resilience', 'investor_process_overview', 'sea_conglomerates', 'growth_strategy_projections', 'product_service_footprint', 'historical_financial_performance', 'investor_considerations'] if s not in slide_list])}
+
+📊 Quality Justification: {analysis_report['quality_summary']}
+
+🔒 ENFORCEMENT: Your JSON "slides" array must contain EXACTLY {len(slide_list)} objects, one for each approved slide above.
                         """
                         
                         completion_prompt += adaptive_instructions
@@ -4700,21 +4707,25 @@ Generate the JSON structures now with this adaptive approach."""
                         # Create a temporary message for JSON generation
                         temp_messages = st.session_state.messages + [{"role": "user", "content": completion_prompt}]
                         
-                        # Add system override for COMPLETE JSON-only generation
-                        enhanced_messages = temp_messages + [{"role": "system", "content": """🚨 CRITICAL SYSTEM OVERRIDE: 
-You MUST respond with BOTH complete JSON structures. NO PARTIAL RESPONSES ALLOWED.
+                        # Add system override for COMPLETE JSON-only generation with slide restrictions
+                        enhanced_messages = temp_messages + [{"role": "system", "content": f"""🚨 CRITICAL SYSTEM OVERRIDE: 
+
+1. SLIDE RESTRICTION: Generate EXACTLY {len(slide_list)} slides in Content IR JSON - no more, no less
+2. COMPLETE RESPONSE: You MUST respond with BOTH complete JSON structures
 
 MANDATORY OUTPUT FORMAT:
-1. Start with 'CONTENT IR JSON:' followed by complete Content IR JSON
-2. Then 'RENDER PLAN JSON:' followed by complete Render Plan JSON  
+1. Start with 'CONTENT IR JSON:' followed by complete Content IR JSON with EXACTLY {len(slide_list)} slides
+2. Then 'RENDER PLAN JSON:' followed by complete Render Plan JSON with EXACTLY {len(slide_list)} slides
 
-⛔ FAILURE CONDITIONS (DO NOT DO):
+APPROVED SLIDES: {', '.join(slide_list)}
+
+⛔ ABSOLUTE FAILURES (SYSTEM WILL REJECT):
+- Including slides not in approved list above
+- Generating more than {len(slide_list)} slides
 - Stopping after only Content IR JSON
-- Incomplete JSON structures
-- Any explanatory text
-- Research or questions
+- Any explanatory text before JSONs
 
-✅ SUCCESS CONDITION: BOTH JSONs must be complete and valid."""}]
+✅ SUCCESS: BOTH JSONs with EXACTLY {len(slide_list)} approved slides each"""}]
                         
                         with st.spinner(f"🚀 Interview complete! Generating {len(slide_list)} relevant slides... (Max 2 minutes)"):
                             try:
