@@ -3137,3 +3137,240 @@ Collecting usage statistics. To deactivate, set browser.gatherUsageStats to fals
 
   URL: http://0.0.0.0:8501
 
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 2
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 19634
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 23560
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 19634
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 23560
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 19634
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 23560
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 19634
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 23560
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 19634
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 23560
+[JSON CLEAN] JSON is valid as-is
+🔍 Validating data for PowerPoint compatibility...
+✅ PowerPoint validation completed successfully
+[DEBUG] Applying automatic JSON fixes before rendering...
+============================================================
+COMPREHENSIVE JSON FIXING
+============================================================
+[FIX] Fixing content IR with sections: ['entities', 'facts', 'management_team', 'strategic_buyers', 'financial_buyers', 'competitive_analysis', 'precedent_transactions', 'valuation_data', 'product_service_data', 'business_overview_data', 'growth_strategy_data', 'investor_process_data', 'margin_cost_data', 'sea_conglomerates', 'investor_considerations']
+[FIX] Adding missing section: charts
+[FIX] Fixing render plan with 14 slides
+
+[FIX] Processing slide 1: business_overview
+[FIX] Fixing data for template: business_overview
+[FIX] Converted start_year from int to string: 2023
+[FIX] Converted end_year from int to string: 2025
+[FIX] Added years_note: (2+ years of operation)
+
+[FIX] Processing slide 2: investor_considerations
+[FIX] Fixing data for template: investor_considerations
+
+[FIX] Processing slide 3: product_service_footprint
+[FIX] Fixing data for template: product_service_footprint
+
+[FIX] Processing slide 4: historical_financial_performance
+[FIX] Fixing data for template: historical_financial_performance
+[FIX] Fixed nested key_metrics structure
+
+[FIX] Processing slide 5: management_team
+[FIX] Fixing data for template: management_team
+
+[FIX] Processing slide 6: growth_strategy_projections
+[FIX] Fixing data for template: growth_strategy_projections
+
+[FIX] Processing slide 7: competitive_positioning
+[FIX] Fixing data for template: competitive_positioning
+[FIX] Competitive positioning data structure checked
+
+[FIX] Processing slide 8: valuation_overview
+[FIX] Fixing data for template: valuation_overview
+
+[FIX] Processing slide 9: precedent_transactions
+[FIX] Fixing data for template: precedent_transactions
+
+[FIX] Processing slide 10: margin_cost_resilience
+[FIX] Fixing data for template: margin_cost_resilience
+[FIX] Converted main_strategy from string to object
+[FIX] Added missing banker_view to risk_mitigation
+
+[FIX] Processing slide 11: sea_conglomerates
+[FIX] Fixing data for template: sea_conglomerates
+[FIX] Moved nested sea_conglomerates data to top level
+
+[FIX] Processing slide 12: buyer_profiles
+[FIX] Fixing data for template: buyer_profiles
+[FIX] Added missing field 'description' to buyer profile
+[FIX] Added missing field 'concerns' to buyer profile
+[FIX] Added missing field 'fit_score' to buyer profile
+[FIX] Added missing field 'financial_capacity' to buyer profile
+[FIX] Added missing field 'description' to buyer profile
+[FIX] Added missing field 'concerns' to buyer profile
+[FIX] Added missing field 'fit_score' to buyer profile
+[FIX] Added missing field 'financial_capacity' to buyer profile
+[FIX] Added missing field 'description' to buyer profile
+[FIX] Added missing field 'concerns' to buyer profile
+[FIX] Added missing field 'fit_score' to buyer profile
+[FIX] Added missing field 'financial_capacity' to buyer profile
+[FIX] Added missing field 'description' to buyer profile
+[FIX] Added missing field 'concerns' to buyer profile
+[FIX] Added missing field 'fit_score' to buyer profile
+[FIX] Added missing field 'financial_capacity' to buyer profile
+
+[FIX] Processing slide 13: buyer_profiles
+[FIX] Fixing data for template: buyer_profiles
+[FIX] Added missing field 'description' to buyer profile
+[FIX] Added missing field 'concerns' to buyer profile
+[FIX] Added missing field 'fit_score' to buyer profile
+[FIX] Added missing field 'financial_capacity' to buyer profile
+[FIX] Added missing field 'description' to buyer profile
+[FIX] Added missing field 'concerns' to buyer profile
+[FIX] Added missing field 'fit_score' to buyer profile
+[FIX] Added missing field 'financial_capacity' to buyer profile
+[FIX] Added missing field 'description' to buyer profile
+[FIX] Added missing field 'concerns' to buyer profile
+[FIX] Added missing field 'fit_score' to buyer profile
+[FIX] Added missing field 'financial_capacity' to buyer profile
+[FIX] Added missing field 'description' to buyer profile
+[FIX] Added missing field 'concerns' to buyer profile
+[FIX] Added missing field 'fit_score' to buyer profile
+[FIX] Added missing field 'financial_capacity' to buyer profile
+
+[FIX] Processing slide 14: investor_process_overview
+[FIX] Fixing data for template: investor_process_overview
+
+============================================================
+FIXING COMPLETE
+============================================================
+[DEBUG] JSON fixes applied successfully
+[DEBUG] Processing 14 slides
+[DEBUG] Slide 1: template='business_overview', data keys=['title', 'description', 'timeline', 'highlights', 'services', 'positioning_desc']
+[DEBUG] Slide 1: Found renderer for 'business_overview': render_business_overview_slide
+[DEBUG] Business overview data keys: ['title', 'description', 'timeline', 'highlights', 'services', 'positioning_desc']
+[DEBUG] Company description: LlamaIndex is a leading AI infrastructure company enabling developers and enterprises to build knowledge assistants and agentic workflows over unstructured data.
+[DEBUG] Slide 2: template='investor_considerations', data keys=['title', 'considerations', 'mitigants']
+[DEBUG] Slide 2: Found renderer for 'investor_considerations': render_investor_considerations_slide
+[DEBUG] Slide 3: template='product_service_footprint', data keys=['title', 'services', 'coverage_table', 'metrics']
+[DEBUG] Slide 3: Found renderer for 'product_service_footprint': render_product_service_footprint_slide
+[DEBUG] Raw coverage_table data: ["['Region', 'Market Segment', 'Major Assets/Products', 'Coverage Details']", "['United States', 'Finance, Tech, Services', 'LlamaCloud, LlamaParse, Framework', 'Enterprise deployments, Fortune 500 clients']", "['Europe', 'Consulting, Manufacturing', 'LlamaCloud, LlamaParse, Connectors', 'KPMG, industry leaders, RAG and AI workflow standardization']", "['Asia', 'Tech, Financial Services', 'LlamaCloud, Framework, Data Connectors', 'Adoption in India, Singapore, Japan; growing in SE Asia']", "['Global', 'Open Source/Dev Community', 'LlamaIndex Framework, LlamaHub', '3M+ monthly downloads, developer adoption worldwide']"]
+[DEBUG] Coverage table type: <class 'list'>
+[DEBUG] First item type: <class 'str'>
+[DEBUG] Table length: 5
+[DEBUG] No coverage_table data found - using minimal fallback
+[DEBUG] Using direct metrics format with 4 metrics
+[DEBUG] Unknown metric format for 'monthly_downloads_m': <class 'int'>
+[DEBUG] Unknown metric format for 'pages_processed_m': <class 'int'>
+[DEBUG] Unknown metric format for 'enterprise_clients': <class 'int'>
+[DEBUG] Unknown metric format for 'waitlist_organizations': <class 'int'>
+[DEBUG] Slide 4: template='historical_financial_performance', data keys=['title', 'chart', 'key_metrics', 'revenue_growth', 'banker_view']
+[DEBUG] Slide 4: Found renderer for 'historical_financial_performance': render_historical_financial_performance_slide
+[DEBUG] Historical chart categories: ['2020', '2021', '2022', '2023', '2024E']
+[DEBUG] Historical chart revenue: [1.2, 4.0, 9.5, 21.0, 38.0]
+[DEBUG] Historical chart ebitda: [-2.0, -1.0, -0.5, 1.2, 5.7]
+[DEBUG] Successfully converted chart data to numeric
+[DEBUG] Chart axis scaled: range -2.0 to 38.0 → axis 0 to 45
+[DEBUG] Slide 5: template='management_team', data keys=['title', 'left_column_profiles', 'right_column_profiles']
+[DEBUG] Slide 5: Found renderer for 'management_team': render_management_team_slide
+[DEBUG] Slide 6: template='growth_strategy_projections', data keys=['title', 'slide_data']
+[DEBUG] Slide 6: Found renderer for 'growth_strategy_projections': render_growth_strategy_slide
+[DEBUG] Growth Strategy: Found 5 strategies in growth_strategy.strategies
+[DEBUG] Growth Strategy Chart: 3 categories, 3 revenue points, 3 ebitda points
+[DEBUG] Growth Strategy: No assumptions found, using 6 default assumptions
+[DEBUG] Slide 7: template='competitive_positioning', data keys=['title', 'competitors', 'assessment', 'barriers', 'advantages']
+[DEBUG] Slide 7: Found renderer for 'competitive_positioning': render_competitive_positioning_slide
+[DEBUG] Competitive chart axis scaled: max 300 → 360
+[DEBUG] Raw assessment type: <class 'list'>, length: 7
+[DEBUG] First assessment item type: <class 'str'>, value: ['Company', 'Market Focus', 'Connectors/Indexing', 'Enterprise Adoption', 'Factuality/Traceability']
+[DEBUG] Creating fallback assessment table
+[DEBUG] Using fallback assessment data based on user's competitive data
+[DEBUG] Slide 8: template='valuation_overview', data keys=['title', 'valuation_data', '__hide_metric_col', '__hide_22a_col', '__hide_23e_col']
+[DEBUG] Slide 8: Found renderer for 'valuation_overview': render_valuation_overview_slide
+[DEBUG] Valuation slide - 3 data rows
+[DEBUG] Processing valuation row 1: Trading Multiples (EV/Revenue)
+[DEBUG] Processing valuation row 2: Trading Multiples (EV/EBITDA)
+[DEBUG] Processing valuation row 3: Discounted Cash Flow (DCF)
+[DEBUG] Slide 9: template='precedent_transactions', data keys=['title', 'transactions']
+[DEBUG] Slide 9: Found renderer for 'precedent_transactions': render_precedent_transactions_slide
+[DEBUG] Precedent transactions: Found 5 transactions
+[DEBUG] Precedent transactions: Found 5 transactions
+[DEBUG] Precedent transactions: Found 5 transactions
+Error calling renderer: '>' not supported between instances of 'str' and 'int'
+[DEBUG] Slide 10: template='margin_cost_resilience', data keys=['title', 'chart_title', 'chart_data', 'cost_management', 'risk_mitigation']
+[DEBUG] Slide 10: Found renderer for 'margin_cost_resilience': render_margin_cost_resilience_slide
+[DEBUG] Margin cost resilience data keys: ['title', 'chart_title', 'chart_data', 'cost_management', 'risk_mitigation']
+[DEBUG] Chart categories: ['2021', '2022', '2023', '2024E', '2025E']
+[DEBUG] Chart values: [-25.0, -5.0, 5.7, 15.0, 22.7]
+[DEBUG] Margin chart axis scaled: max 22.7% → 30%
+[DEBUG] Cost management data available: True
+[DEBUG] Using provided cost management items: 4
+[DEBUG] Risk mitigation data available: True
+[DEBUG] Risk section keys: ['main_strategy', 'banker_view']
+[DEBUG] Using provided risk mitigation data in object format
+[DEBUG] Using provided banker's view
+[DEBUG] Slide 11: template='sea_conglomerates', data keys=['title', 'sea_conglomerates']
+[DEBUG] Slide 11: Found renderer for 'sea_conglomerates': render_sea_conglomerates_slide
+[DEBUG] SEA conglomerates: Found 5 companies
+[DEBUG] First company data: {'name': 'NVIDIA', 'country': 'USA', 'description': "World's largest AI chipmaker and cloud infra leader.", 'key_shareholders': 'Institutional, retail', 'key_financials': 'Market cap $4T; leading AI infra revenue', 'contact': 'N/A'}
+[DEBUG] Input data type: <class 'dict'>
+[DEBUG] Input data keys: ['title', 'sea_conglomerates']
+[DEBUG] Using fallback data: False
+[DEBUG] Slide 12: template='buyer_profiles', data keys=['title', 'table_headers', 'table_rows', 'subtitle', 'company']
+[DEBUG] Slide 12: Found renderer for 'buyer_profiles': render_buyer_profiles_slide
+[DEBUG] Slide 13: template='buyer_profiles', data keys=['title', 'table_headers', 'table_rows', 'subtitle', 'company']
+[DEBUG] Slide 13: Found renderer for 'buyer_profiles': render_buyer_profiles_slide
+[DEBUG] Slide 14: template='investor_process_overview', data keys=['title', 'diligence_topics', 'synergy_opportunities', 'risk_factors', 'mitigants', 'timeline']
+[DEBUG] Slide 14: Found renderer for 'investor_process_overview': render_investor_process_overview_slide
+[DEBUG] Investor process overview data keys: ['title', 'diligence_topics', 'synergy_opportunities', 'risk_factors', 'mitigants', 'timeline']
+[DEBUG] Diligence topics count: 6
+[DEBUG] Risk factors count: 4
+[DEBUG] Mitigants count: 4
+Error in renderer: 'str' object has no attribute 'get'
+[DEBUG] Finished processing. Total slides in presentation: 19
+[JSON CLEAN] Input length: 19634
+[JSON CLEAN] JSON is valid as-is
+[JSON CLEAN] Input length: 23560
+[JSON CLEAN] JSON is valid as-is
+  Stopping...
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8501
+
+  Stopping...
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8501
+

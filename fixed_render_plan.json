@@ -133,10 +133,30 @@
         "key_metrics": {
           "title": "Key Metrics",
           "metrics": [
-            "120%",
-            "38.0",
-            "5.7",
-            "300"
+            {
+              "title": "Revenue CAGR",
+              "value": "120%",
+              "period": "(2020-2024E)",
+              "note": "High growth trajectory"
+            },
+            {
+              "title": "2024E Revenue",
+              "value": "$38.0M",
+              "period": "USD (Est.)",
+              "note": "Strong scaling momentum"
+            },
+            {
+              "title": "2024E EBITDA",
+              "value": "$5.7M",
+              "period": "USD (Est.)",
+              "note": "Achieving profitability"
+            },
+            {
+              "title": "Enterprise Clients",
+              "value": "300+",
+              "period": "(Current)",
+              "note": "Fortune 500 adoption"
+            }
           ]
         },
         "revenue_growth": {
