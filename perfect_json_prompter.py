@@ -172,10 +172,21 @@ OUTPUT FORMAT REQUIREMENTS:
 🚨 CURRENT WORKFLOW PRIORITY:
 1. 🗣️ FIRST: Conduct systematic interview (ask one question at a time)
 2. 🔍 SECOND: Research missing information when user says "I dont know"
-3. 📊 THIRD: ONLY generate JSON when all 14 topics are covered
+3. 📊 THIRD: Generate JSON when you have substantial information OR when user requests it
 4. ✅ FOURTH: Apply perfect validation and auto-refinement
 
-🎯 REMEMBER: You are conducting an INTERVIEW, not generating JSON. Start with the first systematic question about company overview.
+⚡ JSON GENERATION TRIGGERS:
+- When user provides substantial company information
+- When user says "generate JSON now" or similar
+- When you have enough information for professional presentation
+- When user expresses urgency or completion needs
+
+🎯 ADAPTIVE APPROACH: 
+- START with systematic interview for new conversations
+- TRANSITION to JSON generation when you have adequate information
+- ALWAYS generate JSON when explicitly requested by user or system
+- DON'T endlessly ask questions if you already have core business details
+
 QUALITY STANDARD: Your JSON must be so perfect that it requires ZERO fixes or validation errors. Every field must be populated with professional, accurate, investment-banking quality content."""
 
         return system_prompt
@@ -416,10 +427,24 @@ QUALITY STANDARD: Your JSON must be so perfect that it requires ZERO fixes or va
 CONVERSATION SUMMARY:
 {conversation_text[-2000:]}  # Last 2000 characters
 
+🚨 CRITICAL: You MUST generate JSON files now. This is not a request for more interview questions - this is the JSON generation phase.
+
 YOUR TASK: Generate TWO perfect JSON structures:
 
 1. **CONTENT IR JSON**: Complete business intelligence and data
 2. **RENDER PLAN JSON**: Slide-by-slide presentation structure
+
+MANDATORY OUTPUT FORMAT:
+Start your response with:
+## CONTENT IR JSON:
+```json
+{{complete_json_here}}
+```
+
+## RENDER PLAN JSON:  
+```json
+{{complete_json_here}}
+```
 
 {self.create_enhanced_system_prompt()}
 
@@ -430,9 +455,14 @@ SPECIFIC INSTRUCTIONS FOR THIS COMPANY:
 - Create compelling buyer profiles based on the company's industry
 - Make management team profiles professional and achievement-focused
 
-CRITICAL REMINDER: Your JSON must be FLAWLESS. Every field must be populated, every structure must be perfect, every piece of data must be professional and accurate. This goes directly into a $10M+ investment banking presentation.
+🚨 CRITICAL REMINDER: 
+- DO NOT ask more interview questions
+- DO NOT request additional information  
+- GENERATE the complete JSON structures NOW
+- Your JSON must be FLAWLESS and complete
+- This goes directly into a $10M+ investment banking presentation
 
-Generate the perfect JSONs now:"""
+Generate the perfect JSONs immediately:"""
 
         return prompt
     

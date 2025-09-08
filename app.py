@@ -4576,6 +4576,31 @@ Let's start: **What is your company name and give me a brief overview of what yo
                     st.markdown(message["content"])
             
 
+            # Manual JSON Generation Trigger Button
+            if len(st.session_state.messages) > 4:  # Only show after some conversation
+                col1, col2 = st.columns([3, 1])
+                with col2:
+                    if st.button("🚀 Generate JSON Now", type="secondary", help="Force JSON generation with current information"):
+                        # Force JSON generation regardless of completion status
+                        from perfect_json_prompter import get_interview_completion_prompt
+                        
+                        completion_prompt = "Based on our conversation, please generate the complete JSON structures now. Use the information we've discussed and fill in any missing details with professional, realistic data appropriate for this company."
+                        
+                        # Create a temporary message for JSON generation
+                        temp_messages = st.session_state.messages + [{"role": "user", "content": completion_prompt}]
+                        
+                        with st.spinner("🚀 Generating JSON structures..."):
+                            ai_response = call_llm_api(
+                                temp_messages,
+                                selected_model,
+                                api_key,
+                                api_service
+                            )
+                        
+                        # Add completion message indicating manual JSON generation
+                        completion_message = "🚀 **Manual JSON Generation Triggered**\n\nI'll now generate the JSON structures based on our conversation so far:\n\n" + ai_response
+                        st.session_state.messages.append({"role": "assistant", "content": completion_message})
+                        st.rerun()
             
             # Chat input - ENHANCED with comprehensive validation
             if prompt := st.chat_input("Your response...", key="chat_input"):
@@ -4603,17 +4628,39 @@ Let's start: **What is your company name and give me a brief overview of what yo
                     st.session_state.messages.append({"role": "assistant", "content": ai_response})
                     st.rerun()
                 else:
-                    # Get normal AI response
-                    with st.spinner("🤖 Thinking..."):
-                        ai_response = call_llm_api(
-                            st.session_state.messages,
-                            selected_model,
-                            api_key,
-                            api_service
-                        )
-                    
-                    # Add AI response to history
-                    st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                    # Check if interview is complete and should trigger JSON generation
+                    if is_complete and not progress_info.get("next_question"):
+                        # Interview is complete - force JSON generation
+                        from perfect_json_prompter import get_interview_completion_prompt
+                        
+                        completion_prompt = get_interview_completion_prompt(st.session_state.messages)
+                        
+                        # Create a temporary message for JSON generation
+                        temp_messages = st.session_state.messages + [{"role": "user", "content": completion_prompt}]
+                        
+                        with st.spinner("🚀 Interview complete! Generating JSON structures..."):
+                            ai_response = call_llm_api(
+                                temp_messages,
+                                selected_model,
+                                api_key,
+                                api_service
+                            )
+                        
+                        # Add completion message indicating automatic JSON generation
+                        st.session_state.messages.append({"role": "assistant", "content": "Perfect! I have all the information needed. Let me generate the complete JSON structures for your pitch deck.\n\n" + ai_response})
+                        ai_response = "Perfect! I have all the information needed. Let me generate the complete JSON structures for your pitch deck.\n\n" + ai_response
+                    else:
+                        # Get normal AI response
+                        with st.spinner("🤖 Thinking..."):
+                            ai_response = call_llm_api(
+                                st.session_state.messages,
+                                selected_model,
+                                api_key,
+                                api_service
+                            )
+                        
+                        # Add AI response to history
+                        st.session_state.messages.append({"role": "assistant", "content": ai_response})
                     
                     # Check if this response contains FINAL JSON generation (not interview responses)
                     # Only attempt JSON extraction when LLM generates complete JSON structures
