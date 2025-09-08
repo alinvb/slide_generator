@@ -4711,17 +4711,20 @@ Generate the JSON structures now with this adaptive approach."""
                         
 🚨 CRITICAL: ADAPTIVE SLIDE RESTRICTION ENFORCED 🚨
 
-You MUST generate Content IR JSON containing EXACTLY {len(slide_list)} slides - NO MORE, NO LESS.
+You MUST generate TWO separate JSONs:
+1. Content IR JSON: Business data for EXACTLY {len(slide_list)} topics 
+2. Render Plan JSON: Slides array with EXACTLY {len(slide_list)} slide objects
 
 ✅ APPROVED SLIDES TO GENERATE:
 {chr(10).join([f"{i+1}. {slide}" for i, slide in enumerate(slide_list)])}
 
-❌ FORBIDDEN: Do NOT create any other slides beyond the {len(slide_list)} listed above.
-❌ FORBIDDEN: Do NOT include slides for: {', '.join([s for s in ['strategic_buyers', 'financial_buyers', 'valuation_overview', 'precedent_transactions', 'competitive_positioning', 'margin_cost_resilience', 'investor_process_overview', 'sea_conglomerates', 'growth_strategy_projections', 'product_service_footprint', 'historical_financial_performance', 'investor_considerations'] if s not in slide_list])}
+❌ FORBIDDEN: Do NOT create slides for topics not in the approved list above.
 
 📊 Quality Justification: {analysis_report['quality_summary']}
 
-🔒 ENFORCEMENT: Your JSON "slides" array must contain EXACTLY {len(slide_list)} objects, one for each approved slide above.
+🔒 ENFORCEMENT: 
+- Content IR must have business data sections for each approved topic
+- Render Plan must have "slides" array with EXACTLY {len(slide_list)} slide objects
                         """
                         
                         completion_prompt += adaptive_instructions
@@ -4735,13 +4738,25 @@ You MUST generate Content IR JSON containing EXACTLY {len(slide_list)} slides - 
 OUTPUT EXACTLY THIS FORMAT (NO OTHER TEXT):
 
 CONTENT IR JSON:
-{{complete_content_ir_json_with_{len(slide_list)}_slides}}
+{{
+  "entities": {{...}},
+  "facts": {{...}},
+  "management_team": {{...}},
+  "strategic_buyers": [...],
+  "financial_buyers": [...],
+  ... (business data only)
+}}
 
 RENDER PLAN JSON:
-{{complete_render_plan_json_with_{len(slide_list)}_slides}}
+{{
+  "slides": [
+    {{"template": "business_overview", "data": {{...}}}},
+    {{"template": "historical_financial_performance", "data": {{...}}}},
+    ... ({len(slide_list)} slide objects total)
+  ]
+}}
 
-SLIDES: {', '.join(slide_list)}
-
+CRITICAL: Content IR = business data, Render Plan = slides array
 FAILURE = MISSING RENDER PLAN JSON"""}]
                         
                         with st.spinner(f"🚀 Interview complete! Generating {len(slide_list)} relevant slides... (Max 2 minutes)"):
@@ -4755,6 +4770,23 @@ FAILURE = MISSING RENDER PLAN JSON"""}]
                             except Exception as e:
                                 st.error(f"❌ Auto-generation failed: {str(e)}")
                                 ai_response = "Error: Automatic JSON generation failed. Please try the manual 'Generate JSON Now' button."
+                        
+                        # CRITICAL VALIDATION: Check if both JSONs are present
+                        has_content_ir = "CONTENT IR JSON:" in ai_response
+                        has_render_plan = "RENDER PLAN JSON:" in ai_response
+                        
+                        if not has_render_plan and has_content_ir:
+                            # AI failed to generate Render Plan - force retry with even simpler prompt
+                            st.error("⚠️ AI generated Content IR but missed Render Plan. Retrying...")
+                            
+                            retry_messages = enhanced_messages + [{"role": "assistant", "content": ai_response}]
+                            retry_messages.append({"role": "user", "content": "You forgot the Render Plan JSON. Generate it now in this exact format:\n\nRENDER PLAN JSON:\n{\"slides\": [array_of_slide_objects]}"})
+                            
+                            try:
+                                retry_response = call_llm_api(retry_messages, selected_model, api_key, api_service)
+                                ai_response = ai_response + "\n\n" + retry_response
+                            except Exception as e:
+                                st.error(f"Retry failed: {str(e)}")
                         
                         # Add completion message indicating automatic JSON generation
                         completion_message = f"Perfect! I've analyzed our conversation and will generate {len(slide_list)} relevant slides based on the information provided.\n\n📊 **Slides to Include**: {', '.join(slide_list)}\n\n" + ai_response
