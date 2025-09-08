@@ -1,0 +1,46 @@
+{
+  "slides": [
+    {
+      "template": "business_overview",
+      "data": {
+        "title": "Business Overview"
+      }
+    },
+    {
+      "template": "management_team",
+      "data": {
+        "title": "Management Team"
+      }
+    },
+    {
+      "template": "historical_financial_performance",
+      "data": {
+        "title": "Financial Performance"
+      }
+    },
+    {
+      "template": "competitive_positioning",
+      "data": {
+        "title": "Competitive Positioning"
+      }
+    },
+    {
+      "template": "buyer_profiles",
+      "data": {
+        "title": "Strategic Buyers"
+      }
+    },
+    {
+      "template": "sea_conglomerates",
+      "data": {
+        "title": "SEA Conglomerates"
+      }
+    },
+    {
+      "template": "valuation_overview",
+      "data": {
+        "title": "Valuation Overview"
+      }
+    }
+  ]
+}
