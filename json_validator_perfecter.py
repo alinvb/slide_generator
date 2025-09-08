@@ -301,7 +301,7 @@ class JSONValidatorPerfector:
         return score
     
     def _validate_management_team(self, mgmt: Any, issues: List[str], missing_fields: List[str], invalid_types: List[str]) -> float:
-        """Validate management team structure"""
+        """Validate management team structure - supports up to 6 members (3 left + 3 right)"""
         if not isinstance(mgmt, dict):
             invalid_types.append("management_team")
             issues.append("management_team must be an object")
@@ -320,10 +320,33 @@ class JSONValidatorPerfector:
                 issues.append(f"management_team.{column} must be an array")
                 score -= 0.1
             else:
+                # Check team size - should have 1-3 profiles per column (2-6 total)
+                profile_count = len(mgmt[column])
+                if profile_count == 0:
+                    issues.append(f"management_team.{column} is empty - need at least 1 profile")
+                    score -= 0.2
+                elif profile_count > 3:
+                    issues.append(f"management_team.{column} has {profile_count} profiles - maximum is 3 per column")
+                    score -= 0.1
+                
                 # Validate individual profiles
                 for i, profile in enumerate(mgmt[column]):
                     profile_score = self._validate_management_profile(profile, f"{column}[{i}]", issues, invalid_types)
                     score *= profile_score
+        
+        # Check total team size (2-6 members total)
+        total_profiles = 0
+        if "left_column_profiles" in mgmt and isinstance(mgmt["left_column_profiles"], list):
+            total_profiles += len(mgmt["left_column_profiles"])
+        if "right_column_profiles" in mgmt and isinstance(mgmt["right_column_profiles"], list):
+            total_profiles += len(mgmt["right_column_profiles"])
+        
+        if total_profiles < 2:
+            issues.append(f"Management team has only {total_profiles} members - minimum is 2")
+            score -= 0.2
+        elif total_profiles > 6:
+            issues.append(f"Management team has {total_profiles} members - maximum is 6")
+            score -= 0.1
         
         return score
     

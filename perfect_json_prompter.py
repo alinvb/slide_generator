@@ -151,6 +151,24 @@ QUALITY STANDARD: Your JSON must be so perfect that it requires ZERO fixes or va
                             "Former VP Engineering at Fortune 500 tech company",
                             "15+ years experience in SaaS and enterprise software"
                         ]
+                    },
+                    {
+                        "name": "Michael Chen",
+                        "role_title": "Chief Financial Officer",
+                        "experience_bullets": [
+                            "Former CFO at high-growth SaaS company with successful IPO",
+                            "15+ years investment banking and corporate finance experience",
+                            "Led $100M+ funding rounds and M&A transactions"
+                        ]
+                    },
+                    {
+                        "name": "Lisa Rodriguez",
+                        "role_title": "Chief Marketing Officer",
+                        "experience_bullets": [
+                            "Built marketing teams at 3 unicorn startups",
+                            "Former VP Marketing at Fortune 500 enterprise software company",
+                            "Expert in product marketing and demand generation"
+                        ]
                     }
                 ],
                 "right_column_profiles": [
@@ -161,6 +179,24 @@ QUALITY STANDARD: Your JSON must be so perfect that it requires ZERO fixes or va
                             "Architected scalable platform serving 1M+ users",
                             "Former Principal Engineer at leading cloud provider",
                             "Expert in AI/ML infrastructure and data platforms"
+                        ]
+                    },
+                    {
+                        "name": "David Park",
+                        "role_title": "Chief Operations Officer", 
+                        "experience_bullets": [
+                            "Scaled operations from 10 to 1000+ employees",
+                            "Former VP Operations at leading tech unicorn",
+                            "Expert in international expansion and process optimization"
+                        ]
+                    },
+                    {
+                        "name": "Amanda Williams",
+                        "role_title": "Chief People Officer",
+                        "experience_bullets": [
+                            "Built talent acquisition and retention programs",
+                            "Former CHRO at high-growth technology companies", 
+                            "Expert in scaling engineering and sales teams"
                         ]
                     }
                 ]
