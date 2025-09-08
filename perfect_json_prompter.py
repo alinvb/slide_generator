@@ -420,92 +420,31 @@ QUALITY STANDARD: Your JSON must be so perfect that it requires ZERO fixes or va
         return condensed
     
     def create_interview_completion_prompt(self, messages: List[Dict[str, Any]]) -> str:
-        """Create enhanced prompt for when interview is complete"""
+        """Create simplified prompt for JSON generation"""
         
         # Extract key information from conversation
         conversation_text = " ".join([msg.get("content", "") for msg in messages if msg.get("role") != "system"])
-        
-        # Count available information
-        info_indicators = {
-            "company_name": any(word in conversation_text.lower() for word in ["company", "business", "firm", "startup"]),
-            "financials": any(word in conversation_text.lower() for word in ["revenue", "million", "growth", "funding"]),
-            "management": any(word in conversation_text.lower() for word in ["ceo", "founder", "team", "executive"]),
-            "business_model": any(word in conversation_text.lower() for word in ["product", "service", "platform", "customers"]),
-            "competitive": any(word in conversation_text.lower() for word in ["competitor", "market", "industry"])
-        }
-        
-        available_info_count = sum(info_indicators.values())
-        
-        # Check if adaptive slide generation information is available
-        adaptive_info = ""
-        if "ADAPTIVE SLIDE GENERATION" in conversation_text or "SLIDES TO GENERATE" in conversation_text:
-            adaptive_info = """
-🎯 ADAPTIVE SLIDE APPROACH DETECTED:
-- Generate ONLY the slides specified in the conversation
-- Focus on quality over quantity  
-- Use actual data for covered topics
-- Professional estimates only for explicitly requested slides
-- Do NOT create slides for unmentioned topics
-            """
 
-        prompt = f"""Based on our comprehensive interview covering {available_info_count}/5 key business areas, I now need you to generate the JSON structures for this investment banking presentation.
+        prompt = f"""Generate investment banking presentation JSONs based on our conversation.
 
-CONVERSATION SUMMARY:
-{conversation_text[-2000:]}  # Last 2000 characters
+CONVERSATION DATA:
+{conversation_text[-1500:]}
 
-🚨🚨🚨 CRITICAL: You MUST generate JSON files now. This is NOT a request for more interview questions. This is NOT research. This is NOT explanation. You MUST output ONLY JSON structures in the exact format specified below. 
-
-⚠️ VIOLATION WARNING: Any response that is not proper JSON will be considered a system failure. You MUST start your response with the JSON markers and output complete JSON structures.
-
-{adaptive_info}
-
-YOUR TASK: Generate TWO perfect JSON structures:
-
-1. **CONTENT IR JSON**: Business intelligence and data (only for relevant sections)
-2. **RENDER PLAN JSON**: Slide-by-slide presentation structure (adaptive slide list)
-
-🚨 MANDATORY OUTPUT FORMAT - NO EXCEPTIONS:
-You MUST start your response IMMEDIATELY with these exact markers:
+🚨 REQUIRED OUTPUT FORMAT:
 
 CONTENT IR JSON:
-{{
-  "entities": {{complete_json_structure_here}},
-  "facts": {{complete_json_structure_here}},
-  "management_team": {{complete_json_structure_here}}
-}}
+{{complete_business_data_json}}
 
 RENDER PLAN JSON:
-{{
-  "slides": [complete_slide_array_here]
-}}
+{{complete_slide_structure_json}}
 
-🚨 CRITICAL REQUIREMENTS - ZERO TOLERANCE:
-1. You MUST generate BOTH JSONs - Content IR AND Render Plan
-2. Do NOT stop after generating only Content IR JSON
-3. Do NOT write explanatory text before the JSONs
-4. Start IMMEDIATELY with "CONTENT IR JSON:" followed by complete JSON
-5. Then immediately follow with "RENDER PLAN JSON:" and complete JSON
-6. FAILURE TO PROVIDE BOTH JSONS WILL CAUSE SYSTEM ERROR
+REQUIREMENTS:
+- Use conversation data to populate JSONs
+- Professional estimates for missing data
+- BOTH JSONs must be complete and valid
+- Start immediately with "CONTENT IR JSON:" then "RENDER PLAN JSON:"
 
-{self.create_enhanced_system_prompt()}
-
-SPECIFIC INSTRUCTIONS FOR THIS COMPANY:
-- Use the actual company information discussed in our conversation
-- For adaptive generation: ONLY create sections for slides that were specified
-- Fill missing details with realistic, professional estimates ONLY for requested slides
-- Ensure all financial projections are growth-oriented and realistic
-- Create compelling buyer profiles based on the company's industry
-- Make management team profiles professional and achievement-focused
-
-🚨 CRITICAL REMINDER: 
-- DO NOT ask more interview questions
-- DO NOT request additional information  
-- GENERATE the JSON structures NOW (adaptive or complete based on instructions)
-- Focus on QUALITY over quantity - better few great slides than many poor ones
-- Your JSON must be FLAWLESS for the slides you include
-- This goes directly into a $10M+ investment banking presentation
-
-Generate the perfect JSONs immediately:"""
+Generate both JSONs now:"""
 
         return prompt
     
