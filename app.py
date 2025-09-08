@@ -13,6 +13,13 @@ from executor import execute_plan
 from catalog_loader import TemplateCatalog
 from brand_extractor import BrandExtractor
 from executive_search import ExecutiveSearchEngine, auto_generate_management_data
+from auto_improvement_integration import (
+    auto_improvement_integrator, 
+    integrate_auto_improvement_with_app, 
+    auto_improve_if_enabled,
+    render_json_validation_status,
+    get_quick_suggestions
+)
 
 def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
     """
@@ -50,26 +57,54 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
         'growth_strategy_data', 'investor_process_data', 'margin_cost_data'
     ]
     
-    # Required slide order - EXACTLY 14 slides (NO DUPLICATES)
-    required_slide_order = [
-        'management_team', 'historical_financial_performance', 'margin_cost_resilience',
-        'investor_considerations', 'competitive_positioning', 'product_service_footprint',
-        'business_overview', 'precedent_transactions', 'valuation_overview',
-        'investor_process_overview', 'growth_strategy_projections', 'sea_conglomerates',
-        'buyer_profiles', 'buyer_profiles'
-    ]
+    # ADAPTIVE slide order - only create slides that were requested
+    # Don't force slides with no content - respect the adaptive generation decision
+    current_slides = []
+    if 'slides' in fixed_render_plan:
+        current_slides = [slide.get('template', '') for slide in fixed_render_plan['slides']]
     
-    print(f"🔧 MANDATORY: Required slide count: {len(required_slide_order)}")
+    print(f"🔧 ADAPTIVE: Current slides from generation: {current_slides}")
+    print(f"🔧 ADAPTIVE: Will enhance these {len(current_slides)} slides instead of forcing 14")
     
-    print(f"🔧 MANDATORY: Required Content IR sections: {len(required_content_ir_sections)}")
-    print(f"🔧 MANDATORY: Required slide order: {len(required_slide_order)}")
     
-    # Use the already fixed content IR from comprehensive_json_fix
-    # Additional legacy compatibility checks for any remaining issues
-    print("🔧 MANDATORY: Checking Content IR sections...")
-    for section in required_content_ir_sections:
-        if section not in fixed_content_ir:
-            print(f"❌ MISSING: {section} - Adding mandatory section")
+    # ADAPTIVE APPROACH: Only add Content IR sections that are needed for the actual slides
+    print("🔧 ADAPTIVE: Only enhancing Content IR sections needed for generated slides...")
+    
+    # Determine which Content IR sections are actually needed based on generated slides
+    needed_sections = set(['entities'])  # Always need entities for company info
+    
+    for slide_template in current_slides:
+        if slide_template == 'business_overview':
+            needed_sections.add('business_overview_data')
+        elif slide_template == 'historical_financial_performance':
+            needed_sections.update(['facts', 'charts'])
+        elif slide_template == 'management_team':
+            needed_sections.add('management_team')
+        elif slide_template == 'product_service_footprint':
+            needed_sections.add('product_service_data')
+        elif slide_template == 'growth_strategy_projections':
+            needed_sections.add('growth_strategy_data')
+        elif slide_template == 'valuation_overview':
+            needed_sections.add('valuation_data')
+        elif slide_template == 'precedent_transactions':
+            needed_sections.add('precedent_transactions')
+        elif slide_template == 'competitive_positioning':
+            needed_sections.add('competitive_analysis')
+        elif slide_template == 'sea_conglomerates':
+            needed_sections.add('sea_conglomerates')
+        elif slide_template == 'financial_buyers':
+            needed_sections.add('financial_buyers')
+        elif slide_template == 'strategic_buyers':
+            needed_sections.add('strategic_buyers')
+        elif slide_template == 'investor_considerations':
+            needed_sections.add('investor_considerations')
+        elif slide_template == 'margin_cost_resilience':
+            needed_sections.add('margin_cost_data')
+        elif slide_template == 'investor_process_overview':
+            needed_sections.add('investor_process_data')
+    
+    print(f"🔧 ADAPTIVE: Need these {len(needed_sections)} sections: {needed_sections}")
+    print("🔧 ADAPTIVE: Only adding missing sections that are actually needed...")
     
     # Add missing sections
     if 'charts' not in fixed_content_ir:
@@ -4082,9 +4117,77 @@ with st.sidebar:
             help="Enter your Anthropic Claude API key"
         )
     
+    # Store in session state for auto-improvement system
+    st.session_state['api_key'] = api_key
+    st.session_state['model'] = selected_model
+    st.session_state['api_service'] = api_service
+    
     if not api_key:
         service_name = "Perplexity" if api_service == "perplexity" else "Claude"
         st.warning(f"⚠️ Please enter your {service_name} API key to use the AI copilot")
+    
+    # 🔧 AUTO-IMPROVEMENT SYSTEM INTEGRATION
+    # Render auto-improvement controls in sidebar
+    st.markdown("---")
+    st.markdown("### 🔧 Auto-Improvement System")
+    
+    # Enable/disable toggle
+    auto_improve_enabled = st.toggle(
+        "Enable Auto-Improvement",
+        value=st.session_state.get('auto_improve_enabled', False),
+        help="Automatically improve JSON quality using API calls after generation"
+    )
+    st.session_state['auto_improve_enabled'] = auto_improve_enabled
+    
+    if auto_improve_enabled and api_key:
+        # Configuration options
+        target_score = st.slider(
+            "Target Quality Score",
+            min_value=0.8,
+            max_value=1.0,
+            value=st.session_state.get('auto_improve_target_score', 0.95),
+            step=0.05,
+            help="Target quality score for JSON improvement (0.8-1.0)"
+        )
+        st.session_state['auto_improve_target_score'] = target_score
+        
+        max_iterations = st.selectbox(
+            "Max API Iterations",
+            options=[3, 5, 7, 10],
+            index=st.session_state.get('auto_improve_max_iterations_idx', 1),
+            help="Maximum number of API calls for improvement"
+        )
+        st.session_state['auto_improve_max_iterations'] = max_iterations
+        st.session_state['auto_improve_max_iterations_idx'] = [3, 5, 7, 10].index(max_iterations)
+        
+        # API usage statistics
+        usage_stats = st.session_state.get('auto_improve_api_usage', {
+            "total_calls": 0, "successful_calls": 0, "total_tokens": 0, "total_time": 0.0
+        })
+        
+        if usage_stats["total_calls"] > 0:
+            st.markdown("#### 📊 API Usage Stats")
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.metric("Total Calls", usage_stats["total_calls"])
+                st.metric("Success Rate", f"{usage_stats['successful_calls']}/{usage_stats['total_calls']}")
+            
+            with col2:
+                st.metric("Total Tokens", f"{usage_stats['total_tokens']:,}")
+                avg_time = usage_stats['total_time'] / max(usage_stats['total_calls'], 1)
+                st.metric("Avg Time", f"{avg_time:.1f}s")
+        
+        # Manual improvement trigger
+        if st.button("🔧 Improve Current JSON", help="Manually trigger JSON improvement"):
+            if st.session_state.get('content_ir_json') and st.session_state.get('render_plan_json'):
+                st.success("🔄 Improvement will be triggered after next generation")
+                st.session_state['trigger_manual_improvement'] = True
+            else:
+                st.warning("Generate JSON first before improvement")
+    
+    elif auto_improve_enabled and not api_key:
+        st.warning("⚠️ Auto-improvement requires API key")
     
     st.markdown("---")
     
@@ -4565,11 +4668,72 @@ Start immediately with 'CONTENT IR JSON:' followed by the complete JSON, then 'R
                                 if content_ir and 'entities' in content_ir and 'company' in content_ir['entities']:
                                     company_name_extracted = content_ir['entities']['company'].get('name', 'Unknown_Company')
                                 
+                                # 🔧 AUTO-IMPROVEMENT INTEGRATION
+                                # Apply auto-improvement if enabled
+                                if st.session_state.get('auto_improve_enabled', False) and st.session_state.get('api_key'):
+                                    with st.spinner("🔧 Auto-improving JSON quality..."):
+                                        try:
+                                            from enhanced_auto_improvement_system import auto_improve_json_with_api_calls
+                                            
+                                            # Improve Content IR
+                                            improved_content_ir, is_perfect_content, content_report = auto_improve_json_with_api_calls(
+                                                content_ir, "content_ir", 
+                                                st.session_state['api_key'],
+                                                st.session_state.get('model', 'sonar-pro'),
+                                                st.session_state.get('api_service', 'perplexity')
+                                            )
+                                            
+                                            # Improve Render Plan
+                                            improved_render_plan, is_perfect_render, render_report = auto_improve_json_with_api_calls(
+                                                render_plan, "render_plan",
+                                                st.session_state['api_key'], 
+                                                st.session_state.get('model', 'sonar-pro'),
+                                                st.session_state.get('api_service', 'perplexity')
+                                            )
+                                            
+                                            # Update with improved JSONs
+                                            content_ir = improved_content_ir
+                                            render_plan = improved_render_plan
+                                            
+                                            # Show improvement results
+                                            if is_perfect_content and is_perfect_render:
+                                                st.success("✅ JSONs auto-improved to target quality!")
+                                            else:
+                                                st.info("ℹ️ JSONs partially improved via auto-improvement")
+                                            
+                                            # Update API usage stats
+                                            usage_stats = st.session_state.get('auto_improve_api_usage', {
+                                                "total_calls": 0, "successful_calls": 0, "total_tokens": 0, "total_time": 0.0
+                                            })
+                                            
+                                            # Simple parsing of improvement reports for statistics
+                                            for report in [content_report, render_report]:
+                                                if "API Calls Made:" in report:
+                                                    try:
+                                                        lines = report.split('\n')
+                                                        for line in lines:
+                                                            if "API Calls Made:" in line:
+                                                                calls = int(line.split(':')[1].strip())
+                                                                usage_stats["total_calls"] += calls
+                                                            elif "Successful Calls:" in line:
+                                                                success_part = line.split(':')[1].strip()
+                                                                successful = int(success_part.split('/')[0])
+                                                                usage_stats["successful_calls"] += successful
+                                                    except:
+                                                        pass
+                                            
+                                            st.session_state['auto_improve_api_usage'] = usage_stats
+                                            
+                                        except Exception as e:
+                                            st.warning(f"⚠️ Auto-improvement failed: {str(e)} - Using original JSONs")
+                                
                                 files_data = create_downloadable_files(content_ir, render_plan, company_name_extracted)
                                 
                                 # Update session state for auto-population
                                 st.session_state["generated_content_ir"] = files_data['content_ir_json']
                                 st.session_state["generated_render_plan"] = files_data['render_plan_json']
+                                st.session_state["content_ir_json"] = content_ir  # Store parsed JSON for validation
+                                st.session_state["render_plan_json"] = render_plan  # Store parsed JSON for validation
                                 st.session_state["files_ready"] = True
                                 st.session_state["files_data"] = files_data
                                 st.session_state["auto_populated"] = True
@@ -6077,6 +6241,95 @@ with tab_json:
     # Check if JSONs were auto-populated from AI Copilot
     auto_populated = st.session_state.get("auto_populated", False)
     files_ready = st.session_state.get("files_ready", False)
+    
+    # 🔧 AUTO-IMPROVEMENT VALIDATION STATUS
+    if st.session_state.get('auto_improve_enabled', False) and st.session_state.get('api_key'):
+        st.markdown("### 🔧 JSON Quality Status")
+        
+        # Quick validation for both JSONs
+        content_ir_json = st.session_state.get('content_ir_json')
+        render_plan_json = st.session_state.get('render_plan_json')
+        
+        if content_ir_json and render_plan_json:
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                # Get quick suggestions for Content IR
+                content_suggestions = get_quick_suggestions(content_ir_json, "content_ir")
+                content_status = "🟢 Good" if len(content_suggestions) <= 2 else "🟡 Needs Improvement"
+                st.metric("Content IR Status", content_status)
+                if content_suggestions:
+                    st.caption(f"{len(content_suggestions)} suggestions available")
+            
+            with col2:
+                # Get quick suggestions for Render Plan
+                render_suggestions = get_quick_suggestions(render_plan_json, "render_plan")
+                render_status = "🟢 Good" if len(render_suggestions) <= 1 else "🟡 Needs Improvement"
+                st.metric("Render Plan Status", render_status)
+                if render_suggestions:
+                    st.caption(f"{len(render_suggestions)} suggestions available")
+            
+            with col3:
+                # Manual improvement button
+                if st.button("🔧 Improve JSONs Now", help="Run API-based improvement on current JSONs"):
+                    with st.spinner("🔧 Improving JSON quality..."):
+                        try:
+                            from enhanced_auto_improvement_system import auto_improve_json_with_api_calls
+                            
+                            # Improve Content IR
+                            improved_content_ir, is_perfect_content, content_report = auto_improve_json_with_api_calls(
+                                content_ir_json, "content_ir", 
+                                st.session_state['api_key'],
+                                st.session_state.get('model', 'sonar-pro'),
+                                st.session_state.get('api_service', 'perplexity')
+                            )
+                            
+                            # Improve Render Plan
+                            improved_render_plan, is_perfect_render, render_report = auto_improve_json_with_api_calls(
+                                render_plan_json, "render_plan",
+                                st.session_state['api_key'], 
+                                st.session_state.get('model', 'sonar-pro'),
+                                st.session_state.get('api_service', 'perplexity')
+                            )
+                            
+                            # Update session state with improved JSONs
+                            st.session_state['content_ir_json'] = improved_content_ir
+                            st.session_state['render_plan_json'] = improved_render_plan
+                            
+                            # Update the string representations for editor
+                            st.session_state["generated_content_ir"] = json.dumps(improved_content_ir, indent=2)
+                            st.session_state["generated_render_plan"] = json.dumps(improved_render_plan, indent=2)
+                            
+                            # Show results
+                            if is_perfect_content and is_perfect_render:
+                                st.success("✅ Both JSONs improved to target quality!")
+                            else:
+                                st.info("ℹ️ JSONs partially improved - check validation results")
+                            
+                            st.rerun()
+                            
+                        except Exception as e:
+                            st.error(f"❌ Improvement failed: {str(e)}")
+            
+            # Show detailed suggestions if any
+            all_suggestions = content_suggestions + render_suggestions
+            if all_suggestions:
+                with st.expander(f"💡 Quick Improvement Suggestions ({len(all_suggestions)})", expanded=False):
+                    st.subheader("Content IR Suggestions")
+                    if content_suggestions:
+                        for suggestion in content_suggestions:
+                            st.write(f"• {suggestion}")
+                    else:
+                        st.write("✅ No major issues found")
+                    
+                    st.subheader("Render Plan Suggestions")
+                    if render_suggestions:
+                        for suggestion in render_suggestions:
+                            st.write(f"• {suggestion}")
+                    else:
+                        st.write("✅ No major issues found")
+        
+        st.markdown("---")
     
     if auto_populated and files_ready:
         files_data = st.session_state.get("files_data", {})
