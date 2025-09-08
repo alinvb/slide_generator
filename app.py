@@ -2967,92 +2967,100 @@ def analyze_conversation_progress(messages):
     
     conversation_text = " ".join(filtered_content).lower()
     
-    # THE 14 MANDATORY TOPICS - must ask about ALL before JSON generation
+    # THE 14 MANDATORY TOPICS - IN CORRECT 1-14 ORDER - must ask about ALL before JSON generation
     topics_checklist = {
+        # TOPIC 1: Company Overview
         "business_overview": {
             "keywords": ["company", "business", "what does", "overview", "operations", "founded", "headquarters", "industry", "sector", "description"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip business", "skip overview"]),
-            "next_question": "Now let's discuss investor considerations. What are the key RISKS and OPPORTUNITIES investors should know about your business? What concerns might they have and how do you mitigate these risks? Include regulatory, competitive, operational, and market risks."
-        },
-        "investor_considerations": {
-            "keywords": ["risk", "opportunity", "investor", "considerations", "challenges", "mitigation", "concerns"],
-            "covered": False,
-            "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip investor", "skip risk"]),
             "next_question": "Now let's discuss your product/service footprint. What are your main offerings? Please provide the title and description for each product/service. Also, where do you operate geographically and what's your market coverage?"
         },
+        # TOPIC 2: Product/Service Footprint  
         "product_service_footprint": {
             "keywords": ["products", "services", "offerings", "geographic", "footprint", "coverage", "operations", "locations"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip product", "skip service", "skip footprint"]),
             "next_question": "Let's analyze your historical financial performance. Can you provide your revenue, EBITDA, margins, and key financial metrics for the last 3-5 years? What are your growth drivers and performance trends?"
         },
+        # TOPIC 3: Historical Financial Performance
         "historical_financial_performance": {
             "keywords": ["revenue", "financial", "ebitda", "margin", "historical", "years", "growth", "2021", "2022", "2023", "2024", "2025", "profit", "performance"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip financial", "skip historical"]),
             "next_question": "Now I need information about your management team. Can you provide names, titles, and brief backgrounds for 4-6 key executives including CEO, CFO, and other senior leaders?"
         },
+        # TOPIC 4: Management Team
         "management_team": {
             "keywords": ["management", "team", "executives", "ceo", "cfo", "founder", "leadership", "senior management"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip management", "skip team"]),
             "next_question": "Let's discuss your growth strategy and projections. What are your expansion plans, strategic initiatives, and financial projections for the next 3-5 years? Do you have market size/growth data I can use for charts?"
         },
+        # TOPIC 5: Growth Strategy
         "growth_strategy_projections": {
             "keywords": ["growth", "strategy", "expansion", "projections", "future", "strategic initiatives", "market size", "roadmap"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip growth", "skip strategy"]),
             "next_question": "How is your company positioned competitively? I need information about key competitors, your competitive advantages, market positioning, and differentiation factors."
         },
+        # TOPIC 6: Competitive Positioning
         "competitive_positioning": {
             "keywords": ["competitive", "competitors", "positioning", "comparison", "advantages", "differentiation", "market position"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip competitive", "skip positioning"]),
             "next_question": "Now let's examine precedent transactions. 🚨 IMPORTANT: Focus ONLY on private market M&A transactions where one company acquired another company (NOT public market transactions, IPOs, or funding rounds like Series A/B/C/etc.). I need recent corporate acquisitions in your industry with: target company name, acquiring company name (must be a specific corporation/entity, NOT 'public market' or 'series K'), transaction date, enterprise value, target revenue, and valuation multiples. Exclude any transactions that are public offerings or venture funding rounds."
         },
+        # TOPIC 7: Precedent Transactions
         "precedent_transactions": {
             "keywords": ["precedent", "transactions", "m&a", "acquisitions", "deals", "transaction multiples"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip precedent", "skip transactions"]),
             "next_question": "What valuation methodologies and overview would be most appropriate for your business? I need enterprise values, methodology assumptions, and your expected valuation range with rationale. This will help determine which buyers have sufficient financial capacity."
         },
+        # TOPIC 8: Valuation Overview
         "valuation_overview": {
             "keywords": ["valuation", "multiple", "methodology", "worth", "assumptions", "enterprise value", "dcf", "comparable"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip valuation", "skip multiple"]),
             "next_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT companies based on YOUR company's location and market presence. Consider companies from your region/country AND major players with operations in your market. Avoid generic global lists - tailor suggestions to your specific geographic and industry context. I need 4-5 strategic buyers with company name, strategic rationale (3-30 words), key synergies, fit assessment, and financial capacity vs your valuation."
         },
+        # TOPIC 9: Strategic Buyers  
         "strategic_buyers": {
             "keywords": ["strategic buyers", "strategic buyer", "strategic rationale", "corporate buyer", "industry player", "strategic acquisition", "strategic synergies", "strategic fit", "buyer name", "description", "fit assessment", "financial capacity"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip strategic", "skip buyer"]),
             "next_question": "Now let's identify financial buyers—private equity firms, VCs, and other financial investors. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT funds based on YOUR company's location and market. Consider local/regional funds, sovereign wealth funds, and international funds with strong presence in your market. Tailor suggestions to your geographic context rather than generic global lists. I need 4-5 financial buyers with fund name, investment rationale (3-30 words), key synergies, fit assessment, and financial capacity vs your valuation."
         },
+        # TOPIC 10: Financial Buyers
         "financial_buyers": {
             "keywords": ["financial buyers", "financial buyer", "private equity", "pe fund", "vc fund", "venture capital", "financial investor", "investment fund", "financial rationale", "financial synergies"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip financial", "skip pe"]),
             "next_question": "Let's identify potential global conglomerates and strategic acquirers. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT conglomerates based on YOUR company's location and industry. Consider major conglomerates from your region/country AND international conglomerates with significant operations in your market. Prioritize companies that understand your local market dynamics and regulatory environment. I need at least 4-5 regionally relevant conglomerates with strong market knowledge in your geography."
         },
-        "margin_cost_resilience": {
-            "keywords": ["margin", "cost", "resilience", "stability", "profitability", "efficiency", "cost management"],
-            "covered": False,
-            "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip margin", "skip cost"]),
-            "next_question": "Let's identify potential global conglomerates and strategic acquirers. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT conglomerates based on YOUR company's location and industry. Consider major conglomerates from your region/country AND international conglomerates with significant operations in your market. Prioritize companies that understand your local market dynamics and regulatory environment. I need at least 4-5 regionally relevant conglomerates with strong market knowledge in your geography."
-        },
+        # TOPIC 11: SEA Conglomerates
         "sea_conglomerates": {
             "keywords": ["conglomerate", "global conglomerate", "multinational conglomerate", "international conglomerate", "holding company", "diversified corporation", "multinational corporation", "global corporation"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip conglomerate", "skip global"]),
             "next_question": "Let's discuss margin and cost data. Can you provide your EBITDA margins for the last 2-3 years, key cost management initiatives, and main risk mitigation strategies for cost control?"
         },
+        # TOPIC 12: Margin/Cost Resilience
         "margin_cost_resilience": {
             "keywords": ["margin", "cost", "resilience", "stability", "profitability", "efficiency", "cost management"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip margin", "skip cost"]),
+            "next_question": "Now let's discuss investor considerations. What are the key RISKS and OPPORTUNITIES investors should know about your business? What concerns might they have and how do you mitigate these risks? Include regulatory, competitive, operational, and market risks."
+        },
+        # TOPIC 13: Investor Considerations
+        "investor_considerations": {
+            "keywords": ["risk", "opportunity", "investor", "considerations", "challenges", "mitigation", "concerns"],
+            "covered": False,
+            "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip investor", "skip risk"]),
             "next_question": "Finally, what would the investment/acquisition process look like? I need: diligence topics investors would focus on, key synergy opportunities, main risk factors and mitigation strategies, and expected timeline for the transaction process."
         },
+        # TOPIC 14: Investor Process Overview
         "investor_process_overview": {
             "keywords": ["process", "diligence", "due diligence", "timeline", "synergy", "risk factors", "transaction process"],
             "covered": False,
