@@ -4582,12 +4582,26 @@ Let's start: **What is your company name and give me a brief overview of what yo
                     # Add AI response to history
                     st.session_state.messages.append({"role": "assistant", "content": ai_response})
                     
-                    # Check if this response might contain JSON before attempting extraction
-                    # Only attempt JSON extraction if the response contains JSON-like content
-                    has_json_keywords = "content_ir" in ai_response.lower() and "render_plan" in ai_response.lower()
-                    has_json_structure = "{" in ai_response and "}" in ai_response and len(ai_response) > 500
+                    # Check if this response contains FINAL JSON generation (not interview responses)
+                    # Only attempt JSON extraction when LLM generates complete JSON structures
+                    has_complete_json_keywords = ("content_ir" in ai_response.lower() and "render_plan" in ai_response.lower() and 
+                                                 "entities" in ai_response.lower() and "slides" in ai_response.lower())
+                    has_substantial_json = "{" in ai_response and "}" in ai_response and len(ai_response) > 3000  # Large JSON response
                     
-                    if has_json_keywords or has_json_structure:
+                    # Look for explicit JSON generation completion signals
+                    completion_signals = [
+                        "here are the complete json files",
+                        "generated json structures",
+                        "pitch deck json files",
+                        "complete content_ir and render_plan",
+                        "json generation is complete",
+                        "based on our interview, here are",
+                        "final json files for your pitch deck"
+                    ]
+                    has_completion_signal = any(signal in ai_response.lower() for signal in completion_signals)
+                    
+                    # Only extract JSON when we have clear signals that the LLM generated final JSONs
+                    if (has_complete_json_keywords and has_substantial_json) or has_completion_signal:
                         
                         # Check if JSONs were generated and extract them with comprehensive validation
                         content_ir, render_plan, validation_results = extract_and_validate_jsons(ai_response)
