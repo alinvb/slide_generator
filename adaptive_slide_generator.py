@@ -183,7 +183,7 @@ class AdaptiveSlideGenerator:
             elif slide_info.get("score", 0) >= 0.25:  # Lower threshold for optional
                 optional_slides.append(slide_name)
         
-        # Ensure minimum viable deck (at least 3 slides)
+        # Ensure minimum viable deck (at least 3 slides) and allow up to all 14 slides
         selected_slides = core_slides
         
         if len(selected_slides) < 3:
@@ -195,6 +195,15 @@ class AdaptiveSlideGenerator:
             )
             needed = 3 - len(selected_slides)
             selected_slides.extend(optional_by_score[:needed])
+        
+        # Add all remaining high-scoring optional slides (no artificial 8-slide limit)
+        # This allows for comprehensive 3-14 slide decks as requested
+        remaining_optional = [slide for slide in optional_slides if slide not in selected_slides]
+        high_scoring_optional = [
+            slide for slide in remaining_optional 
+            if analysis.get(slide, {}).get("score", 0) >= 0.35  # Lower threshold for comprehensive coverage
+        ]
+        selected_slides.extend(high_scoring_optional)
         
         # Handle buyer profiles (can be split into strategic/financial)
         if "buyer_profiles" in selected_slides:

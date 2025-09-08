@@ -4731,6 +4731,18 @@ Generate the JSON structures now with this adaptive approach."""
                         
                         # Add AI response to history
                         st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                        
+                        # Check for research flow and satisfaction confirmation for normal responses
+                        from research_flow_handler import research_flow_handler
+                        
+                        needs_check, satisfaction_question = research_flow_handler.needs_satisfaction_check(st.session_state.messages)
+                        
+                        if needs_check:
+                            # Add satisfaction check to conversation
+                            enhanced_response = ai_response + "\n\n" + satisfaction_question
+                            # Update the last message with the satisfaction question
+                            st.session_state.messages[-1]["content"] = enhanced_response
+                            ai_response = enhanced_response
                     
                     # Check if this response contains FINAL JSON generation (not interview responses)
                     # Only attempt JSON extraction when LLM generates complete JSON structures
@@ -4764,7 +4776,20 @@ Generate the JSON structures now with this adaptive approach."""
                             # Successfully extracted JSONs - continue with processing
                             st.success(f"✅ **JSON Extraction Successful!** Found {'Content IR' if content_ir else 'No Content IR'} and {'Render Plan' if render_plan else 'No Render Plan'}")
                             
-                            # Add manual trigger for auto-population
+                            # Handle partial JSON generation - Create render plan if missing
+                            if content_ir and not render_plan:
+                                st.warning("⚠️ **Partial Generation Detected**: Content IR found but Render Plan missing. Generating adaptive render plan...")
+                                
+                                # Generate adaptive render plan from the content IR
+                                try:
+                                    from adaptive_slide_generator import generate_adaptive_presentation
+                                    slide_list, adaptive_render_plan, analysis_report = generate_adaptive_presentation(st.session_state.messages)
+                                    render_plan = adaptive_render_plan
+                                    st.success("✅ **Render Plan Auto-Generated** from conversation analysis!")
+                                except Exception as e:
+                                    st.error(f"❌ Failed to generate render plan: {str(e)}")
+                            
+                            # Add manual trigger for auto-population (now works with partial JSONs)
                             if content_ir and render_plan:
                                 if st.button("🚀 **Force Auto-Populate JSONs Now**", key="force_populate", type="primary"):
                                     print(f"[FORCE AUTO-POPULATE] Manual trigger activated...")
