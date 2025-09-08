@@ -869,9 +869,21 @@ def validate_json_structure_against_examples(content_ir, render_plan):
                         validation_results['recent_fixes_validation']['timeline_format'] = False
                         validation_results['structure_issues'].append('Timeline items must be strings or dicts with date/description')
         
-        # 2. Buyer descriptions validation (no N/A allowed)
+        # 2. Buyer descriptions validation (no N/A allowed, sections must exist)
         for buyer_type in ['strategic_buyers', 'financial_buyers']:
             buyers = content_ir.get(buyer_type, [])
+            
+            # Check if buyer section exists and has sufficient content
+            if not buyers:
+                validation_results['recent_fixes_validation']['buyer_descriptions'] = False
+                validation_results['structure_issues'].append(f'MISSING: {buyer_type} section is required but not found')
+                print(f"[ENHANCED VALIDATION] ❌ Missing required section: {buyer_type}")
+            elif len(buyers) < 3:
+                validation_results['recent_fixes_validation']['buyer_descriptions'] = False
+                validation_results['structure_issues'].append(f'{buyer_type} should have at least 3-4 entries, found only {len(buyers)}')
+                print(f"[ENHANCED VALIDATION] ❌ {buyer_type} has insufficient entries: {len(buyers)}")
+            
+            # Check individual buyer entries
             for i, buyer in enumerate(buyers):
                 if isinstance(buyer, dict):
                     description = buyer.get('description', '')
@@ -879,6 +891,14 @@ def validate_json_structure_against_examples(content_ir, render_plan):
                         validation_results['recent_fixes_validation']['buyer_descriptions'] = False
                         validation_results['structure_issues'].append(f'{buyer_type}[{i}] missing proper description (has: {description})')
                         print(f"[ENHANCED VALIDATION] ❌ {buyer_type}[{i}] has invalid description: {description}")
+                    
+                    # Check for required fields
+                    required_fields = ['buyer_name', 'description', 'strategic_rationale', 'key_synergies', 'fit']
+                    for field in required_fields:
+                        if not buyer.get(field):
+                            validation_results['recent_fixes_validation']['buyer_descriptions'] = False
+                            validation_results['structure_issues'].append(f'{buyer_type}[{i}] missing required field: {field}')
+                            print(f"[ENHANCED VALIDATION] ❌ {buyer_type}[{i}] missing field: {field}")
         
         # 3. Financial formatting validation (use compact notation)
         transactions = content_ir.get('precedent_transactions', [])
@@ -2125,16 +2145,31 @@ def create_validation_feedback_for_llm(validation_results):
     feedback_sections.append('  "ebitda_margins": [-166, -25, -5, 5.7, 15.0]')
     feedback_sections.append('}')
     
-    # Add buyer profile requirements
-    feedback_sections.append("\n🚨 BUYER PROFILES: ALL buyer profiles must have 'description' field with actual content:")
+    # Add buyer profile requirements - MANDATORY SECTIONS
+    feedback_sections.append("\n🚨 CRITICAL: You MUST include BOTH strategic_buyers AND financial_buyers sections in Content IR!")
+    feedback_sections.append("\n📊 STRATEGIC BUYERS (Required - at least 3-4 companies):")
     feedback_sections.append('"strategic_buyers": [')
     feedback_sections.append('  {')
-    feedback_sections.append('    "buyer_name": "NVIDIA",')
-    feedback_sections.append('    "description": "World\'s largest AI chipmaker and GPU/cloud infrastructure leader.",')
-    feedback_sections.append('    "strategic_rationale": "Expand AI infrastructure...",')
-    feedback_sections.append('    "key_synergies": "Integrate platform...",')
-    feedback_sections.append('    "fit": "High (9/10)"')
+    feedback_sections.append('    "buyer_name": "Microsoft",')
+    feedback_sections.append('    "description": "Leading global cloud and enterprise software provider.",')
+    feedback_sections.append('    "strategic_rationale": "Enhance capabilities and enterprise solutions.",')
+    feedback_sections.append('    "key_synergies": "Cross-platform integration and enterprise access.",')
+    feedback_sections.append('    "fit": "High (9/10)",')
+    feedback_sections.append('    "financial_capacity": "Very High"')
     feedback_sections.append('  }')
+    feedback_sections.append('  // Add 2-3 more strategic buyers...')
+    feedback_sections.append(']')
+    feedback_sections.append("\n💰 FINANCIAL BUYERS (Required - at least 3-4 firms):")
+    feedback_sections.append('"financial_buyers": [')
+    feedback_sections.append('  {')
+    feedback_sections.append('    "buyer_name": "Sequoia Capital",')
+    feedback_sections.append('    "description": "Top global VC with proven tech investment track record.",')
+    feedback_sections.append('    "strategic_rationale": "Invest in high-growth technology platforms.",')
+    feedback_sections.append('    "key_synergies": "Portfolio synergies and growth acceleration.",')
+    feedback_sections.append('    "fit": "High (8/10)",')
+    feedback_sections.append('    "financial_capacity": "Very High"')
+    feedback_sections.append('  }')
+    feedback_sections.append('  // Add 2-3 more financial buyers...')
     feedback_sections.append(']')
     
     # Add precedent transactions formatting

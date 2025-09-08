@@ -123,11 +123,23 @@ def fix_sea_conglomerates_data(data: Dict[str, Any]) -> Dict[str, Any]:
 
 def fix_buyer_profiles_data(data: Dict[str, Any]) -> Dict[str, Any]:
     """Fix buyer profiles slide data structure issues"""
+    print(f"[FIX] Fixing buyer profiles data. Input type: {type(data)}")
+    if isinstance(data, dict):
+        print(f"[FIX] Data keys: {list(data.keys())}")
+        if 'table_rows' in data:
+            print(f"[FIX] table_rows type: {type(data['table_rows'])}, length: {len(data['table_rows']) if isinstance(data['table_rows'], list) else 'N/A'}")
+    
     fixed_data = copy.deepcopy(data)
     
     # Ensure proper table structure for buyer profiles
     if 'table_rows' in fixed_data and isinstance(fixed_data['table_rows'], list):
-        for row in fixed_data['table_rows']:
+        for i, row in enumerate(fixed_data['table_rows']):
+            # CRITICAL: Check if row is a dictionary (not a list or string)
+            if not isinstance(row, dict):
+                print(f"[FIX] Invalid row type at index {i}: {type(row)}. Expected dict, got: {row}")
+                # Skip non-dict rows to avoid TypeError
+                continue
+                
             # Ensure all required fields exist with proper field name mapping
             required_fields = [
                 'buyer_name', 'description', 'strategic_rationale', 
