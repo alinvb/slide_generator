@@ -1190,13 +1190,13 @@ def validate_buyer_profiles_slide(slide, content_ir):
                         elif '[' in str(buyer[field]):
                             validation['empty_fields'].append(f"Buyer #{buyer_num} has placeholder {field}")
                     
-                    # Validate strategic_rationale length (10-20 words)
+                    # Validate strategic_rationale length (RELAXED: 3-50 words)
                     if 'strategic_rationale' in buyer and buyer['strategic_rationale']:
                         strategic_words = len(str(buyer['strategic_rationale']).split())
-                        if strategic_words < 10:
-                            validation['issues'].append(f"Buyer #{buyer_num} strategic_rationale too short: {strategic_words} words (requires 10-20 words)")
-                        elif strategic_words > 20:
-                            validation['issues'].append(f"Buyer #{buyer_num} strategic_rationale too long: {strategic_words} words (requires 10-20 words)")
+                        if strategic_words < 3:
+                            validation['warnings'].append(f"Buyer #{buyer_num} strategic_rationale quite short: {strategic_words} words")
+                        elif strategic_words > 50:
+                            validation['warnings'].append(f"Buyer #{buyer_num} strategic_rationale quite long: {strategic_words} words")
                     
                     # Validate fit format (score + 5-word rationale)
                     if 'fit' in buyer and buyer['fit']:
@@ -1204,14 +1204,15 @@ def validate_buyer_profiles_slide(slide, content_ir):
                         # Should contain both a score (like "High (9/10)") and a 5-word rationale
                         if not any(score in fit_text for score in ['High', 'Medium', 'Low']):
                             validation['issues'].append(f"Buyer #{buyer_num} fit missing score level (High/Medium/Low)")
-                        # Check if it has additional rationale after the score
+                        # Check if it has additional rationale after the score (RELAXED)
                         fit_parts = fit_text.split(')')
                         if len(fit_parts) < 2 or not fit_parts[1].strip():
-                            validation['issues'].append(f"Buyer #{buyer_num} fit missing 5-word rationale after score")
+                            validation['warnings'].append(f"Buyer #{buyer_num} fit missing rationale after score")
                         else:
                             rationale_words = len(fit_parts[1].strip().split())
-                            if rationale_words != 5:
-                                validation['issues'].append(f"Buyer #{buyer_num} fit rationale should be exactly 5 words, got {rationale_words} words")
+                            if rationale_words < 1:
+                                validation['warnings'].append(f"Buyer #{buyer_num} fit rationale empty")
+                            # No upper limit - let AI be flexible with rationale length
     
     elif has_table_rows and not has_content_ir_key:
         # Validate table_rows content - FIXED to handle your data structure
@@ -1231,13 +1232,13 @@ def validate_buyer_profiles_slide(slide, content_ir):
                         if field not in row or not row[field] or str(row[field]).strip() == '':
                             validation['empty_fields'].append(f"Table row #{row_num} missing or empty {field}")
                     
-                    # Validate strategic_rationale length (10-20 words) for table_rows
+                    # Validate strategic_rationale length (RELAXED: 3-50 words) for table_rows
                     if 'strategic_rationale' in row and row['strategic_rationale']:
                         strategic_words = len(str(row['strategic_rationale']).split())
-                        if strategic_words < 10:
-                            validation['issues'].append(f"Table row #{row_num} strategic_rationale too short: {strategic_words} words (requires 10-20 words)")
-                        elif strategic_words > 20:
-                            validation['issues'].append(f"Table row #{row_num} strategic_rationale too long: {strategic_words} words (requires 10-20 words)")
+                        if strategic_words < 3:
+                            validation['warnings'].append(f"Table row #{row_num} strategic_rationale quite short: {strategic_words} words")
+                        elif strategic_words > 50:
+                            validation['warnings'].append(f"Table row #{row_num} strategic_rationale quite long: {strategic_words} words")
                     
                     # Validate fit format (score + 5-word rationale) for table_rows
                     if 'fit' in row and row['fit']:
@@ -1245,14 +1246,15 @@ def validate_buyer_profiles_slide(slide, content_ir):
                         # Should contain both a score (like "High (9/10)") and a 5-word rationale
                         if not any(score in fit_text for score in ['High', 'Medium', 'Low']):
                             validation['issues'].append(f"Table row #{row_num} fit missing score level (High/Medium/Low)")
-                        # Check if it has additional rationale after the score
+                        # Check if it has additional rationale after the score (RELAXED)
                         fit_parts = fit_text.split(')')
                         if len(fit_parts) < 2 or not fit_parts[1].strip():
-                            validation['issues'].append(f"Table row #{row_num} fit missing 5-word rationale after score")
+                            validation['warnings'].append(f"Table row #{row_num} fit missing rationale after score")
                         else:
                             rationale_words = len(fit_parts[1].strip().split())
-                            if rationale_words != 5:
-                                validation['issues'].append(f"Table row #{row_num} fit rationale should be exactly 5 words, got {rationale_words} words")
+                            if rationale_words < 1:
+                                validation['warnings'].append(f"Table row #{row_num} fit rationale empty")
+                            # No upper limit - let AI be flexible with rationale length
                 elif isinstance(row, list):
                     if len(row) == 0:
                         validation['empty_fields'].append(f"Table row #{row_num} is empty")
@@ -3014,13 +3016,13 @@ def analyze_conversation_progress(messages):
             "keywords": ["precedent", "transactions", "m&a", "acquisitions", "deals", "transaction multiples"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip precedent", "skip transactions"]),
-            "next_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. Focus on REGIONALLY RELEVANT companies (Middle East, Asia, companies with presence in your market). I need 4-5 strategic buyers with company name, strategic rationale (10-20 words), key synergies, fit assessment, and financial capacity."
+            "next_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. 🚨 CRITICAL: Focus EXCLUSIVELY on REGIONALLY RELEVANT companies. Prioritize: (1) Middle Eastern companies (UAE, Saudi, Qatar, etc.), (2) Asian companies (Malaysia, Singapore, Indonesia, India, China), (3) Companies with strong regional presence/operations in your market. AVOID typical Western conglomerates unless they have significant regional operations. I need 4-5 strategic buyers with company name, strategic rationale (3-30 words), key synergies, fit assessment, and financial capacity."
         },
         "strategic_buyers": {
             "keywords": ["strategic buyers", "strategic", "acquirer", "acquisition", "corporate buyer", "industry player", "strategic rationale", "synergies"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip strategic", "skip buyer"]),
-            "next_question": "Now let's identify financial buyers—private equity firms, VCs, and other financial investors. Focus on REGIONALLY RELEVANT funds (Middle East, Asia, sovereign wealth funds, Islamic finance). I need 4-5 financial buyers with fund name, investment rationale (10-20 words), key synergies, fit assessment, and financial capacity."
+            "next_question": "Now let's identify financial buyers—private equity firms, VCs, and other financial investors. 🚨 CRITICAL: Focus EXCLUSIVELY on REGIONALLY RELEVANT funds. Prioritize: (1) Middle Eastern sovereign wealth funds (PIF, ADIA, QIA, Mubadala), (2) Asian PE/VC funds, (3) Islamic finance institutions, (4) Regional family offices and investment firms. AVOID typical Western PE firms unless they have dedicated regional offices/focus. I need 4-5 financial buyers with fund name, investment rationale (3-30 words), key synergies, fit assessment, and financial capacity."
         },
         "financial_buyers": {
             "keywords": ["financial buyers", "private equity", "pe", "vc", "venture capital", "financial investor", "fund", "investment rationale"],
@@ -3032,7 +3034,7 @@ def analyze_conversation_progress(messages):
             "keywords": ["margin", "cost", "resilience", "stability", "profitability", "efficiency", "cost management"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip margin", "skip cost"]),
-            "next_question": "Let's identify potential global conglomerates and strategic acquirers. Focus on REGIONALLY RELEVANT conglomerates (Middle East, Asia, companies with operations in your region/market). Which conglomerates might be interested in your business? I need at least 4-5 regionally relevant conglomerates."
+            "next_question": "Let's identify potential global conglomerates and strategic acquirers. 🚨 CRITICAL: Focus EXCLUSIVELY on REGIONALLY RELEVANT conglomerates. Prioritize: (1) Middle Eastern conglomerates (Emaar, ADNOC, Aramco subsidiaries, Dubai Holdings, etc.), (2) Asian conglomerates (Reliance, Tata, Grab, Gojek, regional champions), (3) Southeast Asian business groups with regional presence. AVOID Western multinationals like GE, IBM, Microsoft unless they have major regional operations. I need at least 4-5 truly regionally relevant conglomerates with strong local market knowledge."
         },
         "sea_conglomerates": {
             "keywords": ["conglomerate", "global", "international", "multinational", "strategic acquirer"],
