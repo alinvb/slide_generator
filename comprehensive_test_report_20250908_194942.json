@@ -1,0 +1,85 @@
+{
+  "timestamp": "20250908_194942",
+  "duration": 2.100832462310791,
+  "summary": {
+    "total_tests": 7,
+    "passed": 6,
+    "failed": 0,
+    "warnings": 0,
+    "errors": 0,
+    "success_rate": 85.71428571428571
+  },
+  "detailed_results": {
+    "basic_flow": {
+      "status": "not_started",
+      "details": []
+    },
+    "minimal_input": {
+      "status": "completed",
+      "details": [
+        "[19:49:42] Conversation word count: 25",
+        "[19:49:42] Generated slides: 0",
+        "[19:49:42] Slide list: []",
+        "[19:49:42] Quality summary: {'high_quality_slides': 0, 'medium_quality_slides': 0, 'estimated_slides': 0, 'substantial_content_slides': 0}",
+        "[19:49:42] \u2705 Conservative: 0 slides for 25 words",
+        "[19:49:42] Moderate conversation: 69 words \u2192 0 slides",
+        "[19:49:42] \u2705 Moderate restriction: 0 slides for 69 words",
+        "[19:49:42] Conservative slide generation test completed"
+      ]
+    },
+    "auto_improvement": {
+      "status": "completed",
+      "details": [
+        "[19:49:42] Testing rule-based fixes without API",
+        "[19:49:43] \u26a0\ufe0f No rule-based fixes detected in Content IR",
+        "[19:49:43] \u26a0\ufe0f No rule-based fixes detected in Render Plan",
+        "[19:49:43] \u2705 Render Plan enhanced: 1/2 slides have data",
+        "[19:49:43] Auto-improvement system test completed"
+      ]
+    },
+    "interview_flow": {
+      "status": "completed",
+      "details": [
+        "[19:49:43] Checking investment banker persona keywords",
+        "[19:49:43] \u2705 Investment banker persona preserved: 6/6 keywords found",
+        "[19:49:43] \u2705 Complete 14-topic sequence maintained",
+        "[19:49:43] \u2705 Systematic interview rules present",
+        "[19:49:43] Investment banker interview flow test completed"
+      ]
+    },
+    "edge_cases": {
+      "status": "completed",
+      "details": [
+        "[19:49:44] \u2705 Research detected: 'I don't know much about this, can you research it?...'",
+        "[19:49:44] \u2705 Research detected: 'Please research this for me...'",
+        "[19:49:44] \u274c Research not detected: 'Research the competitors in my industry...'",
+        "[19:49:44] \u2705 Research detected: 'Find information about market size...'",
+        "[19:49:44] \u2705 Non-research correctly identified: 'Our revenue last year was $10 million...'",
+        "[19:49:44] \u2705 Non-research correctly identified: 'We have 3 main products...'",
+        "[19:49:44] \u2705 Non-research correctly identified: 'The CEO is John Smith...'",
+        "[19:49:44] \u2705 Non-research correctly identified: 'Yes, that's correct...'",
+        "[19:49:44] \u26a0\ufe0f Satisfaction checking may not be triggered correctly",
+        "[19:49:44] Edge cases and research flow test completed"
+      ]
+    },
+    "json_validation": {
+      "status": "completed",
+      "details": [
+        "[19:49:44] \u2705 JSON extraction successful",
+        "[19:49:44] \u2705 JSON structure validation passed",
+        "[19:49:44] \u2705 Data array consistency validated",
+        "[19:49:44] JSON extraction and validation test completed"
+      ]
+    },
+    "presentation_generation": {
+      "status": "completed",
+      "details": [
+        "[19:49:44] \u2705 Downloadable files creation successful",
+        "[19:49:44] \u2705 Generated JSON files are valid",
+        "[19:49:44] \u2705 File naming includes company name",
+        "[19:49:44] \u26a0\ufe0f Slide validation detected issues",
+        "[19:49:44] Presentation generation pipeline test completed"
+      ]
+    }
+  }
+}

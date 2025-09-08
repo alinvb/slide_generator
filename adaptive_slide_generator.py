@@ -160,22 +160,30 @@ class AdaptiveSlideGenerator:
             
             final_score = keyword_score + content_length_bonus + substantial_content_score
             
-            # MUCH STRICTER RECOMMENDATION CRITERIA
+            # BALANCED RECOMMENDATION CRITERIA - Not too strict, not too lenient
             if is_minimal_conversation:
-                # For minimal conversations, only recommend business_overview if explicitly discussed
+                # For minimal conversations, be conservative but not too restrictive
                 recommended = (
                     slide_name == "business_overview" and 
-                    final_score >= 0.8 and 
+                    final_score >= 0.6 and  # Lowered from 0.8
                     has_minimum and 
-                    len(found_keywords) >= 3  # Must have at least 3 business-related keywords
+                    len(found_keywords) >= 2  # Lowered from 3
                 )
             else:
-                # For longer conversations, still be strict
-                recommended = (
-                    final_score >= 0.75 and  # Much higher threshold (was 0.6)
-                    has_minimum and 
-                    substantial_content_score > 0  # Must have substantial content, not just keywords
-                )
+                # For longer conversations, use reasonable thresholds
+                if total_conversation_length >= 500:
+                    # Rich conversations can have more slides
+                    recommended = (
+                        final_score >= 0.6 and  # Standard threshold
+                        has_minimum
+                    )
+                else:
+                    # Moderate conversations - require substantial content
+                    recommended = (
+                        final_score >= 0.7 and  # Slightly higher threshold
+                        has_minimum and 
+                        (substantial_content_score > 0 or final_score >= 0.8)  # Either substantial or very high score
+                    )
             
             slide_analysis[slide_name] = {
                 "score": final_score,
@@ -227,7 +235,7 @@ class AdaptiveSlideGenerator:
             elif slide_info.get("score", 0) >= 0.5:  # Higher threshold for optional - must have substantial content
                 optional_slides.append(slide_name)
         
-        # ULTRA CONSERVATIVE: Start with only truly recommended core slides
+        # BALANCED APPROACH: Start with recommended core slides
         selected_slides = core_slides
         
         # Extract total conversation length for context
@@ -240,27 +248,45 @@ class AdaptiveSlideGenerator:
         print(f"🔍 ADAPTIVE: Core slides recommended: {core_slides}")
         print(f"🔍 ADAPTIVE: Optional slides available: {optional_slides}")
         
-        # STRICT: Only add optional slides if we have substantial conversation AND high scores
-        if total_words >= 300 and len(selected_slides) < 5:  # Only if we have substantial discussion
-            ultra_high_quality = [
-                slide for slide in optional_slides 
-                if (analysis.get(slide, {}).get("score", 0) >= 0.8 and  # Ultra high threshold (was 0.65)
-                    analysis.get(slide, {}).get("substantial_content", False))  # Must have substantial content
-            ]
-            selected_slides.extend(ultra_high_quality)
-            print(f"🔍 ADAPTIVE: Added ultra high quality slides: {ultra_high_quality}")
+        # BALANCED: Add optional slides based on conversation richness
+        if total_words >= 150:  # Lowered from 300 - more reasonable threshold
+            if total_words >= 500:
+                # Rich conversations - can include more slides
+                high_quality = [
+                    slide for slide in optional_slides 
+                    if analysis.get(slide, {}).get("score", 0) >= 0.65  # Standard high threshold
+                ]
+                selected_slides.extend(high_quality)
+                print(f"🔍 ADAPTIVE: Rich conversation - added high quality slides: {high_quality}")
+            else:
+                # Moderate conversations - be more selective
+                very_high_quality = [
+                    slide for slide in optional_slides 
+                    if analysis.get(slide, {}).get("score", 0) >= 0.75  # Higher threshold for moderate conversations
+                ]
+                selected_slides.extend(very_high_quality)
+                print(f"🔍 ADAPTIVE: Moderate conversation - added very high quality slides: {very_high_quality}")
         
-        # ULTIMATE CONSERVATIVE SAFEGUARD: If we have very limited conversation, maximum 2 slides
-        if total_words < 200:
-            selected_slides = selected_slides[:2]  # Maximum 2 slides for minimal conversation
-            print(f"🔍 ADAPTIVE: Limited conversation ({total_words} words) - restricting to {len(selected_slides)} slides")
-        elif total_words < 500:
-            selected_slides = selected_slides[:4]  # Maximum 4 slides for moderate conversation
+        # REASONABLE SAFEGUARDS: Prevent excessive slide generation
+        if total_words < 100:
+            selected_slides = selected_slides[:1]  # Maximum 1 slide for very minimal conversation
+            print(f"🔍 ADAPTIVE: Very limited conversation ({total_words} words) - restricting to {len(selected_slides)} slide")
+        elif total_words < 300:
+            selected_slides = selected_slides[:3]  # Maximum 3 slides for short conversation
+            print(f"🔍 ADAPTIVE: Short conversation ({total_words} words) - restricting to {len(selected_slides)} slides")
+        elif total_words < 800:
+            selected_slides = selected_slides[:6]  # Maximum 6 slides for moderate conversation
             print(f"🔍 ADAPTIVE: Moderate conversation ({total_words} words) - restricting to {len(selected_slides)} slides")
         
-        # CONSERVATIVE APPROACH: Only generate slides with real content
-        # Do NOT force minimum slides if content is insufficient
-        # Better to have 1 great slide than 7+ poor slides with placeholder data
+        # BALANCED APPROACH: Generate slides with meaningful content
+        # Quality over quantity, but not overly restrictive
+        # Aim for useful presentation even with moderate input
+        
+        # Ensure at least business_overview if company info is available
+        if (not selected_slides and total_words >= 50 and 
+            any(keyword in conversation_text.lower() for keyword in ["company", "business", "we", "our"])):
+            selected_slides = ["business_overview"]
+            print(f"🔍 ADAPTIVE: Added business_overview as minimum viable slide")
         
         print(f"🔍 ADAPTIVE: Final selected slides: {selected_slides}")
         
@@ -301,11 +327,17 @@ class AdaptiveSlideGenerator:
             "slides_analysis": analysis,
             "conversation_words": total_words,
             "quality_summary": {
-                "high_quality_slides": len([s for s in selected_slides if analysis.get(s, {}).get("score", 0) >= 0.75]),
-                "medium_quality_slides": len([s for s in selected_slides if 0.6 <= analysis.get(s, {}).get("score", 0) < 0.75]),
-                "estimated_slides": len([s for s in selected_slides if analysis.get(s, {}).get("score", 0) < 0.6]),
+                "high_quality_slides": len([s for s in selected_slides if analysis.get(s, {}).get("score", 0) >= 0.7]),
+                "medium_quality_slides": len([s for s in selected_slides if 0.5 <= analysis.get(s, {}).get("score", 0) < 0.7]),
+                "estimated_slides": len([s for s in selected_slides if analysis.get(s, {}).get("score", 0) < 0.5]),
                 "substantial_content_slides": len([s for s in selected_slides if analysis.get(s, {}).get("substantial_content", False)])
-            }
+            },
+            "conversation_category": (
+                "very_limited" if total_words < 100 else
+                "short" if total_words < 300 else
+                "moderate" if total_words < 800 else
+                "rich"
+            )
         }
         
         return selected_slides, report

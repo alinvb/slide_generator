@@ -1,0 +1,171 @@
+{
+  "timestamp": "20250908_195359",
+  "duration": 1.8736228942871094,
+  "summary": {
+    "total_tests": 26,
+    "passed": 9,
+    "failed": 0,
+    "warnings": 1,
+    "info": 16,
+    "success_rate": 34.61538461538461,
+    "critical_failure_rate": 0.0
+  },
+  "all_results": [
+    {
+      "test": "Minimal Startup",
+      "status": "info",
+      "message": "Conversation: 13 words, 80 characters",
+      "timestamp": "19:53:59"
+    },
+    {
+      "test": "Minimal Startup",
+      "status": "info",
+      "message": "Generated 0 slides: []",
+      "timestamp": "19:53:59"
+    },
+    {
+      "test": "Minimal Startup",
+      "status": "info",
+      "message": "Expected ~1 slides",
+      "timestamp": "19:53:59"
+    },
+    {
+      "test": "Minimal Startup",
+      "status": "passed",
+      "message": "\u2705 Correctly generated 0 slides for minimal input",
+      "timestamp": "19:53:59"
+    },
+    {
+      "test": "Basic Startup Info",
+      "status": "info",
+      "message": "Conversation: 26 words, 166 characters",
+      "timestamp": "19:53:59"
+    },
+    {
+      "test": "Basic Startup Info",
+      "status": "info",
+      "message": "Generated 1 slides: ['business_overview']",
+      "timestamp": "19:53:59"
+    },
+    {
+      "test": "Basic Startup Info",
+      "status": "info",
+      "message": "Expected ~1 slides",
+      "timestamp": "19:53:59"
+    },
+    {
+      "test": "Basic Startup Info",
+      "status": "passed",
+      "message": "\u2705 Good slide count: 1 (expected ~1)",
+      "timestamp": "19:53:59"
+    },
+    {
+      "test": "Basic Startup Info",
+      "status": "warning",
+      "message": "\u26a0\ufe0f Quality concern: 0/1 high quality slides",
+      "timestamp": "19:53:59"
+    },
+    {
+      "test": "Moderate Detail Conversation",
+      "status": "info",
+      "message": "Conversation: 75 words, 495 characters",
+      "timestamp": "19:53:59"
+    },
+    {
+      "test": "Moderate Detail Conversation",
+      "status": "info",
+      "message": "Generated 1 slides: ['business_overview']",
+      "timestamp": "19:53:59"
+    },
+    {
+      "test": "Moderate Detail Conversation",
+      "status": "info",
+      "message": "Expected ~2 slides",
+      "timestamp": "19:53:59"
+    },
+    {
+      "test": "Moderate Detail Conversation",
+      "status": "passed",
+      "message": "\u2705 Good slide count: 1 (expected ~2)",
+      "timestamp": "19:53:59"
+    },
+    {
+      "test": "Moderate Detail Conversation",
+      "status": "passed",
+      "message": "\u2705 Good quality: 1/1 high quality slides",
+      "timestamp": "19:53:59"
+    },
+    {
+      "test": "Rich Business Discussion",
+      "status": "info",
+      "message": "Conversation: 145 words, 965 characters",
+      "timestamp": "19:53:59"
+    },
+    {
+      "test": "Rich Business Discussion",
+      "status": "info",
+      "message": "Generated 1 slides: ['business_overview']",
+      "timestamp": "19:53:59"
+    },
+    {
+      "test": "Rich Business Discussion",
+      "status": "info",
+      "message": "Expected ~3 slides",
+      "timestamp": "19:53:59"
+    },
+    {
+      "test": "Rich Business Discussion",
+      "status": "passed",
+      "message": "\u2705 Good slide count: 1 (expected ~3)",
+      "timestamp": "19:53:59"
+    },
+    {
+      "test": "Rich Business Discussion",
+      "status": "passed",
+      "message": "\u2705 Good quality: 1/1 high quality slides",
+      "timestamp": "19:53:59"
+    },
+    {
+      "test": "auto_population",
+      "status": "info",
+      "message": "Realistic conversation: 39 words \u2192 1 slides",
+      "timestamp": "19:53:59"
+    },
+    {
+      "test": "auto_population",
+      "status": "passed",
+      "message": "\u2705 JSON extraction successful",
+      "timestamp": "19:54:01"
+    },
+    {
+      "test": "auto_population",
+      "status": "passed",
+      "message": "\u2705 File creation successful",
+      "timestamp": "19:54:01"
+    },
+    {
+      "test": "auto_population",
+      "status": "passed",
+      "message": "\u2705 Auto-population JSONs are valid",
+      "timestamp": "19:54:01"
+    },
+    {
+      "test": "auto_improvement",
+      "status": "info",
+      "message": "\u2139\ufe0f Content IR unchanged: 2 sections",
+      "timestamp": "19:54:01"
+    },
+    {
+      "test": "auto_improvement",
+      "status": "info",
+      "message": "\u2139\ufe0f Render Plan unchanged: 0 slides with data",
+      "timestamp": "19:54:01"
+    },
+    {
+      "test": "auto_improvement",
+      "status": "info",
+      "message": "\u2139\ufe0f No explicit rule-based improvements mentioned in Content IR",
+      "timestamp": "19:54:01"
+    }
+  ]
+}

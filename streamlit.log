@@ -76,3 +76,125 @@ Collecting usage statistics. To deactivate, set browser.gatherUsageStats to fals
 
 Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
 
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+✅ [AUTO-IMPROVE] Perfect templates loaded successfully
+✅ [AUTO-IMPROVE] Sample examples loaded successfully
+✅ [PERFECT PROMPTER] Perfect templates loaded successfully
+[AUTO-POPULATE DEBUG] content_ir present: False
+[AUTO-POPULATE DEBUG] render_plan present: False
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 3560 characters
+📝 Response Preview (first 500 chars):
+**Qi in Iraq refers to the Qi Card (International Smart Card), the country’s national debit card and most widely used electronic payment platform, with over 11 million cardholders and a central role in distributing salaries and enabling digital payments across Iraq[1][2].**
+
+Qi was launched in 2008 through a partnership between Iraq’s largest state-owned banks (Rafidain and Rasheed) and the Iraqi Electronic Payment System, and it has become the backbone of Iraq’s financial inclusion efforts[1][2...
+
+📝 Response Preview (last 500 chars):
+... Financial Inclusion Impact | Raised banked population from 5% to nearly 50%                                          |
+| Compliance Initiatives     | Partnership with K2 Integrity to strengthen AML/CFT and global standards                |
+| Notable Risks              | Exploitation by PMF for currency arbitrage and illicit finance                          |
+
+If you need more detail on any particular aspect (technology, governance, compliance, financial data, or security risks), please specify.
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[AUTO-POPULATE DEBUG] content_ir present: False
+[AUTO-POPULATE DEBUG] render_plan present: False
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 4486 characters
+📝 Response Preview (first 500 chars):
+Here is a deeper, research-backed overview of **Qi (Qi Card / International Smart Card) in Iraq**:
+
+**Company Overview**
+
+- **Qi Card** (International Smart Card, ISC) is Iraq’s national debit card, launched in 2007/2008 through a partnership between the two largest state-owned banks (Rafidain and Rasheed) and the Iraqi Electronic Payment System (IEPS)[1][2][3][4].
+- The company employs about 3,000 people and had a capital base of over 85 billion Iraqi dinars in 2021[1].
+- The platform was creat...
+
+📝 Response Preview (last 500 chars):
+... integration.
+- **Economic empowerment:** Catalyst for entrepreneurship and SME growth by enabling digital payments and supporting local startups[5].
+
+Are you satisfied with this detailed research on Qi in Iraq, or would you like me to investigate something even more specific—such as competitors, financial performance, or recent regulatory challenges?
+
+Does this management information help, or should I investigate specific areas like their track records, compensation, or key strategic decisions?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+✅ [PERFECT PROMPTER] Perfect templates loaded successfully
+
+================================================================================
+🔍 JSON EXTRACTION AND PERFECT VALIDATION STARTED
+================================================================================
+[JSON EXTRACTION] Starting extraction from response of length: 13914
+[JSON EXTRACTION] Missing required markers
+Has 'Content IR JSON:': False
+Has 'Render Plan JSON:': False
+
+📊 EXTRACTION RESULTS:
+Content IR: ❌ Not Found
+Render Plan: ❌ Not Found
+
+❌ NO JSONS EXTRACTED - Validation cannot proceed
+  Stopping...
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8501
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+

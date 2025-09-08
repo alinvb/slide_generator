@@ -1,0 +1,55 @@
+{
+  "timestamp": "20250908_195115",
+  "duration": 3.1501524448394775,
+  "summary": {
+    "total_categories": 5,
+    "passed": 2,
+    "failed": 0,
+    "warnings": 2,
+    "errors": 0,
+    "success_rate": 40.0
+  },
+  "detailed_results": {
+    "auto_population": {
+      "status": "warning",
+      "details": [
+        "[19:51:12] Full conversation: 94 words",
+        "[19:51:12] Generated 0 slides: []",
+        "[19:51:12] \u26a0\ufe0f No slides generated for full conversation"
+      ]
+    },
+    "conservative_generation": {
+      "status": "passed",
+      "details": [
+        "[19:51:12] User provided minimal answer: 84 characters",
+        "[19:51:12] Total conversation: 29 words",
+        "[19:51:12] Generated slides: 0",
+        "[19:51:12] Slide list: []",
+        "[19:51:12] \u2705 Conservative generation working - prevents premature slide creation"
+      ]
+    },
+    "json_quality": {
+      "status": "warning",
+      "details": [
+        "[19:51:12] Testing rule-based auto-improvement",
+        "[19:51:12] \u26a0\ufe0f Content IR not significantly improved",
+        "[19:51:12] \u26a0\ufe0f Render Plan not significantly improved",
+        "[19:51:12] \u26a0\ufe0f No clear rule-based fixes mentioned in Content IR report",
+        "[19:51:12] \u26a0\ufe0f No clear rule-based fixes mentioned in Render Plan report"
+      ]
+    },
+    "validation_pipeline": {
+      "status": "passed",
+      "details": [
+        "[19:51:15] \u2705 Slide validation executed",
+        "[19:51:15] \u26a0\ufe0f Validation detected issues: {'total_slides': 1, 'valid_slides': 0, 'invalid_slides': 1, 'slides_with_warnings': 0}",
+        "[19:51:15] \u2705 File creation pipeline working",
+        "[19:51:15] \u2705 File naming includes company name"
+      ]
+    },
+    "api_responses": {
+      "status": "pending",
+      "details": []
+    }
+  }
+}
