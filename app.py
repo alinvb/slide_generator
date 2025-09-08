@@ -4672,7 +4672,7 @@ Generate the JSON structures now with this adaptive approach."""
                         # Add satisfaction check to conversation
                         st.session_state.messages.append({"role": "assistant", "content": satisfaction_question})
                         st.rerun()
-                        return
+                        st.stop()
                     
                     # Check if interview is complete and should trigger JSON generation
                     if is_complete and not progress_info.get("next_question"):
