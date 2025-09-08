@@ -759,9 +759,33 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
         print(f"[DEBUG] First item type: {type(raw_table_data[0]) if raw_table_data else 'None'}")
         print(f"[DEBUG] Table length: {len(raw_table_data)}")
     
-    # FIXED: Handle both object array and 2D array formats for coverage table
+    # FIXED: Handle multiple formats for coverage table (object array, 2D array, and string-encoded arrays)
     table_data = []
-    if raw_table_data and isinstance(raw_table_data[0], dict):
+    
+    # Handle string-encoded arrays (common JSON parsing issue)
+    if raw_table_data and isinstance(raw_table_data[0], str):
+        print(f"[DEBUG] Detected string-encoded arrays, parsing...")
+        try:
+            import ast
+            # Convert string representations back to actual arrays
+            parsed_table_data = []
+            for item in raw_table_data:
+                if item.startswith('[') and item.endswith(']'):
+                    parsed_row = ast.literal_eval(item)
+                    parsed_table_data.append(parsed_row)
+            
+            if parsed_table_data:
+                table_data = parsed_table_data
+                print(f"[DEBUG] Successfully parsed {len(table_data)} string-encoded rows")
+            else:
+                raise ValueError("No valid rows parsed from string data")
+        
+        except Exception as e:
+            print(f"[DEBUG] Failed to parse string-encoded arrays: {e}")
+            # Create fallback table with the string data as-is
+            table_data = [["Data Issue", "Format"], ["String encoded", "arrays detected"]]
+    
+    elif raw_table_data and isinstance(raw_table_data[0], dict):
         # Object array format: [{"region": "Jakarta", "outlets": "45"}]
         print(f"[DEBUG] Converting coverage_table from object array format")
         
