@@ -511,13 +511,17 @@ def extract_jsons_from_response(response_text):
                     
                     if char == '{':
                         brace_count += 1
+                        if brace_count == 1:  # First opening brace
+                            print(f"[JSON EXTRACTION DEBUG] Started JSON at position {i}")
                     elif char == '}':
                         brace_count -= 1
                         if brace_count == 0:
                             json_end = i + 1
+                            print(f"[JSON EXTRACTION DEBUG] Completed JSON at position {i}, total length: {json_end - json_start}")
                             break
                 
-                print(f"[JSON EXTRACTION DEBUG] Extraction range: {json_start} to {json_end}")
+                print(f"[JSON EXTRACTION DEBUG] Final extraction range: {json_start} to {json_end} (length: {json_end - json_start})")
+                print(f"[JSON EXTRACTION DEBUG] Final brace count: {brace_count}")
                 
                 if json_end > json_start and brace_count == 0:
                     extracted_json = text[json_start:json_end]
