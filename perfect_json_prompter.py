@@ -439,7 +439,9 @@ QUALITY STANDARD: Your JSON must be so perfect that it requires ZERO fixes or va
 CONVERSATION SUMMARY:
 {conversation_text[-2000:]}  # Last 2000 characters
 
-🚨 CRITICAL: You MUST generate JSON files now. This is not a request for more interview questions - this is the JSON generation phase.
+🚨🚨🚨 CRITICAL: You MUST generate JSON files now. This is NOT a request for more interview questions. This is NOT research. This is NOT explanation. You MUST output ONLY JSON structures in the exact format specified below. 
+
+⚠️ VIOLATION WARNING: Any response that is not proper JSON will be considered a system failure. You MUST start your response with the JSON markers and output complete JSON structures.
 
 {adaptive_info}
 
@@ -448,17 +450,22 @@ YOUR TASK: Generate TWO perfect JSON structures:
 1. **CONTENT IR JSON**: Business intelligence and data (only for relevant sections)
 2. **RENDER PLAN JSON**: Slide-by-slide presentation structure (adaptive slide list)
 
-MANDATORY OUTPUT FORMAT:
-Start your response with:
-## CONTENT IR JSON:
-```json
-{{complete_json_here}}
-```
+🚨 MANDATORY OUTPUT FORMAT - NO EXCEPTIONS:
+You MUST start your response IMMEDIATELY with these exact markers:
 
-## RENDER PLAN JSON:  
-```json
-{{complete_json_here}}
-```
+CONTENT IR JSON:
+{{
+  "entities": {{complete_json_structure_here}},
+  "facts": {{complete_json_structure_here}},
+  "management_team": {{complete_json_structure_here}}
+}}
+
+RENDER PLAN JSON:
+{{
+  "slides": [complete_slide_array_here]
+}}
+
+⚠️ CRITICAL: Do NOT write any explanatory text before the JSON. Do NOT write "Based on our conversation" or "Here are the JSON files". Start IMMEDIATELY with "CONTENT IR JSON:" followed by the complete JSON structure.
 
 {self.create_enhanced_system_prompt()}
 

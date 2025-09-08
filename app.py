@@ -4614,13 +4614,20 @@ Generate the JSON structures now with this adaptive approach."""
                         # Create a temporary message for JSON generation
                         temp_messages = st.session_state.messages + [{"role": "user", "content": completion_prompt}]
                         
-                        with st.spinner(f"🚀 Generating {len(slide_list)} relevant slides..."):
-                            ai_response = call_llm_api(
-                                temp_messages,
-                                selected_model,
-                                api_key,
-                                api_service
-                            )
+                        # Add timeout and stronger instructions
+                        enhanced_messages = temp_messages + [{"role": "system", "content": "🚨 SYSTEM OVERRIDE: You MUST respond with ONLY JSON structures. No explanations, no research, no questions. Start immediately with 'CONTENT IR JSON:' followed by complete JSON."}]
+                        
+                        with st.spinner(f"🚀 Generating {len(slide_list)} relevant slides... (Max 2 minutes)"):
+                            try:
+                                ai_response = call_llm_api(
+                                    enhanced_messages,
+                                    selected_model,
+                                    api_key,
+                                    api_service
+                                )
+                            except Exception as e:
+                                st.error(f"❌ Generation failed: {str(e)}")
+                                ai_response = "Error: JSON generation timed out or failed. Please try again with a simpler request."
                         
                         # Add completion message indicating manual JSON generation
                         completion_message = f"🚀 **Adaptive JSON Generation Triggered**\n\n📊 Generated {len(slide_list)} slides based on conversation analysis:\n• **Included**: {', '.join(slide_list)}\n• **Quality**: {analysis_report['quality_summary']}\n\n" + ai_response
@@ -4679,13 +4686,20 @@ Generate the JSON structures now with this adaptive approach."""
                         # Create a temporary message for JSON generation
                         temp_messages = st.session_state.messages + [{"role": "user", "content": completion_prompt}]
                         
-                        with st.spinner(f"🚀 Interview complete! Generating {len(slide_list)} relevant slides..."):
-                            ai_response = call_llm_api(
-                                temp_messages,
-                                selected_model,
-                                api_key,
-                                api_service
-                            )
+                        # Add system override for JSON-only generation
+                        enhanced_messages = temp_messages + [{"role": "system", "content": "🚨 SYSTEM OVERRIDE: You MUST respond with ONLY JSON structures. No explanations, no research, no questions. Start immediately with 'CONTENT IR JSON:' followed by complete JSON."}]
+                        
+                        with st.spinner(f"🚀 Interview complete! Generating {len(slide_list)} relevant slides... (Max 2 minutes)"):
+                            try:
+                                ai_response = call_llm_api(
+                                    enhanced_messages,
+                                    selected_model,
+                                    api_key,
+                                    api_service
+                                )
+                            except Exception as e:
+                                st.error(f"❌ Auto-generation failed: {str(e)}")
+                                ai_response = "Error: Automatic JSON generation failed. Please try the manual 'Generate JSON Now' button."
                         
                         # Add completion message indicating automatic JSON generation
                         completion_message = f"Perfect! I've analyzed our conversation and will generate {len(slide_list)} relevant slides based on the information provided.\n\n📊 **Slides to Include**: {', '.join(slide_list)}\n\n" + ai_response
