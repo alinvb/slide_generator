@@ -2650,7 +2650,7 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
     table_left = Inches(1.75)  # Aligned with chart area
     table_top = Inches(4.8)  # Moved down further to avoid overlap
     table_width = Inches(9.5)  # Match chart width
-    row_height = Inches(0.30)  # Reduced height to fit better
+    row_height = Inches(0.32)  # Slightly increased for better readability
     
     # Create row labels table
     labels_table = slide.shapes.add_table(
@@ -2665,6 +2665,11 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
         table_left, table_top, 
         table_width, row_height * num_rows
     ).table
+    
+    # Set column widths for better distribution - equal width for all columns
+    column_width = table_width / num_transactions
+    for col_idx in range(num_transactions):
+        data_table.columns[col_idx].width = int(column_width)
     
     # Format row labels
     for i, label in enumerate(row_labels):
@@ -2686,15 +2691,28 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
         target = transaction.get('target', 'N/A')
         acquirer = transaction.get('acquirer', 'N/A')
         
-        # Truncate long names
-        if len(target) > 15:
-            target = target[:15] + '...'
-        if len(acquirer) > 15:
-            acquirer = acquirer[:15] + '...'
+        # Smart truncation for company names - keep more characters but break intelligently
+        def smart_truncate(name, max_length=18):
+            """Intelligently truncate company names"""
+            if len(name) <= max_length:
+                return name
+            
+            # Try to break at word boundaries
+            words = name.split()
+            if len(words) > 1:
+                # Keep first word if it's meaningful
+                if len(words[0]) <= max_length - 3:
+                    return words[0] + '...'
+            
+            # Otherwise, simple truncation
+            return name[:max_length-3] + '...'
+        
+        target = smart_truncate(target)
+        acquirer = smart_truncate(acquirer)
             
         # Convert financial values to proper format with numeric handling
         def convert_financial_value(value, prefix="$"):
-            """Convert financial string values like '$10B', '$5.2M' to numeric format"""
+            """Convert financial string values like '$10B', '$5.2M' to compact format"""
             if not value or value == 'N/A':
                 return 'N/A'
             
@@ -2703,23 +2721,35 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
                     # Remove prefix symbols and spaces
                     clean_value = value.replace('$', '').replace(',', '').strip()
                     
-                    # Handle suffixes like B, M, K
-                    multiplier = 1
+                    # Handle suffixes like B, M, K - keep original notation
                     if clean_value.upper().endswith('B'):
-                        multiplier = 1_000_000_000
-                        clean_value = clean_value[:-1]
+                        return f"{prefix}{clean_value[:-1]}B"
                     elif clean_value.upper().endswith('M'):
-                        multiplier = 1_000_000
-                        clean_value = clean_value[:-1]
+                        return f"{prefix}{clean_value[:-1]}M"
                     elif clean_value.upper().endswith('K'):
-                        multiplier = 1_000
-                        clean_value = clean_value[:-1]
-                    
-                    numeric_value = float(clean_value) * multiplier
-                    return f"{prefix}{numeric_value:,.0f}"
+                        return f"{prefix}{clean_value[:-1]}K"
+                    else:
+                        # For raw numbers, convert to compact notation
+                        numeric_value = float(clean_value)
+                        if numeric_value >= 1_000_000_000:
+                            return f"{prefix}{numeric_value/1_000_000_000:.1f}B"
+                        elif numeric_value >= 1_000_000:
+                            return f"{prefix}{numeric_value/1_000_000:.0f}M"
+                        elif numeric_value >= 1_000:
+                            return f"{prefix}{numeric_value/1_000:.0f}K"
+                        else:
+                            return f"{prefix}{numeric_value:,.0f}"
                 else:
-                    # Already numeric
-                    return f"{prefix}{float(value):,.0f}"
+                    # Already numeric - convert to compact notation
+                    numeric_value = float(value)
+                    if numeric_value >= 1_000_000_000:
+                        return f"{prefix}{numeric_value/1_000_000_000:.1f}B"
+                    elif numeric_value >= 1_000_000:
+                        return f"{prefix}{numeric_value/1_000_000:.0f}M"
+                    elif numeric_value >= 1_000:
+                        return f"{prefix}{numeric_value/1_000:.0f}K"
+                    else:
+                        return f"{prefix}{numeric_value:,.0f}"
             except (ValueError, TypeError):
                 return 'N/A'
         
@@ -2758,10 +2788,16 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
             
             para = cell.text_frame.paragraphs[0]
             para.font.name = fonts["primary_font"]
-            para.font.size = Pt(9)
+            para.font.size = Pt(10)  # Increased from 9 to 10 for better readability
             para.font.color.rgb = colors["text"]
             para.alignment = PP_ALIGN.CENTER
             cell.vertical_anchor = MSO_ANCHOR.MIDDLE
+            
+            # Adjust cell margins for better spacing
+            cell.margin_left = Inches(0.05)
+            cell.margin_right = Inches(0.05)
+            cell.margin_top = Inches(0.03)
+            cell.margin_bottom = Inches(0.03)
     
     # Add footer
     footer_left = slide.shapes.add_textbox(Inches(0.5), Inches(7.0), Inches(6), Inches(0.4))
