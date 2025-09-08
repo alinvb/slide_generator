@@ -133,8 +133,11 @@ def validate_and_fix_json(content_ir, render_plan):
     print(f"❌ CURRENT ORDER: {current_slides}")
     print(f"✅ REQUIRED ORDER: {required_slide_order}")
     
-    # Reorder slides to match required order
+    # Reorder slides to match required order - CRITICAL FIX: Clear existing slides first
     existing_slides = {slide['template']: slide for slide in render_plan.get('slides', [])}
+    
+    # CRITICAL: Initialize with empty slides array to prevent duplication
+    fixed_render_plan['slides'] = []
     
     for i, template in enumerate(required_slide_order):
         if template in existing_slides:
