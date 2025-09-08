@@ -6246,9 +6246,26 @@ with tab_json:
     if st.session_state.get('auto_improve_enabled', False) and st.session_state.get('api_key'):
         st.markdown("### 🔧 JSON Quality Status")
         
-        # Quick validation for both JSONs
+        # Quick validation for both JSONs - check multiple possible storage locations
         content_ir_json = st.session_state.get('content_ir_json')
         render_plan_json = st.session_state.get('render_plan_json')
+        
+        # Fallback: try to parse from string representations
+        if not content_ir_json:
+            try:
+                content_ir_str = st.session_state.get("generated_content_ir", "")
+                if content_ir_str:
+                    content_ir_json = json.loads(content_ir_str)
+            except:
+                pass
+        
+        if not render_plan_json:
+            try:
+                render_plan_str = st.session_state.get("generated_render_plan", "")
+                if render_plan_str:
+                    render_plan_json = json.loads(render_plan_str)
+            except:
+                pass
         
         if content_ir_json and render_plan_json:
             col1, col2, col3 = st.columns(3)

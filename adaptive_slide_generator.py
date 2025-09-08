@@ -102,6 +102,7 @@ class AdaptiveSlideGenerator:
         """
         Analyze conversation to determine which slides have substantial content
         Returns analysis of available content quality and coverage
+        MUCH MORE CONSERVATIVE - Only recommend slides with substantial detailed content
         """
         # Extract conversation text (exclude system messages)
         conversation_text = " ".join([
@@ -110,6 +111,13 @@ class AdaptiveSlideGenerator:
         ]).lower()
         
         slide_analysis = {}
+        
+        # STRICT CONTENT ANALYSIS: Only recommend slides with substantial conversation content
+        total_conversation_length = len(conversation_text.split())
+        print(f"🔍 ADAPTIVE: Total conversation length: {total_conversation_length} words")
+        
+        # If conversation is too short (< 200 words), be extremely conservative
+        is_minimal_conversation = total_conversation_length < 200
         
         for slide_name, requirements in self.slide_requirements.items():
             # Count keyword matches
@@ -122,19 +130,52 @@ class AdaptiveSlideGenerator:
             keyword_score = len(found_keywords) / len(requirements["required_keywords"])
             has_minimum = len(found_keywords) >= requirements["min_keywords"]
             
-            # Enhanced scoring for detailed content
+            # STRICT: Enhanced scoring for detailed content - much higher standards
             content_length_bonus = 0
+            substantial_content_score = 0
+            
             if any(keyword in conversation_text for keyword in found_keywords):
                 # Check for detailed responses (longer explanations)
                 keyword_contexts = [
-                    conversation_text[max(0, conversation_text.find(keyword)-50):
-                                   conversation_text.find(keyword)+200]
+                    conversation_text[max(0, conversation_text.find(keyword)-100):
+                                   conversation_text.find(keyword)+300]
                     for keyword in found_keywords[:3]  # Check top 3 keywords
                 ]
                 avg_context_length = sum(len(ctx.split()) for ctx in keyword_contexts) / max(len(keyword_contexts), 1)
-                content_length_bonus = min(0.3, avg_context_length / 100)  # Up to 30% bonus
+                content_length_bonus = min(0.2, avg_context_length / 200)  # Reduced bonus
+                
+                # STRICT: Check for substantial detailed content
+                for keyword in found_keywords:
+                    context_start = max(0, conversation_text.find(keyword) - 50)
+                    context_end = min(len(conversation_text), conversation_text.find(keyword) + 200)
+                    context = conversation_text[context_start:context_end]
+                    
+                    # Look for detailed numerical data, specific facts, proper nouns
+                    has_numbers = any(char.isdigit() for char in context)
+                    has_detailed_info = len(context.split()) > 30
+                    has_specific_terms = any(term in context for term in ["million", "billion", "percent", "%", "$", "year", "founded", "headquarter", "employee"])
+                    
+                    if has_numbers and has_detailed_info and has_specific_terms:
+                        substantial_content_score += 0.3
             
-            final_score = keyword_score + content_length_bonus
+            final_score = keyword_score + content_length_bonus + substantial_content_score
+            
+            # MUCH STRICTER RECOMMENDATION CRITERIA
+            if is_minimal_conversation:
+                # For minimal conversations, only recommend business_overview if explicitly discussed
+                recommended = (
+                    slide_name == "business_overview" and 
+                    final_score >= 0.8 and 
+                    has_minimum and 
+                    len(found_keywords) >= 3  # Must have at least 3 business-related keywords
+                )
+            else:
+                # For longer conversations, still be strict
+                recommended = (
+                    final_score >= 0.75 and  # Much higher threshold (was 0.6)
+                    has_minimum and 
+                    substantial_content_score > 0  # Must have substantial content, not just keywords
+                )
             
             slide_analysis[slide_name] = {
                 "score": final_score,
@@ -142,8 +183,11 @@ class AdaptiveSlideGenerator:
                 "has_minimum": has_minimum,
                 "keyword_count": len(found_keywords),
                 "description": requirements["description"],
-                "recommended": final_score >= 0.6 and has_minimum  # 60% threshold + minimum keywords for high confidence
+                "recommended": recommended,
+                "substantial_content": substantial_content_score > 0
             }
+            
+            print(f"🔍 {slide_name}: score={final_score:.2f}, keywords={len(found_keywords)}, substantial={substantial_content_score > 0}, recommended={recommended}")
         
         return slide_analysis
     
@@ -183,30 +227,42 @@ class AdaptiveSlideGenerator:
             elif slide_info.get("score", 0) >= 0.5:  # Higher threshold for optional - must have substantial content
                 optional_slides.append(slide_name)
         
-        # Start with only high-quality core slides
+        # ULTRA CONSERVATIVE: Start with only truly recommended core slides
         selected_slides = core_slides
         
-        # Only add optional slides if they have very high scores (real content, not just keyword matches)
-        if len(selected_slides) < 8:  # Only consider adding more if we don't already have many
-            high_quality_optional = [
-                slide for slide in optional_slides 
-                if analysis.get(slide, {}).get("score", 0) >= 0.65  # Very high threshold - must have detailed content
-            ]
-            selected_slides.extend(high_quality_optional)
+        # Extract total conversation length for context
+        conversation_text = " ".join([
+            msg.get("content", "") for msg in messages 
+            if msg.get("role") != "system"
+        ])
+        total_words = len(conversation_text.split())
         
-        # Ensure minimum viable deck (at least 3 slides) ONLY if we don't have enough high-quality slides
-        if len(selected_slides) < 3:
-            # Add highest scoring slides to reach minimum
-            all_slides_by_score = sorted(
-                slide_priority,
-                key=lambda x: analysis.get(x, {}).get("score", 0),
-                reverse=True
-            )
-            for slide in all_slides_by_score:
-                if slide not in selected_slides:
-                    selected_slides.append(slide)
-                if len(selected_slides) >= 3:
-                    break
+        print(f"🔍 ADAPTIVE: Core slides recommended: {core_slides}")
+        print(f"🔍 ADAPTIVE: Optional slides available: {optional_slides}")
+        
+        # STRICT: Only add optional slides if we have substantial conversation AND high scores
+        if total_words >= 300 and len(selected_slides) < 5:  # Only if we have substantial discussion
+            ultra_high_quality = [
+                slide for slide in optional_slides 
+                if (analysis.get(slide, {}).get("score", 0) >= 0.8 and  # Ultra high threshold (was 0.65)
+                    analysis.get(slide, {}).get("substantial_content", False))  # Must have substantial content
+            ]
+            selected_slides.extend(ultra_high_quality)
+            print(f"🔍 ADAPTIVE: Added ultra high quality slides: {ultra_high_quality}")
+        
+        # ULTIMATE CONSERVATIVE SAFEGUARD: If we have very limited conversation, maximum 2 slides
+        if total_words < 200:
+            selected_slides = selected_slides[:2]  # Maximum 2 slides for minimal conversation
+            print(f"🔍 ADAPTIVE: Limited conversation ({total_words} words) - restricting to {len(selected_slides)} slides")
+        elif total_words < 500:
+            selected_slides = selected_slides[:4]  # Maximum 4 slides for moderate conversation
+            print(f"🔍 ADAPTIVE: Moderate conversation ({total_words} words) - restricting to {len(selected_slides)} slides")
+        
+        # CONSERVATIVE APPROACH: Only generate slides with real content
+        # Do NOT force minimum slides if content is insufficient
+        # Better to have 1 great slide than 7+ poor slides with placeholder data
+        
+        print(f"🔍 ADAPTIVE: Final selected slides: {selected_slides}")
         
         # Handle buyer profiles - ONLY include if explicitly discussed
         if "buyer_profiles" in selected_slides:
@@ -238,15 +294,17 @@ class AdaptiveSlideGenerator:
                         selected_slides.extend(["strategic_buyers", "financial_buyers"])
             # If no detailed buyer discussion, don't add any buyer slides
         
-        # Generate analysis report
+        # Generate analysis report with conservative metrics
         report = {
             "total_slides_generated": len(selected_slides),
             "slides_included": selected_slides,
             "slides_analysis": analysis,
+            "conversation_words": total_words,
             "quality_summary": {
-                "high_quality_slides": len([s for s in selected_slides if analysis.get(s, {}).get("score", 0) >= 0.6]),
-                "medium_quality_slides": len([s for s in selected_slides if 0.4 <= analysis.get(s, {}).get("score", 0) < 0.6]),
-                "estimated_slides": len([s for s in selected_slides if analysis.get(s, {}).get("score", 0) < 0.4])
+                "high_quality_slides": len([s for s in selected_slides if analysis.get(s, {}).get("score", 0) >= 0.75]),
+                "medium_quality_slides": len([s for s in selected_slides if 0.6 <= analysis.get(s, {}).get("score", 0) < 0.75]),
+                "estimated_slides": len([s for s in selected_slides if analysis.get(s, {}).get("score", 0) < 0.6]),
+                "substantial_content_slides": len([s for s in selected_slides if analysis.get(s, {}).get("substantial_content", False)])
             }
         }
         

@@ -4280,3 +4280,13 @@ UnicodeDecodeError: 'utf-8' codec can't decode bytes in position 25-26: invalid 
 2025-09-08 19:01:43.025 Port 8501 is already in use
 2025-09-08 19:01:45.779 Port 8501 is already in use
 2025-09-08 19:01:49.499 Port 8501 is already in use
+2025-09-08 19:26:32.683 Port 8501 is already in use
+2025-09-08 19:26:34.487 Port 8501 is already in use
+2025-09-08 19:26:37.339 Port 8501 is already in use
+2025-09-08 19:26:41.832 Port 8501 is already in use
+2025-09-08 19:26:43.541 Port 8501 is already in use
+2025-09-08 19:26:46.289 Port 8501 is already in use
+2025-09-08 19:26:51.064 Port 8501 is already in use
+2025-09-08 19:26:52.803 Port 8501 is already in use
+2025-09-08 19:26:55.567 Port 8501 is already in use
+2025-09-08 19:26:59.384 Port 8501 is already in use
