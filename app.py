@@ -4790,7 +4790,7 @@ MANDATORY OUTPUT FORMAT:
                                 st.error("❌ **Render Plan JSON missing or invalid**")
                             st.warning("⚠️ **System Requirement**: Both JSONs must be present and valid for processing.")
                             st.info("💡 **Solution**: Click '🚀 Generate JSON Now' again to retry complete generation.")
-                            return  # Stop processing incomplete responses
+                            st.stop()  # Stop processing incomplete responses
                         
                         # Check for extraction failure
                         if content_ir is None and render_plan is None:
@@ -4811,7 +4811,7 @@ MANDATORY OUTPUT FORMAT:
                                     st.error("🚨 **No JSONs Generated**: The system failed to generate any valid JSONs.")
                                 
                                 st.warning("⚠️ **Action Required**: Please try clicking '🚀 Generate JSON Now' again to get complete JSON generation.")
-                                return  # Stop processing - do not proceed with partial JSONs
+                                st.stop()  # Stop processing - do not proceed with partial JSONs
                             
                             # ONLY proceed if we have BOTH complete JSONs
                             if content_ir and render_plan:
