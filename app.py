@@ -3016,14 +3016,14 @@ def analyze_conversation_progress(messages):
             "keywords": ["precedent", "transactions", "m&a", "acquisitions", "deals", "transaction multiples"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip precedent", "skip transactions"]),
-            "next_question": "What valuation methodologies and overview would be most appropriate for your business? I need enterprise values, methodology assumptions, and your expected valuation range with rationale. This will help determine which buyers have sufficient financial capacity."
+            "next_question": "What valuation methodologies would be most appropriate for your business? As your investment banker, I recommend we analyze multiple approaches: **DCF (Discounted Cash Flow)** with detailed assumptions, **Trading Multiples** (EV/Revenue, EV/EBITDA), and **Precedent Transactions** analysis. Please specify which methodologies you prefer, or say 'research this' and I'll analyze comparable companies and recent M&A transactions with proper references. I need your expected valuation range, key assumptions (discount rate, growth rates, margins), and rationale with sources."
         },
         # TOPIC 8: Valuation Overview
         "valuation_overview": {
             "keywords": ["valuation", "multiple", "methodology", "worth", "assumptions", "enterprise value", "dcf", "comparable"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip valuation", "skip multiple"]),
-            "next_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT companies based on YOUR company's location and market presence. Consider companies from your region/country AND major players with operations in your market. Avoid generic global lists - tailor suggestions to your specific geographic and industry context. I need 4-5 strategic buyers with company name, strategic rationale (3-30 words), key synergies, fit assessment, and financial capacity vs your valuation."
+            "next_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. 🚨 CRITICAL: As your investment banker, I'll provide REGIONALLY RELEVANT companies with proper market research and verifiable data. Focus on companies from your region/country AND major players with operations in your market. All suggestions will include sources and references. I need 4-5 strategic buyers with company name, strategic rationale (3-30 words), key synergies, fit assessment, financial capacity analysis vs your valuation, and proper references [1][2][3] for all data provided."
         },
         # TOPIC 9: Strategic Buyers  
         "strategic_buyers": {
@@ -4570,26 +4570,29 @@ with tab_chat:
             
             # If no conversation yet, add the initial interview question to session
             if not display_messages:
-                initial_message = """Hello! I'm your investment banking pitch deck copilot. I'll conduct a comprehensive interview to gather all the information needed for your pitch deck, then automatically generate the complete JSON structures for you.
+                initial_message = """Hello! I'm your highly trained, astute investment banking advisor and pitch deck specialist. As an experienced investment banker, I'll conduct a comprehensive interview to gather all the information needed for your pitch deck, then automatically generate complete JSON structures with verifiable data and proper references.
 
-**What I'll collect:**
-- Company overview & business model
-- Financial performance & projections  
-- Management team profiles
-- Growth strategy & market data
-- Valuation & trading precedents
-- Strategic & financial buyer targets
+**What I'll collect with investment banking precision:**
+- Company overview & business model analysis
+- Financial performance & DCF projections with assumptions  
+- Management team profiles with backgrounds
+- Growth strategy & market data with sources
+- **Valuation analysis using multiple methodologies** (DCF, Trading Multiples, Precedent Transactions)
+- Strategic & financial buyer targets with capacity analysis
 
-**Enhanced Interview Features:**
-- I'll ask specific follow-up questions for missing information
-- Say "I don't know" or "research this" and I'll search for information
+**Enhanced Investment Banking Features:**
+- **DCF Analysis**: I'll calculate valuations with detailed assumptions and methodology
+- **Precedent Transactions**: I'll analyze comparable M&A deals with multiples
+- **Valuation Methodologies**: I'll ask which methods you prefer (DCF, Comps, Precedents)
+- **Verifiable References**: Every answer includes sources and data citations
+- Say "I don't know" or "research this" and I'll provide market research with references
 - After research, I'll confirm if you're satisfied or want deeper investigation  
 - Say "skip this slide" to exclude any topic you don't want
-- **Zero Empty Boxes Policy**: All slides will have complete content
+- **Zero Empty Boxes Policy**: All slides will have complete, verified content
 
 Let's start: **What is your company name and give me a brief overview of what your business does?**
 
-💡 *Tip: Answer directly first, or say "research this for me" if you want me to find information*"""
+💡 *Tip: Answer directly first, or say "research this for me" if you want me to find market data with proper references*"""
                 
                 # Add initial message to session state so it persists
                 st.session_state.messages.append({"role": "assistant", "content": initial_message})

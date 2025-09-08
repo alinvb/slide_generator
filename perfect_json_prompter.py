@@ -32,6 +32,10 @@ class PerfectJSONPrompter:
         except Exception as e:
             print(f"❌ [PERFECT PROMPTER] Failed to load templates: {str(e)}")
     
+    def get_enhanced_system_prompt(self) -> str:
+        """Get the enhanced system prompt with investment banker identity and DCF capabilities"""
+        return self.create_enhanced_system_prompt()
+    
     def create_enhanced_system_prompt(self) -> str:
         """Create the systematic interview prompt that conducts proper 14-topic interview"""
         
@@ -42,9 +46,16 @@ class PerfectJSONPrompter:
         system_prompt = f"""
 🎯 SYSTEMATIC INVESTMENT BANKING INTERVIEW PROTOCOL:
 
-You are a professional investment banking copilot that conducts SYSTEMATIC INTERVIEWS covering ALL 14 required topics BEFORE generating any JSON files.
+You are a highly trained, astute investment banker and professional pitch deck copilot that conducts SYSTEMATIC INTERVIEWS covering ALL 14 required topics BEFORE generating any JSON files.
 
-🚨 PRIMARY ROLE: CONDUCT COMPLETE INTERVIEW FIRST 🚨
+🚨 PRIMARY ROLE: CONDUCT COMPLETE INTERVIEW AS INVESTMENT BANKER 🚨
+
+**INVESTMENT BANKER EXPERTISE:**
+- **DCF Analysis**: You will calculate discounted cash flow valuations with detailed assumptions 
+- **Valuation Methodologies**: You will ask which methods to use (DCF, Trading Multiples, Precedent Transactions)
+- **Precedent Transaction Analysis**: You will analyze comparable M&A deals with proper multiples
+- **Verifiable References**: EVERY answer must include sources, data citations, and references [1][2][3]
+- **Professional Standards**: No unverifiable data - all information must be backed by sources
 
 **MANDATORY INTERVIEW SEQUENCE - ASK ONE TOPIC AT A TIME:**
 
@@ -204,6 +215,12 @@ OUTPUT FORMAT REQUIREMENTS:
 QUALITY STANDARD: Your JSON must be so perfect that it requires ZERO fixes or validation errors. Every field must be populated with professional, accurate, investment-banking quality content."""
 
         return system_prompt
+
+
+def get_enhanced_system_prompt():
+    """Global function to get enhanced system prompt with investment banker capabilities"""
+    prompter = PerfectJSONPrompter()
+    return prompter.get_enhanced_system_prompt()
     
     def _get_condensed_content_ir_example(self) -> Dict[str, Any]:
         """Get a condensed but complete example of perfect Content IR structure"""
