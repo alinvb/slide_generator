@@ -4654,6 +4654,29 @@ Generate the JSON structures now with this adaptive approach."""
                                 st.error(f"❌ Generation failed: {str(e)}")
                                 ai_response = "Error: JSON generation timed out or failed. Please try again with a simpler request."
                         
+                        # CRITICAL: Apply full validation pipeline to manual generation
+                        try:
+                            content_ir, render_plan, validation_results = extract_and_validate_jsons(ai_response)
+                            
+                            if content_ir and render_plan:
+                                st.success("✅ Manual JSON generation successful with full validation!")
+                                
+                                # Store validated JSONs in session state
+                                st.session_state['content_ir_json'] = content_ir
+                                st.session_state['render_plan_json'] = render_plan
+                                st.session_state['validation_results'] = validation_results
+                                
+                                # Show validation summary
+                                if validation_results and validation_results.get('overall_valid', False):
+                                    st.success(f"🎯 Validation: {validation_results['summary']['valid_slides']}/{validation_results['summary']['total_slides']} slides validated successfully!")
+                                else:
+                                    st.warning("⚠️ JSONs generated but some validation issues detected (auto-fixes applied)")
+                            else:
+                                st.error("❌ Manual generation failed - missing JSONs despite response")
+                                
+                        except Exception as e:
+                            st.error(f"❌ Manual validation failed: {str(e)}")
+                        
                         # Add completion message indicating manual JSON generation
                         completion_message = f"🚀 **Adaptive JSON Generation Triggered**\n\n📊 Generated {len(slide_list)} slides based on conversation analysis:\n• **Included**: {', '.join(slide_list)}\n• **Quality**: {analysis_report['quality_summary']}\n\n" + ai_response
                         st.session_state.messages.append({"role": "assistant", "content": completion_message})
