@@ -473,9 +473,9 @@ def extract_jsons_from_response(response_text):
         "**RENDER PLAN JSON:**"
     ]
     
-    # Enhanced JSON extraction with better error handling
+    # Simplified JSON extraction with better brace counting
     def extract_json_after_marker(text, markers, json_name):
-        """Extract JSON content after finding a marker"""
+        """Extract JSON content after finding a marker - FIXED VERSION"""
         for marker in markers:
             pos = text.find(marker)
             if pos != -1:
@@ -500,42 +500,32 @@ def extract_jsons_from_response(response_text):
                     print(f"[JSON EXTRACTION DEBUG] No opening brace found for {json_name}")
                     continue
                 
-                # Find matching closing brace using proper brace counting
+                print(f"[JSON EXTRACTION DEBUG] Found opening brace at position {json_start}")
+                
+                # Simple brace counting without string detection complications
                 brace_count = 0
                 json_end = json_start
-                in_string = False
-                escape_next = False
                 
                 for i in range(json_start, len(text)):
                     char = text[i]
                     
-                    if escape_next:
-                        escape_next = False
-                        continue
-                    
-                    if char == '\\':
-                        escape_next = True
-                        continue
-                    
-                    if char == '"' and not escape_next:
-                        in_string = not in_string
-                        continue
-                    
-                    if not in_string:
-                        if char == '{':
-                            brace_count += 1
-                        elif char == '}':
-                            brace_count -= 1
-                            if brace_count == 0:
-                                json_end = i + 1
-                                break
+                    if char == '{':
+                        brace_count += 1
+                    elif char == '}':
+                        brace_count -= 1
+                        if brace_count == 0:
+                            json_end = i + 1
+                            break
+                
+                print(f"[JSON EXTRACTION DEBUG] Extraction range: {json_start} to {json_end}")
                 
                 if json_end > json_start and brace_count == 0:
                     extracted_json = text[json_start:json_end]
                     print(f"[JSON EXTRACTION DEBUG] Successfully extracted {json_name} JSON (length: {len(extracted_json)})")
+                    print(f"[JSON EXTRACTION DEBUG] First 100 chars: {extracted_json[:100]}")
                     return extracted_json
                 else:
-                    print(f"[JSON EXTRACTION DEBUG] Failed to find matching braces for {json_name}")
+                    print(f"[JSON EXTRACTION DEBUG] Failed to find matching braces for {json_name} (brace_count: {brace_count})")
         
         return None
     
@@ -544,16 +534,18 @@ def extract_jsons_from_response(response_text):
     if content_ir_json:
         try:
             cleaned_json = clean_json_string(content_ir_json)
+            print(f"[JSON EXTRACTION DEBUG] Cleaned Content IR JSON length: {len(cleaned_json)}")
             content_ir = json.loads(cleaned_json)
             print(f"✅ Successfully parsed Content IR JSON")
         except json.JSONDecodeError as e:
             print(f"❌ Failed to parse Content IR JSON: {e}")
+            print(f"[JSON EXTRACTION DEBUG] Problematic JSON: {cleaned_json[:200]}...")
             try:
                 repaired_json = advanced_json_repair(cleaned_json)
                 content_ir = json.loads(repaired_json)
                 print(f"✅ Successfully repaired and parsed Content IR JSON")
-            except:
-                print(f"❌ Advanced repair also failed for Content IR")
+            except Exception as repair_error:
+                print(f"❌ Advanced repair also failed for Content IR: {repair_error}")
                 content_ir = None
     
     # Extract Render Plan  
@@ -561,16 +553,18 @@ def extract_jsons_from_response(response_text):
     if render_plan_json:
         try:
             cleaned_json = clean_json_string(render_plan_json)
+            print(f"[JSON EXTRACTION DEBUG] Cleaned Render Plan JSON length: {len(cleaned_json)}")
             render_plan = json.loads(cleaned_json)
             print(f"✅ Successfully parsed Render Plan JSON")
         except json.JSONDecodeError as e:
             print(f"❌ Failed to parse Render Plan JSON: {e}")
+            print(f"[JSON EXTRACTION DEBUG] Problematic JSON: {cleaned_json[:200]}...")
             try:
                 repaired_json = advanced_json_repair(cleaned_json)
                 render_plan = json.loads(repaired_json)
                 print(f"✅ Successfully repaired and parsed Render Plan JSON")
-            except:
-                print(f"❌ Advanced repair also failed for Render Plan")
+            except Exception as repair_error:
+                print(f"❌ Advanced repair also failed for Render Plan: {repair_error}")
                 render_plan = None
     
     # Method 2: Fallback to code block extraction if markers didn't work
@@ -4647,7 +4641,33 @@ Let's start: **What is your company name and give me a brief overview of what yo
                             st.info("💡 **Tip**: Make sure the JSON format is correct and complete.")
                         else:
                             # Successfully extracted JSONs - continue with processing
-                            pass
+                            st.success(f"✅ **JSON Extraction Successful!** Found {'Content IR' if content_ir else 'No Content IR'} and {'Render Plan' if render_plan else 'No Render Plan'}")
+                            
+                            # Add manual trigger for auto-population
+                            if content_ir and render_plan:
+                                if st.button("🚀 **Force Auto-Populate JSONs Now**", key="force_populate", type="primary"):
+                                    print(f"[FORCE AUTO-POPULATE] Manual trigger activated...")
+                                    
+                                    # Force the auto-population process
+                                    company_name_extracted = "Unknown_Company"
+                                    if content_ir and 'entities' in content_ir and 'company' in content_ir['entities']:
+                                        company_name_extracted = content_ir['entities']['company'].get('name', 'Unknown_Company')
+                                    
+                                    files_data = create_downloadable_files(content_ir, render_plan, company_name_extracted)
+                                    
+                                    # Force update session state
+                                    st.session_state["generated_content_ir"] = files_data['content_ir_json']
+                                    st.session_state["generated_render_plan"] = files_data['render_plan_json']
+                                    st.session_state["files_ready"] = True
+                                    st.session_state["files_data"] = files_data
+                                    st.session_state["auto_populated"] = True
+                                    
+                                    st.balloons()
+                                    st.success("🚀 **Force Auto-Population Complete!** JSONs populated successfully!")
+                                    st.info("💡 **Switch to JSON Editor tab** to see the populated JSONs!")
+                                    
+                                    # Force page refresh
+                                    st.rerun()
                     else:
                         # Regular conversation - no JSON extraction needed
                         content_ir, render_plan, validation_results = None, None, None
@@ -4678,7 +4698,11 @@ Let's start: **What is your company name and give me a brief overview of what yo
                                 st.warning("⚠️ Auto-correction encountered issues, proceeding with original JSONs")
                     
                     # Apply additional enhanced fixes for common LLM issues
+                    print(f"[AUTO-POPULATE DEBUG] content_ir present: {content_ir is not None}")
+                    print(f"[AUTO-POPULATE DEBUG] render_plan present: {render_plan is not None}")
+                    
                     if content_ir and render_plan:
+                        print(f"[AUTO-POPULATE DEBUG] Both JSONs found, applying enhancements...")
                         content_ir, render_plan, auto_fixes = enhanced_json_validation_with_fixes(content_ir, render_plan)
                         if auto_fixes:
                             st.success(f"🔧 **Auto-fixes applied**: {len(auto_fixes)} improvements made to JSONs")
@@ -4786,14 +4810,24 @@ Please ensure both JSONs are complete and properly formatted.
                             if content_ir and 'entities' in content_ir and 'company' in content_ir['entities']:
                                 company_name_extracted = content_ir['entities']['company'].get('name', 'Unknown_Company')
                             
+                            print(f"[AUTO-POPULATE DEBUG] Extracted company name: {company_name_extracted}")
+                            
                             # Create downloadable files
                             files_data = create_downloadable_files(content_ir, render_plan, company_name_extracted)
+                            
+                            print(f"[AUTO-POPULATE DEBUG] Files data created: {list(files_data.keys())}")
+                            print(f"[AUTO-POPULATE DEBUG] Content IR JSON length: {len(files_data.get('content_ir_json', ''))}")
+                            print(f"[AUTO-POPULATE DEBUG] Render Plan JSON length: {len(files_data.get('render_plan_json', ''))}")
                             
                             # Store in session state
                             st.session_state["generated_content_ir"] = files_data['content_ir_json']
                             st.session_state["generated_render_plan"] = files_data['render_plan_json']
                             st.session_state["files_ready"] = True
                             st.session_state["files_data"] = files_data
+                            
+                            print(f"[AUTO-POPULATE DEBUG] Session state updated successfully")
+                            print(f"[AUTO-POPULATE DEBUG] generated_content_ir length: {len(st.session_state.get('generated_content_ir', ''))}")
+                            print(f"[AUTO-POPULATE DEBUG] generated_render_plan length: {len(st.session_state.get('generated_render_plan', ''))}")
                             
                             # AUTO-POPULATE JSON EDITOR: Automatically validate and save to session
                             st.session_state["auto_populated"] = True
