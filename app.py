@@ -3055,7 +3055,7 @@ def analyze_conversation_progress(messages):
             "keywords": ["financial buyers", "private equity", "pe", "vc", "venture capital", "financial investor", "fund", "investment rationale"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip financial", "skip pe"]),
-            "next_question": "Let's analyze your margin and cost resilience—critical for investor confidence. I need: (1) Detailed cost breakdown and management initiatives, (2) Margin stability factors, (3) Operational efficiency programs, (4) Risk mitigation strategies for maintaining profitability during market volatility."
+            "next_question": "Finally, what would the investment/acquisition process look like? I need: diligence topics investors would focus on, key synergy opportunities, main risk factors and mitigation strategies, and expected timeline for the transaction process."
         },
         "margin_cost_resilience": {
             "keywords": ["margin", "cost", "resilience", "stability", "profitability", "efficiency", "cost management"],
@@ -3067,7 +3067,7 @@ def analyze_conversation_progress(messages):
             "keywords": ["conglomerate", "global", "international", "multinational", "strategic acquirer"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip conglomerate", "skip global"]),
-            "next_question": "Finally, what would the investment/acquisition process look like? I need: diligence topics investors would focus on, key synergy opportunities, main risk factors and mitigation strategies, and expected timeline for the transaction process."
+            "next_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT companies based on YOUR company's location and market presence. Consider companies from your region/country AND major players with operations in your market. Avoid generic global lists - tailor suggestions to your specific geographic and industry context. I need 4-5 strategic buyers with company name, strategic rationale (3-30 words), key synergies, fit assessment, and financial capacity. If you don't have this information, I can research strategic buyers for your industry and region."
         },
         "investor_process_overview": {
             "keywords": ["process", "diligence", "due diligence", "timeline", "synergy", "risk factors", "transaction process"],
