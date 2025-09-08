@@ -154,6 +154,12 @@ def fix_sea_conglomerates_data(data: Dict[str, Any]) -> Dict[str, Any]:
 
 def fix_buyer_profiles_data(data: Dict[str, Any]) -> Dict[str, Any]:
     """Fix buyer profiles slide data structure issues"""
+    print(f"[FIX] Fixing buyer profiles data. Input type: {type(data)}")
+    if isinstance(data, dict):
+        print(f"[FIX] Data keys: {list(data.keys())}")
+        if 'table_rows' in data:
+            print(f"[FIX] table_rows type: {type(data['table_rows'])}, length: {len(data['table_rows']) if isinstance(data['table_rows'], list) else 'N/A'}")
+    
     fixed_data = copy.deepcopy(data)
     
     # Ensure proper table structure for buyer profiles
@@ -184,7 +190,6 @@ def fix_buyer_profiles_data(data: Dict[str, Any]) -> Dict[str, Any]:
             if not isinstance(row, dict):
                 print(f"[FIX] ERROR: Row {i+1} is not a dictionary or list, skipping")
                 continue
-            
             # Ensure all required fields exist with proper field name mapping
             required_fields = [
                 'buyer_name', 'description', 'strategic_rationale', 
@@ -222,7 +227,31 @@ def fix_precedent_transactions_data(data: Dict[str, Any]) -> Dict[str, Any]:
     fixed_data = copy.deepcopy(data)
     
     if 'transactions' in fixed_data and isinstance(fixed_data['transactions'], list):
+        valid_transactions = []
+        
         for transaction in fixed_data['transactions']:
+            # Validate acquirer - must be a real company, not public market or funding rounds
+            acquirer = transaction.get('acquirer', '').lower().strip()
+            invalid_acquirers = [
+                'public market', 'public markets', 'ipo', 'initial public offering',
+                'series a', 'series b', 'series c', 'series d', 'series e', 'series f', 
+                'series g', 'series h', 'series i', 'series j', 'series k', 'series l',
+                'seed round', 'pre-seed', 'angel round', 'venture round', 'funding round',
+                'private placement', 'equity raise', 'capital raise'
+            ]
+            
+            # Check if acquirer is invalid
+            is_invalid = False
+            for invalid_term in invalid_acquirers:
+                if invalid_term in acquirer:
+                    is_invalid = True
+                    print(f"[FILTER] Excluding transaction with invalid acquirer: {transaction.get('acquirer', 'Unknown')}")
+                    break
+            
+            # Skip invalid transactions
+            if is_invalid or not acquirer or len(acquirer) < 3:
+                continue
+                
             # Ensure enterprise_value and revenue exist and calculate multiple
             if 'enterprise_value' not in transaction or 'revenue' not in transaction:
                 enterprise_value = transaction.get('enterprise_value', transaction.get('revenue', 100) * 3.0)
@@ -239,6 +268,13 @@ def fix_precedent_transactions_data(data: Dict[str, Any]) -> Dict[str, Any]:
                 else:
                     transaction['ev_revenue_multiple'] = 0.0
                 print(f"[FIX] Calculated EV/Revenue multiple: {transaction['ev_revenue_multiple']}")
+            
+            valid_transactions.append(transaction)
+        
+        # Update with only valid transactions
+        fixed_data['transactions'] = valid_transactions
+        if len(valid_transactions) != len(data.get('transactions', [])):
+            print(f"[FILTER] Filtered transactions: {len(data.get('transactions', []))} -> {len(valid_transactions)} (removed funding rounds/public markets)")
     
     return fixed_data
 

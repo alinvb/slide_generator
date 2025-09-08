@@ -141,8 +141,8 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
     # CRITICAL FIX: Reorder slides to match required order WITHOUT duplication
     existing_slides = {slide['template']: slide for slide in render_plan.get('slides', [])}
     
-    # Create new ordered slides list instead of appending to existing
-    ordered_slides = []
+    # CRITICAL: Initialize with empty slides array to prevent duplication
+    fixed_render_plan['slides'] = []
     
     for i, template in enumerate(required_slide_order):
         if template in existing_slides:
@@ -150,13 +150,13 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
             # Ensure title field exists
             if 'data' in slide and 'title' not in slide['data']:
                 slide['data']['title'] = f"{template.replace('_', ' ').title()}"
-            ordered_slides.append(slide)
+            fixed_render_plan['slides'].append(slide)
             print(f"🔧 MANDATORY: Added existing slide: {template}")
         else:
             # Add missing slide - CRITICAL FIX
             if template == 'investor_process_overview':
                 print("🔧 MANDATORY: Adding missing investor_process_overview slide")
-                ordered_slides.append({
+                fixed_render_plan['slides'].append({
                     "template": "investor_process_overview",
                     "data": {
                         "title": "Comprehensive Investor Process Overview",
@@ -169,7 +169,7 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
                 })
             else:
                 print(f"🔧 MANDATORY: Adding missing slide: {template}")
-                ordered_slides.append({
+                fixed_render_plan['slides'].append({
                     "template": template,
                     "data": {
                         "title": template.replace('_', ' ').title(),
@@ -178,8 +178,7 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
                 })
     
     # Replace the slides list with the ordered one to prevent duplication
-    fixed_render_plan['slides'] = ordered_slides
-    print(f"🔧 MANDATORY: Reordered slides. Final count: {len(ordered_slides)}")
+    print(f"🔧 MANDATORY: Reordered slides. Final count: {len(fixed_render_plan['slides'])}")
     
     # MANDATORY: Fix all semantic errors
     print("🔧 MANDATORY: Fixing semantic errors...")
@@ -882,9 +881,21 @@ def validate_json_structure_against_examples(content_ir, render_plan):
                         validation_results['recent_fixes_validation']['timeline_format'] = False
                         validation_results['structure_issues'].append('Timeline items must be strings or dicts with date/description')
         
-        # 2. Buyer descriptions validation (no N/A allowed)
+        # 2. Buyer descriptions validation (no N/A allowed, sections must exist)
         for buyer_type in ['strategic_buyers', 'financial_buyers']:
             buyers = content_ir.get(buyer_type, [])
+            
+            # Check if buyer section exists and has sufficient content
+            if not buyers:
+                validation_results['recent_fixes_validation']['buyer_descriptions'] = False
+                validation_results['structure_issues'].append(f'MISSING: {buyer_type} section is required but not found')
+                print(f"[ENHANCED VALIDATION] ❌ Missing required section: {buyer_type}")
+            elif len(buyers) < 3:
+                validation_results['recent_fixes_validation']['buyer_descriptions'] = False
+                validation_results['structure_issues'].append(f'{buyer_type} should have at least 3-4 entries, found only {len(buyers)}')
+                print(f"[ENHANCED VALIDATION] ❌ {buyer_type} has insufficient entries: {len(buyers)}")
+            
+            # Check individual buyer entries
             for i, buyer in enumerate(buyers):
                 if isinstance(buyer, dict):
                     description = buyer.get('description', '')
@@ -892,6 +903,14 @@ def validate_json_structure_against_examples(content_ir, render_plan):
                         validation_results['recent_fixes_validation']['buyer_descriptions'] = False
                         validation_results['structure_issues'].append(f'{buyer_type}[{i}] missing proper description (has: {description})')
                         print(f"[ENHANCED VALIDATION] ❌ {buyer_type}[{i}] has invalid description: {description}")
+                    
+                    # Check for required fields
+                    required_fields = ['buyer_name', 'description', 'strategic_rationale', 'key_synergies', 'fit']
+                    for field in required_fields:
+                        if not buyer.get(field):
+                            validation_results['recent_fixes_validation']['buyer_descriptions'] = False
+                            validation_results['structure_issues'].append(f'{buyer_type}[{i}] missing required field: {field}')
+                            print(f"[ENHANCED VALIDATION] ❌ {buyer_type}[{i}] missing field: {field}")
         
         # 3. Financial formatting validation (use compact notation)
         transactions = content_ir.get('precedent_transactions', [])
@@ -2138,16 +2157,31 @@ def create_validation_feedback_for_llm(validation_results):
     feedback_sections.append('  "ebitda_margins": [-166, -25, -5, 5.7, 15.0]')
     feedback_sections.append('}')
     
-    # Add buyer profile requirements
-    feedback_sections.append("\n🚨 BUYER PROFILES: ALL buyer profiles must have 'description' field with actual content:")
+    # Add buyer profile requirements - MANDATORY SECTIONS
+    feedback_sections.append("\n🚨 CRITICAL: You MUST include BOTH strategic_buyers AND financial_buyers sections in Content IR!")
+    feedback_sections.append("\n📊 STRATEGIC BUYERS (Required - at least 3-4 companies):")
     feedback_sections.append('"strategic_buyers": [')
     feedback_sections.append('  {')
-    feedback_sections.append('    "buyer_name": "NVIDIA",')
-    feedback_sections.append('    "description": "World\'s largest AI chipmaker and GPU/cloud infrastructure leader.",')
-    feedback_sections.append('    "strategic_rationale": "Expand AI infrastructure...",')
-    feedback_sections.append('    "key_synergies": "Integrate platform...",')
-    feedback_sections.append('    "fit": "High (9/10)"')
+    feedback_sections.append('    "buyer_name": "Microsoft",')
+    feedback_sections.append('    "description": "Leading global cloud and enterprise software provider.",')
+    feedback_sections.append('    "strategic_rationale": "Enhance capabilities and enterprise solutions.",')
+    feedback_sections.append('    "key_synergies": "Cross-platform integration and enterprise access.",')
+    feedback_sections.append('    "fit": "High (9/10)",')
+    feedback_sections.append('    "financial_capacity": "Very High"')
     feedback_sections.append('  }')
+    feedback_sections.append('  // Add 2-3 more strategic buyers...')
+    feedback_sections.append(']')
+    feedback_sections.append("\n💰 FINANCIAL BUYERS (Required - at least 3-4 firms):")
+    feedback_sections.append('"financial_buyers": [')
+    feedback_sections.append('  {')
+    feedback_sections.append('    "buyer_name": "Sequoia Capital",')
+    feedback_sections.append('    "description": "Top global VC with proven tech investment track record.",')
+    feedback_sections.append('    "strategic_rationale": "Invest in high-growth technology platforms.",')
+    feedback_sections.append('    "key_synergies": "Portfolio synergies and growth acceleration.",')
+    feedback_sections.append('    "fit": "High (8/10)",')
+    feedback_sections.append('    "financial_capacity": "Very High"')
+    feedback_sections.append('  }')
+    feedback_sections.append('  // Add 2-3 more financial buyers...')
     feedback_sections.append(']')
     
     # Add precedent transactions formatting
@@ -3286,7 +3320,7 @@ def analyze_conversation_progress(messages):
             "keywords": ["valuation", "multiple", "methodology", "worth", "assumptions", "enterprise value", "dcf", "comparable"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip valuation", "skip multiple"]),
-            "next_question": "Now let's examine precedent transactions. Are there recent M&A transactions in your industry or similar markets that we should analyze? I need target company, acquirer, date, enterprise value, revenue, and multiples."
+            "next_question": "Now let's examine precedent transactions. 🚨 IMPORTANT: Focus ONLY on private market M&A transactions where one company acquired another company (NOT public market transactions, IPOs, or funding rounds like Series A/B/C/etc.). I need recent corporate acquisitions in your industry with: target company name, acquiring company name (must be a specific corporation/entity, NOT 'public market' or 'series K'), transaction date, enterprise value, target revenue, and valuation multiples. Exclude any transactions that are public offerings or venture funding rounds."
         },
         "precedent_transactions": {
             "keywords": ["precedent", "transactions", "m&a", "acquisitions", "deals", "transaction multiples"],
@@ -3295,13 +3329,13 @@ def analyze_conversation_progress(messages):
             "next_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT companies based on YOUR company's location and market presence. Consider companies from your region/country AND major players with operations in your market. Avoid generic global lists - tailor suggestions to your specific geographic and industry context. I need 4-5 strategic buyers with company name, strategic rationale (3-30 words), key synergies, fit assessment, and financial capacity. If you don't have this information, I can research strategic buyers for your industry and region."
         },
         "strategic_buyers": {
-            "keywords": ["strategic buyers", "strategic", "acquirer", "acquisition", "corporate buyer", "industry player", "strategic rationale", "synergies"],
+            "keywords": ["strategic buyers", "strategic buyer", "strategic rationale", "corporate buyer", "industry player", "strategic acquisition", "strategic synergies", "strategic fit"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip strategic", "skip buyer"]),
             "next_question": "Now let's identify financial buyers—private equity firms, VCs, and other financial investors. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT funds based on YOUR company's location and market. Consider local/regional funds, sovereign wealth funds, and international funds with strong presence in your market. Tailor suggestions to your geographic context rather than generic global lists. I need 4-5 financial buyers with fund name, investment rationale (3-30 words), key synergies, fit assessment, and financial capacity. If you don't have this information, I can research relevant PE firms and financial investors in your market."
         },
         "financial_buyers": {
-            "keywords": ["financial buyers", "private equity", "pe", "vc", "venture capital", "financial investor", "fund", "investment rationale"],
+            "keywords": ["financial buyers", "financial buyer", "private equity", "pe fund", "vc fund", "venture capital", "financial investor", "investment fund", "financial rationale", "financial synergies"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip financial", "skip pe"]),
             "next_question": "Finally, what would the investment/acquisition process look like? I need: diligence topics investors would focus on, key synergy opportunities, main risk factors and mitigation strategies, and expected timeline for the transaction process."
@@ -3313,7 +3347,7 @@ def analyze_conversation_progress(messages):
             "next_question": "Let's identify potential global conglomerates and strategic acquirers. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT conglomerates based on YOUR company's location and industry. Consider major conglomerates from your region/country AND international conglomerates with significant operations in your market. Prioritize companies that understand your local market dynamics and regulatory environment. I need at least 4-5 regionally relevant conglomerates with strong market knowledge in your geography."
         },
         "sea_conglomerates": {
-            "keywords": ["conglomerate", "global", "international", "multinational", "strategic acquirer"],
+            "keywords": ["conglomerate", "global conglomerate", "multinational conglomerate", "international conglomerate", "holding company", "diversified corporation", "multinational corporation", "global corporation"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip conglomerate", "skip global"]),
             "next_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT companies based on YOUR company's location and market presence. Consider companies from your region/country AND major players with operations in your market. Avoid generic global lists - tailor suggestions to your specific geographic and industry context. I need 4-5 strategic buyers with company name, strategic rationale (3-30 words), key synergies, fit assessment, and financial capacity. If you don't have this information, I can research strategic buyers for your industry and region."
@@ -3473,13 +3507,28 @@ def analyze_conversation_progress(messages):
                 is_covered = detailed_margins or ai_margin_research
             
             elif topic_name == "sea_conglomerates":
-                # Require actual conglomerate names and details
-                conglomerate_indicators = ["conglomerate", "global", "international", "multinational", "strategic acquirer", "corporation", "holding"]
-                found_conglomerates = [indicator for indicator in conglomerate_indicators if indicator in conversation_text]
+                # SPECIFIC detection for global conglomerates - avoid confusion with strategic/financial buyers
+                conglomerate_specific_indicators = [
+                    "conglomerate", "global conglomerate", "multinational conglomerate", 
+                    "international conglomerate", "holding company", "diversified corporation",
+                    "multinational corporation", "global corporation"
+                ]
+                geographic_indicators = ["global", "international", "multinational", "worldwide", "regions", "countries"]
                 
-                # Must have specific conglomerate discussion
-                detailed_conglomerates = len(found_conglomerates) >= 3 and ("conglomerate" in conversation_text or "multinational" in conversation_text)
-                ai_conglomerate_research = has_research_response and len(found_conglomerates) >= 2 and "global" in conversation_text
+                # Check for conglomerate-specific content - must be explicitly about conglomerates
+                found_conglomerate_specific = [indicator for indicator in conglomerate_specific_indicators if indicator in conversation_text]
+                found_geographic = [indicator for indicator in geographic_indicators if indicator in conversation_text]
+                
+                # Must have explicit conglomerate discussion - not just "strategic acquirer"
+                has_conglomerate_context = len(found_conglomerate_specific) >= 1 and len(found_geographic) >= 1
+                has_research_response = "research" in conversation_text or "here" in conversation_text or "based on" in conversation_text
+                
+                # Require explicit conglomerate terminology to avoid strategic buyer confusion
+                detailed_conglomerates = has_conglomerate_context and (
+                    "conglomerate" in conversation_text or "multinational corporation" in conversation_text or
+                    "holding company" in conversation_text or "global corporation" in conversation_text
+                )
+                ai_conglomerate_research = has_research_response and has_conglomerate_context and "conglomerate" in conversation_text
                 
                 is_covered = detailed_conglomerates or ai_conglomerate_research
             
@@ -3494,23 +3543,57 @@ def analyze_conversation_progress(messages):
                 
                 is_covered = detailed_process or ai_process_research
             
-            elif topic_name == "strategic_buyers" or topic_name == "financial_buyers":
-                # RELAXED - allow AI research and reasonable buyer content detection
-                buyer_indicators = ["acquisition", "acquirer", "fund", "capital", "equity", "investment", "rationale", "synerg", "fit", "capacity", "strategic", "financial", "buyer", "private equity", "corporation", "conglomerate"]
-                found_buyers = [indicator for indicator in buyer_indicators if indicator in conversation_text]
+            elif topic_name == "strategic_buyers":
+                # SPECIFIC detection for strategic buyers - avoid confusion with sea_conglomerates
+                strategic_specific_indicators = [
+                    "strategic buyer", "strategic rationale", "strategic synergies", 
+                    "corporate buyer", "industry player", "strategic acquisition",
+                    "strategic fit", "strategic acquirer", "synergies"
+                ]
+                general_buyer_indicators = ["acquisition", "acquirer", "investment", "fit", "capacity"]
                 
-                # Look for buyer content - can be from AI research or user discussion
-                has_buyer_context = len(found_buyers) >= 3
+                # Check for strategic-specific content
+                found_strategic_specific = [indicator for indicator in strategic_specific_indicators if indicator in conversation_text]
+                found_general_buyers = [indicator for indicator in general_buyer_indicators if indicator in conversation_text]
+                
+                # Must have strategic-specific indicators to avoid conglomerate confusion
+                has_strategic_context = len(found_strategic_specific) >= 1 and len(found_general_buyers) >= 2
                 has_research_response = "research" in conversation_text or "here" in conversation_text or "based on" in conversation_text
                 
-                # Accept if substantial buyer discussion OR AI research
-                detailed_buyer_content = has_buyer_context and (
-                    "strategic" in conversation_text or "financial" in conversation_text or 
-                    "rationale" in conversation_text or "synerg" in conversation_text
+                # More stringent requirements - must explicitly mention strategic buyer context
+                detailed_strategic_content = has_strategic_context and (
+                    "strategic buyer" in conversation_text or "strategic rationale" in conversation_text or 
+                    "strategic synergies" in conversation_text or "corporate buyer" in conversation_text
                 )
-                ai_buyer_research = has_research_response and has_buyer_context
+                ai_strategic_research = has_research_response and has_strategic_context and "strategic" in conversation_text
                 
-                is_covered = detailed_buyer_content or ai_buyer_research
+                is_covered = detailed_strategic_content or ai_strategic_research
+            
+            elif topic_name == "financial_buyers":
+                # SPECIFIC detection for financial buyers - avoid confusion with sea_conglomerates  
+                financial_specific_indicators = [
+                    "financial buyer", "private equity", "pe fund", "vc fund", 
+                    "venture capital", "financial investor", "investment fund", 
+                    "financial rationale", "financial synergies"
+                ]
+                general_buyer_indicators = ["fund", "capital", "equity", "investment", "fit", "capacity"]
+                
+                # Check for financial-specific content
+                found_financial_specific = [indicator for indicator in financial_specific_indicators if indicator in conversation_text]
+                found_general_buyers = [indicator for indicator in general_buyer_indicators if indicator in conversation_text]
+                
+                # Must have financial-specific indicators
+                has_financial_context = len(found_financial_specific) >= 1 and len(found_general_buyers) >= 2
+                has_research_response = "research" in conversation_text or "here" in conversation_text or "based on" in conversation_text
+                
+                # More stringent requirements - must explicitly mention financial buyer context
+                detailed_financial_content = has_financial_context and (
+                    "financial buyer" in conversation_text or "private equity" in conversation_text or 
+                    "financial rationale" in conversation_text or "pe fund" in conversation_text
+                )
+                ai_financial_research = has_research_response and has_financial_context and ("financial" in conversation_text or "private equity" in conversation_text)
+                
+                is_covered = detailed_financial_content or ai_financial_research
             
             if is_covered:
                 topic_info["covered"] = True
@@ -3772,11 +3855,6 @@ def normalize_plan(plan: dict) -> dict:
         slides_out.append(s)
     plan["slides"] = slides_out
     return plan
-    slides_out = []
-    for s in slides_in:
-        s = normalize_buyer_profiles_slide(s)
-        s = normalize_valuation_overview_slide(s)
-        slides_out.append(s)
     plan["slides"] = slides_out
     return plan
 # --- END: Normalizers ---
