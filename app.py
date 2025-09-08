@@ -4865,17 +4865,25 @@ FAILURE = NOT FOLLOWING THIS EXACT FORMAT"""}]
                         # Add AI response to history
                         st.session_state.messages.append({"role": "assistant", "content": ai_response})
                         
-                        # Check for research flow and satisfaction confirmation for normal responses
+                        # Only check for satisfaction if user explicitly requested research
                         from research_flow_handler import research_flow_handler
                         
-                        needs_check, satisfaction_question = research_flow_handler.needs_satisfaction_check(st.session_state.messages)
+                        # Check if user explicitly requested research in their last message
+                        user_requested_research = False
+                        if len(st.session_state.messages) >= 2:
+                            last_user_msg = next((msg for msg in reversed(st.session_state.messages[:-1]) if msg["role"] == "user"), {})
+                            user_requested_research = research_flow_handler.detect_research_request(last_user_msg.get("content", ""))
                         
-                        if needs_check:
-                            # Add satisfaction check to conversation
-                            enhanced_response = ai_response + "\n\n" + satisfaction_question
-                            # Update the last message with the satisfaction question
-                            st.session_state.messages[-1]["content"] = enhanced_response
-                            ai_response = enhanced_response
+                        # Only add satisfaction check if user requested research AND AI provided research
+                        if user_requested_research:
+                            needs_check, satisfaction_question = research_flow_handler.needs_satisfaction_check(st.session_state.messages)
+                            
+                            if needs_check:
+                                # Add satisfaction check to conversation
+                                enhanced_response = ai_response + "\n\n" + satisfaction_question
+                                # Update the last message with the satisfaction question
+                                st.session_state.messages[-1]["content"] = enhanced_response
+                                ai_response = enhanced_response
                     
                     # Check if this response contains FINAL JSON generation (not interview responses)
                     # Only attempt JSON extraction when LLM generates complete JSON structures
