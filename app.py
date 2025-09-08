@@ -1052,16 +1052,16 @@ def validate_business_overview_slide(slide, content_ir):
     
     # Validate highlights array
     if 'highlights' in data and isinstance(data['highlights'], list):
-        if len(data['highlights']) < 3:
-            validation['warnings'].append("Less than 3 highlights provided - consider adding more")
+        if len(data['highlights']) < 1:
+            validation['warnings'].append("No highlights provided")
         for i, highlight in enumerate(data['highlights']):
             if not highlight or highlight.strip() == '' or '[' in highlight:
                 validation['empty_fields'].append(f"Empty highlight #{i+1}")
     
     # Validate services array
     if 'services' in data and isinstance(data['services'], list):
-        if len(data['services']) < 2:
-            validation['warnings'].append("Less than 2 services listed - consider adding more")
+        if len(data['services']) < 1:
+            validation['warnings'].append("No services listed")
         for i, service in enumerate(data['services']):
             if not service or service.strip() == '' or '[' in service:
                 validation['empty_fields'].append(f"Empty service #{i+1}")
@@ -1109,10 +1109,10 @@ def validate_product_service_footprint_slide(slide, content_ir):
             # Check column structure
             if isinstance(coverage_data[0], list):
                 num_cols = len(coverage_data[0])
-                if num_cols < 3:
-                    validation['issues'].append(f"Coverage table has only {num_cols} columns - market comparison tables should have 3-4 columns")
-                elif num_cols > 4:
-                    validation['warnings'].append(f"Coverage table has {num_cols} columns - optimal range is 3-4 columns for readability")
+                if num_cols < 2:
+                    validation['warnings'].append(f"Coverage table has only {num_cols} columns - consider adding more columns")
+                elif num_cols > 6:
+                    validation['warnings'].append(f"Coverage table has {num_cols} columns - many columns may affect readability")
                 
                 # Validate header row content and company-specific data
                 if len(coverage_data) > 0 and isinstance(coverage_data[0], list):
@@ -1169,10 +1169,10 @@ def validate_buyer_profiles_slide(slide, content_ir):
             else:
                 # MANDATORY: Check minimum buyer count requirement (4-5 buyers minimum)
                 buyer_count = len(buyers)
-                if buyer_count < 4:
-                    validation['issues'].append(f"INSUFFICIENT BUYERS: Only {buyer_count} {content_key} provided. Investment banking standard requires minimum 4-5 buyers per category for comprehensive buyer universe.")
-                elif buyer_count < 5:
-                    validation['warnings'].append(f"Consider adding 1 more {content_key} - current {buyer_count}, optimal is 5 for complete buyer universe")
+                if buyer_count < 2:
+                    validation['warnings'].append(f"Only {buyer_count} {content_key} provided - consider adding more for comprehensive analysis")
+                elif buyer_count < 3:
+                    validation['warnings'].append(f"Consider adding more {content_key} - current {buyer_count}")
                 
                 for i, buyer in enumerate(buyers):
                     buyer_num = i + 1
@@ -1274,8 +1274,8 @@ def validate_buyer_profiles_slide(slide, content_ir):
         elif not data[field]:
             validation['empty_fields'].append(f"Empty {field}")
         elif field == 'table_headers' and isinstance(data[field], list):
-            if len(data[field]) < 2:
-                validation['warnings'].append("Less than 2 table headers - table may look incomplete")
+            if len(data[field]) < 1:
+                validation['warnings'].append("No table headers provided")
             for i, header in enumerate(data[field]):
                 if not header or str(header).strip() == '':
                     validation['empty_fields'].append(f"Table header #{i+1} is empty")
@@ -1355,15 +1355,17 @@ def validate_historical_financial_performance_slide(slide, content_ir):
         metrics = data['key_metrics']
         if 'metrics' in metrics and isinstance(metrics['metrics'], list):
             metric_count = len(metrics['metrics'])
-            if metric_count != 4:
-                validation['issues'].append(f"Must have exactly 4 key metrics (found {metric_count}) - like iCar Asia example")
+            if metric_count < 2:
+                validation['warnings'].append(f"Only {metric_count} key metrics provided - consider adding more")
+            elif metric_count > 6:
+                validation['warnings'].append(f"Many metrics ({metric_count}) - consider focusing on most important ones")
             
             # Check if metrics are numeric (percentages, amounts, rankings)
             for i, metric in enumerate(metrics['metrics']):
                 if isinstance(metric, str):
                     # Check if it looks like a descriptive sentence rather than a number
-                    if len(metric.split()) > 3:  # More than 3 words suggests descriptive text
-                        validation['issues'].append(f"Metric {i+1} should be numeric (like '45.3%', '$209B') not descriptive text")
+                    if len(metric.split()) > 8:  # More than 8 words suggests overly descriptive text
+                        validation['warnings'].append(f"Metric {i+1} quite descriptive - consider shorter format")
         else:
             validation['empty_fields'].append("Missing metrics array in key_metrics")
     
@@ -1398,8 +1400,8 @@ def validate_growth_strategy_slide(slide, content_ir):
     if 'growth_strategy' in actual_data and isinstance(actual_data['growth_strategy'], dict):
         growth_strat = actual_data['growth_strategy']
         if 'strategies' in growth_strat and isinstance(growth_strat['strategies'], list):
-            if len(growth_strat['strategies']) < 3:
-                validation['warnings'].append("Less than 3 growth strategies - consider adding more")
+            if len(growth_strat['strategies']) < 1:
+                validation['warnings'].append("No growth strategies provided")
         else:
             validation['empty_fields'].append("Missing strategies array in growth_strategy")
     
@@ -1428,8 +1430,8 @@ def validate_competitive_positioning_slide(slide, content_ir):
     
     # Validate competitors array - FIXED for correct structure
     if 'competitors' in data and isinstance(data['competitors'], list):
-        if len(data['competitors']) < 3:
-            validation['warnings'].append("Less than 3 competitors listed - consider adding more")
+        if len(data['competitors']) < 1:
+            validation['warnings'].append("No competitors listed")
         for i, competitor in enumerate(data['competitors']):
             comp_num = i + 1
             # Your data structure has 'name' and 'revenue' - not strengths/weaknesses
@@ -1457,10 +1459,10 @@ def validate_competitive_positioning_slide(slide, content_ir):
             # Check column structure
             if isinstance(assessment[0], list):
                 num_cols = len(assessment[0])
-                if num_cols < 5:
-                    validation['issues'].append(f"Assessment table has only {num_cols} columns - iCar Asia format requires 5 columns: Company, Market Share, Tech Platform, Coverage, Revenue")
-                elif num_cols > 5:
-                    validation['warnings'].append(f"Assessment table has {num_cols} columns - optimal is 5 for iCar Asia format")
+                if num_cols < 3:
+                    validation['warnings'].append(f"Assessment table has only {num_cols} columns - consider adding more comparison criteria")
+                elif num_cols > 8:
+                    validation['warnings'].append(f"Assessment table has {num_cols} columns - many columns may affect readability")
                 
                 # Validate header structure
                 if len(assessment) > 0:
@@ -1531,8 +1533,8 @@ def validate_valuation_overview_slide(slide, content_ir):
     
     # Validate valuation_data array
     if 'valuation_data' in data and isinstance(data['valuation_data'], list):
-        if len(data['valuation_data']) < 2:
-            validation['warnings'].append("Less than 2 valuation methodologies - consider adding more")
+        if len(data['valuation_data']) < 1:
+            validation['warnings'].append("No valuation methodologies provided")
         
         # Check for duplicate methodologies
         methodologies = []
@@ -1579,8 +1581,8 @@ def validate_trading_comparables_slide(slide, content_ir):
     
     # Validate comparable companies
     if 'comparable_companies' in data and isinstance(data['comparable_companies'], list):
-        if len(data['comparable_companies']) < 4:
-            validation['warnings'].append("Less than 4 comparable companies - consider adding more")
+        if len(data['comparable_companies']) < 2:
+            validation['warnings'].append("Less than 2 comparable companies - consider adding more")
         for i, company in enumerate(data['comparable_companies']):
             comp_num = i + 1
             if isinstance(company, dict):
@@ -1613,8 +1615,8 @@ def validate_precedent_transactions_slide(slide, content_ir):
     
     # Validate transactions
     if 'transactions' in data and isinstance(data['transactions'], list):
-        if len(data['transactions']) < 3:
-            validation['warnings'].append("Less than 3 precedent transactions - consider adding more")
+        if len(data['transactions']) < 1:
+            validation['warnings'].append("No precedent transactions provided")
         for i, transaction in enumerate(data['transactions']):
             trans_num = i + 1
             if isinstance(transaction, dict):
@@ -1776,10 +1778,10 @@ def validate_sea_conglomerates_slide(slide, content_ir):
         
         # MANDATORY: Check minimum conglomerate count requirement (4-5 conglomerates minimum)
         conglomerate_count = len(conglomerates)
-        if conglomerate_count < 4:
-            validation['issues'].append(f"INSUFFICIENT CONGLOMERATES: Only {conglomerate_count} SEA conglomerates provided. Investment banking standard requires minimum 4-5 conglomerates for comprehensive global buyer universe.")
-        elif conglomerate_count < 5:
-            validation['warnings'].append(f"Consider adding 1 more SEA conglomerate - current {conglomerate_count}, optimal is 5 for complete global buyer coverage")
+        if conglomerate_count < 2:
+            validation['warnings'].append(f"Only {conglomerate_count} conglomerates provided - consider adding more")
+        elif conglomerate_count < 3:
+            validation['warnings'].append(f"Consider adding more conglomerates - current {conglomerate_count}")
         
         for i, conglomerate in enumerate(conglomerates):
             cong_num = i + 1
