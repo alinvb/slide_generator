@@ -1059,7 +1059,7 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
     return prs
 
 
-def render_competitive_positioning_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, **kwargs):
+def render_competitive_positioning_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, content_ir=None, **kwargs):
     """
     Render an ENHANCED competitive positioning slide matching iCar Asia format
     Features: 5-column assessment table with star ratings, clean layout, comprehensive data
@@ -1231,7 +1231,7 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
         print(f"[DEBUG] Using fallback axis scale: 100")
     
     # Highlight the user's company (first in list or matching company name) in secondary color
-    user_company_name = content_ir.get('entities', {}).get('company', {}).get('name', '')
+    user_company_name = (content_ir or {}).get('entities', {}).get('company', {}).get('name', '')
     series = chart.series[0]
     points = series.points
     for i, point in enumerate(points):
@@ -2273,10 +2273,10 @@ def render_historical_financial_performance_slide(data=None, color_scheme=None, 
             add_clean_text(slide, x_pos + Inches(0.1), metrics_y + Inches(0.4), box_width - Inches(0.2), Inches(0.3), 
                            str(metric), 10, colors["text"], False)
     
-    # Revenue Growth section
+    # Key Drivers of Revenue Growth section - FIXED TITLE
     revenue_section = (data or {}).get('revenue_growth', {})
     covid_y = Inches(5.7)
-    section_title = revenue_section.get('title', 'Revenue Growth')
+    section_title = revenue_section.get('title', 'Key Drivers of Revenue Growth')
     add_clean_text(slide, Inches(1), covid_y, Inches(7), Inches(0.2), 
                    section_title, 12, colors["primary"], True)
     
@@ -2387,8 +2387,8 @@ def render_business_overview_slide(data=None, color_scheme=None, typography=None
     company_desc = slide_data.get('description', 'Leading healthcare services provider with comprehensive medical care and operational excellence.')
     print(f"[DEBUG] Company description: {company_desc}")
     
-    # FIXED: Reduced width to make room for highlights box and proper text wrapping
-    add_clean_text(slide, Inches(0.8), Inches(1.3), Inches(7.0), Inches(1.2), 
+    # FIXED: Better positioning to avoid overlap with highlights
+    add_clean_text(slide, Inches(0.8), Inches(1.3), Inches(6.5), Inches(1.0), 
                    company_desc, 12, colors["text"])
     
     # Timeline elements - FIXED POSITIONING AND SPACING
@@ -2435,18 +2435,18 @@ def render_business_overview_slide(data=None, color_scheme=None, typography=None
     except Exception as e:
         print(f"[DEBUG] Timeline creation error: {e}")
     
-    # Operational Highlights box - COMPLETELY REPOSITIONED TO AVOID OVERLAP
+    # Operational Highlights box - REPOSITIONED TO RIGHT SIDE WITH PROPER MARGINS
     try:
-        highlights_bg = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8.0), Inches(1.3), 
-                                               Inches(4.8), Inches(5.8))  # Full height utilization
+        highlights_bg = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8.2), Inches(1.3), 
+                                               Inches(4.6), Inches(5.6))  # Better margins
         highlights_bg.fill.solid()
         highlights_bg.fill.fore_color.rgb = colors["light_grey"]
         highlights_bg.line.fill.background()
         highlights_bg.shadow.inherit = False
         
-        # Highlights title
+        # Highlights title  
         highlights_title = slide_data.get('highlights_title', 'Key Operational Highlights')
-        add_clean_text(slide, Inches(8.2), Inches(1.4), Inches(4.4), Inches(0.3), 
+        add_clean_text(slide, Inches(8.3), Inches(1.4), Inches(4.2), Inches(0.3), 
                        highlights_title, 12, colors["primary"], True, PP_ALIGN.CENTER)
         
         # Enhanced highlight items with more detail - SUPPORT FOR RICH CONTENT
