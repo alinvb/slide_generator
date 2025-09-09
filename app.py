@@ -3197,13 +3197,9 @@ def analyze_conversation_progress(messages):
             
             # Enhanced debug logging with detailed breakdown
             if len(topic_keywords_found) > 0 or len(substantial_keywords_found) > 0:
-                coverage_reasons = []
-                if basic_coverage: coverage_reasons.append("basic")
-                if extensive_discussion: coverage_reasons.append("extensive")
-                if research_coverage: coverage_reasons.append("research")
-                if has_detailed_info: coverage_reasons.append("detailed")
+                coverage_reason = "focused" if focused_coverage else "none"
                 
-                print(f"[COVERAGE] {topic_name}: topic_kw={len(topic_keywords_found)}, substantial_kw={len(substantial_keywords_found)}, reasons={coverage_reasons}, covered={is_covered}")
+                print(f"[COVERAGE] {topic_name}: topic_kw={len(topic_keywords_found)}, substantial_kw={len(substantial_keywords_found)}, reason={coverage_reason}, covered={is_covered}")
                 if topic_keywords_found:
                     print(f"  └─ Topic keywords found: {topic_keywords_found[:3]}")
                 if substantial_keywords_found:
