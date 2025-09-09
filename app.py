@@ -5975,7 +5975,7 @@ Sources: Company filings, industry reports, financial databases"""
                     research_request = research_request or follow_up_research_request
                     
                     # DYNAMIC CONVERSATION HANDLING - Use natural LLM responses instead of robotic patterns
-                    elif specific_info_request or clarification_request or topic_switch or disagreement or positive_engagement:
+                    if not research_request and (specific_info_request or clarification_request or topic_switch or disagreement or positive_engagement):
                         # Handle natural conversation with LLM intelligence
                         with st.spinner("💭 Processing your request..."):
                             try:
