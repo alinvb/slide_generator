@@ -2895,10 +2895,19 @@ DO NOT AUTOMATICALLY GENERATE JSON. After systematically covering ALL 14 topics,
 
 **MANDATORY: ASK ABOUT EVERY SINGLE TOPIC** - Never skip topics, follow this exact sequence:
 1. **business_overview** - Company description, operations, industry, headquarters
-2. **investor_considerations** - Key risks, opportunities, mitigation strategies  
-3. **product_service_footprint** - Main offerings, geographic coverage, operations
-4. **historical_financial_performance** - Revenue, EBITDA, margins (last 3-5 years)
-5. **management_team** - CEO, CFO, senior executives (names, titles, backgrounds)"""
+2. **product_service_footprint** - Main offerings, geographic coverage, operations
+3. **historical_financial_performance** - Revenue, EBITDA, margins (last 3-5 years)
+4. **management_team** - CEO, CFO, senior executives (names, titles, backgrounds)
+5. **growth_strategy_projections** - Expansion plans, strategic initiatives, projections
+6. **competitive_positioning** - Key competitors, advantages, market positioning
+7. **precedent_transactions** - Recent M&A transactions, target/acquirer data
+8. **valuation_overview** - Valuation methodologies, enterprise value range
+9. **strategic_buyers** - Corporate buyers who can afford valuation range
+10. **financial_buyers** - Private equity firms with sector experience
+11. **sea_conglomerates** - Large conglomerates relevant to geography
+12. **margin_cost_resilience** - EBITDA margins, cost management initiatives
+13. **investor_considerations** - Key risks, opportunities, mitigation strategies
+14. **investor_process_overview** - Due diligence, synergies, timeline"""
         
         return interview_protocol + "\n\n" + enhanced_prompt + """
 
