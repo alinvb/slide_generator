@@ -485,16 +485,24 @@ def fallback_json_repair(json_str):
     return '{}'
 
 def extract_jsons_from_response(response_text):
-    """Extract both Content IR and Render Plan JSONs from AI response - SIMPLE WORKING VERSION"""
+    """Extract both Content IR and Render Plan JSONs from AI response - ENHANCED VERSION FOR USER'S FORMAT"""
     content_ir = None
     render_plan = None
     
     print(f"[JSON EXTRACTION] Starting extraction from response of length: {len(response_text)}")
     
     try:
-        # 🚨 PRIORITY 1 FIX: Enhanced extraction supporting both case variations
-        content_ir_markers = ["CONTENT IR JSON:", "Content IR JSON:", "content ir json:", "CONTENT_IR JSON:"]
-        render_plan_markers = ["RENDER PLAN JSON:", "Render Plan JSON:", "render plan json:", "RENDER_PLAN JSON:"]
+        # 🚨 PRIORITY 1 FIX: Enhanced extraction supporting user's exact format with markdown
+        content_ir_markers = [
+            "**CONTENT IR JSON:**", "**Content IR JSON:**", "**content ir json:**",
+            "CONTENT IR JSON:", "Content IR JSON:", "content ir json:", "CONTENT_IR JSON:",
+            "Content IR:", "content ir:", "CONTENT IR:"
+        ]
+        render_plan_markers = [
+            "**RENDER PLAN JSON:**", "**Render Plan JSON:**", "**render plan json:**",
+            "RENDER PLAN JSON:", "Render Plan JSON:", "render plan json:", "RENDER_PLAN JSON:",
+            "Render Plan:", "render plan:", "RENDER PLAN:"
+        ]
         
         # Find the correct markers (case-insensitive)
         content_ir_marker = None
@@ -503,15 +511,17 @@ def extract_jsons_from_response(response_text):
         for marker in content_ir_markers:
             if marker in response_text:
                 content_ir_marker = marker
+                print(f"[JSON EXTRACTION] 🎯 Found Content IR marker: '{marker}'")
                 break
         
         for marker in render_plan_markers:
             if marker in response_text:
                 render_plan_marker = marker
+                print(f"[JSON EXTRACTION] 🎯 Found Render Plan marker: '{marker}'")
                 break
         
         if content_ir_marker and render_plan_marker:
-            print(f"[JSON EXTRACTION] 🎯 Found markers: '{content_ir_marker}' and '{render_plan_marker}'")
+            print(f"[JSON EXTRACTION] ✅ Both markers found!")
             
             # Extract Content IR JSON
             content_ir_start = response_text.find(content_ir_marker) + len(content_ir_marker)
@@ -522,32 +532,53 @@ def extract_jsons_from_response(response_text):
             render_plan_start = response_text.find(render_plan_marker) + len(render_plan_marker)
             render_plan_json_str = response_text[render_plan_start:].strip()
             
-            # Clean JSON strings
+            # Clean JSON strings - enhanced for markdown format
             content_ir_json_str = clean_json_string(content_ir_json_str)
             render_plan_json_str = clean_json_string(render_plan_json_str)
             
             print(f"[JSON EXTRACTION] Content IR JSON length: {len(content_ir_json_str)}")
             print(f"[JSON EXTRACTION] Render Plan JSON length: {len(render_plan_json_str)}")
             
+            # Debug: Show first 200 chars of each JSON
+            print(f"[JSON EXTRACTION] Content IR preview: {content_ir_json_str[:200]}...")
+            print(f"[JSON EXTRACTION] Render Plan preview: {render_plan_json_str[:200]}...")
+            
             # Parse JSONs
             try:
                 content_ir = json.loads(content_ir_json_str)
-                print(f"[JSON EXTRACTION] Content IR parsed successfully")
+                print(f"[JSON EXTRACTION] ✅ Content IR parsed successfully")
+                if 'entities' in content_ir and 'company' in content_ir['entities']:
+                    company_name = content_ir['entities']['company'].get('name', 'Unknown')
+                    print(f"[JSON EXTRACTION] Company name: {company_name}")
             except json.JSONDecodeError as e:
-                print(f"[JSON EXTRACTION] Content IR parse failed: {e}")
+                print(f"[JSON EXTRACTION] ❌ Content IR parse failed: {e}")
+                print(f"[JSON EXTRACTION] Problematic JSON: {content_ir_json_str[:500]}...")
             
             try:
                 render_plan = json.loads(render_plan_json_str)
-                print(f"[JSON EXTRACTION] Render Plan parsed successfully")
+                print(f"[JSON EXTRACTION] ✅ Render Plan parsed successfully")
+                slides_count = len(render_plan.get('slides', []))
+                print(f"[JSON EXTRACTION] Slides count: {slides_count}")
             except json.JSONDecodeError as e:
-                print(f"[JSON EXTRACTION] Render Plan parse failed: {e}")
+                print(f"[JSON EXTRACTION] ❌ Render Plan parse failed: {e}")
+                print(f"[JSON EXTRACTION] Problematic JSON: {render_plan_json_str[:500]}...")
                 
         else:
             print(f"[JSON EXTRACTION] 🚨 PRIORITY 1: Missing required markers")
             print(f"Content IR marker found: {content_ir_marker}")
             print(f"Render Plan marker found: {render_plan_marker}")
+            
+            # Enhanced debugging - check for partial matches
+            response_lower = response_text.lower()
+            if "content ir" in response_lower:
+                print("[JSON EXTRACTION] Found 'content ir' in response")
+            if "render plan" in response_lower:
+                print("[JSON EXTRACTION] Found 'render plan' in response")
+            if "json" in response_lower:
+                print("[JSON EXTRACTION] Found 'json' in response")
+                
             # Show what markers were actually found in the response
-            print(f"Response contains (first 500 chars): {response_text[:500]}...")
+            print(f"[JSON EXTRACTION] Response preview: {response_text[:500]}...")
             return None, None
     
     except Exception as e:
@@ -557,14 +588,42 @@ def extract_jsons_from_response(response_text):
 
 
 def clean_json_string(json_str):
-    """Clean JSON string for parsing - from working vector-db branch"""
+    """Clean JSON string for parsing - enhanced for user's markdown format"""
     if not json_str:
         return ""
     
-    # Remove common markdown/formatting
+    # Remove common markdown/formatting including bold markers
     json_str = json_str.replace("```json", "").replace("```", "")
+    json_str = json_str.replace("**", "")  # Remove markdown bold
+    json_str = json_str.replace("*", "")   # Remove markdown italic
     
-    # Find first { and last }
+    # Remove any leading text before JSON
+    lines = json_str.split('\n')
+    json_lines = []
+    found_start = False
+    
+    for line in lines:
+        line = line.strip()
+        if line.startswith('{') or found_start:
+            found_start = True
+            json_lines.append(line)
+        elif '{' in line:
+            # Line contains { but doesn't start with it
+            start_pos = line.find('{')
+            json_lines.append(line[start_pos:])
+            found_start = True
+    
+    if json_lines:
+        cleaned = '\n'.join(json_lines).strip()
+        
+        # Find first { and last }
+        start = cleaned.find("{")
+        end = cleaned.rfind("}") + 1
+        
+        if start >= 0 and end > start:
+            return cleaned[start:end].strip()
+    
+    # Fallback to original method
     start = json_str.find("{")
     end = json_str.rfind("}") + 1
     
