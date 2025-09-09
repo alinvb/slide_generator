@@ -16,6 +16,7 @@ from executor import execute_plan
 from catalog_loader import TemplateCatalog
 from brand_extractor import BrandExtractor
 from executive_search import ExecutiveSearchEngine, auto_generate_management_data
+from sequential_topic_manager import sequential_topic_manager
 
 def validate_and_fix_json(content_ir, render_plan):
     """
