@@ -3309,7 +3309,7 @@ def analyze_conversation_progress(messages):
             "keywords": ["competitive", "competitors", "positioning", "comparison", "advantages", "differentiation", "market position"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip competitive", "skip positioning"]),
-            "next_question": "What valuation methodologies and overview would be most appropriate for your business? I need enterprise values, methodology assumptions, and your expected valuation range with rationale."
+            "next_question": "🎯 CRITICAL: Now let's establish your valuation framework using the 3 MANDATORY methodologies. Based on your financial performance and growth projections, I need: (1) **DCF Analysis** with your specific cash flow projections, WACC, and terminal growth assumptions, (2) **Trading Multiples** from comparable public companies in your sector (EV/Revenue and EV/EBITDA), and (3) **Precedent Transactions** from recent M&A deals with strategic premiums. What's your expected enterprise value range using these 3 methods? This comprehensive valuation will determine which buyers can afford to acquire you and at what multiples. If you don't have detailed valuation work, I can research and calculate it."
         },
         "valuation_overview": {
             "keywords": ["valuation", "multiple", "methodology", "worth", "assumptions", "enterprise value", "dcf", "comparable"],
@@ -3327,13 +3327,13 @@ def analyze_conversation_progress(messages):
             "keywords": ["strategic buyers", "strategic buyer", "strategic rationale", "corporate buyer", "industry player", "strategic acquisition", "strategic synergies", "strategic fit"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip strategic", "skip buyer"]),
-            "next_question": "Now let's identify financial buyers—private equity firms, VCs, and other financial investors. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT funds based on YOUR company's location and market. Consider local/regional funds, sovereign wealth funds, and international funds with strong presence in your market. Tailor suggestions to your geographic context rather than generic global lists. I need 4-5 financial buyers with fund name, investment rationale (3-30 words), key synergies, fit assessment, and financial capacity. If you don't have this information, I can research relevant PE firms and financial investors in your market."
+            "next_question": "Now let's identify financial buyers based on your valuation and their investment capacity. 🚨 CRITICAL: Focus on PE firms and funds that can ACTUALLY AFFORD your valuation range. I need 4-5 financial buyers who: (1) **Can afford your valuation** - AUM significantly larger than your enterprise value (minimum 10x), (2) **Sector expertise** - experience investing in your industry, (3) **Geographic focus** - operate in or invest in your markets, (4) **Investment capacity** - recent fund vintage with dry powder for new deals, (5) **Deal size fit** - typical transaction sizes matching your valuation range. For each buyer provide: fund name, their investment capacity/recent deals, sector focus, and fit assessment. If you need help identifying financially capable PE firms, I can research this."
         },
         "financial_buyers": {
             "keywords": ["financial buyers", "financial buyer", "private equity", "pe fund", "vc fund", "venture capital", "financial investor", "investment fund", "financial rationale", "financial synergies"],
             "covered": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip financial", "skip pe"]),
-            "next_question": "Finally, what would the investment/acquisition process look like? I need: diligence topics investors would focus on, key synergy opportunities, main risk factors and mitigation strategies, and expected timeline for the transaction process."
+            "next_question": "Finally, what would the investment/acquisition process look like? I need: diligence topics investors would focus on, key synergy opportunities, main risk factors and mitigation strategies, expected timeline for the transaction process, and confirmation that our identified buyers have the financial capacity to complete transactions at your valuation range."
         },
         "margin_cost_resilience": {
             "keywords": ["margin", "cost", "resilience", "stability", "profitability", "efficiency", "cost management"],
@@ -4989,8 +4989,73 @@ Let's start: **What is your company name and give me a brief overview of what yo
                         
                         # Generate research instruction - use detected topic if available
                         if detected_research_topic:
-                            # Use smart detected topic for more accurate research
-                            research_instruction = f"""You are conducting comprehensive investment banking research. The user asked about {detected_research_topic} for {company_name} and requested research.
+                            # ENHANCED: Topic-specific research instructions with comprehensive methodologies
+                            if detected_research_topic == "valuation":
+                                research_instruction = f"""You are conducting comprehensive investment banking valuation analysis for {company_name}. The user requested research on valuation methodologies.
+
+MANDATORY 3-WAY VALUATION ANALYSIS:
+
+**1. DISCOUNTED CASH FLOW (DCF) ANALYSIS:**
+- Calculate enterprise value using 10-year cash flow projections
+- Use WACC between 8-12% based on industry and risk profile
+- Terminal growth rate: 2-3% (conservative)
+- Include detailed assumptions for revenue growth, margin expansion, capex, working capital
+- Show sensitivity analysis for key assumptions
+- Present range: $X.X - $Y.Y billion enterprise value
+
+**2. TRADING MULTIPLES (COMPARABLE COMPANY ANALYSIS):**
+- EV/Revenue Multiple: Research industry comparables, provide 8-12x range typical for sector
+- EV/EBITDA Multiple: 15-25x range for growth companies, adjust for company profile
+- Use 4-6 public company comparables with similar business models
+- Apply appropriate discounts/premiums based on size, growth, profitability
+- Present range: $X.X - $Y.Y billion enterprise value
+
+**3. PRECEDENT TRANSACTIONS:**
+- Research recent M&A deals in the industry (last 2-3 years)
+- Trading multiples: 10-15x revenue typically seen in sector
+- Apply strategic premium: 25-40% above trading multiples for control
+- Consider synergy value and strategic rationale
+- Present range: $X.X - $Y.Y billion including control premium
+
+**RECOMMENDED VALUATION RANGE:**
+- Weighted average methodology: DCF (40%), Trading Multiples (35%), Precedent Transactions (25%)
+- Final recommendation: $X.X - $Y.Y billion Enterprise Value
+- Per-share value and equity value calculations
+- Sensitivity scenarios (upside/base/downside cases)
+
+Provide specific numbers, methodologies, and detailed financial modeling assumptions."""
+                            elif detected_research_topic in ["strategic buyers", "financial buyers"]:
+                                research_instruction = f"""You are conducting comprehensive buyer identification and affordability analysis for {company_name}. 
+
+CRITICAL AFFORDABILITY ANALYSIS:
+
+Based on {company_name}'s estimated valuation range (research and estimate if not provided), identify buyers who can ACTUALLY AFFORD this acquisition:
+
+**FOR STRATEGIC BUYERS:**
+- Identify 4-5 corporate buyers with market cap/revenue significantly above target valuation
+- Check their recent M&A activity and transaction sizes
+- Verify their available cash/debt capacity for acquisitions of this size
+- Strategic rationale: Why each buyer would pay premium for {company_name}
+- Financial capacity: Specific evidence they can fund this transaction size
+- Include buyer revenue, market cap, recent deals, and available capital
+
+**FOR FINANCIAL BUYERS (PE FIRMS):**
+- Focus on funds with AUM significantly larger than target valuation (minimum 10x)
+- Recent fund vintage and dry powder available for new investments
+- Investment focus/sector expertise matching {company_name}'s industry
+- Typical deal sizes and willingness to lead transactions of this scale
+- Geographic focus and operational capabilities in relevant markets
+
+**AFFORDABILITY VERIFICATION:**
+- Cross-reference buyer financial capacity with estimated valuation range
+- Flag any buyers who may be stretched or unable to afford full acquisition
+- Prioritize buyers with strong balance sheets and acquisition track record
+- Consider consortium opportunities for larger transactions
+
+Provide specific financial metrics for each buyer to demonstrate affordability."""
+                            else:
+                                # Use smart detected topic for other research types
+                                research_instruction = f"""You are conducting comprehensive investment banking research. The user asked about {detected_research_topic} for {company_name} and requested research.
 
 RESEARCH FOCUS: {detected_research_topic.title()}
 
@@ -5002,7 +5067,7 @@ Provide comprehensive, detailed analysis covering:
 5. Professional investment banking perspective
 
 Format the response professionally with clear sections and actionable insights. Include specific data points and market analysis where relevant."""
-                            print(f"🎯 [SMART RESEARCH] Using detected topic: {detected_research_topic}")
+                            print(f"🎯 [SMART RESEARCH] Using enhanced {detected_research_topic} research")
                         else:
                             # Fallback to sequential manager
                             research_instruction = sequential_topic_manager.generate_research_instruction(current_topic_obj, prompt)
