@@ -492,14 +492,24 @@ def extract_jsons_from_response(response_text):
     print(f"[JSON EXTRACTION] Starting extraction from response of length: {len(response_text)}")
     
     try:
-        # 🚨 PRIORITY 1 FIX: Enhanced extraction supporting user's exact format with markdown
+        # 🚨 PRIORITY 1 FIX: Enhanced extraction supporting BOTH conversation and Generate JSON Now formats
         content_ir_markers = [
+            # Generate JSON Now format (with code blocks)
+            "CONTENT IR JSON:\n```json", "Content IR JSON:\n```json", 
+            "CONTENT IR JSON:\n```", "Content IR JSON:\n```",
+            # Conversation format (with markdown bold)
             "**CONTENT IR JSON:**", "**Content IR JSON:**", "**content ir json:**",
+            # Standard formats
             "CONTENT IR JSON:", "Content IR JSON:", "content ir json:", "CONTENT_IR JSON:",
             "Content IR:", "content ir:", "CONTENT IR:"
         ]
         render_plan_markers = [
+            # Generate JSON Now format (with code blocks)  
+            "RENDER PLAN JSON:\n```json", "Render Plan JSON:\n```json",
+            "RENDER PLAN JSON:\n```", "Render Plan JSON:\n```", 
+            # Conversation format (with markdown bold)
             "**RENDER PLAN JSON:**", "**Render Plan JSON:**", "**render plan json:**",
+            # Standard formats
             "RENDER PLAN JSON:", "Render Plan JSON:", "render plan json:", "RENDER_PLAN JSON:",
             "Render Plan:", "render plan:", "RENDER PLAN:"
         ]
@@ -592,10 +602,22 @@ def clean_json_string(json_str):
     if not json_str:
         return ""
     
-    # Remove common markdown/formatting including bold markers
+    # Remove common markdown/formatting including bold markers and code blocks
     json_str = json_str.replace("```json", "").replace("```", "")
     json_str = json_str.replace("**", "")  # Remove markdown bold
     json_str = json_str.replace("*", "")   # Remove markdown italic
+    
+    # Handle Generate JSON Now format - remove everything before the first {
+    if "CONTENT IR JSON:" in json_str or "RENDER PLAN JSON:" in json_str:
+        lines = json_str.split('\n')
+        json_started = False
+        cleaned_lines = []
+        for line in lines:
+            if line.strip().startswith('{') or json_started:
+                json_started = True
+                cleaned_lines.append(line)
+        if cleaned_lines:
+            json_str = '\n'.join(cleaned_lines)
     
     # Remove any leading text before JSON
     lines = json_str.split('\n')
