@@ -4366,11 +4366,11 @@ with st.sidebar:
                     missing_parts.append("Render Plan")
                 st.warning(f"⚠️ Missing: {', '.join(missing_parts)}. Generate JSONs first before improvement.")
         
-        if auto_improve_enabled and not api_key:
+        if st.session_state.get('auto_improve_enabled', False) and not api_key:
             st.warning("⚠️ Auto-improvement requires API key")
     
     # 🚨 CRITICAL DEBUG: Show current session state status
-    if auto_improve_enabled:
+    if st.session_state.get('auto_improve_enabled', False):
         st.markdown("#### 🔍 Debug: Session State Status")
         
         content_ir_exists = bool(st.session_state.get('content_ir_json'))
