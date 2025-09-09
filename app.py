@@ -5569,10 +5569,45 @@ RENDER PLAN JSON:
                     st.session_state.messages.append({"role": "assistant", "content": ai_response})
                     st.rerun()
                 else:
-                    # Check for research requests FIRST
-                    research_request = any(phrase in prompt.lower() for phrase in [
+                    # RESTORE FULL DYNAMIC CONVERSATION SYSTEM  
+                    # Handle different types of user responses with intelligence and context
+                    
+                    user_message_lower = prompt.lower()
+                    
+                    # 1. Check for research requests FIRST
+                    research_request = any(phrase in user_message_lower for phrase in [
                         "research this", "research for me", "research it", "research yourself",
                         "find information", "look up", "investigate", "do research", "search for"
+                    ])
+                    
+                    # 2. Check for specific information requests
+                    specific_info_request = any(phrase in user_message_lower for phrase in [
+                        "tell me more", "what about", "can you explain", "more details", 
+                        "elaborate", "expand on", "i want to know", "what are"
+                    ])
+                    
+                    # 3. Check for clarification or follow-up questions
+                    clarification_request = any(phrase in user_message_lower for phrase in [
+                        "what do you mean", "can you clarify", "i don't understand",
+                        "explain that", "what is", "how does", "why"
+                    ])
+                    
+                    # 4. Check for topic switching or new information
+                    topic_switch = any(phrase in user_message_lower for phrase in [
+                        "let's talk about", "i want to discuss", "moving on", "next topic",
+                        "what about", "tell me about", "i need help with"
+                    ])
+                    
+                    # 5. Check for disagreement or corrections  
+                    disagreement = any(phrase in user_message_lower for phrase in [
+                        "that's wrong", "not correct", "actually", "no that's", 
+                        "i disagree", "that's not right", "incorrect"
+                    ])
+                    
+                    # 6. Check for positive engagement
+                    positive_engagement = any(phrase in user_message_lower for phrase in [
+                        "interesting", "great", "excellent", "perfect", "good point",
+                        "i like", "that's helpful", "useful", "good to know"
                     ])
                     
                     if research_request:
@@ -5672,7 +5707,7 @@ Sources: Company filings, industry reports, financial databases"""
                                         try:
                                             research_messages = [
                                                 {"role": "system", "content": "You are a senior investment banking analyst providing comprehensive market research and company analysis. Provide detailed, factual information with proper sourcing and citations."},
-                                                {"role": "user", "content": f"Provide comprehensive research on {company_name} regarding {current_topic.replace('_', ' ')}. Include specific data, market analysis, competitive positioning, and key insights with proper sources."}
+                                                {"role": "user", "content": f"Provide comprehensive research on {company_name} regarding {research_topic}. Include specific data, market analysis, competitive positioning, and key insights with proper sources."}
                                             ]
                                             
                                             # Call LLM API for actual research
@@ -5686,14 +5721,70 @@ Sources: Company filings, industry reports, financial databases"""
                                         except Exception as research_error:
                                             print(f"⚠️ LLM research failed: {research_error}")
                                             # Comprehensive fallback research response
-                                            research_results = f"Based on comprehensive market analysis and industry data for {company_name} regarding {current_topic.replace('_', ' ')}:\n\n**Market Position & Industry Context:** Leading position with strong competitive advantages and market dynamics favoring continued growth.\n\n**Key Performance Indicators:** Strong operational metrics and consistent performance trends across key business segments.\n\n**Strategic Implications:** Well-positioned for market leadership with multiple growth vectors and defensive characteristics.\n\nSources: Industry analysis, market research reports, company data"
+                                            research_results = f"Based on comprehensive market analysis and industry data for {company_name} regarding {research_topic}:\n\n**Market Position & Industry Context:** Leading position with strong competitive advantages and market dynamics favoring continued growth.\n\n**Key Performance Indicators:** Strong operational metrics and consistent performance trends across key business segments.\n\n**Strategic Implications:** Well-positioned for market leadership with multiple growth vectors and defensive characteristics.\n\nSources: Industry analysis, market research reports, company data"
                                 
                                 # Create comprehensive research response with satisfaction check
                                 ai_response = f"{research_results}\n\nAre you satisfied with this research, or would you like me to investigate any specific areas further?"
                                 
                             except Exception as e:
-                                # Fallback research response
-                                ai_response = f"I've conducted research on {current_topic.replace('_', ' ')} for {st.session_state.get('company_name', 'your company')}. Here's what I found:\n\n[Comprehensive research findings would be provided here with proper sources and citations]\n\nAre you satisfied with this research, or would you like me to investigate any specific areas further?"
+                                # Fallback research response using the detected research topic
+                                ai_response = f"I've conducted research on {research_topic} for {st.session_state.get('company_name', 'your company')}. Here's what I found:\n\n[Comprehensive research findings would be provided here with proper sources and citations]\n\nAre you satisfied with this research, or would you like me to investigate any specific areas further?"
+                        
+                        st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                        st.rerun()
+                        st.stop()
+                    
+                    # DYNAMIC CONVERSATION HANDLING - Restore full adaptive system
+                    elif specific_info_request or clarification_request or topic_switch or disagreement:
+                        # User wants more information, clarification, or is switching topics
+                        with st.spinner("🤔 Processing your request..."):
+                            try:
+                                # Create contextual response based on user's specific request
+                                conversation_context = " ".join([msg["content"] for msg in st.session_state.messages[-3:]])
+                                company_name = st.session_state.get('company_name', 'your company')
+                                
+                                # Build contextual messages for LLM
+                                contextual_messages = [
+                                    {"role": "system", "content": f"You are a senior investment banking advisor conducting an interview for {company_name}. Be conversational, adaptive, and helpful. Address the user's specific request contextually and ask relevant follow-up questions to gather information for the pitch deck."},
+                                    {"role": "user", "content": f"Context: We've been discussing {company_name}. Recent conversation: {conversation_context[-500:]}. User just said: '{prompt}'. Please respond appropriately and ask relevant follow-up questions."}
+                                ]
+                                
+                                # Get adaptive response from LLM
+                                ai_response = call_llm_api(
+                                    contextual_messages,
+                                    st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
+                                    st.session_state['api_key'],
+                                    st.session_state.get('api_service', 'claude')
+                                )
+                                
+                            except Exception as e:
+                                # Fallback to smart pattern-based responses
+                                if specific_info_request:
+                                    ai_response = f"I'd be happy to provide more details! What specific aspect of {company_name} would you like me to elaborate on? For example, their technology, market position, competitive advantages, or growth strategy?"
+                                elif clarification_request:
+                                    ai_response = f"Great question! Let me clarify that for you. What specifically would you like me to explain in more detail about {company_name}?"
+                                elif topic_switch:
+                                    ai_response = f"Absolutely! What topic would you like to discuss about {company_name}? I can help with business model, financials, team, market analysis, or any other area for the pitch deck."
+                                elif disagreement:
+                                    ai_response = f"I appreciate the correction! Please share the accurate information about {company_name}, and I'll make sure to incorporate it correctly in our discussion."
+                                else:
+                                    ai_response = f"I understand. How can I better assist you with {company_name}? What information would be most helpful for your pitch deck?"
+                        
+                        st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                        st.rerun()
+                        st.stop()
+                    
+                    elif positive_engagement:
+                        # User is engaged - build on their interest and ask more questions
+                        company_name = st.session_state.get('company_name', 'your company')
+                        progress_info = analyze_conversation_progress(st.session_state.messages)
+                        
+                        if progress_info.get("next_question"):
+                            # Continue with next structured question
+                            ai_response = f"I'm glad you found that interesting! {progress_info['next_question']}"
+                        else:
+                            # General engagement response
+                            ai_response = f"Great! I'm glad that's helpful. Is there anything else about {company_name} you'd like to explore for the pitch deck?"
                         
                         st.session_state.messages.append({"role": "assistant", "content": ai_response})
                         st.rerun()
@@ -5828,6 +5919,60 @@ Would you like me to explore any other specific aspects of {company_name}, or sh
                             st.session_state.messages.append({"role": "assistant", "content": ai_response})
                             st.rerun()
                             st.stop()
+                    
+                    # FINAL ADAPTIVE FALLBACK - Handle any other user input dynamically
+                    else:
+                        # User provided input that doesn't match patterns - use full LLM intelligence
+                        with st.spinner("💭 Processing your response..."):
+                            try:
+                                # Get full conversation context  
+                                conversation_history = st.session_state.messages[-5:] if len(st.session_state.messages) > 5 else st.session_state.messages
+                                company_name = st.session_state.get('company_name', 'your company')
+                                
+                                # Get progress info for context
+                                progress_info = analyze_conversation_progress(st.session_state.messages)
+                                current_progress = f"Covered {progress_info.get('covered_count', 0)} of {progress_info.get('total_topics', 14)} topics"
+                                
+                                # Build intelligent contextual messages
+                                intelligent_messages = [
+                                    {"role": "system", "content": f"""You are a senior investment banking advisor conducting a comprehensive interview to gather information for a pitch deck about {company_name}. 
+
+Current situation: {current_progress}. 
+
+Be conversational, adaptive, and intelligent. Based on the user's response, either:
+1. Ask relevant follow-up questions to get more detail
+2. Move to the next logical topic for the pitch deck
+3. Clarify or expand on previous points
+4. Handle any corrections or additional information
+
+Always maintain the context of building a professional investment banking presentation."""},
+                                    
+                                ] + conversation_history + [
+                                    {"role": "user", "content": f"User just responded: '{prompt}'. Please respond appropriately as an investment banking advisor, maintaining conversation flow and gathering pitch deck information."}
+                                ]
+                                
+                                # Get fully adaptive response
+                                ai_response = call_llm_api(
+                                    intelligent_messages,
+                                    st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
+                                    st.session_state['api_key'],
+                                    st.session_state.get('api_service', 'claude')
+                                )
+                                
+                            except Exception as e:
+                                print(f"⚠️ Adaptive fallback failed: {e}")
+                                # Ultimate fallback - smart template response
+                                company_name = st.session_state.get('company_name', 'your company')
+                                progress_info = analyze_conversation_progress(st.session_state.messages)
+                                
+                                if progress_info.get("next_question"):
+                                    ai_response = f"Thank you for that information about {company_name}. {progress_info['next_question']}"
+                                else:
+                                    ai_response = f"I appreciate the additional details about {company_name}. Is there anything else you'd like to add, or shall we continue with other aspects for the pitch deck?"
+                        
+                        st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                        st.rerun()
+                        st.stop()
                     
                     # Check if interview is complete and should trigger JSON generation
                     if is_complete and not progress_info.get("next_question"):
