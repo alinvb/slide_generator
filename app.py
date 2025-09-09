@@ -4367,7 +4367,7 @@ with st.sidebar:
                 st.warning(f"⚠️ Missing: {', '.join(missing_parts)}. Generate JSONs first before improvement.")
         
         if auto_improve_enabled and not api_key:
-        st.warning("⚠️ Auto-improvement requires API key")
+            st.warning("⚠️ Auto-improvement requires API key")
     
     # 🚨 CRITICAL DEBUG: Show current session state status
     if auto_improve_enabled:
