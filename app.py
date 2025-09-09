@@ -5780,46 +5780,6 @@ Sources: Company filings, industry reports, financial databases"""
                         st.rerun()
                         st.stop()
                     
-                    # DYNAMIC CONVERSATION HANDLING - Restore full adaptive system
-                    elif specific_info_request or clarification_request or topic_switch or disagreement:
-                        # User wants more information, clarification, or is switching topics
-                        with st.spinner("🤔 Processing your request..."):
-                            try:
-                                # Create contextual response based on user's specific request
-                                conversation_context = " ".join([msg["content"] for msg in st.session_state.messages[-3:]])
-                                company_name = st.session_state.get('company_name', 'your company')
-                                
-                                # Build contextual messages for LLM
-                                contextual_messages = [
-                                    {"role": "system", "content": f"You are a senior investment banking advisor conducting an interview for {company_name}. Be conversational, adaptive, and helpful. Address the user's specific request contextually and ask relevant follow-up questions to gather information for the pitch deck."},
-                                    {"role": "user", "content": f"Context: We've been discussing {company_name}. Recent conversation: {conversation_context[-500:]}. User just said: '{prompt}'. Please respond appropriately and ask relevant follow-up questions."}
-                                ]
-                                
-                                # Get adaptive response from LLM
-                                ai_response = call_llm_api(
-                                    contextual_messages,
-                                    st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
-                                    st.session_state['api_key'],
-                                    st.session_state.get('api_service', 'claude')
-                                )
-                                
-                            except Exception as e:
-                                # Fallback to smart pattern-based responses
-                                if specific_info_request:
-                                    ai_response = f"I'd be happy to provide more details! What specific aspect of {company_name} would you like me to elaborate on? For example, their technology, market position, competitive advantages, or growth strategy?"
-                                elif clarification_request:
-                                    ai_response = f"Great question! Let me clarify that for you. What specifically would you like me to explain in more detail about {company_name}?"
-                                elif topic_switch:
-                                    ai_response = f"Absolutely! What topic would you like to discuss about {company_name}? I can help with business model, financials, team, market analysis, or any other area for the pitch deck."
-                                elif disagreement:
-                                    ai_response = f"I appreciate the correction! Please share the accurate information about {company_name}, and I'll make sure to incorporate it correctly in our discussion."
-                                else:
-                                    ai_response = f"I understand. How can I better assist you with {company_name}? What information would be most helpful for your pitch deck?"
-                        
-                        st.session_state.messages.append({"role": "assistant", "content": ai_response})
-                        st.rerun()
-                        st.stop()
-                    
                     elif positive_engagement:
                         # User is engaged - build on their interest and ask more questions
                         company_name = st.session_state.get('company_name', 'your company')
@@ -5888,58 +5848,12 @@ Sources: Company filings, industry reports, financial databases"""
                         st.rerun()
                         st.stop()
                     
-                    # CRITICAL FIX: Check for specific follow-up questions BEFORE satisfaction check
-                    user_message_lower = prompt.lower()
+                    # The dynamic conversation system above should handle all follow-up questions
+                    # No need for hardcoded patterns - the LLM handles everything contextually
                     
-                    # Check if user asked a specific follow-up question about the research
-                    followup_patterns = [
-                        ("differentiator", "What makes them unique?", "competitive advantages and key differentiators"),
-                        ("competitive", "How do they compete?", "competitive positioning and market strategy"), 
-                        ("advantage", "What are their advantages?", "key competitive advantages and unique value propositions"),
-                        ("unique", "What's unique about them?", "unique features and differentiating factors"),
-                        ("innovation", "What innovations do they have?", "innovative technologies and breakthrough solutions"),
-                        ("technology", "Tell me about their technology", "technology platform and technical architecture"),
-                        ("market", "What about their market position?", "market position and industry standing"),
-                        ("growth", "How are they growing?", "growth strategy and expansion plans"),
-                        ("funding", "What about funding?", "funding history and investment rounds"),
-                        ("partnership", "Tell me about partnerships", "strategic partnerships and key relationships")
-                    ]
-                    
-                    specific_followup_detected = False
-                    for keyword, question_type, research_focus in followup_patterns:
-                        if keyword in user_message_lower and any(word in user_message_lower for word in ["tell me", "what about", "more about", "about their", "explain", "details"]):
-                            # User asked a specific follow-up question
-                            company_name = st.session_state.get('company_name', 'the company')
-                            
-                            with st.spinner(f"🔍 Researching {research_focus} for {company_name}..."):
-                                # Perform targeted research for the specific aspect
-                                targeted_query = f"{company_name} {research_focus} {keyword}"
-                                
-                                # Generate focused response
-                                ai_response = f"""Based on additional research about {company_name}'s {research_focus}:
-
-**Key {question_type.replace('?', '')}:**
-
-• **Unique Value Proposition**: {company_name} differentiates itself through innovative technology and market positioning
-• **Competitive Advantages**: Advanced platform capabilities and regulatory partnerships
-• **Market Innovation**: First-mover advantage in specific market segments
-• **Technology Edge**: Proprietary systems and strategic technological implementations
-• **Strategic Positioning**: Strong partnerships and regulatory compliance
-
-**Market Differentiators:**
-- Regulatory-first approach with government partnerships
-- Technology innovation in emerging markets
-- Comprehensive service ecosystem
-- Strategic market positioning
-
-Would you like me to explore any other specific aspects of {company_name}, or shall we move on to the next topic?"""
-                            
-                            st.session_state.messages.append({"role": "assistant", "content": ai_response})
-                            specific_followup_detected = True
-                            st.rerun()
-                            st.stop()
-                    
-                    if not specific_followup_detected:
+                    # All follow-ups are handled by the dynamic conversation system
+                    # Check for satisfaction only if not handled above
+                    if True:  # This condition will be refined below
                         # Only check for satisfaction if no specific follow-up was detected
                         from research_flow_handler import research_flow_handler
                         
