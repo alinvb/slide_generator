@@ -4791,13 +4791,13 @@ Let's start: **What is your company name and give me a brief overview of what yo
                         print(f"🚨 [GENERATE_JSON_NOW] 🚀 BUTTON CLICKED! Starting generation process...")
                         # Force JSON generation with adaptive slide selection
                         from perfect_json_prompter import get_interview_completion_prompt
-                        from adaptive_slide_generator import generate_adaptive_presentation
+                        from topic_based_slide_generator import generate_topic_based_presentation
                         
-                        # Analyze conversation and determine relevant slides
-                        slide_list, adaptive_render_plan, analysis_report = generate_adaptive_presentation(st.session_state.messages)
+                        # Generate slides ONLY for covered interview topics (1 question = 1 slide)
+                        slide_list, adaptive_render_plan, analysis_report = generate_topic_based_presentation(st.session_state.messages)
                         
                         # Show user what will be generated
-                        st.info(f"📊 **Adaptive Generation**: Creating {len(slide_list)} slides based on available information")
+                        st.info(f"📊 **Topic-Based Generation**: Creating {len(slide_list)} slides for {analysis_report.get('topics_covered', 0)} covered interview topics")
                         st.write("**Slides to include:**", ", ".join(slide_list))
                         
                         completion_prompt = f"""Based on our conversation, generate JSON structures for ONLY these {len(slide_list)} relevant slides:
@@ -5046,10 +5046,10 @@ Start immediately with 'CONTENT IR JSON:' followed by the complete JSON, then 'R
                     if is_complete and not progress_info.get("next_question"):
                         # Interview is complete - force JSON generation with adaptive slides
                         from perfect_json_prompter import get_interview_completion_prompt
-                        from adaptive_slide_generator import generate_adaptive_presentation
+                        from topic_based_slide_generator import generate_topic_based_presentation
                         
-                        # Analyze conversation and generate adaptive slide list
-                        slide_list, adaptive_render_plan, analysis_report = generate_adaptive_presentation(st.session_state.messages)
+                        # Generate slides ONLY for covered interview topics (1 question = 1 slide)
+                        slide_list, adaptive_render_plan, analysis_report = generate_topic_based_presentation(st.session_state.messages)
                         
                         # Create enhanced completion prompt with adaptive slide information
                         completion_prompt = get_interview_completion_prompt(st.session_state.messages)
