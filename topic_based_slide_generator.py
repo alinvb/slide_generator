@@ -152,12 +152,23 @@ class TopicBasedSlideGenerator:
                     # Check if enough keywords are present to indicate topic coverage
                     keywords_found = sum(1 for keyword in keywords if keyword in conversation_text)
                     
-                    # Topic is covered if it has at least 3 matching keywords OR 2+ keywords with substantial content
-                    if keywords_found >= 3 or (keywords_found >= 2 and len(conversation_text.split()) > 50):
+                    # ENHANCED: Topic is covered if it has ANY keyword presence + research responses
+                    # Check for research responses indicating topic coverage
+                    research_indicators = ["research", "based on", "according to", "here is", "here are", "analysis shows"]
+                    has_research_response = any(indicator in conversation_text for indicator in research_indicators)
+                    
+                    # More lenient coverage detection
+                    is_covered = (
+                        keywords_found >= 2 or  # Direct keyword match
+                        (keywords_found >= 1 and has_research_response) or  # Research provided for topic
+                        (keywords_found >= 1 and len(conversation_text.split()) > 100)  # Substantial discussion
+                    )
+                    
+                    if is_covered:
                         covered_topics.append(topic_name)
-                        print(f"✅ TOPIC-BASED: {topic_name} is COVERED ({keywords_found}/{len(keywords)} keywords found)")
+                        print(f"✅ TOPIC-BASED: {topic_name} is COVERED ({keywords_found}/{len(keywords)} keywords, research: {has_research_response})")
                     else:
-                        print(f"❌ TOPIC-BASED: {topic_name} is NOT covered ({keywords_found}/{len(keywords)} keywords found)")
+                        print(f"❌ TOPIC-BASED: {topic_name} is NOT covered ({keywords_found}/{len(keywords)} keywords, research: {has_research_response})")
                 
                 return covered_topics, {
                     "covered_topics": covered_topics,

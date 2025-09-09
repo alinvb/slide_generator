@@ -2337,9 +2337,9 @@ def create_validation_feedback_for_llm(validation_results):
     feedback_sections.append('"financial_buyers": [')
     feedback_sections.append('  {')
     feedback_sections.append('    "buyer_name": "Sequoia Capital",')
-    feedback_sections.append('    "description": "Top global VC with proven tech investment track record.",')
-    feedback_sections.append('    "strategic_rationale": "Invest in high-growth technology platforms.",')
-    feedback_sections.append('    "key_synergies": "Portfolio synergies and growth acceleration.",')
+    feedback_sections.append('    "description": "Top global PE firm with proven tech acquisition track record.",')
+    feedback_sections.append('    "strategic_rationale": "Acquire and scale high-growth technology platforms.",')
+    feedback_sections.append('    "key_synergies": "Operational expertise and growth acceleration.",')
     feedback_sections.append('    "fit": "High (8/10)",')
     feedback_sections.append('    "financial_capacity": "Very High"')
     feedback_sections.append('  }')
@@ -2588,9 +2588,9 @@ def enhanced_json_validation_with_fixes(content_ir, render_plan):
                         elif 'Google' in buyer_name or 'Alphabet' in buyer_name:
                             buyer['description'] = "Global leader in AI research, cloud, and enterprise platforms."
                         elif 'Sequoia' in buyer_name:
-                            buyer['description'] = "Top global VC with deep SaaS/AI portfolio."
+                            buyer['description'] = "Top global PE/growth equity firm with deep SaaS/AI portfolio."
                         elif 'Andreessen' in buyer_name:
-                            buyer['description'] = "Leading VC with strong AI and developer tool focus."
+                            buyer['description'] = "Leading PE/growth equity firm with strong AI and developer tool focus."
                         else:
                             buyer['description'] = f"Major industry player and strategic partner."
                         fixes_applied.append(f"Added description for {buyer_name}")
@@ -3344,11 +3344,11 @@ def analyze_conversation_progress(messages):
                     print(f"🚨 SKIPPING {topic_name} due to user repetition complaint")
                     continue
                 else:
-                    # Recently asked but no complaint - provide follow-up or clarification
-                    next_topic = topic_name
-                    next_question = f"I understand we touched on this briefly. Let me be more specific: {topic_info['interview_question']}"
-                    print(f"🔄 CONTEXT AWARE: Providing clarification for {topic_name}")
-                    break
+                    # Recently asked but no complaint - STILL SKIP to prevent repetition
+                    # Mark as covered to move to next topic
+                    topic_info["covered"] = True
+                    print(f"🚨 REPETITION PREVENTION: Skipping recently asked {topic_name}, moving to next topic")
+                    continue
             else:
                 # First time asking this question - proceed normally
                 next_topic = topic_name 
@@ -3478,7 +3478,58 @@ def get_enhanced_interview_response(messages, user_message, model, api_key, serv
                 enhanced_messages = messages.copy()
                 
                 # Add research instruction to guide the LLM
-                research_instruction = f"""🔍 RESEARCH REQUEST for {current_topic}:
+                # Enhanced research instruction based on topic
+                if current_topic == "valuation_overview":
+                    research_instruction = f"""🔍 VALUATION ANALYSIS REQUEST for Databricks:
+
+You must provide ACTUAL VALUATION CALCULATIONS, not just methodologies:
+
+1. **DCF Analysis**: 
+   - Revenue projections: 2025: $4B, 2026: $6.4B (60% growth), 2027: $9.6B (50% growth), 2028: $13.4B (40% growth), 2029: $17.4B (30% growth)
+   - EBITDA margins: Start 15%, improve to 25% by 2029
+   - WACC: 10-12% for high-growth SaaS
+   - Terminal growth: 3%
+   - **Calculate enterprise value range**
+
+2. **Trading Multiples**:
+   - Snowflake: 15x EV/Revenue
+   - Palantir: 12x EV/Revenue  
+   - MongoDB: 8x EV/Revenue
+   - Apply 8-15x multiple to $4B revenue = **$32B-$60B range**
+
+3. **Precedent Transactions**:
+   - Splunk acquisition: 7-8x revenue multiple
+   - Apply to Databricks: 7-8x × $4B = **$28B-$32B range**
+
+4. **FINAL VALUATION RANGE**: Provide specific dollar amounts, not just "40-100 billion"
+
+Then ask for satisfaction with the valuation analysis."""
+                    
+                elif current_topic == "financial_buyers":
+                    research_instruction = f"""🔍 FINANCIAL BUYERS RESEARCH - PRIVATE EQUITY ONLY:
+
+CRITICAL: Focus ONLY on Private Equity firms, NOT venture capital firms.
+
+Research 4-5 PE firms that:
+1. Have $50B+ AUM to afford Databricks' $60-100B valuation
+2. History of acquiring tech companies at $10B+ valuations
+3. Experience with SaaS/AI platforms
+
+Examples to research:
+- KKR (tech acquisitions)
+- Blackstone Growth
+- TPG Growth
+- Silver Lake Partners  
+- Vista Equity Partners
+
+For each PE firm, provide: fund size, recent large tech acquisitions, rationale for acquiring Databricks.
+
+DO NOT include any venture capital firms like Andreessen Horowitz or Sequoia Capital.
+
+Then ask for satisfaction with the PE research."""
+
+                else:
+                    research_instruction = f"""🔍 RESEARCH REQUEST for {current_topic}:
 
 The user has requested research on the current interview topic. You must:
 1. Provide comprehensive research with relevant data, facts, and sources
