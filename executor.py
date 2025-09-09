@@ -13,22 +13,9 @@ except Exception:
 
 import importlib
 
-# Import slide templates directly instead of adapters
-from slide_templates import (
-    render_business_overview_slide,
-    render_historical_financial_performance_slide, 
-    render_management_team_slide,
-    render_product_service_footprint_slide,
-    render_growth_strategy_projections_slide,
-    render_competitive_positioning_slide,
-    render_precedent_transactions_slide,
-    render_valuation_overview_slide,
-    render_buyer_profiles_slide,
-    render_sea_conglomerates_slide,
-    render_margin_cost_resilience_slide,
-    render_investor_considerations_slide,
-    render_investor_process_overview_slide
-)
+# RESTORED: Import proper adapters module for sophisticated slide generation
+import adapters
+
 
 def _ensure_prs(prs=None):
     """Return a python-pptx Presentation or create a new one."""
@@ -38,54 +25,6 @@ def _ensure_prs(prs=None):
         return Presentation()
     return prs
 
-def render_plan_to_pptx(plan=None, content=None, content_ir=None, prs=None, company_name="Your Company", brand_config=None):
-    """
-    Simple render function to replace adapters.render_plan_to_pptx
-    """
-    if prs is None:
-        prs = _ensure_prs()
-    
-    if not plan or 'slides' not in plan:
-        print("❌ No plan or slides found")
-        return prs
-    
-    # Map of template names to render functions
-    template_map = {
-        'business_overview': render_business_overview_slide,
-        'historical_financial_performance': render_historical_financial_performance_slide,
-        'management_team': render_management_team_slide,
-        'product_service_footprint': render_product_service_footprint_slide,
-        'growth_strategy_projections': render_growth_strategy_projections_slide,
-        'competitive_positioning': render_competitive_positioning_slide,
-        'precedent_transactions': render_precedent_transactions_slide,
-        'valuation_overview': render_valuation_overview_slide,
-        'buyer_profiles': render_buyer_profiles_slide,
-        'sea_conglomerates': render_sea_conglomerates_slide,
-        'margin_cost_resilience': render_margin_cost_resilience_slide,
-        'investor_considerations': render_investor_considerations_slide,
-        'investor_process_overview': render_investor_process_overview_slide
-    }
-    
-    # Render each slide
-    for slide_config in plan['slides']:
-        template = slide_config.get('template')
-        if template in template_map:
-            try:
-                render_func = template_map[template]
-                prs = render_func(
-                    data=slide_config.get('data'),
-                    content_ir=content_ir,
-                    prs=prs,
-                    company_name=company_name,
-                    brand_config=brand_config
-                )
-                print(f"✅ Rendered {template} slide")
-            except Exception as e:
-                print(f"❌ Error rendering {template}: {e}")
-        else:
-            print(f"⚠️ Unknown template: {template}")
-    
-    return prs
 
 def execute_plan(
     plan: Optional[Dict] = None,
@@ -117,55 +56,56 @@ def execute_plan(
         Tuple[Presentation, str]: The presentation object and the path where it was saved
     """
     prs_obj = _ensure_prs(prs)
-
-    # Handle alternative parameter names for render plan
-    if plan is None and 'render_plan' in kwargs:
-        plan = kwargs['render_plan']
-        print(f"[DEBUG] Using render_plan parameter as plan")
     
-    # Handle alternative parameter names for output file
-    output_file = kwargs.get('output_file')
+    # Use the sophisticated adapters.render_plan_to_pptx function
+    try:
+        print("🎯 RESTORED: Using sophisticated adapters.render_plan_to_pptx")
+        prs_obj = adapters.render_plan_to_pptx(
+            plan=plan,
+            content=content,
+            content_ir=content_ir,
+            prs=prs_obj,
+            company_name=company_name,
+            brand_config=brand_config
+        )
+        print("✅ Successfully used sophisticated adapters rendering")
+    except Exception as e:
+        print(f"❌ Error using adapters.render_plan_to_pptx: {e}")
+        # Fallback to basic rendering if adapters fails
+        if plan and 'slides' in plan:
+            print("⚠️ Falling back to basic slide rendering")
+            # Simple fallback - this should rarely be needed
+            import slide_templates
+            for slide_config in plan['slides']:
+                template = slide_config.get('template')
+                try:
+                    render_func = getattr(slide_templates, f'render_{template}_slide', None)
+                    if render_func:
+                        prs_obj = render_func(
+                            data=slide_config.get('data'),
+                            prs=prs_obj,
+                            company_name=company_name
+                        )
+                        print(f"✅ Fallback rendered {template} slide")
+                except Exception as fallback_error:
+                    print(f"❌ Fallback error for {template}: {fallback_error}")
+
+    # Determine output path
+    save_path = out_path or output_path or deck_path
+    if not save_path:
+        save_path = "output_presentation.pptx"
     
-    # Determine the save path (try all possible parameter names)
-    save_path = out_path or output_path or deck_path or output_file or "deck.pptx"
-
-    prs_out = render_plan_to_pptx(
-        plan=plan, 
-        content=content, 
-        content_ir=content_ir, 
-        prs=prs_obj, 
-        company_name=company_name,
-        brand_config=brand_config
-    )
-
-    # Save if path is provided
-    if save_path:
-        save_path = str(save_path)
-        try:
-            Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-            prs_out.save(save_path)
-        except Exception as e:
-            # Fallback to current directory if save fails
-            fallback_path = "deck.pptx"
-            try:
-                prs_out.save(fallback_path)
-                save_path = fallback_path
-            except Exception as e2:
-                print(f"Failed to save to both {save_path} and {fallback_path}: {e2}")
-                save_path = "failed_to_save.pptx"
-
-    return prs_out, save_path
-
-# Convenience for CLI/manual testing
-if __name__ == "__main__":
-    import json, sys
-    input_json = None
-    if len(sys.argv) > 1:
-        with open(sys.argv[1], "r", encoding="utf-8") as f:
-            input_json = json.load(f)
-    else:
-        # Minimal demo
-        input_json = {"slides": [{"template": "management_team", "data": {"title": "Demo", "left_column_profiles": [], "right_column_profiles": []}}]}
+    # Ensure the output path has the correct extension
+    if not save_path.endswith('.pptx'):
+        save_path += '.pptx'
     
-    prs, path = execute_plan(plan=input_json, out_path="deck.pptx")
-    print(f"Wrote {path}")
+    # Save the presentation
+    try:
+        prs_obj.save(save_path)
+        print(f"✅ Presentation saved successfully to: {save_path}")
+    except Exception as e:
+        print(f"❌ Error saving presentation: {e}")
+        # Return a default path even if save failed
+        save_path = "failed_to_save.pptx"
+    
+    return prs_obj, save_path
