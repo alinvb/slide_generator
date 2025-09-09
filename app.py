@@ -4220,28 +4220,43 @@ with st.sidebar:
                 avg_time = usage_stats['total_time'] / max(usage_stats['total_calls'], 1)
                 st.metric("Avg Time", f"{avg_time:.1f}s")
         
-        # Manual improvement trigger - ENHANCED TO WORK IMMEDIATELY
+        # Manual improvement trigger - ENHANCED WITH CRITICAL DEBUGGING
         if st.button("🔧 Improve Current JSON", help="Manually trigger JSON improvement"):
+            # 🚨 CRITICAL DEBUG: Check session state when button is clicked
+            print(f"[IMPROVE_BUTTON] 🚨 CRITICAL DEBUG - Button clicked!")
+            print(f"[IMPROVE_BUTTON] Session state keys: {list(st.session_state.keys())}")
+            print(f"[IMPROVE_BUTTON] content_ir_json exists: {'content_ir_json' in st.session_state}")
+            print(f"[IMPROVE_BUTTON] render_plan_json exists: {'render_plan_json' in st.session_state}")
+            print(f"[IMPROVE_BUTTON] generated_content_ir exists: {'generated_content_ir' in st.session_state}")
+            print(f"[IMPROVE_BUTTON] generated_render_plan exists: {'generated_render_plan' in st.session_state}")
+            
             # Check both storage formats for JSONs
             content_ir_json = st.session_state.get('content_ir_json')
             render_plan_json = st.session_state.get('render_plan_json')
+            
+            print(f"[IMPROVE_BUTTON] Direct content_ir_json: {type(content_ir_json)} - {content_ir_json is not None}")
+            print(f"[IMPROVE_BUTTON] Direct render_plan_json: {type(render_plan_json)} - {render_plan_json is not None}")
             
             # Fallback: try to parse from string representations
             if not content_ir_json:
                 try:
                     content_ir_str = st.session_state.get("generated_content_ir", "")
+                    print(f"[IMPROVE_BUTTON] Content IR string length: {len(content_ir_str)}")
                     if content_ir_str and len(content_ir_str.strip()) > 10:
                         content_ir_json = json.loads(content_ir_str)
+                        print(f"[IMPROVE_BUTTON] ✅ Parsed content_ir from string successfully")
                 except Exception as e:
-                    print(f"[IMPROVE] Failed to parse content_ir from string: {e}")
+                    print(f"[IMPROVE_BUTTON] ❌ Failed to parse content_ir from string: {e}")
             
             if not render_plan_json:
                 try:
                     render_plan_str = st.session_state.get("generated_render_plan", "")
+                    print(f"[IMPROVE_BUTTON] Render Plan string length: {len(render_plan_str)}")
                     if render_plan_str and len(render_plan_str.strip()) > 10:
                         render_plan_json = json.loads(render_plan_str)
+                        print(f"[IMPROVE_BUTTON] ✅ Parsed render_plan from string successfully")
                 except Exception as e:
-                    print(f"[IMPROVE] Failed to parse render_plan from string: {e}")
+                    print(f"[IMPROVE_BUTTON] ❌ Failed to parse render_plan from string: {e}")
             
             if content_ir_json and render_plan_json:
                 with st.spinner("🔧 Improving JSON quality..."):
@@ -4321,6 +4336,31 @@ with st.sidebar:
     
     elif auto_improve_enabled and not api_key:
         st.warning("⚠️ Auto-improvement requires API key")
+    
+    # 🚨 CRITICAL DEBUG: Show current session state status
+    if auto_improve_enabled:
+        st.markdown("#### 🔍 Debug: Session State Status")
+        
+        content_ir_exists = bool(st.session_state.get('content_ir_json'))
+        render_plan_exists = bool(st.session_state.get('render_plan_json'))
+        generated_content_ir_exists = bool(st.session_state.get('generated_content_ir'))
+        generated_render_plan_exists = bool(st.session_state.get('generated_render_plan'))
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write("**Object Format:**")
+            st.write(f"content_ir_json: {'✅' if content_ir_exists else '❌'}")
+            st.write(f"render_plan_json: {'✅' if render_plan_exists else '❌'}")
+        
+        with col2:
+            st.write("**String Format:**")  
+            st.write(f"generated_content_ir: {'✅' if generated_content_ir_exists else '❌'}")
+            st.write(f"generated_render_plan: {'✅' if generated_render_plan_exists else '❌'}")
+        
+        files_ready = st.session_state.get("files_ready", False)
+        auto_populated = st.session_state.get("auto_populated", False)
+        
+        st.write(f"**Status:** files_ready: {'✅' if files_ready else '❌'}, auto_populated: {'✅' if auto_populated else '❌'}")
     
     st.markdown("---")
     
@@ -5204,6 +5244,11 @@ FAILURE = NOT FOLLOWING THIS EXACT FORMAT"""}]
                                 st.session_state['render_plan_json'] = render_plan
                                 st.session_state['validation_results'] = validation_results
                                 
+                                # 🚨 CRITICAL DEBUG: Confirm session state storage
+                                print(f"[GENERATE_JSON_NOW] ✅ Stored content_ir_json: {type(content_ir)} with {len(content_ir)} keys")
+                                print(f"[GENERATE_JSON_NOW] ✅ Stored render_plan_json: {type(render_plan)} with {len(render_plan.get('slides', []))} slides")
+                                print(f"[GENERATE_JSON_NOW] ✅ Session state keys: {list(st.session_state.keys())}")
+                                
                                 # 🔧 AUTO-IMPROVEMENT INTEGRATION
                                 if st.session_state.get('auto_improve_enabled', False) and st.session_state.get('api_key'):
                                     with st.spinner("🔧 Auto-improving JSON quality..."):
@@ -5229,7 +5274,7 @@ FAILURE = NOT FOLLOWING THIS EXACT FORMAT"""}]
                                 # Create downloadable files
                                 files_data = create_downloadable_files(content_ir, render_plan, company_name_extracted)
                                 
-                                # Update session state for auto-population
+                                # Update session state for auto-population - ENHANCED FOR RELIABILITY
                                 st.session_state["generated_content_ir"] = files_data['content_ir_json']
                                 st.session_state["generated_render_plan"] = files_data['render_plan_json']
                                 st.session_state["content_ir_json"] = content_ir  # Store parsed JSON for validation
@@ -5237,6 +5282,15 @@ FAILURE = NOT FOLLOWING THIS EXACT FORMAT"""}]
                                 st.session_state["files_ready"] = True
                                 st.session_state["files_data"] = files_data
                                 st.session_state["auto_populated"] = True
+                                
+                                # 🚨 CRITICAL DEBUG: Confirm final session state
+                                print(f"[GENERATE_JSON_NOW] 🎯 FINAL SESSION STATE:")
+                                print(f"   generated_content_ir: {len(st.session_state['generated_content_ir'])} chars")
+                                print(f"   generated_render_plan: {len(st.session_state['generated_render_plan'])} chars") 
+                                print(f"   content_ir_json: {type(st.session_state['content_ir_json'])}")
+                                print(f"   render_plan_json: {type(st.session_state['render_plan_json'])}")
+                                print(f"   files_ready: {st.session_state['files_ready']}")
+                                print(f"   auto_populated: {st.session_state['auto_populated']}")
                                 
                                 # Show validation summary
                                 if validation_results and validation_results.get('overall_valid', False):
@@ -5250,6 +5304,13 @@ FAILURE = NOT FOLLOWING THIS EXACT FORMAT"""}]
                                 st.info("💡 **Switch to JSON Editor tab** to see the populated JSONs and download files!")
                                 
                                 print(f"✅ AUTO-POPULATION SUCCESS: {company_name_extracted}")
+                                
+                                # 🚨 CRITICAL: Force page refresh to ensure session state updates are visible  
+                                # Only refresh once to prevent infinite loops
+                                if not st.session_state.get("_generation_refresh_done", False):
+                                    st.session_state["_generation_refresh_done"] = True
+                                    st.success("🎊 **Generation Complete!** Refreshing page to show populated JSONs...")
+                                    st.rerun()
                                 
                                 # Add fallback manual button for edge cases
                                 with st.expander("🔧 Manual Re-Population (If Needed)"):
