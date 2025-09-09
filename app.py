@@ -3263,16 +3263,34 @@ def analyze_conversation_progress(messages):
                 ("satisfied" in recent_messages or "ok" in recent_messages or "research" in recent_messages)
             )
             
-            # CRITICAL FIX: Only mark as covered if this is the current topic being discussed
-            # This prevents comprehensive responses from marking multiple topics as covered
+            # CRITICAL FIX: Smart topic coverage logic
+            # Allow marking as covered if:
+            # 1. This is the current topic being discussed, OR
+            # 2. This is a previous topic (lower position) than current topic, OR  
+            # 3. No current topic detected (fallback to original logic)
+            
+            should_allow_coverage = True  # Default: allow coverage
+            
             if current_topic_being_discussed and topic_name != current_topic_being_discussed:
-                # Not the current topic - don't mark as covered even if keywords match
-                is_covered = False
-                if focused_coverage or ai_research_coverage:
-                    print(f"🚫 PREVENTED PREMATURE COVERAGE: {topic_name} has matching content but not currently being discussed")
-            else:
-                # This IS the current topic being discussed - normal coverage logic
+                # Not the current topic - check if it's a previous topic or future topic
+                current_topic_position = topics_checklist[current_topic_being_discussed]["position"]
+                this_topic_position = topic_info["position"]
+                
+                if this_topic_position > current_topic_position:
+                    # This is a future topic - prevent premature coverage
+                    should_allow_coverage = False
+                    if focused_coverage or ai_research_coverage:
+                        print(f"🚫 PREVENTED PREMATURE COVERAGE: {topic_name} (position {this_topic_position}) is future topic, current is {current_topic_being_discussed} (position {current_topic_position})")
+                else:
+                    # This is a previous topic or current topic - allow coverage
+                    should_allow_coverage = True
+                    if focused_coverage or ai_research_coverage:
+                        print(f"✅ ALLOWED COVERAGE: {topic_name} (position {this_topic_position}) is previous/current topic")
+            
+            if should_allow_coverage:
                 is_covered = focused_coverage or ai_research_coverage
+            else:
+                is_covered = False
             
             # Enhanced debug logging with detailed breakdown
             if len(topic_keywords_found) > 0 or len(substantial_keywords_found) > 0:
