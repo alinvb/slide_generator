@@ -3573,7 +3573,15 @@ def extract_and_validate_jsons(response_text):
     print("="*80)
     
     # Extract JSONs with improved parsing
-    content_ir, render_plan = extract_jsons_from_response(response_text)
+    print("🚨 [EXTRACT_AND_VALIDATE] Calling extract_jsons_from_response...")
+    try:
+        content_ir, render_plan = extract_jsons_from_response(response_text)
+        print(f"🚨 [EXTRACT_AND_VALIDATE] extract_jsons_from_response returned: content_ir={content_ir is not None}, render_plan={render_plan is not None}")
+    except Exception as e:
+        print(f"🚨 [EXTRACT_AND_VALIDATE] CRITICAL ERROR in extract_jsons_from_response: {e}")
+        import traceback
+        print(f"🚨 [EXTRACT_AND_VALIDATE] Traceback: {traceback.format_exc()}")
+        content_ir, render_plan = None, None
     
     print(f"\n📊 EXTRACTION RESULTS:")
     print(f"Content IR: {'✅ Found' if content_ir else '❌ Not Found'}")
@@ -4789,6 +4797,11 @@ Let's start: **What is your company name and give me a brief overview of what yo
             if len(st.session_state.messages) > 4:  # Only show after some conversation
                 col1, col2 = st.columns([3, 1])
                 with col2:
+                    # 🚨 TEST: Simple test button first
+                    if st.button("🧪 TEST BUTTON", type="primary", help="Test if buttons work"):
+                        st.success("🧪 TEST BUTTON WORKS!")
+                        print("🧪 TEST BUTTON CLICKED!")
+                    
                     if st.button("🚀 Generate JSON Now", type="secondary", help="Generate presentation with available information"):
                         st.error("🚨 DEBUG: BUTTON CLICKED - Starting generation process...")
                         print(f"🚨 [GENERATE_JSON_NOW] 🚀 BUTTON CLICKED! Starting generation process...")
