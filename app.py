@@ -3188,14 +3188,37 @@ def analyze_conversation_progress(messages):
         else:
             print("⚠️ NO TOPICS SCORED - using fallback logic")
     
-    # Fallback: If no current topic detected, assume we're working on the first uncovered topic
+    # IMPROVED FALLBACK: Look at conversation context to determine where we are in the progression
     if not current_topic_being_discussed:
-        sorted_topics_for_fallback = sorted(topics_checklist.items(), key=lambda x: x[1]["position"])
-        for topic_name, topic_info in sorted_topics_for_fallback:
-            if not topic_info.get("covered", False) and not topic_info.get("skipped", False):
-                current_topic_being_discussed = topic_name
-                print(f"🔄 FALLBACK CURRENT TOPIC: {topic_name} (first uncovered topic)")
-                break
+        # Try to determine current topic from conversation flow and recent AI questions
+        # Look at last few AI questions, not just the most recent one
+        recent_ai_questions = []
+        for i, msg in enumerate(messages[-10:]):  # Last 10 messages
+            if msg["role"] == "assistant" and ("?" in msg["content"] or "let's" in msg["content"].lower()):
+                recent_ai_questions.append(msg["content"].lower())
+        
+        # Try to detect topic from recent AI questions (broader search)
+        topic_candidates = []
+        for ai_question in recent_ai_questions[-3:]:  # Last 3 AI questions
+            for topic_name, patterns in topic_patterns.items():
+                for pattern in patterns:
+                    if pattern in ai_question:
+                        topic_candidates.append(topic_name)
+                        print(f"🔍 CANDIDATE TOPIC FROM AI HISTORY: {topic_name} (pattern: '{pattern}' in '{ai_question[:100]}')")
+                        break
+        
+        if topic_candidates:
+            # Use the most recent topic candidate
+            current_topic_being_discussed = topic_candidates[-1]
+            print(f"🎯 CURRENT TOPIC FROM AI HISTORY: {current_topic_being_discussed}")
+        else:
+            # Ultimate fallback: Use conversation progression logic
+            sorted_topics_for_fallback = sorted(topics_checklist.items(), key=lambda x: x[1]["position"])
+            for topic_name, topic_info in sorted_topics_for_fallback:
+                if not topic_info.get("covered", False) and not topic_info.get("skipped", False):
+                    current_topic_being_discussed = topic_name
+                    print(f"🔄 FALLBACK CURRENT TOPIC: {topic_name} (first uncovered topic)")
+                    break
     
     covered_count = 0
     skipped_count = 0
@@ -3244,11 +3267,15 @@ def analyze_conversation_progress(messages):
                     len(topic_keywords_found) >= 2
                 )
             elif topic_name == "product_service_footprint":
-                # Product/service: offerings + geographic/market info
+                # Product/service: offerings + geographic/market info OR comprehensive research
                 focused_coverage = (
-                    ("product" in recent_messages or "service" in recent_messages or "platform" in recent_messages or "offering" in recent_messages) and
-                    ("cloud" in recent_messages or "geographic" in recent_messages or "global" in recent_messages or "market" in recent_messages) and
-                    len(topic_keywords_found) >= 2
+                    ("product" in recent_messages or "service" in recent_messages or "platform" in recent_messages or "offering" in recent_messages or "streaming" in recent_messages) and
+                    ("cloud" in recent_messages or "geographic" in recent_messages or "global" in recent_messages or "market" in recent_messages or "content" in recent_messages or "licensing" in recent_messages) and
+                    len(topic_keywords_found) >= 1
+                ) or (
+                    # Allow for comprehensive research responses about products/services
+                    has_ai_research and len(recent_messages) > 150 and 
+                    ("netflix" in recent_messages or "streaming" in recent_messages or "content" in recent_messages)
                 )
             elif topic_name == "management_team":
                 # Management: executive names + titles
@@ -3263,6 +3290,17 @@ def analyze_conversation_progress(messages):
                     ("competitor" in recent_messages or "snowflake" in recent_messages or "competitive" in recent_messages or "positioning" in recent_messages) and
                     ("advantage" in recent_messages or "differentiation" in recent_messages or "market" in recent_messages or "vs" in recent_messages) and
                     len(topic_keywords_found) >= 2
+                )
+            elif topic_name == "historical_financial_performance":
+                # Financial performance: revenue/EBITDA + historical data OR substantial research response
+                focused_coverage = (
+                    ("revenue" in recent_messages or "ebitda" in recent_messages or "financial" in recent_messages or "million" in recent_messages) and
+                    ("2021" in recent_messages or "2022" in recent_messages or "2023" in recent_messages or "2024" in recent_messages or "growth" in recent_messages or "margin" in recent_messages) and
+                    len(topic_keywords_found) >= 1
+                ) or (
+                    # Allow for comprehensive research responses about financial performance
+                    has_ai_research and len(recent_messages) > 200 and 
+                    ("netflix" in recent_messages or "financial" in recent_messages or "revenue" in recent_messages)
                 )
             elif topic_name == "valuation_overview":
                 # Valuation: methodology + value discussion
@@ -3331,12 +3369,21 @@ def analyze_conversation_progress(messages):
                 current_topic_position = topics_checklist[current_topic_being_discussed]["position"]
                 this_topic_position = topic_info["position"]
                 
+                # SPECIAL: If this is a sequential topic (1-3) and comprehensive research was provided, allow it
+                sequential_research_allowance = (
+                    this_topic_position <= 3 and  # Only for first 3 topics
+                    has_ai_research and  # AI provided research
+                    len(recent_messages) > 200 and  # Substantial research response
+                    (focused_coverage or ai_research_coverage or research_request_coverage)  # Topic criteria met
+                )
+                
                 if this_topic_position > current_topic_position:
-                    # This is a future topic - but allow if it was just asked about
-                    if topic_just_asked:
+                    # This is a future topic - but allow if it was just asked about OR sequential research
+                    if topic_just_asked or sequential_research_allowance:
                         should_allow_coverage = True
                         if focused_coverage or ai_research_coverage:
-                            print(f"✅ SPECIAL ALLOWANCE: {topic_name} (position {this_topic_position}) was just asked about, allowing coverage despite being future topic")
+                            reason = "just asked" if topic_just_asked else "sequential research"
+                            print(f"✅ SPECIAL ALLOWANCE: {topic_name} (position {this_topic_position}) - {reason}")
                     else:
                         should_allow_coverage = False
                         if focused_coverage or ai_research_coverage:
