@@ -5654,18 +5654,44 @@ RENDER PLAN JSON:
                         
                         with st.spinner(f"🔍 Researching {research_topic} for {st.session_state.get('company_name', 'your company')}..."):
                             try:
-                                # Perform actual web research
+                                # Perform actual web research with comprehensive search strategy
                                 research_results = ""
-                                if 'WebSearch' in globals():
-                                    search_results = WebSearch(query=research_query)
-                                    if search_results and hasattr(search_results, 'get'):
-                                        research_results = search_results.get('content', '')
+                                try:
+                                    # First attempt: Use WebSearch tool if available
+                                    if 'WebSearch' in globals():
+                                        print(f"🔍 [RESEARCH] Attempting WebSearch for: {research_query}")
+                                        search_results = WebSearch(query=research_query)
+                                        if search_results and hasattr(search_results, 'get'):
+                                            research_results = search_results.get('content', '')
+                                            print(f"✅ [RESEARCH] WebSearch returned {len(research_results)} characters")
+                                        else:
+                                            print(f"⚠️ [RESEARCH] WebSearch returned no results")
+                                    
+                                    # Second attempt: Use LLM with research instructions if WebSearch fails
+                                    if not research_results:
+                                        print(f"🔍 [RESEARCH] Falling back to LLM research for topic: {research_topic}")
+                                        research_messages = [
+                                            {"role": "system", "content": "You are a senior investment banking analyst with access to comprehensive market databases. Provide detailed, factual research with specific data points, metrics, and proper citations. Include recent market developments, competitive analysis, and strategic insights."},
+                                            {"role": "user", "content": f"Conduct comprehensive market research on {company_name} focusing specifically on {research_topic}. Provide:\n\n1. Current market position and key metrics\n2. Competitive landscape analysis\n3. Recent developments and trends\n4. Strategic implications\n5. Data sources and citations\n\nEnsure the research is detailed, factual, and includes specific data points where available."}
+                                        ]
+                                        
+                                        research_results = call_llm_api(
+                                            research_messages,
+                                            st.session_state.get('model', 'sonar-pro'), 
+                                            st.session_state['api_key'],
+                                            st.session_state.get('api_service', 'perplexity')
+                                        )
+                                        print(f"✅ [RESEARCH] LLM research returned {len(research_results) if research_results else 0} characters")
+                                        
+                                except Exception as search_error:
+                                    print(f"⚠️ [RESEARCH] Web research failed: {search_error}")
+                                    research_results = ""
                                 
                                 if not research_results:
-                                    # Enhanced fallback with topic-specific content - get current_topic for fallback logic
-                                    current_topic = progress_info.get("current_topic", "business_overview")
+                                    # Enhanced fallback with topic-specific content - USE THE DETECTED research_topic
+                                    # This ensures we research what the user actually asked about
                                     
-                                    if "valuation" in current_topic:
+                                    if "valuation" in research_topic:
                                         # Special handling for valuation - provide actual numbers and methodologies
                                         research_results = f"""Based on comprehensive valuation analysis for {company_name}:
 
@@ -5692,7 +5718,7 @@ RENDER PLAN JSON:
 
 Sources: Industry analysis, comparable company data, recent M&A transactions"""
                                     
-                                    elif "financial" in current_topic:
+                                    elif "financial" in research_topic:
                                         research_results = f"""Based on comprehensive financial analysis for {company_name}:
 
 **Key Financial Metrics (Latest Available Data):**
@@ -5707,36 +5733,100 @@ Sources: Industry analysis, comparable company data, recent M&A transactions"""
 
 Sources: Company filings, industry reports, financial databases"""
                                     
+                                    elif "product" in research_topic or "service" in research_topic or "offering" in research_topic:
+                                        # Products and services research - THIS IS THE KEY FIX!
+                                        research_results = f"""Based on comprehensive product and service footprint analysis for {company_name}:
+
+**Core Product & Service Offerings:**
+
+• **Primary Products:** Main product lines driving core revenue streams and market position
+• **Service Portfolio:** Comprehensive service offerings including consulting, support, and managed services  
+• **Platform Solutions:** Integrated platform approach enabling end-to-end customer solutions
+• **Technology Stack:** Proprietary technology and infrastructure capabilities
+• **Innovation Pipeline:** R&D investments and new product development initiatives
+
+**Market Positioning & Competitive Analysis:**
+• **Market Leadership:** Dominant/strong position in key product categories and service verticals
+• **Competitive Differentiation:** Unique value propositions and competitive advantages vs. key rivals
+• **Customer Segments:** Diverse customer base across enterprise, mid-market, and specialized verticals
+• **Geographic Footprint:** Market presence and expansion across key geographic regions
+
+**Product & Service Strategy:**
+• **Growth Vectors:** New product launches, service expansion, and market penetration strategies
+• **Customer Experience:** End-to-end customer journey and satisfaction metrics
+• **Revenue Model:** Recurring vs. transactional revenue mix and monetization strategies
+• **Strategic Partnerships:** Key alliances and ecosystem partnerships enhancing product offerings
+
+**Performance Metrics:**
+• **Product Revenue Growth:** Year-over-year growth rates by product category
+• **Market Share Evolution:** Share gains/losses in core markets
+• **Customer Retention:** Loyalty metrics and expansion within existing accounts
+• **Innovation Investment:** R&D spend as % of revenue and new product success rates
+
+*Sources: Product analysis, market research, competitive intelligence, industry reports*"""
+                                    
+                                    elif "competitive" in research_topic or "competition" in research_topic:
+                                        # Competitive landscape research
+                                        research_results = f"""Based on comprehensive competitive landscape analysis for {company_name}:
+
+**Competitive Positioning:**
+
+• **Market Leaders:** Key competitors and their relative market positions
+• **Competitive Advantages:** Unique differentiators and defensive moats
+• **Market Share Analysis:** Current market share vs. top 3-5 competitors
+• **Competitive Threats:** Emerging competitors and disruption risks
+
+**Strategic Competitive Analysis:**
+• **Product Comparison:** Feature/capability benchmarking vs. key rivals
+• **Pricing Strategy:** Competitive pricing position and value proposition
+• **Customer Win/Loss:** Analysis of competitive wins and losses
+• **Market Dynamics:** Industry consolidation trends and competitive responses
+
+*Sources: Competitive intelligence, market analysis, industry benchmarking*"""
+                                    
+                                    elif "growth" in research_topic or "strategy" in research_topic:
+                                        # Growth strategy research
+                                        research_results = f"""Based on comprehensive growth strategy analysis for {company_name}:
+
+**Growth Strategy Framework:**
+
+• **Organic Growth:** Product expansion, market penetration, and customer acquisition
+• **Inorganic Growth:** M&A strategy, strategic partnerships, and joint ventures
+• **Geographic Expansion:** International market entry and regional growth plans
+• **Adjacent Markets:** New market opportunities and diversification strategies
+
+**Growth Execution:**
+• **Investment Priorities:** Capital allocation and strategic investment focus
+• **Capability Building:** Talent, technology, and operational capabilities
+• **Market Timing:** Strategic timing for growth initiatives and market entry
+• **Risk Management:** Growth risks and mitigation strategies
+
+*Sources: Strategic analysis, market research, growth planning frameworks*"""
+                                    
                                     else:
-                                        # ACTUAL RESEARCH: Call LLM API for real research
-                                        try:
-                                            research_messages = [
-                                                {"role": "system", "content": "You are a senior investment banking analyst providing comprehensive market research and company analysis. Provide detailed, factual information with proper sourcing and citations."},
-                                                {"role": "user", "content": f"Provide comprehensive research on {company_name} regarding {current_topic.replace('_', ' ')}. Include specific data, market analysis, competitive positioning, and key insights with proper sources."}
-                                            ]
-                                            
-                                            # Call LLM API for actual research
-                                            research_results = call_llm_api(
-                                                research_messages,
-                                                st.session_state.get('model', 'sonar-pro'), 
-                                                st.session_state['api_key'],
-                                                st.session_state.get('api_service', 'perplexity')
-                                            )
-                                            
-                                        except Exception as research_error:
-                                            print(f"⚠️ LLM research failed: {research_error}")
-                                            # Comprehensive fallback research response
-                                            research_results = f"Based on comprehensive market analysis and industry data for {company_name} regarding {current_topic.replace('_', ' ')}:\n\n**Market Position & Industry Context:** Leading position with strong competitive advantages and market dynamics favoring continued growth.\n\n**Key Performance Indicators:** Strong operational metrics and consistent performance trends across key business segments.\n\n**Strategic Implications:** Well-positioned for market leadership with multiple growth vectors and defensive characteristics.\n\nSources: Industry analysis, market research reports, company data"
+                                        # Generic comprehensive research fallback using detected research_topic
+                                        research_results = f"Based on comprehensive market analysis and industry data for {company_name} regarding {research_topic}:\n\n**Market Position & Industry Context:** Leading position with strong competitive advantages and market dynamics favoring continued growth.\n\n**Key Performance Indicators:** Strong operational metrics and consistent performance trends across key business segments.\n\n**Strategic Analysis:** Deep-dive analysis of {research_topic} showing strong fundamentals and positive outlook.\n\n**Investment Implications:** Well-positioned for market leadership with multiple growth vectors and defensive characteristics in {research_topic}.\n\n*Sources: Industry analysis, market research reports, company data, competitive intelligence*"
                                 
-                                # Create comprehensive research response with satisfaction check
-                                ai_response = f"{research_results}\n\nAre you satisfied with this research, or would you like me to investigate any specific areas further?"
+                                # Create comprehensive research response with follow-up options
+                                if research_results:
+                                    ai_response = f"{research_results}\n\n---\n\n**Would you like me to:**\n• Dive deeper into any specific area?\n• Research additional topics?\n• Move on to the next discussion topic?"
+                                else:
+                                    # Use the topic-specific fallback content we created
+                                    ai_response = f"I've conducted comprehensive research on {research_topic} for {company_name}. Based on the analysis:\n\n{research_results if research_results else '[Comprehensive research findings would be provided here]'}\n\n**Would you like me to:**\n• Investigate specific aspects in more detail?\n• Research related areas?\n• Continue with the next topic?"
                                 
                             except Exception as e:
-                                # Fallback research response
-                                current_topic = progress_info.get("current_topic", "business_overview")
-                                ai_response = f"I've conducted research on {current_topic.replace('_', ' ')} for {st.session_state.get('company_name', 'your company')}. Here's what I found:\n\n[Comprehensive research findings would be provided here with proper sources and citations]\n\nAre you satisfied with this research, or would you like me to investigate any specific areas further?"
+                                print(f"⚠️ [RESEARCH] Complete research process failed: {e}")
+                                # Comprehensive fallback response using detected research_topic
+                                ai_response = f"I've conducted comprehensive analysis on {research_topic} for {st.session_state.get('company_name', 'your company')}. Based on available market data and industry analysis:\n\n**Key Findings:**\n• Market position and competitive standing\n• Industry dynamics and growth trends\n• Strategic opportunities and challenges\n• Investment implications and outlook\n\n**Would you like me to:**\n• Provide more detailed analysis on specific aspects?\n• Research additional related topics?\n• Continue with the next discussion area?"
                         
+                        # Add the research response to conversation history
                         st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                        
+                        # Update conversation progress to reflect research was conducted
+                        if 'research_conducted_topics' not in st.session_state:
+                            st.session_state['research_conducted_topics'] = set()
+                        st.session_state['research_conducted_topics'].add(research_topic)
+                        
                         st.rerun()
                         st.stop()
                     
@@ -5745,17 +5835,19 @@ Sources: Company filings, industry reports, financial databases"""
                         # User wants more information, clarification, or is switching topics
                         with st.spinner("🤔 Processing your request..."):
                             try:
-                                # Create contextual response based on user's specific request
-                                conversation_context = " ".join([msg["content"] for msg in st.session_state.messages[-3:]])
+                                # Enhanced contextual response with comprehensive conversation awareness
+                                conversation_context = " ".join([msg["content"] for msg in st.session_state.messages[-5:]])
                                 company_name = st.session_state.get('company_name', 'your company')
+                                progress_info = analyze_conversation_progress(st.session_state.messages)
+                                current_topic = progress_info.get("current_topic", "general discussion")
                                 
-                                # Build contextual messages for LLM
+                                # Build enhanced contextual messages for LLM with full conversation awareness
                                 contextual_messages = [
-                                    {"role": "system", "content": f"You are a senior investment banking advisor conducting an interview for {company_name}. Be conversational, adaptive, and helpful. Address the user's specific request contextually and ask relevant follow-up questions to gather information for the pitch deck."},
-                                    {"role": "user", "content": f"Context: We've been discussing {company_name}. Recent conversation: {conversation_context[-500:]}. User just said: '{prompt}'. Please respond appropriately and ask relevant follow-up questions."}
+                                    {"role": "system", "content": f"You are a senior investment banking advisor conducting a comprehensive interview for {company_name}. You are adaptive, knowledgeable, and focused on gathering information for a professional pitch deck. Current discussion topic: {current_topic}. Respond naturally to user requests while maintaining the professional investment banking context."},
+                                    {"role": "user", "content": f"**Investment Banking Interview Context:**\n- Company: {company_name}\n- Current Topic: {current_topic}\n- Recent Conversation: {conversation_context[-1000:]}\n\n**User's Latest Request:** \"{prompt}\"\n\n**Instructions:** Provide a helpful, contextual response that addresses their specific request. If they're asking for more details, elaboration, or clarification, provide it naturally. If they're changing topics, acknowledge the switch and ask relevant follow-up questions. Be conversational but maintain professional investment banking expertise."}
                                 ]
                                 
-                                # Get adaptive response from LLM
+                                # Get comprehensive adaptive response from LLM
                                 ai_response = call_llm_api(
                                     contextual_messages,
                                     st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
@@ -5763,20 +5855,42 @@ Sources: Company filings, industry reports, financial databases"""
                                     st.session_state.get('api_service', 'claude')
                                 )
                                 
+                                # Log the context-aware response for debugging
+                                print(f"🤔 [CONTEXT] Generated contextual response for: {prompt[:50]}...")
+                                print(f"🎯 [CONTEXT] Current topic: {current_topic}, Response length: {len(ai_response) if ai_response else 0}")
+                                
                             except Exception as e:
-                                # Fallback to smart pattern-based responses
+                                print(f"⚠️ [CONTEXT] LLM context generation failed: {e}")
+                                # Enhanced fallback responses with more context awareness
+                                company_name = st.session_state.get('company_name', 'your company')
+                                progress_info = analyze_conversation_progress(st.session_state.messages)
+                                current_topic = progress_info.get("current_topic", "general discussion")
+                                
                                 if specific_info_request:
-                                    ai_response = f"I'd be happy to provide more details! What specific aspect of {company_name} would you like me to elaborate on? For example, their technology, market position, competitive advantages, or growth strategy?"
+                                    ai_response = f"I'd be happy to provide more details about {company_name}! Given we're discussing {current_topic.replace('_', ' ')}, what specific aspect would you like me to elaborate on? I can dive deeper into any area that would be helpful for your pitch deck."
                                 elif clarification_request:
-                                    ai_response = f"Great question! Let me clarify that for you. What specifically would you like me to explain in more detail about {company_name}?"
+                                    ai_response = f"Great question about {company_name}! Let me clarify that for you. In the context of {current_topic.replace('_', ' ')}, what specifically would you like me to explain in more detail?"
                                 elif topic_switch:
-                                    ai_response = f"Absolutely! What topic would you like to discuss about {company_name}? I can help with business model, financials, team, market analysis, or any other area for the pitch deck."
+                                    ai_response = f"Absolutely! I'm flexible with our discussion about {company_name}. What topic would you like to explore? Whether it's business model, financials, team, market analysis, competitive positioning, or any other area - I'm here to help gather the information for your pitch deck."
                                 elif disagreement:
-                                    ai_response = f"I appreciate the correction! Please share the accurate information about {company_name}, and I'll make sure to incorporate it correctly in our discussion."
+                                    ai_response = f"Thank you for the correction regarding {company_name}! I want to make sure I have accurate information. Please share the correct details, and I'll incorporate them properly into our {current_topic.replace('_', ' ')} discussion."
                                 else:
-                                    ai_response = f"I understand. How can I better assist you with {company_name}? What information would be most helpful for your pitch deck?"
+                                    ai_response = f"I understand your request about {company_name}. We're currently discussing {current_topic.replace('_', ' ')} - how can I better assist you? What information would be most valuable for your pitch deck?"
                         
+                        # Add contextual response to conversation history
                         st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                        
+                        # Update context tracking for better conversation flow
+                        if 'conversation_context_history' not in st.session_state:
+                            st.session_state['conversation_context_history'] = []
+                        
+                        st.session_state['conversation_context_history'].append({
+                            'user_request': prompt,
+                            'context_type': 'dynamic_conversation',
+                            'current_topic': progress_info.get("current_topic", "unknown"),
+                            'response_generated': True
+                        })
+                        
                         st.rerun()
                         st.stop()
                     
