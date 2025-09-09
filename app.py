@@ -3256,12 +3256,29 @@ def analyze_conversation_progress(messages):
                     any(kw in recent_messages for kw in topic_info["topic_keywords"][:3])
                 )
             
-            # ENHANCED: Also mark as covered if there's AI research + user confirmation
+            # ENHANCED: Also mark as covered if there's AI research + user confirmation OR research request
             ai_research_coverage = (
                 has_ai_research and 
                 len(topic_keywords_found) >= 1 and
                 ("satisfied" in recent_messages or "ok" in recent_messages or "research" in recent_messages)
             )
+            
+            # NEW: Research request coverage - only for the specific topic being discussed
+            research_request_coverage = False
+            research_phrases = ["research this", "research yourself", "research this yourself", "look this up", "find this information"]
+            user_requested_research = any(phrase in recent_messages for phrase in research_phrases)
+            
+            if user_requested_research and current_topic_being_discussed == topic_name:
+                # Only mark as complete if this is the specific topic being discussed when research was requested
+                research_request_coverage = True
+                print(f"🔍 RESEARCH REQUEST COVERAGE: {topic_name} - user requested research for current topic")
+            elif user_requested_research and not current_topic_being_discussed:
+                # Fallback: if no current topic detected, allow for first uncovered topic
+                sorted_topics_for_research = sorted(topics_checklist.items(), key=lambda x: x[1]["position"])
+                first_uncovered = next((name for name, info in sorted_topics_for_research if not info.get("covered", False)), None)
+                if topic_name == first_uncovered:
+                    research_request_coverage = True
+                    print(f"🔍 RESEARCH REQUEST COVERAGE: {topic_name} - user requested research (fallback to first uncovered)")
             
             # CRITICAL FIX: Smart topic coverage logic
             # Allow marking as covered if:
@@ -3288,9 +3305,10 @@ def analyze_conversation_progress(messages):
                         print(f"✅ ALLOWED COVERAGE: {topic_name} (position {this_topic_position}) is previous/current topic")
             
             if should_allow_coverage:
-                is_covered = focused_coverage or ai_research_coverage
+                is_covered = focused_coverage or ai_research_coverage or research_request_coverage
             else:
-                is_covered = False
+                # Even if normally not allowed, research requests should always mark the topic as complete
+                is_covered = research_request_coverage
             
             # Enhanced debug logging with detailed breakdown
             if len(topic_keywords_found) > 0 or len(substantial_keywords_found) > 0:
@@ -3451,7 +3469,9 @@ def get_enhanced_interview_response(messages, user_message, model, api_key, serv
             user_requested_research = any(phrase in user_message.lower() for phrase in research_request_phrases)
             
             if user_requested_research:
-                print(f"🔍 RESEARCH REQUEST: User requested research, this counts as topic completion after AI provides research")
+                print(f"🔍 RESEARCH REQUEST: User requested research, will mark topic as complete after research")
+                # The topic will be marked as complete by the analyze_conversation_progress function
+                # because it now detects research requests. Just proceed with normal flow.
                 return progress_info["next_question"]
             
             # User provided substantial response - check if we should continue current topic or move to next
