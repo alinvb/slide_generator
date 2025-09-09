@@ -3049,7 +3049,12 @@ def analyze_conversation_progress(messages):
         "next_question": topics[current_position - 1]["next_question"] if current_position <= 14 else "Interview complete!",
         "is_complete": is_complete,
         "topics_completed": completed_topics,
-        "current_position": current_position
+        "current_position": current_position,
+        # Add required fields for show_interview_progress()
+        "completion_percentage": completed_topics / 14.0,  # Percentage of 14 topics completed
+        "topics_covered": completed_topics,                # Number of topics covered
+        "applicable_topics": 14,                          # Total number of topics
+        "topics_skipped": 0                               # No topics skipped in sequential approach
     }
     
     print(f"🎯 SIMPLE PROGRESS: {completed_topics} topics completed, asking topic {current_position} ({result['current_topic']})")
