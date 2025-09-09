@@ -5654,37 +5654,83 @@ RENDER PLAN JSON:
                         
                         with st.spinner(f"🔍 Researching {research_topic} for {st.session_state.get('company_name', 'your company')}..."):
                             try:
-                                # Perform actual web research with comprehensive search strategy
+                                # Perform comprehensive LLM-based research (no WebSearch dependency)
                                 research_results = ""
                                 try:
-                                    # First attempt: Use WebSearch tool if available
-                                    if 'WebSearch' in globals():
-                                        print(f"🔍 [RESEARCH] Attempting WebSearch for: {research_query}")
-                                        search_results = WebSearch(query=research_query)
-                                        if search_results and hasattr(search_results, 'get'):
-                                            research_results = search_results.get('content', '')
-                                            print(f"✅ [RESEARCH] WebSearch returned {len(research_results)} characters")
-                                        else:
-                                            print(f"⚠️ [RESEARCH] WebSearch returned no results")
+                                    print(f"🔍 [RESEARCH] Conducting LLM research for topic: {research_topic}")
                                     
-                                    # Second attempt: Use LLM with research instructions if WebSearch fails
-                                    if not research_results:
-                                        print(f"🔍 [RESEARCH] Falling back to LLM research for topic: {research_topic}")
-                                        research_messages = [
-                                            {"role": "system", "content": "You are a senior investment banking analyst with access to comprehensive market databases. Provide detailed, factual research with specific data points, metrics, and proper citations. Include recent market developments, competitive analysis, and strategic insights."},
-                                            {"role": "user", "content": f"Conduct comprehensive market research on {company_name} focusing specifically on {research_topic}. Provide:\n\n1. Current market position and key metrics\n2. Competitive landscape analysis\n3. Recent developments and trends\n4. Strategic implications\n5. Data sources and citations\n\nEnsure the research is detailed, factual, and includes specific data points where available."}
-                                        ]
-                                        
-                                        research_results = call_llm_api(
-                                            research_messages,
-                                            st.session_state.get('model', 'sonar-pro'), 
-                                            st.session_state['api_key'],
-                                            st.session_state.get('api_service', 'perplexity')
-                                        )
-                                        print(f"✅ [RESEARCH] LLM research returned {len(research_results) if research_results else 0} characters")
-                                        
+                                    # Enhanced research instruction based on detected topic
+                                    if research_topic == "valuation":
+                                        research_instruction = f"""You are conducting comprehensive investment banking valuation analysis for {company_name}. 
+
+MANDATORY 3-WAY VALUATION ANALYSIS:
+
+1. **DISCOUNTED CASH FLOW (DCF) ANALYSIS:**
+- Calculate enterprise value using 10-year cash flow projections  
+- Use WACC between 8-12% based on industry and risk profile
+- Terminal growth rate: 2-3% (conservative)
+- Include detailed assumptions for revenue growth, margin expansion, capex, working capital
+- Show sensitivity analysis for key assumptions
+- Present specific enterprise value range
+
+2. **TRADING MULTIPLES (COMPARABLE COMPANY ANALYSIS):**
+- EV/Revenue Multiple: Research industry comparables, provide specific range
+- EV/EBITDA Multiple: 15-25x range for growth companies, adjust for company profile  
+- Use 4-6 public company comparables with similar business models
+- Apply appropriate discounts/premiums based on size, growth, profitability
+- Present specific valuation range
+
+3. **PRECEDENT TRANSACTIONS:**
+- Research recent M&A deals in the industry (last 2-3 years)
+- Apply strategic premium: 25-40% above trading multiples for control
+- Consider synergy value and strategic rationale
+- Present specific transaction-based valuation range
+
+RECOMMENDED VALUATION RANGE: Weighted average methodology with specific numbers."""
+                                    elif "buyers" in research_topic.lower() or "strategic" in research_topic.lower() or "financial" in research_topic.lower():
+                                        research_instruction = f"""You are conducting comprehensive buyer identification and affordability analysis for {company_name}.
+
+CRITICAL AFFORDABILITY ANALYSIS:
+
+Based on {company_name}'s estimated valuation range, identify buyers who can ACTUALLY AFFORD this acquisition:
+
+**FOR STRATEGIC BUYERS:**
+- Identify 4-5 corporate buyers with market cap/revenue significantly above target valuation
+- Check their recent M&A activity and transaction sizes
+- Verify their available cash/debt capacity for acquisitions of this size  
+- Strategic rationale: Why each buyer would pay premium for {company_name}
+- Financial capacity: Specific evidence they can fund this transaction size
+
+**FOR FINANCIAL BUYERS (PE FIRMS):**
+- Focus on funds with AUM significantly larger than target valuation (minimum 10x)
+- Recent fund vintage and dry powder available for new investments
+- Investment focus/sector expertise matching {company_name}'s industry
+- Typical deal sizes and willingness to lead transactions of this scale
+
+**AFFORDABILITY VERIFICATION:**
+- Cross-reference buyer financial capacity with estimated valuation range
+- Flag any buyers who may be stretched or unable to afford full acquisition
+- Prioritize buyers with strong balance sheets and acquisition track record
+
+Provide specific financial metrics for each buyer to demonstrate affordability."""
+                                    else:
+                                        research_instruction = f"You are a senior investment banking analyst with access to comprehensive market databases. Conduct detailed research on {company_name} focusing specifically on {research_topic}. Provide:\n\n1. Current market position and key metrics\n2. Industry context and competitive landscape\n3. Recent developments and strategic implications\n4. Investment banking perspective with data points\n5. Professional analysis with proper sourcing\n\nEnsure the research is detailed, factual, and includes specific data points where available."
+                                    
+                                    research_messages = [
+                                        {"role": "system", "content": "You are a senior investment banking analyst providing comprehensive market research and company analysis. Provide detailed, factual information with proper sourcing and citations."},
+                                        {"role": "user", "content": research_instruction}
+                                    ]
+                                    
+                                    research_results = call_llm_api(
+                                        research_messages,
+                                        st.session_state.get('model', 'sonar-pro'), 
+                                        st.session_state['api_key'],
+                                        st.session_state.get('api_service', 'perplexity')
+                                    )
+                                    print(f"✅ [RESEARCH] LLM research completed: {len(research_results) if research_results else 0} characters")
+                                    
                                 except Exception as search_error:
-                                    print(f"⚠️ [RESEARCH] Web research failed: {search_error}")
+                                    print(f"⚠️ [RESEARCH] LLM research failed: {search_error}")
                                     research_results = ""
                                 
                                 if not research_results:
