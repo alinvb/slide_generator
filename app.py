@@ -3035,7 +3035,7 @@ def analyze_conversation_progress(messages):
         # TOPIC 3: Historical Financial Performance
         "historical_financial_performance": {
             "position": 3,
-            "interview_question": "Let's analyze your historical financial performance. Can you provide your revenue, EBITDA, margins, and key financial metrics for the last 3-5 years?",
+            "interview_question": "Let's analyze your historical financial performance. Can you provide your revenue, EBITDA, margins, and key financial metrics for the last 3-5 years? I need specific numbers: annual revenue in USD millions, EBITDA figures, margin percentages, growth rates, and key performance drivers. What are the main revenue streams and how have they evolved?",
             "topic_keywords": ["revenue", "financial", "ebitda", "margin"],
             "substantial_keywords": ["historical", "years", "growth", "2021", "2022", "2023", "2024", "profit", "million", "$"],
             "covered": False,
@@ -3090,7 +3090,7 @@ def analyze_conversation_progress(messages):
         # TOPIC 8: Valuation Overview
         "valuation_overview": {
             "position": 8,
-            "interview_question": "What valuation methodologies would be most appropriate for your business? I recommend we analyze DCF, Trading Multiples, and Precedent Transactions analysis. What's your expected valuation range and key assumptions?",
+            "interview_question": "Now let's establish your valuation framework. What valuation methodologies would be most appropriate for your business? I recommend we analyze: (1) DCF Analysis with detailed cash flow projections and discount rate assumptions, (2) Trading Multiples based on comparable public companies, and (3) Precedent Transactions analysis. What's your expected valuation range and key value drivers? What discount rate should we use for DCF? What are your terminal value assumptions?",
             "topic_keywords": ["valuation", "multiple", "methodology", "worth"],
             "substantial_keywords": ["assumptions", "enterprise value", "dcf", "comparable", "ev/revenue", "range"],
             "covered": False,
@@ -3101,7 +3101,7 @@ def analyze_conversation_progress(messages):
         # TOPIC 9: Strategic Buyers  
         "strategic_buyers": {
             "position": 9,
-            "interview_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. I need 4-5 strategic buyers with special focus on REGIONAL PLAYERS in your geography (Middle East, Iraq, Jordan, UAE, etc.) and companies with strong local market knowledge. Provide company name, strategic rationale, key synergies, and fit assessment.",
+            "interview_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. I need 4-5 strategic buyers with special focus on REGIONAL PLAYERS in your geography and companies with strong local market knowledge and presence in your operating regions. Provide company name, strategic rationale, key synergies, and fit assessment.",
             "topic_keywords": ["strategic buyers", "strategic buyer", "strategic rationale", "corporate buyer"],
             "substantial_keywords": ["industry player", "strategic acquisition", "strategic synergies", "strategic fit", "synergies", "acquirer"],
             "covered": False,
@@ -3112,7 +3112,7 @@ def analyze_conversation_progress(messages):
         # TOPIC 10: Financial Buyers
         "financial_buyers": {
             "position": 10,
-            "interview_question": "Now let's identify financial buyers—private equity firms, VCs, and other financial investors. Please prioritize REGIONAL INVESTORS with expertise in your geography (Middle East funds, GCC-based PE firms, local VCs) alongside global players. I need 4-5 financial buyers with fund name, investment rationale, key synergies, and fit assessment.",
+            "interview_question": "Now let's identify financial buyers—private equity firms, VCs, and other financial investors. Please prioritize REGIONAL INVESTORS with expertise in your geography and local market knowledge alongside global players. I need 4-5 financial buyers with fund name, investment rationale, key synergies, and fit assessment.",
             "topic_keywords": ["financial buyers", "financial buyer", "private equity", "pe fund"],
             "substantial_keywords": ["vc fund", "venture capital", "financial investor", "investment fund", "financial rationale"],
             "covered": False,
@@ -3123,7 +3123,7 @@ def analyze_conversation_progress(messages):
         # TOPIC 11: SEA Conglomerates
         "sea_conglomerates": {
             "position": 11,
-            "interview_question": "Let's identify potential global conglomerates and strategic acquirers with STRONG REGIONAL PRESENCE. Focus on companies active in Middle East/MENA region, Gulf states, and those with significant operations or investments in your geography. I need at least 4-5 regionally relevant conglomerates with strong market knowledge.",
+            "interview_question": "Let's identify potential global conglomerates and strategic acquirers with STRONG REGIONAL PRESENCE. Focus on companies active in your geographic region and those with significant operations or investments in your markets. I need at least 4-5 regionally relevant conglomerates with strong market knowledge.",
             "topic_keywords": ["conglomerate", "global conglomerate", "multinational conglomerate", "international conglomerate"],
             "substantial_keywords": ["holding company", "diversified corporation", "multinational corporation", "global corporation"],
             "covered": False,
