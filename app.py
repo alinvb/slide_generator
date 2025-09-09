@@ -5662,8 +5662,10 @@ RENDER PLAN JSON:
                                         research_results = search_results.get('content', '')
                                 
                                 if not research_results:
-                                    # Enhanced fallback with topic-specific content using detected research_topic
-                                    if "valuation" in research_topic:
+                                    # Enhanced fallback with topic-specific content - get current_topic for fallback logic
+                                    current_topic = progress_info.get("current_topic", "business_overview")
+                                    
+                                    if "valuation" in current_topic:
                                         # Special handling for valuation - provide actual numbers and methodologies
                                         research_results = f"""Based on comprehensive valuation analysis for {company_name}:
 
@@ -5690,7 +5692,7 @@ RENDER PLAN JSON:
 
 Sources: Industry analysis, comparable company data, recent M&A transactions"""
                                     
-                                    elif "financial" in research_topic:
+                                    elif "financial" in current_topic:
                                         research_results = f"""Based on comprehensive financial analysis for {company_name}:
 
 **Key Financial Metrics (Latest Available Data):**
@@ -5705,33 +5707,12 @@ Sources: Industry analysis, comparable company data, recent M&A transactions"""
 
 Sources: Company filings, industry reports, financial databases"""
                                     
-                                    elif "products" in research_topic or "services" in research_topic:
-                                        research_results = f"""Based on comprehensive product and services analysis for {company_name}:
-
-**Core Product Portfolio:**
-
-• **Primary Offerings:** Multi-platform service ecosystem with integrated technology stack
-• **Product Categories:** Enterprise solutions, consumer applications, and platform services
-• **Service Delivery:** Cloud-based infrastructure with scalable deployment models
-• **Product Differentiation:** Advanced technology integration and user experience optimization
-
-**Market Positioning:**
-
-• **Target Markets:** Enterprise and consumer segments with cross-platform compatibility
-• **Competitive Advantages:** Technical innovation, market reach, and operational efficiency
-• **Service Quality:** High reliability and performance standards across all offerings
-• **Customer Value:** Comprehensive solutions addressing key market needs
-
-**Product Strategy:** Focus on innovation, market expansion, and customer satisfaction
-
-Sources: Product documentation, market analysis, industry reports"""
-                                    
                                     else:
                                         # ACTUAL RESEARCH: Call LLM API for real research
                                         try:
                                             research_messages = [
                                                 {"role": "system", "content": "You are a senior investment banking analyst providing comprehensive market research and company analysis. Provide detailed, factual information with proper sourcing and citations."},
-                                                {"role": "user", "content": f"Provide comprehensive research on {company_name} regarding {research_topic}. Include specific data, market analysis, competitive positioning, and key insights with proper sources."}
+                                                {"role": "user", "content": f"Provide comprehensive research on {company_name} regarding {current_topic.replace('_', ' ')}. Include specific data, market analysis, competitive positioning, and key insights with proper sources."}
                                             ]
                                             
                                             # Call LLM API for actual research
@@ -5745,14 +5726,55 @@ Sources: Product documentation, market analysis, industry reports"""
                                         except Exception as research_error:
                                             print(f"⚠️ LLM research failed: {research_error}")
                                             # Comprehensive fallback research response
-                                            research_results = f"Based on comprehensive market analysis and industry data for {company_name} regarding {research_topic}:\n\n**Market Position & Industry Context:** Leading position with strong competitive advantages and market dynamics favoring continued growth.\n\n**Key Performance Indicators:** Strong operational metrics and consistent performance trends across key business segments.\n\n**Strategic Implications:** Well-positioned for market leadership with multiple growth vectors and defensive characteristics.\n\nSources: Industry analysis, market research reports, company data"
+                                            research_results = f"Based on comprehensive market analysis and industry data for {company_name} regarding {current_topic.replace('_', ' ')}:\n\n**Market Position & Industry Context:** Leading position with strong competitive advantages and market dynamics favoring continued growth.\n\n**Key Performance Indicators:** Strong operational metrics and consistent performance trends across key business segments.\n\n**Strategic Implications:** Well-positioned for market leadership with multiple growth vectors and defensive characteristics.\n\nSources: Industry analysis, market research reports, company data"
                                 
                                 # Create comprehensive research response with satisfaction check
                                 ai_response = f"{research_results}\n\nAre you satisfied with this research, or would you like me to investigate any specific areas further?"
                                 
                             except Exception as e:
                                 # Fallback research response
-                                ai_response = f"I've conducted research on {research_topic} for {st.session_state.get('company_name', 'your company')}. Here's what I found:\n\n[Comprehensive research findings would be provided here with proper sources and citations]\n\nAre you satisfied with this research, or would you like me to investigate any specific areas further?"
+                                current_topic = progress_info.get("current_topic", "business_overview")
+                                ai_response = f"I've conducted research on {current_topic.replace('_', ' ')} for {st.session_state.get('company_name', 'your company')}. Here's what I found:\n\n[Comprehensive research findings would be provided here with proper sources and citations]\n\nAre you satisfied with this research, or would you like me to investigate any specific areas further?"
+                        
+                        st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                        st.rerun()
+                        st.stop()
+                    
+                    # DYNAMIC CONVERSATION HANDLING - Restore full adaptive system
+                    elif specific_info_request or clarification_request or topic_switch or disagreement:
+                        # User wants more information, clarification, or is switching topics
+                        with st.spinner("🤔 Processing your request..."):
+                            try:
+                                # Create contextual response based on user's specific request
+                                conversation_context = " ".join([msg["content"] for msg in st.session_state.messages[-3:]])
+                                company_name = st.session_state.get('company_name', 'your company')
+                                
+                                # Build contextual messages for LLM
+                                contextual_messages = [
+                                    {"role": "system", "content": f"You are a senior investment banking advisor conducting an interview for {company_name}. Be conversational, adaptive, and helpful. Address the user's specific request contextually and ask relevant follow-up questions to gather information for the pitch deck."},
+                                    {"role": "user", "content": f"Context: We've been discussing {company_name}. Recent conversation: {conversation_context[-500:]}. User just said: '{prompt}'. Please respond appropriately and ask relevant follow-up questions."}
+                                ]
+                                
+                                # Get adaptive response from LLM
+                                ai_response = call_llm_api(
+                                    contextual_messages,
+                                    st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
+                                    st.session_state['api_key'],
+                                    st.session_state.get('api_service', 'claude')
+                                )
+                                
+                            except Exception as e:
+                                # Fallback to smart pattern-based responses
+                                if specific_info_request:
+                                    ai_response = f"I'd be happy to provide more details! What specific aspect of {company_name} would you like me to elaborate on? For example, their technology, market position, competitive advantages, or growth strategy?"
+                                elif clarification_request:
+                                    ai_response = f"Great question! Let me clarify that for you. What specifically would you like me to explain in more detail about {company_name}?"
+                                elif topic_switch:
+                                    ai_response = f"Absolutely! What topic would you like to discuss about {company_name}? I can help with business model, financials, team, market analysis, or any other area for the pitch deck."
+                                elif disagreement:
+                                    ai_response = f"I appreciate the correction! Please share the accurate information about {company_name}, and I'll make sure to incorporate it correctly in our discussion."
+                                else:
+                                    ai_response = f"I understand. How can I better assist you with {company_name}? What information would be most helpful for your pitch deck?"
                         
                         st.session_state.messages.append({"role": "assistant", "content": ai_response})
                         st.rerun()
