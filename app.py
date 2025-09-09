@@ -3215,9 +3215,13 @@ def analyze_conversation_progress(messages):
             # Look for topic-specific indicators in recent conversation
             if topic_name == "business_overview":
                 # Business overview: company name + some business detail
+                # Extract company name dynamically from conversation
+                company_context = extract_company_context_from_messages(messages)
+                company_name = company_context.get("name", "").lower()
+                
                 focused_coverage = (
-                    ("databricks" in recent_messages.lower() or "company" in recent_messages) and
-                    ("founded" in recent_messages or "platform" in recent_messages or "software" in recent_messages or "data" in recent_messages) and
+                    (company_name in recent_messages.lower() or "company" in recent_messages) and
+                    ("founded" in recent_messages or "platform" in recent_messages or "software" in recent_messages or "business" in recent_messages) and
                     len(topic_keywords_found) >= 2
                 )
             elif topic_name == "product_service_footprint":
@@ -3478,53 +3482,68 @@ def get_enhanced_interview_response(messages, user_message, model, api_key, serv
                 enhanced_messages = messages.copy()
                 
                 # Add research instruction to guide the LLM
-                # Enhanced research instruction based on topic
+                # Extract company context for dynamic research
+                company_context = extract_company_context_from_messages(messages)
+                company_name = company_context.get("name", "the company")
+                company_sector = company_context.get("sector", "technology")
+                
+                # Enhanced research instruction based on topic - DYNAMIC for any company
                 if current_topic == "valuation_overview":
-                    research_instruction = f"""🔍 VALUATION ANALYSIS REQUEST for Databricks:
+                    research_instruction = f"""🔍 VALUATION ANALYSIS REQUEST for {company_name}:
 
-You must provide ACTUAL VALUATION CALCULATIONS, not just methodologies:
+Based on the conversation history, you must provide ACTUAL VALUATION CALCULATIONS, not just methodologies:
 
 1. **DCF Analysis**: 
-   - Revenue projections: 2025: $4B, 2026: $6.4B (60% growth), 2027: $9.6B (50% growth), 2028: $13.4B (40% growth), 2029: $17.4B (30% growth)
-   - EBITDA margins: Start 15%, improve to 25% by 2029
-   - WACC: 10-12% for high-growth SaaS
-   - Terminal growth: 3%
-   - **Calculate enterprise value range**
+   - Use the company's disclosed/discussed revenue and growth rates from conversation
+   - Project 5-year revenue based on stated growth trajectory  
+   - Apply appropriate EBITDA margins for the {company_sector} sector
+   - Use sector-appropriate WACC (typically 8-12% for established companies, 10-15% for high-growth)
+   - Terminal growth: 2-4% (based on company maturity)
+   - **Calculate and provide specific enterprise value range**
 
 2. **Trading Multiples**:
-   - Snowflake: 15x EV/Revenue
-   - Palantir: 12x EV/Revenue  
-   - MongoDB: 8x EV/Revenue
-   - Apply 8-15x multiple to $4B revenue = **$32B-$60B range**
+   - Research comparable public companies in the {company_sector} sector
+   - Find current EV/Revenue and EV/EBITDA multiples for peers
+   - Apply appropriate multiple range to {company_name}'s revenue
+   - **Provide specific valuation range in dollars**
 
 3. **Precedent Transactions**:
-   - Splunk acquisition: 7-8x revenue multiple
-   - Apply to Databricks: 7-8x × $4B = **$28B-$32B range**
+   - Research recent M&A transactions in {company_sector} sector
+   - Find transaction multiples from comparable deals
+   - Apply to {company_name}'s metrics
+   - **Calculate specific valuation range**
 
-4. **FINAL VALUATION RANGE**: Provide specific dollar amounts, not just "40-100 billion"
+4. **FINAL VALUATION RANGE**: Provide specific dollar amounts and methodology summary
 
 Then ask for satisfaction with the valuation analysis."""
                     
                 elif current_topic == "financial_buyers":
+                    # Extract rough valuation range from conversation for buyer capacity assessment
+                    estimated_valuation = "large-scale"  # Default
+                    conversation_text = " ".join([msg["content"] for msg in messages]).lower()
+                    if any(indicator in conversation_text for indicator in ["billion", "valuation", "worth"]):
+                        estimated_valuation = "multi-billion dollar"
+                    
                     research_instruction = f"""🔍 FINANCIAL BUYERS RESEARCH - PRIVATE EQUITY ONLY:
 
 CRITICAL: Focus ONLY on Private Equity firms, NOT venture capital firms.
 
-Research 4-5 PE firms that:
-1. Have $50B+ AUM to afford Databricks' $60-100B valuation
-2. History of acquiring tech companies at $10B+ valuations
-3. Experience with SaaS/AI platforms
+Research 4-5 PE firms suitable for {company_name} (a {company_sector} company):
 
-Examples to research:
-- KKR (tech acquisitions)
-- Blackstone Growth
-- TPG Growth
-- Silver Lake Partners  
-- Vista Equity Partners
+1. **Financial Capacity**: PE firms with sufficient AUM to handle a {estimated_valuation} acquisition
+2. **Sector Experience**: Firms with track record acquiring companies in {company_sector} or related sectors  
+3. **Geographic Reach**: Firms that invest in {company_name}'s operational regions
+4. **Deal Size**: Firms experienced with transactions of appropriate scale
 
-For each PE firm, provide: fund size, recent large tech acquisitions, rationale for acquiring Databricks.
+Examples of relevant PE firm types to research:
+- Technology-focused PE firms (if tech company)
+- Growth equity specialists  
+- Large buyout firms with sector expertise
+- Regional specialists (if applicable)
 
-DO NOT include any venture capital firms like Andreessen Horowitz or Sequoia Capital.
+For each PE firm, provide: fund size, recent acquisitions in {company_sector}, investment rationale for {company_name}.
+
+DO NOT include any venture capital firms - focus only on private equity firms that acquire companies.
 
 Then ask for satisfaction with the PE research."""
 
