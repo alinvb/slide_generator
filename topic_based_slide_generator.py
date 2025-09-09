@@ -254,7 +254,11 @@ class TopicBasedSlideGenerator:
             "total_topics": progress_info.get("total_topics", 14),
             "completion_percentage": progress_info.get("completion_percentage", 0),
             "direct_mapping": True,
-            "conversation_analysis": progress_info.get("topic_analysis", {})
+            "conversation_analysis": {
+                "method": progress_info.get("method", "analyze_conversation_progress"), 
+                "context_aware": progress_info.get("context_aware", False),
+                "user_indicated_repetition": progress_info.get("user_indicated_repetition", False)
+            }
         }
         
         print(f"🎯 TOPIC-BASED FINAL: Generated {len(slide_list)} slides for {len(covered_topics)} covered topics")

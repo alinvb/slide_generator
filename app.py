@@ -3349,16 +3349,32 @@ def get_enhanced_interview_response(messages, user_message, model, api_key, serv
     # Check progress and provide structured next question if needed
     progress_info = analyze_conversation_progress(messages)
     
-    # If we have a clear next question and user gave a brief response, use it
-    brief_responses = ["yes", "ok", "good", "correct", "right", "sure", "proceed"]
-    if (user_message.lower().strip() in brief_responses and 
-        progress_info["next_question"] and 
-        not progress_info["is_complete"]):
+    # CRITICAL FIX: Always prioritize structured interview flow over free-form LLM responses
+    # If we have a structured next question and the interview is not complete, use it
+    if (progress_info["next_question"] and not progress_info["is_complete"]):
         
-        print(f"🔄 AUTO-PROGRESSION: User gave brief confirmation, asking next question")
-        return progress_info["next_question"]
+        # Check if user gave brief response or if we should ask the next structured question
+        brief_responses = ["yes", "ok", "good", "correct", "right", "sure", "proceed"]
+        user_gave_brief_response = user_message.lower().strip() in brief_responses
+        
+        # For substantial responses, check if current topic is adequately covered
+        if not user_gave_brief_response:
+            # User provided substantial response - check if we should continue current topic or move to next
+            # Look for signs that user has provided sufficient information for current topic
+            substantial_response_indicators = [
+                len(user_message.split()) > 10,  # More than 10 words
+                any(indicator in user_message.lower() for indicator in ['revenue', 'million', '$', 'ebitda', 'years', 'founded', 'ceo', 'employees']),  # Has business details
+                len(user_message) > 50  # More than 50 characters
+            ]
+            
+            if any(substantial_response_indicators):
+                print(f"🔄 STRUCTURED FLOW: User provided substantial response, asking next structured question")
+                return progress_info["next_question"]
+        else:
+            print(f"🔄 STRUCTURED FLOW: User gave brief confirmation, asking next structured question")
+            return progress_info["next_question"]
     
-    # Otherwise, get normal AI response
+    # Only use LLM for clarification within current topic or completion messages
     from perfect_json_prompter import get_enhanced_system_prompt
     
     # Add context-aware system message
