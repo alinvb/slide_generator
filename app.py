@@ -3127,7 +3127,57 @@ def analyze_conversation_progress(messages):
                 print(f"🚨 REPETITION PREVENTION: {topic_name} was asked recently: {recent_q[:100]}")
                 break
     
-    # STEP 5: Simple, reliable topic coverage detection
+    # STEP 5: CURRENT TOPIC TRACKING + Coverage Detection
+    # CRITICAL FIX: Determine which topic is currently being discussed
+    current_topic_being_discussed = None
+    
+    # Look at the most recent AI question to determine current topic
+    if recent_questions:
+        most_recent_ai_question = recent_questions[-1]
+        
+        # Enhanced topic detection using multiple methods
+        for topic_name, topic_info in topics_checklist.items():
+            # Method 1: Check if topic keywords appear in recent AI question
+            topic_keywords_in_question = sum(1 for kw in topic_info["topic_keywords"] if kw in most_recent_ai_question)
+            
+            # Method 2: Check specific topic patterns
+            topic_patterns = {
+                "business_overview": ["company name", "business does", "overview"],
+                "product_service_footprint": ["product", "service", "footprint", "offerings", "geographic"],
+                "historical_financial_performance": ["financial", "revenue", "ebitda", "historical"],
+                "management_team": ["management team", "executives", "ceo", "leadership"],
+                "growth_strategy_projections": ["growth strategy", "projections", "expansion"],
+                "competitive_positioning": ["competitive", "competitors", "positioning"],
+                "precedent_transactions": ["precedent transactions", "m&a", "acquisitions"],
+                "valuation_overview": ["valuation", "methodology", "enterprise value", "dcf"],
+                "strategic_buyers": ["strategic buyers", "strategic buyer", "corporate"],
+                "financial_buyers": ["private equity", "pe firm", "financial buyers"],
+                "sea_conglomerates": ["conglomerate", "multinational"],
+                "margin_cost_resilience": ["margin", "cost", "ebitda margin"],
+                "investor_considerations": ["risk", "opportunity", "investor"],
+                "investor_process_overview": ["process", "diligence", "timeline"]
+            }
+            
+            pattern_matches = 0
+            if topic_name in topic_patterns:
+                pattern_matches = sum(1 for pattern in topic_patterns[topic_name] if pattern in most_recent_ai_question)
+            
+            total_score = topic_keywords_in_question + pattern_matches
+            
+            if total_score >= 2 or topic_keywords_in_question >= 2:  # Strong match
+                current_topic_being_discussed = topic_name
+                print(f"🎯 CURRENT TOPIC DETECTED: {topic_name} (keywords: {topic_keywords_in_question}, patterns: {pattern_matches})")
+                break
+    
+    # Fallback: If no current topic detected, assume we're working on the first uncovered topic
+    if not current_topic_being_discussed:
+        sorted_topics_for_fallback = sorted(topics_checklist.items(), key=lambda x: x[1]["position"])
+        for topic_name, topic_info in sorted_topics_for_fallback:
+            if not topic_info.get("covered", False) and not topic_info.get("skipped", False):
+                current_topic_being_discussed = topic_name
+                print(f"🔄 FALLBACK CURRENT TOPIC: {topic_name} (first uncovered topic)")
+                break
+    
     covered_count = 0
     skipped_count = 0
     for topic_name, topic_info in topics_checklist.items():
@@ -3213,8 +3263,16 @@ def analyze_conversation_progress(messages):
                 ("satisfied" in recent_messages or "ok" in recent_messages or "research" in recent_messages)
             )
             
-            # Mark as covered if either focused coverage OR AI research coverage is detected
-            is_covered = focused_coverage or ai_research_coverage
+            # CRITICAL FIX: Only mark as covered if this is the current topic being discussed
+            # This prevents comprehensive responses from marking multiple topics as covered
+            if current_topic_being_discussed and topic_name != current_topic_being_discussed:
+                # Not the current topic - don't mark as covered even if keywords match
+                is_covered = False
+                if focused_coverage or ai_research_coverage:
+                    print(f"🚫 PREVENTED PREMATURE COVERAGE: {topic_name} has matching content but not currently being discussed")
+            else:
+                # This IS the current topic being discussed - normal coverage logic
+                is_covered = focused_coverage or ai_research_coverage
             
             # Enhanced debug logging with detailed breakdown
             if len(topic_keywords_found) > 0 or len(substantial_keywords_found) > 0:
