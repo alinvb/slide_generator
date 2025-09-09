@@ -213,7 +213,7 @@ class TopicBasedSlideGenerator:
         # Generate slide list based on covered topics only
         slide_list = []
         
-        # Order slides by interview sequence (position order)
+        # Order slides by corrected interview sequence (valuation before buyers)
         topic_positions = {
             "business_overview": 1,
             "product_service_footprint": 2, 
@@ -222,10 +222,10 @@ class TopicBasedSlideGenerator:
             "growth_strategy_projections": 5,
             "competitive_positioning": 6,
             "precedent_transactions": 7,
-            "valuation_overview": 8,
-            "strategic_buyers": 9,
-            "financial_buyers": 10,
-            "sea_conglomerates": 11,
+            "valuation_overview": 8,  # CRITICAL: Valuation BEFORE buyers
+            "strategic_buyers": 9,    # After valuation to determine affordability
+            "financial_buyers": 10,   # PE firms only, not VCs
+            "sea_conglomerates": 11,  # Geography-aware conglomerates
             "margin_cost_resilience": 12,
             "investor_considerations": 13,
             "investor_process_overview": 14
@@ -251,10 +251,10 @@ class TopicBasedSlideGenerator:
             "slides_included": slide_list,
             "covered_topics": covered_topics,
             "topics_covered": len(covered_topics),
-            "total_topics": progress_info["total_topics"],
-            "completion_percentage": progress_info["completion_percentage"],
+            "total_topics": progress_info.get("total_topics", 14),
+            "completion_percentage": progress_info.get("completion_percentage", 0),
             "direct_mapping": True,
-            "conversation_analysis": progress_info["topic_analysis"]
+            "conversation_analysis": progress_info.get("topic_analysis", {})
         }
         
         print(f"🎯 TOPIC-BASED FINAL: Generated {len(slide_list)} slides for {len(covered_topics)} covered topics")

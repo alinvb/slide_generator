@@ -5617,3 +5617,267 @@ Are you satisfied with this valuation information, or would you like me to resea
 🚨 JSON extraction failed - running debug analysis...
 
 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 5000 characters
+📝 Response Preview (first 500 chars):
+Global conglomerates and diversified corporations with **strong regional presence** in the Middle East—and relevant interest in AI, data infrastructure, or cloud platforms—are increasingly active strategic buyers, leveraging sovereign wealth capital, local policy support, and cross-border M&A for technology expansion[1][2][4]. Below are the most regionally relevant conglomerates and strategic acquirers for a platform like Databricks:
+
+**1. Mubadala Investment Company (UAE)**
+- **Market Presence:...
+
+📝 Response Preview (last 500 chars):
+...on interest in platforms like Databricks[1][2][4].
+- These groups offer deep local market knowledge, enterprise relationships, and capital to scale acquired technologies across MENA and beyond.
+
+Are you satisfied with this research, or would you like more detail on any specific conglomerate or additional global strategic acquirers with regional relevance?
+
+Does this market information help, or should I investigate specific areas like customer behavior, market dynamics, or emerging opportunities?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+[COVERAGE] business_overview: topic_kw=4, substantial_kw=4, covered=True
+[COVERAGE] product_service_footprint: topic_kw=4, substantial_kw=3, covered=True
+[COVERAGE] historical_financial_performance: topic_kw=2, substantial_kw=5, covered=True
+[COVERAGE] management_team: topic_kw=2, substantial_kw=4, covered=True
+[COVERAGE] growth_strategy_projections: topic_kw=4, substantial_kw=2, covered=True
+[COVERAGE] competitive_positioning: topic_kw=3, substantial_kw=5, covered=True
+[COVERAGE] precedent_transactions: topic_kw=4, substantial_kw=4, covered=True
+[COVERAGE] valuation_overview: topic_kw=3, substantial_kw=3, covered=True
+[COVERAGE] strategic_buyers: topic_kw=3, substantial_kw=4, covered=True
+[COVERAGE] financial_buyers: topic_kw=3, substantial_kw=3, covered=True
+[COVERAGE] sea_conglomerates: topic_kw=2, substantial_kw=2, covered=True
+[COVERAGE] margin_cost_resilience: topic_kw=1, substantial_kw=0, covered=False
+[COVERAGE] investor_considerations: topic_kw=2, substantial_kw=3, covered=True
+[COVERAGE] investor_process_overview: topic_kw=1, substantial_kw=0, covered=False
+▶️ NEXT TOPIC: margin_cost_resilience (position 12)
+[COVERAGE] business_overview: topic_kw=4, substantial_kw=4, covered=True
+[COVERAGE] product_service_footprint: topic_kw=4, substantial_kw=3, covered=True
+[COVERAGE] historical_financial_performance: topic_kw=2, substantial_kw=5, covered=True
+[COVERAGE] management_team: topic_kw=2, substantial_kw=4, covered=True
+[COVERAGE] growth_strategy_projections: topic_kw=4, substantial_kw=2, covered=True
+[COVERAGE] competitive_positioning: topic_kw=3, substantial_kw=5, covered=True
+[COVERAGE] precedent_transactions: topic_kw=4, substantial_kw=4, covered=True
+[COVERAGE] valuation_overview: topic_kw=3, substantial_kw=3, covered=True
+[COVERAGE] strategic_buyers: topic_kw=3, substantial_kw=4, covered=True
+[COVERAGE] financial_buyers: topic_kw=3, substantial_kw=3, covered=True
+[COVERAGE] sea_conglomerates: topic_kw=2, substantial_kw=2, covered=True
+[COVERAGE] margin_cost_resilience: topic_kw=1, substantial_kw=0, covered=False
+[COVERAGE] investor_considerations: topic_kw=2, substantial_kw=3, covered=True
+[COVERAGE] investor_process_overview: topic_kw=1, substantial_kw=0, covered=False
+▶️ NEXT TOPIC: margin_cost_resilience (position 12)
+🚨 REPETITION PREVENTION: management_team was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+🚨 REPETITION PREVENTION: margin_cost_resilience was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+🚨 REPETITION PREVENTION: investor_considerations was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+[COVERAGE] business_overview: topic_kw=4, substantial_kw=4, covered=True
+[COVERAGE] product_service_footprint: topic_kw=4, substantial_kw=3, covered=True
+[COVERAGE] historical_financial_performance: topic_kw=4, substantial_kw=6, covered=True
+[COVERAGE] management_team: topic_kw=2, substantial_kw=5, covered=True
+[COVERAGE] growth_strategy_projections: topic_kw=4, substantial_kw=2, covered=True
+[COVERAGE] competitive_positioning: topic_kw=3, substantial_kw=5, covered=True
+[COVERAGE] precedent_transactions: topic_kw=4, substantial_kw=4, covered=True
+[COVERAGE] valuation_overview: topic_kw=3, substantial_kw=3, covered=True
+[COVERAGE] strategic_buyers: topic_kw=3, substantial_kw=4, covered=True
+[COVERAGE] financial_buyers: topic_kw=3, substantial_kw=3, covered=True
+[COVERAGE] sea_conglomerates: topic_kw=2, substantial_kw=2, covered=True
+[COVERAGE] margin_cost_resilience: topic_kw=2, substantial_kw=3, covered=True
+[COVERAGE] investor_considerations: topic_kw=3, substantial_kw=4, covered=True
+[COVERAGE] investor_process_overview: topic_kw=1, substantial_kw=1, covered=False
+▶️ NEXT TOPIC: investor_process_overview (position 14)
+🚨 REPETITION PREVENTION: management_team was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+🚨 REPETITION PREVENTION: margin_cost_resilience was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+🚨 REPETITION PREVENTION: investor_considerations was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+[COVERAGE] business_overview: topic_kw=4, substantial_kw=4, covered=True
+[COVERAGE] product_service_footprint: topic_kw=4, substantial_kw=3, covered=True
+[COVERAGE] historical_financial_performance: topic_kw=4, substantial_kw=6, covered=True
+[COVERAGE] management_team: topic_kw=2, substantial_kw=5, covered=True
+[COVERAGE] growth_strategy_projections: topic_kw=4, substantial_kw=2, covered=True
+[COVERAGE] competitive_positioning: topic_kw=3, substantial_kw=5, covered=True
+[COVERAGE] precedent_transactions: topic_kw=4, substantial_kw=4, covered=True
+[COVERAGE] valuation_overview: topic_kw=3, substantial_kw=3, covered=True
+[COVERAGE] strategic_buyers: topic_kw=3, substantial_kw=4, covered=True
+[COVERAGE] financial_buyers: topic_kw=3, substantial_kw=3, covered=True
+[COVERAGE] sea_conglomerates: topic_kw=2, substantial_kw=2, covered=True
+[COVERAGE] margin_cost_resilience: topic_kw=2, substantial_kw=3, covered=True
+[COVERAGE] investor_considerations: topic_kw=3, substantial_kw=4, covered=True
+[COVERAGE] investor_process_overview: topic_kw=1, substantial_kw=1, covered=False
+▶️ NEXT TOPIC: investor_process_overview (position 14)
+🚨 REPETITION PREVENTION: management_team was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+🚨 REPETITION PREVENTION: margin_cost_resilience was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+🚨 REPETITION PREVENTION: investor_considerations was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+[COVERAGE] business_overview: topic_kw=4, substantial_kw=4, covered=True
+[COVERAGE] product_service_footprint: topic_kw=4, substantial_kw=3, covered=True
+[COVERAGE] historical_financial_performance: topic_kw=4, substantial_kw=6, covered=True
+[COVERAGE] management_team: topic_kw=2, substantial_kw=5, covered=True
+[COVERAGE] growth_strategy_projections: topic_kw=4, substantial_kw=2, covered=True
+[COVERAGE] competitive_positioning: topic_kw=3, substantial_kw=5, covered=True
+[COVERAGE] precedent_transactions: topic_kw=4, substantial_kw=4, covered=True
+[COVERAGE] valuation_overview: topic_kw=3, substantial_kw=3, covered=True
+[COVERAGE] strategic_buyers: topic_kw=3, substantial_kw=4, covered=True
+[COVERAGE] financial_buyers: topic_kw=3, substantial_kw=3, covered=True
+[COVERAGE] sea_conglomerates: topic_kw=2, substantial_kw=2, covered=True
+[COVERAGE] margin_cost_resilience: topic_kw=2, substantial_kw=3, covered=True
+[COVERAGE] investor_considerations: topic_kw=3, substantial_kw=4, covered=True
+[COVERAGE] investor_process_overview: topic_kw=1, substantial_kw=1, covered=False
+▶️ NEXT TOPIC: investor_process_overview (position 14)
+🎯 ENHANCED FLOW: Using context-aware interview response
+🔍 JSON DETECTION DEBUG:
+   Content IR markers: False
+   Render Plan markers: False
+   JSON structure: False
+   Substantial JSON: False
+   Completion signal: False
+   Final detection: False
+🔍 JSON DETECTION: No JSON markers detected - treating as regular conversation
+[AUTO-POPULATE DEBUG] content_ir present: False
+[AUTO-POPULATE DEBUG] render_plan present: False
+🚨 JSON extraction failed - running debug analysis...
+
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍 JSON EXTRACTION DEBUG 🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+📏 Response Length: 4297 characters
+📝 Response Preview (first 500 chars):
+Databricks’ **EBITDA margin data is not publicly disclosed**, but available research provides detailed insights into its gross margins, cost structure, and risk mitigation strategies:
+
+**1. Margin Profile:**
+- **Gross Margins:** As of June 2024, Databricks reported **80% gross margins**, down from 85% a year earlier[1][4].
+- **Growth and Profitability:** The company has maintained high growth (>50% YoY revenue growth) and achieved **positive free cash flow over the last 12 months**[2].
+- **Net D...
+
+📝 Response Preview (last 500 chars):
+...rastructure cost escalation, competitive pricing pressure, and potential churn—mitigated by innovation, customer diversification, and governance investments.
+
+Are you satisfied with this research, or would you like more detail on Databricks’ cost structure, benchmarking against specific competitors, or additional margin breakdowns?
+
+Are you satisfied with these financial figures, or would you like me to research more details about their revenue breakdown, growth drivers, or profitability trends?
+
+📊 EXTRACTION RESULTS:
+❌ Content IR NOT extracted
+❌ Render Plan NOT extracted
+
+🔍 COMMON EXTRACTION ISSUES CHECK:
+❌ No JSON markers found - LLM may not have formatted response properly
+✅ Balanced braces found
+🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍🔍
+
+🚨 REPETITION PREVENTION: management_team was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+🚨 REPETITION PREVENTION: margin_cost_resilience was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+🚨 REPETITION PREVENTION: investor_considerations was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+[COVERAGE] business_overview: topic_kw=4, substantial_kw=4, covered=True
+[COVERAGE] product_service_footprint: topic_kw=4, substantial_kw=3, covered=True
+[COVERAGE] historical_financial_performance: topic_kw=4, substantial_kw=7, covered=True
+[COVERAGE] management_team: topic_kw=2, substantial_kw=5, covered=True
+[COVERAGE] growth_strategy_projections: topic_kw=4, substantial_kw=2, covered=True
+[COVERAGE] competitive_positioning: topic_kw=3, substantial_kw=5, covered=True
+[COVERAGE] precedent_transactions: topic_kw=4, substantial_kw=4, covered=True
+[COVERAGE] valuation_overview: topic_kw=3, substantial_kw=3, covered=True
+[COVERAGE] strategic_buyers: topic_kw=3, substantial_kw=4, covered=True
+[COVERAGE] financial_buyers: topic_kw=3, substantial_kw=3, covered=True
+[COVERAGE] sea_conglomerates: topic_kw=2, substantial_kw=2, covered=True
+[COVERAGE] margin_cost_resilience: topic_kw=3, substantial_kw=5, covered=True
+[COVERAGE] investor_considerations: topic_kw=3, substantial_kw=4, covered=True
+[COVERAGE] investor_process_overview: topic_kw=1, substantial_kw=2, covered=False
+▶️ NEXT TOPIC: investor_process_overview (position 14)
+🚨 REPETITION PREVENTION: management_team was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+🚨 REPETITION PREVENTION: margin_cost_resilience was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+🚨 REPETITION PREVENTION: investor_considerations was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+[COVERAGE] business_overview: topic_kw=4, substantial_kw=4, covered=True
+[COVERAGE] product_service_footprint: topic_kw=4, substantial_kw=3, covered=True
+[COVERAGE] historical_financial_performance: topic_kw=4, substantial_kw=7, covered=True
+[COVERAGE] management_team: topic_kw=2, substantial_kw=5, covered=True
+[COVERAGE] growth_strategy_projections: topic_kw=4, substantial_kw=2, covered=True
+[COVERAGE] competitive_positioning: topic_kw=3, substantial_kw=5, covered=True
+[COVERAGE] precedent_transactions: topic_kw=4, substantial_kw=4, covered=True
+[COVERAGE] valuation_overview: topic_kw=3, substantial_kw=3, covered=True
+[COVERAGE] strategic_buyers: topic_kw=3, substantial_kw=4, covered=True
+[COVERAGE] financial_buyers: topic_kw=3, substantial_kw=3, covered=True
+[COVERAGE] sea_conglomerates: topic_kw=2, substantial_kw=2, covered=True
+[COVERAGE] margin_cost_resilience: topic_kw=3, substantial_kw=5, covered=True
+[COVERAGE] investor_considerations: topic_kw=3, substantial_kw=4, covered=True
+[COVERAGE] investor_process_overview: topic_kw=1, substantial_kw=2, covered=False
+▶️ NEXT TOPIC: investor_process_overview (position 14)
+🚨 REPETITION PREVENTION: management_team was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+🚨 REPETITION PREVENTION: margin_cost_resilience was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+🚨 REPETITION PREVENTION: investor_considerations was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+[COVERAGE] business_overview: topic_kw=4, substantial_kw=4, covered=True
+[COVERAGE] product_service_footprint: topic_kw=4, substantial_kw=3, covered=True
+[COVERAGE] historical_financial_performance: topic_kw=4, substantial_kw=7, covered=True
+[COVERAGE] management_team: topic_kw=2, substantial_kw=5, covered=True
+[COVERAGE] growth_strategy_projections: topic_kw=4, substantial_kw=2, covered=True
+[COVERAGE] competitive_positioning: topic_kw=3, substantial_kw=5, covered=True
+[COVERAGE] precedent_transactions: topic_kw=4, substantial_kw=4, covered=True
+[COVERAGE] valuation_overview: topic_kw=3, substantial_kw=3, covered=True
+[COVERAGE] strategic_buyers: topic_kw=3, substantial_kw=4, covered=True
+[COVERAGE] financial_buyers: topic_kw=3, substantial_kw=3, covered=True
+[COVERAGE] sea_conglomerates: topic_kw=2, substantial_kw=2, covered=True
+[COVERAGE] margin_cost_resilience: topic_kw=3, substantial_kw=5, covered=True
+[COVERAGE] investor_considerations: topic_kw=3, substantial_kw=4, covered=True
+[COVERAGE] investor_process_overview: topic_kw=3, substantial_kw=5, covered=True
+🚨 REPETITION PREVENTION: management_team was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+🚨 REPETITION PREVENTION: margin_cost_resilience was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+🚨 REPETITION PREVENTION: investor_considerations was asked recently: let's discuss margin and cost data. can you provide your ebitda margins for the last 2-3 years, key 
+[COVERAGE] business_overview: topic_kw=4, substantial_kw=4, covered=True
+[COVERAGE] product_service_footprint: topic_kw=4, substantial_kw=3, covered=True
+[COVERAGE] historical_financial_performance: topic_kw=4, substantial_kw=7, covered=True
+[COVERAGE] management_team: topic_kw=2, substantial_kw=5, covered=True
+[COVERAGE] growth_strategy_projections: topic_kw=4, substantial_kw=2, covered=True
+[COVERAGE] competitive_positioning: topic_kw=3, substantial_kw=5, covered=True
+[COVERAGE] precedent_transactions: topic_kw=4, substantial_kw=4, covered=True
+[COVERAGE] valuation_overview: topic_kw=3, substantial_kw=3, covered=True
+[COVERAGE] strategic_buyers: topic_kw=3, substantial_kw=4, covered=True
+[COVERAGE] financial_buyers: topic_kw=3, substantial_kw=3, covered=True
+[COVERAGE] sea_conglomerates: topic_kw=2, substantial_kw=2, covered=True
+[COVERAGE] margin_cost_resilience: topic_kw=3, substantial_kw=5, covered=True
+[COVERAGE] investor_considerations: topic_kw=3, substantial_kw=4, covered=True
+[COVERAGE] investor_process_overview: topic_kw=3, substantial_kw=5, covered=True
+❌ Error analyzing topics: There are multiple `radio` elements with the same auto-generated ID. When this element is created, it is assigned an internal ID based on the element type and provided parameters. Multiple elements with the same type and parameters will cause this error.
+
+To fix this error, please pass a unique `key` argument to the `radio` element.
+🎯 TOPIC-BASED: Found 3 covered topics: ['business_overview', 'historical_financial_performance', 'management_team']
+✅ TOPIC-BASED: Adding slide for business_overview -> business_overview
+✅ TOPIC-BASED: Adding slide for historical_financial_performance -> historical_financial_performance
+✅ TOPIC-BASED: Adding slide for management_team -> management_team
+[31m──[0m[31m────────────────────────[0m[31m [0m[1;31mTraceback [0m[1;2;31m(most recent call last)[0m[31m [0m[31m─────────────────────────[0m[31m──[0m
+[31m [0m [2m/usr/local/lib/python3.12/site-packages/streamlit/runtime/scriptrunner/[0m[1mexec_code.py[0m: [31m [0m
+[31m [0m 128 in exec_func_with_error_handling                                                 [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m [2m/usr/local/lib/python3.12/site-packages/streamlit/runtime/scriptrunner/[0m[1mscript_runner[0m [31m [0m
+[31m [0m [1m.py[0m:669 in code_to_exec                                                              [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m [2m/home/user/webapp/[0m[1mapp.py[0m:5052 in <module>                                            [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m   [2m5049 [0m[2m│   │   │   │   │   │   [0m[94mfrom[0m[90m [0m[4;96madaptive_slide_generator[0m[90m [0m[94mimport[0m generate_adaptiv [31m [0m
+[31m [0m   [2m5050 [0m[2m│   │   │   │   │   │   [0m                                                      [31m [0m
+[31m [0m   [2m5051 [0m[2m│   │   │   │   │   │   [0m[2m# Analyze conversation and generate adaptive slide li[0m [31m [0m
+[31m [0m [31m❱ [0m5052 [2m│   │   │   │   │   │   [0mslide_list, adaptive_render_plan, analysis_report = [1;4mg[0m [31m [0m
+[31m [0m   [2m5053 [0m[2m│   │   │   │   │   │   [0m                                                      [31m [0m
+[31m [0m   [2m5054 [0m[2m│   │   │   │   │   │   [0m[2m# Create enhanced completion prompt with adaptive sli[0m [31m [0m
+[31m [0m   [2m5055 [0m[2m│   │   │   │   │   │   [0mcompletion_prompt = get_interview_completion_prompt(s [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m [2m/home/user/webapp/[0m[1mtopic_based_slide_generator.py[0m:310 in                              [31m [0m
+[31m [0m generate_topic_based_presentation                                                    [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m   [2m307 [0m[2;33m│   [0m[33mDirect mapping: 1 answered question = 1 slide, 2 questions = 2 slides[0m      [31m [0m
+[31m [0m   [2m308 [0m[2;33m│   [0m[33mReturns: (slide_list, render_plan, analysis_report)[0m                        [31m [0m
+[31m [0m   [2m309 [0m[2;33m│   [0m[33m"""[0m                                                                        [31m [0m
+[31m [0m [31m❱ [0m310 [2m│   [0m[94mreturn[0m [1;4mtopic_based_generator.generate_slides_for_covered_topics(messages)[0m  [31m [0m
+[31m [0m   [2m311 [0m                                                                               [31m [0m
+[31m [0m   [2m312 [0m                                                                               [31m [0m
+[31m [0m   [2m313 [0m[94mif[0m [91m__name__[0m == [33m"[0m[33m__main__[0m[33m"[0m:                                                     [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m [2m/home/user/webapp/[0m[1mtopic_based_slide_generator.py[0m:257 in                              [31m [0m
+[31m [0m generate_slides_for_covered_topics                                                   [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m   [2m254 [0m[2m│   │   │   [0m[33m"[0m[33mtotal_topics[0m[33m"[0m: progress_info[[33m"[0m[33mtotal_topics[0m[33m"[0m],                     [31m [0m
+[31m [0m   [2m255 [0m[2m│   │   │   [0m[33m"[0m[33mcompletion_percentage[0m[33m"[0m: progress_info[[33m"[0m[33mcompletion_percentage[0m[33m"[0m],   [31m [0m
+[31m [0m   [2m256 [0m[2m│   │   │   [0m[33m"[0m[33mdirect_mapping[0m[33m"[0m: [94mTrue[0m,                                            [31m [0m
+[31m [0m [31m❱ [0m257 [2m│   │   │   [0m[33m"[0m[33mconversation_analysis[0m[33m"[0m: [1;4mprogress_info[[0m[1;4;33m"[0m[1;4;33mtopic_analysis[0m[1;4;33m"[0m[1;4m][0m           [31m [0m
+[31m [0m   [2m258 [0m[2m│   │   [0m}                                                                      [31m [0m
+[31m [0m   [2m259 [0m[2m│   │   [0m                                                                       [31m [0m
+[31m [0m   [2m260 [0m[2m│   │   [0m[96mprint[0m([33mf[0m[33m"[0m[33m🎯 TOPIC-BASED FINAL: Generated [0m[33m{[0m[96mlen[0m(slide_list)[33m}[0m[33m slides for [0m[33m{[0m [31m [0m
+[31m────────────────────────────────────────────────────────────────────────────────────────[0m
+[1;91mKeyError: [0m[32m'topic_analysis'[0m

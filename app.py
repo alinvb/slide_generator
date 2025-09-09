@@ -3087,45 +3087,45 @@ def analyze_conversation_progress(messages):
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip precedent", "skip transactions"]),
             "next_question": "What valuation methodologies would be most appropriate for your business? I recommend DCF, Trading Multiples, and Precedent Transactions analysis."
         },
-        # TOPIC 8: Valuation Overview
+        # TOPIC 8: Valuation Overview (MUST COME BEFORE BUYERS TO DETERMINE AFFORDABILITY)
         "valuation_overview": {
             "position": 8,
-            "interview_question": "Now let's establish your valuation framework. What valuation methodologies would be most appropriate for your business? I recommend we analyze: (1) DCF Analysis with detailed cash flow projections and discount rate assumptions, (2) Trading Multiples based on comparable public companies, and (3) Precedent Transactions analysis. What's your expected valuation range and key value drivers? What discount rate should we use for DCF? What are your terminal value assumptions?",
+            "interview_question": "🎯 CRITICAL: Now let's establish your valuation framework BEFORE identifying buyers. Based on your financial performance and growth projections, what valuation methodologies would be most appropriate? I recommend: (1) DCF Analysis with your specific cash flow projections and discount rate, (2) Trading Multiples from comparable public companies in your sector, and (3) Precedent Transactions from recent M&A deals. What's your expected enterprise value range? This valuation will determine which buyers can afford to acquire you and at what multiples.",
             "topic_keywords": ["valuation", "multiple", "methodology", "worth"],
-            "substantial_keywords": ["assumptions", "enterprise value", "dcf", "comparable", "ev/revenue", "range"],
+            "substantial_keywords": ["assumptions", "enterprise value", "dcf", "comparable", "ev/revenue", "range", "afford", "multiple"],
             "covered": False,
             "asked_recently": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip valuation", "skip multiple"]),
-            "next_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. I need 4-5 strategic buyers with strategic rationale, synergies, and fit assessment."
+            "next_question": "Based on your valuation range, let's identify strategic buyers who can afford this acquisition and would value your strategic assets."
         },
-        # TOPIC 9: Strategic Buyers  
+        # TOPIC 9: Strategic Buyers (GEOGRAPHY-AWARE, VALUATION-INFORMED)
         "strategic_buyers": {
             "position": 9,
-            "interview_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. I need 4-5 strategic buyers with special focus on REGIONAL PLAYERS in your geography and companies with strong local market knowledge and presence in your operating regions. Provide company name, strategic rationale, key synergies, and fit assessment.",
+            "interview_question": "Now let's identify potential strategic buyers based on your valuation and geography. I need 4-5 strategic buyers (corporations) who: (1) Can afford your valuation range, (2) Operate in your geographic markets or want to expand there, (3) Would benefit from strategic synergies with your business. Focus on companies in your industry or adjacent sectors. Provide: company name, why they'd want to acquire you strategically, their previous acquisitions of similar size/industry, and strategic fit assessment.",
             "topic_keywords": ["strategic buyers", "strategic buyer", "strategic rationale", "corporate buyer"],
-            "substantial_keywords": ["industry player", "strategic acquisition", "strategic synergies", "strategic fit", "synergies", "acquirer"],
+            "substantial_keywords": ["industry player", "strategic acquisition", "strategic synergies", "strategic fit", "synergies", "acquirer", "previous acquisitions"],
             "covered": False,
             "asked_recently": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip strategic", "skip buyer"]),
-            "next_question": "Now let's identify financial buyers—private equity firms, VCs, and other financial investors. I need 4-5 financial buyers with fund name, investment rationale, and fit assessment."
+            "next_question": "Now let's identify private equity firms that can afford your valuation and have experience with companies in your sector."
         },
-        # TOPIC 10: Financial Buyers
+        # TOPIC 10: Financial Buyers (PE ONLY - VCs DON'T BUY COMPANIES)
         "financial_buyers": {
             "position": 10,
-            "interview_question": "Now let's identify financial buyers—private equity firms, VCs, and other financial investors. Please prioritize REGIONAL INVESTORS with expertise in your geography and local market knowledge alongside global players. I need 4-5 financial buyers with fund name, investment rationale, key synergies, and fit assessment.",
+            "interview_question": "⚠️ IMPORTANT: Let's identify PRIVATE EQUITY FIRMS only (NOT venture capital firms, as VCs don't buy companies - they invest for equity stakes). I need 4-5 PE firms that: (1) Have the financial capacity for your valuation range, (2) Have experience acquiring companies in your sector/size, (3) Operate in or invest in your geographic regions. For each PE firm, provide: fund name, their previous acquisitions of similar companies, investment rationale, and why they'd be interested in your business model.",
             "topic_keywords": ["financial buyers", "financial buyer", "private equity", "pe fund"],
-            "substantial_keywords": ["vc fund", "venture capital", "financial investor", "investment fund", "financial rationale"],
+            "substantial_keywords": ["pe firm", "buyout", "financial investor", "investment fund", "financial rationale", "previous acquisitions"],
             "covered": False,
             "asked_recently": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip financial", "skip pe"]),
-            "next_question": "Let's identify potential global conglomerates and strategic acquirers. I need at least 4-5 regionally relevant conglomerates with strong market knowledge in your geography."
+            "next_question": "Finally, let's identify large conglomerates that operate in your geographic region and could afford your valuation."
         },
-        # TOPIC 11: SEA Conglomerates
+        # TOPIC 11: Global Conglomerates (GEOGRAPHY-ADAPTIVE)
         "sea_conglomerates": {
             "position": 11,
-            "interview_question": "Let's identify potential global conglomerates and strategic acquirers with STRONG REGIONAL PRESENCE. Focus on companies active in your geographic region and those with significant operations or investments in your markets. I need at least 4-5 regionally relevant conglomerates with strong market knowledge.",
+            "interview_question": "🌍 GEOGRAPHY-AWARE: Let's identify large conglomerates that could afford your valuation and are relevant to your geographic markets. Based on where your company operates, I need 4-5 conglomerates that: (1) Have the financial capacity for acquisitions in your valuation range, (2) Either operate in your regions OR want to expand into your markets, (3) Have a history of acquiring companies in your sector or adjacent industries. Focus on conglomerates relevant to YOUR geographic footprint, not just Middle East/MENA companies unless that's where you operate.",
             "topic_keywords": ["conglomerate", "global conglomerate", "multinational conglomerate", "international conglomerate"],
-            "substantial_keywords": ["holding company", "diversified corporation", "multinational corporation", "global corporation"],
+            "substantial_keywords": ["holding company", "diversified corporation", "multinational corporation", "global corporation", "geographic footprint", "acquisition history"],
             "covered": False,
             "asked_recently": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip conglomerate", "skip global"]),
