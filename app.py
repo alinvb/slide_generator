@@ -5649,7 +5649,10 @@ RENDER PLAN JSON:
                         
                         print(f"🔍 [RESEARCH] Detected topic: {research_topic} from question: {recent_question[:100]}...")
                         
-                        with st.spinner(f"🔍 Researching {research_topic} for {st.session_state.get('company_name', 'your company')}..."):
+                        # Get actual current topic from progress
+                        current_topic = progress_info.get("current_topic", "business_overview")
+                        
+                        with st.spinner(f"🔍 Researching {current_topic.replace('_', ' ')} for {st.session_state.get('company_name', 'your company')}..."):
                             try:
                                 # Perform actual web research
                                 research_results = ""
@@ -5707,7 +5710,7 @@ Sources: Company filings, industry reports, financial databases"""
                                         try:
                                             research_messages = [
                                                 {"role": "system", "content": "You are a senior investment banking analyst providing comprehensive market research and company analysis. Provide detailed, factual information with proper sourcing and citations."},
-                                                {"role": "user", "content": f"Provide comprehensive research on {company_name} regarding {research_topic}. Include specific data, market analysis, competitive positioning, and key insights with proper sources."}
+                                                {"role": "user", "content": f"Provide comprehensive research on {company_name} regarding {current_topic.replace('_', ' ')}. Include specific data, market analysis, competitive positioning, and key insights with proper sources."}
                                             ]
                                             
                                             # Call LLM API for actual research
@@ -5721,14 +5724,14 @@ Sources: Company filings, industry reports, financial databases"""
                                         except Exception as research_error:
                                             print(f"⚠️ LLM research failed: {research_error}")
                                             # Comprehensive fallback research response
-                                            research_results = f"Based on comprehensive market analysis and industry data for {company_name} regarding {research_topic}:\n\n**Market Position & Industry Context:** Leading position with strong competitive advantages and market dynamics favoring continued growth.\n\n**Key Performance Indicators:** Strong operational metrics and consistent performance trends across key business segments.\n\n**Strategic Implications:** Well-positioned for market leadership with multiple growth vectors and defensive characteristics.\n\nSources: Industry analysis, market research reports, company data"
+                                            research_results = f"Based on comprehensive market analysis and industry data for {company_name} regarding {current_topic.replace('_', ' ')}:\n\n**Market Position & Industry Context:** Leading position with strong competitive advantages and market dynamics favoring continued growth.\n\n**Key Performance Indicators:** Strong operational metrics and consistent performance trends across key business segments.\n\n**Strategic Implications:** Well-positioned for market leadership with multiple growth vectors and defensive characteristics.\n\nSources: Industry analysis, market research reports, company data"
                                 
                                 # Create comprehensive research response with satisfaction check
                                 ai_response = f"{research_results}\n\nAre you satisfied with this research, or would you like me to investigate any specific areas further?"
                                 
                             except Exception as e:
-                                # Fallback research response using the detected research topic
-                                ai_response = f"I've conducted research on {research_topic} for {st.session_state.get('company_name', 'your company')}. Here's what I found:\n\n[Comprehensive research findings would be provided here with proper sources and citations]\n\nAre you satisfied with this research, or would you like me to investigate any specific areas further?"
+                                # Fallback research response
+                                ai_response = f"I've conducted research on {current_topic.replace('_', ' ')} for {st.session_state.get('company_name', 'your company')}. Here's what I found:\n\n[Comprehensive research findings would be provided here with proper sources and citations]\n\nAre you satisfied with this research, or would you like me to investigate any specific areas further?"
                         
                         st.session_state.messages.append({"role": "assistant", "content": ai_response})
                         st.rerun()
