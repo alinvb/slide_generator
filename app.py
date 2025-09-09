@@ -555,6 +555,7 @@ def extract_jsons_from_response(response_text):
             
             # Parse JSONs
             try:
+                print(f"[JSON EXTRACTION] 🚨 ATTEMPTING Content IR parsing...")
                 content_ir = json.loads(content_ir_json_str)
                 print(f"[JSON EXTRACTION] ✅ Content IR parsed successfully")
                 if 'entities' in content_ir and 'company' in content_ir['entities']:
@@ -563,8 +564,13 @@ def extract_jsons_from_response(response_text):
             except json.JSONDecodeError as e:
                 print(f"[JSON EXTRACTION] ❌ Content IR parse failed: {e}")
                 print(f"[JSON EXTRACTION] Problematic JSON: {content_ir_json_str[:500]}...")
+                content_ir = None
+            except Exception as e:
+                print(f"[JSON EXTRACTION] ❌ Content IR unexpected error: {e}")
+                content_ir = None
             
             try:
+                print(f"[JSON EXTRACTION] 🚨 ATTEMPTING Render Plan parsing...")
                 render_plan = json.loads(render_plan_json_str)
                 print(f"[JSON EXTRACTION] ✅ Render Plan parsed successfully")
                 slides_count = len(render_plan.get('slides', []))
@@ -572,6 +578,10 @@ def extract_jsons_from_response(response_text):
             except json.JSONDecodeError as e:
                 print(f"[JSON EXTRACTION] ❌ Render Plan parse failed: {e}")
                 print(f"[JSON EXTRACTION] Problematic JSON: {render_plan_json_str[:500]}...")
+                render_plan = None
+            except Exception as e:
+                print(f"[JSON EXTRACTION] ❌ Render Plan unexpected error: {e}")
+                render_plan = None
                 
         else:
             print(f"[JSON EXTRACTION] 🚨 PRIORITY 1: Missing required markers")
@@ -3676,6 +3686,14 @@ def extract_and_validate_jsons(response_text):
     print("="*80)
     print("🔍 JSON EXTRACTION AND VALIDATION COMPLETED")
     print("="*80 + "\n")
+    
+    # 🚨 CRITICAL DEBUG: Show what we're returning
+    print(f"🚨 [EXTRACT_AND_VALIDATE] FINAL RETURN VALUES:")
+    print(f"   content_ir: {content_ir is not None} (type: {type(content_ir)})")
+    print(f"   render_plan: {render_plan is not None} (type: {type(render_plan)})")
+    print(f"   validation_results: {validation_results is not None}")
+    if validation_results:
+        print(f"   validation overall_valid: {validation_results.get('overall_valid', 'N/A')}")
     
     return content_ir, render_plan, validation_results
 
