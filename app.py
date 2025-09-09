@@ -5592,9 +5592,9 @@ RENDER PLAN JSON:
                         "explain that", "what is", "how does", "why"
                     ])
                     
-                    # 4. Check for topic switching or new information
+                    # 4. Check for topic switching or new information (excluding "next topic" which is handled separately)
                     topic_switch = any(phrase in user_message_lower for phrase in [
-                        "let's talk about", "i want to discuss", "moving on", "next topic",
+                        "let's talk about", "i want to discuss", "moving on", 
                         "what about", "tell me about", "i need help with"
                     ])
                     
@@ -5664,46 +5664,35 @@ RENDER PLAN JSON:
                         st.stop()
                     
                     if research_request:
-                        # USER REQUESTED RESEARCH - Perform actual web research
-                        # CRITICAL FIX: Determine topic from the LATEST ASSISTANT QUESTION, not internal topic tracker
-                        
-                        # Get the most recent assistant question to determine what they're asking about
-                        last_assistant_messages = [msg for msg in st.session_state.messages[-3:] if msg["role"] == "assistant"]
-                        recent_question = last_assistant_messages[-1]["content"].lower() if last_assistant_messages else ""
-                        
+                        # USER REQUESTED RESEARCH - Use current topic from 14-topic sequence
+                        progress_info = analyze_conversation_progress(st.session_state.messages)
+                        current_topic = progress_info.get('current_topic', 'business_overview')
                         company_name = st.session_state.get('company_name', 'company')
                         
-                        # Smart topic detection from the actual question being asked
-                        if any(word in recent_question for word in ["product", "service", "offering", "footprint", "main offerings"]):
-                            research_topic = "products and services"
-                            research_query = f"{company_name} products services offerings platform business model"
-                        elif any(word in recent_question for word in ["financial", "revenue", "performance", "profit", "earnings"]):
-                            research_topic = "financial performance"  
-                            research_query = f"{company_name} revenue EBITDA margins financial performance earnings"
-                        elif any(word in recent_question for word in ["management", "team", "executives", "leadership", "founders"]):
-                            research_topic = "management team"
-                            research_query = f"{company_name} CEO CFO executives management team leadership founders"
-                        elif any(word in recent_question for word in ["competitors", "competitive", "market", "competition"]):
-                            research_topic = "competitive landscape"
-                            research_query = f"{company_name} competitors market share competitive analysis industry"
-                        elif any(word in recent_question for word in ["valuation", "value", "worth", "investment"]):
-                            research_topic = "valuation"
-                            research_query = f"{company_name} valuation methodology DCF multiples precedent transactions market cap"
-                        elif any(word in recent_question for word in ["growth", "strategy", "expansion", "future"]):
-                            research_topic = "growth strategy"
-                            research_query = f"{company_name} growth strategy expansion plans projections future roadmap"
-                        elif any(word in recent_question for word in ["differentiators", "advantages", "unique", "competitive advantage"]):
-                            research_topic = "differentiators and competitive advantages"
-                            research_query = f"{company_name} competitive advantages differentiators unique value proposition innovation"
-                        else:
-                            # Fallback to general business research
-                            research_topic = "business overview"
-                            research_query = f"{company_name} business overview company information"
+                        # Map the current sequential topic to research focus
+                        topic_research_mapping = {
+                            "business_overview": "business overview and operations",
+                            "product_service_footprint": "products and services", 
+                            "historical_financial_performance": "financial performance",
+                            "management_team": "management team",
+                            "growth_strategy_projections": "growth strategy",
+                            "competitive_positioning": "competitive landscape",
+                            "precedent_transactions": "precedent transactions and M&A activity", 
+                            "valuation_overview": "valuation",
+                            "strategic_buyers": "strategic buyers",
+                            "financial_buyers": "financial buyers", 
+                            "sea_conglomerates": "regional conglomerates",
+                            "margin_cost_resilience": "margins and cost structure",
+                            "investor_considerations": "investment risks and considerations",
+                            "investor_process_overview": "investment process and due diligence"
+                        }
                         
-                        print(f"🔍 [RESEARCH] Detected topic: {research_topic} from question: {recent_question[:100]}...")
+                        research_topic = topic_research_mapping.get(current_topic, "business overview")
+                        research_query = f"{company_name} {research_topic}"
                         
-                        # FIXED: Use the detected research_topic instead of progress current_topic
-                        # This ensures we research what the user actually asked about
+                        print(f"🔍 [RESEARCH] Sequential topic: {current_topic} → Research focus: {research_topic}")
+                        
+                        # Use the current sequential topic for research
                         
                         with st.spinner(f"🔍 Researching {research_topic} for {st.session_state.get('company_name', 'your company')}..."):
                             try:
@@ -5740,7 +5729,42 @@ MANDATORY 3-WAY VALUATION ANALYSIS:
 - Present specific transaction-based valuation range
 
 RECOMMENDED VALUATION RANGE: Weighted average methodology with specific numbers."""
-                                    elif "buyers" in research_topic.lower() or "strategic" in research_topic.lower() or "financial" in research_topic.lower():
+                                    elif research_topic == "financial performance":
+                                        research_instruction = f"""You are conducting comprehensive financial performance analysis for {company_name}.
+
+MANDATORY FINANCIAL PERFORMANCE ANALYSIS:
+
+**1. HISTORICAL REVENUE ANALYSIS:**
+- Annual revenue figures for last 3-5 years (in USD millions)
+- Year-over-year growth rates and trends
+- Revenue by business segment/product line if available
+- Key revenue drivers and market dynamics
+
+**2. PROFITABILITY METRICS:**
+- EBITDA figures for last 3-5 years (in USD millions)
+- EBITDA margin percentages and trends
+- Operating margin analysis
+- Net profit margins and bottom-line performance
+
+**3. KEY FINANCIAL METRICS:**
+- Gross margins by business segment
+- Operating leverage and scalability
+- Cash flow generation and conversion
+- Return on equity (ROE) and return on assets (ROA)
+
+**4. PERFORMANCE DRIVERS:**
+- Main revenue streams and their evolution
+- Cost structure and margin improvement initiatives  
+- Working capital management
+- Capital allocation and investment returns
+
+**5. INDUSTRY BENCHMARKING:**
+- Performance vs. sector peers
+- Market share and competitive position
+- Financial efficiency metrics vs. industry average
+
+Provide specific numbers, percentages, and year-over-year comparisons with professional analysis."""
+                                    elif "buyers" in research_topic.lower() or "strategic" in research_topic.lower():
                                         research_instruction = f"""You are conducting comprehensive buyer identification and affordability analysis for {company_name}.
 
 CRITICAL AFFORDABILITY ANALYSIS:
@@ -5974,7 +5998,24 @@ Sources: Company filings, industry reports, financial databases"""
                     # Update research request detection to include follow-up requests
                     research_request = research_request or follow_up_research_request
                     
-                    # DYNAMIC CONVERSATION HANDLING - Use natural LLM responses instead of robotic patterns
+                    # PRIORITY 1: Handle "next topic" for sequential interview progression
+                    if "next topic" in user_message_lower and not research_request:
+                        # User wants to advance to next topic in the 14-topic sequence
+                        progress_info = analyze_conversation_progress(st.session_state.messages)
+                        
+                        if progress_info.get("is_complete", False):
+                            ai_response = "Perfect! I have collected all the information needed for your comprehensive pitch deck. All 14 essential topics have been covered. You can now click the 'Generate JSON Now' button to create your presentation files."
+                        elif progress_info.get("next_question"):
+                            ai_response = progress_info["next_question"]
+                            print(f"🎯 [NEXT TOPIC] Advancing to topic {progress_info.get('current_position', '?')}: {progress_info.get('current_topic', 'unknown')}")
+                        else:
+                            ai_response = "Let me continue with the next topic in our investment banking interview."
+                        
+                        st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                        st.rerun()
+                        st.stop()
+                    
+                    # DYNAMIC CONVERSATION HANDLING - Use natural LLM responses instead of robotic patterns  
                     if not research_request and (specific_info_request or clarification_request or topic_switch or disagreement or positive_engagement):
                         # Handle natural conversation with LLM intelligence
                         with st.spinner("💭 Processing your request..."):
