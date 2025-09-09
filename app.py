@@ -2855,395 +2855,286 @@ SYSTEM_PROMPT = get_perfect_system_prompt()
 
 # Helper Functions for Interview Flow and File Generation
 def analyze_conversation_progress(messages):
-    """Analyze conversation to determine what topics have been covered and what's next"""
-    # Include both user and assistant messages - analyze all content for topic keywords
-    filtered_content = []
-    for msg in messages:
-        if msg["role"] == "system":
-            continue
-        content = msg["content"]
-        # Include ALL conversation content to properly detect topics
-        filtered_content.append(content)
+    """ENHANCED: Context-aware conversation analysis with repetition prevention"""
+    # STEP 1: Build conversation history with context awareness
+    recent_questions = []
+    user_responses = []
     
-    conversation_text = " ".join(filtered_content).lower()
+    # Extract recent AI questions and user responses for context awareness
+    for i, msg in enumerate(messages[-10:]):  # Only look at last 10 messages for recent context
+        if msg["role"] == "assistant" and "?" in msg["content"]:
+            # Extract the actual question from AI response
+            content = msg["content"]
+            if "let's discuss" in content.lower() or "now let's" in content.lower():
+                recent_questions.append(content.lower())
+        elif msg["role"] == "user":
+            user_responses.append(msg["content"].lower())
     
-    # THE 14 MANDATORY TOPICS - IN CORRECT 1-14 ORDER - must ask about ALL before JSON generation
+    # STEP 2: Check for "you just asked this" or repetition complaints
+    user_indicated_repetition = False
+    for response in user_responses[-3:]:  # Check last 3 user responses
+        repetition_indicators = [
+            "you just asked", "already asked", "you asked this", "just discussed", 
+            "we covered this", "repeat", "again", "duplicate", "same question"
+        ]
+        if any(indicator in response for indicator in repetition_indicators):
+            user_indicated_repetition = True
+            print(f"🚨 CONTEXT AWARE: User indicated question repetition: {response[:100]}")
+            break
+    
+    # STEP 3: Simple, reliable topic detection based on sequential interview
+    conversation_text = " ".join([msg["content"] for msg in messages if msg["role"] != "system"]).lower()
+    
+    # THE 14 MANDATORY TOPICS - SEQUENTIAL INTERVIEW ORDER
     topics_checklist = {
         # TOPIC 1: Company Overview
         "business_overview": {
-            "keywords": ["company", "business", "what does", "overview", "operations", "founded", "headquarters", "industry", "sector", "description"],
+            "position": 1,
+            "interview_question": "What is your company name and give me a brief overview of what your business does?",
+            "topic_keywords": ["company", "business", "overview", "operations"],
+            "substantial_keywords": ["founded", "headquarters", "industry", "employees", "services", "products"],
             "covered": False,
+            "asked_recently": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip business", "skip overview"]),
             "next_question": "Now let's discuss your product/service footprint. What are your main offerings? Please provide the title and description for each product/service. Also, where do you operate geographically and what's your market coverage?"
         },
         # TOPIC 2: Product/Service Footprint  
         "product_service_footprint": {
-            "keywords": ["products", "services", "offerings", "geographic", "footprint", "coverage", "operations", "locations"],
+            "position": 2,
+            "interview_question": "Now let's discuss your product/service footprint. What are your main offerings? Please provide the title and description for each product/service. Also, where do you operate geographically and what's your market coverage?",
+            "topic_keywords": ["products", "services", "offerings", "footprint"],
+            "substantial_keywords": ["geographic", "coverage", "operations", "locations", "countries", "regions"],
             "covered": False,
+            "asked_recently": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip product", "skip service", "skip footprint"]),
             "next_question": "Let's analyze your historical financial performance. Can you provide your revenue, EBITDA, margins, and key financial metrics for the last 3-5 years? What are your growth drivers and performance trends?"
         },
         # TOPIC 3: Historical Financial Performance
         "historical_financial_performance": {
-            "keywords": ["revenue", "financial", "ebitda", "margin", "historical", "years", "growth", "2021", "2022", "2023", "2024", "2025", "profit", "performance"],
+            "position": 3,
+            "interview_question": "Let's analyze your historical financial performance. Can you provide your revenue, EBITDA, margins, and key financial metrics for the last 3-5 years?",
+            "topic_keywords": ["revenue", "financial", "ebitda", "margin"],
+            "substantial_keywords": ["historical", "years", "growth", "2021", "2022", "2023", "2024", "profit", "million", "$"],
             "covered": False,
+            "asked_recently": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip financial", "skip historical"]),
             "next_question": "Now I need information about your management team. Can you provide names, titles, and brief backgrounds for 4-6 key executives including CEO, CFO, and other senior leaders?"
         },
         # TOPIC 4: Management Team
         "management_team": {
-            "keywords": ["management", "team", "executives", "ceo", "cfo", "founder", "leadership", "senior management"],
+            "position": 4,
+            "interview_question": "Now I need information about your management team. Can you provide names, titles, and brief backgrounds for 4-6 key executives including CEO, CFO, and other senior leaders?",
+            "topic_keywords": ["management", "team", "executives", "ceo"],
+            "substantial_keywords": ["cfo", "founder", "leadership", "experience", "background", "years"],
             "covered": False,
+            "asked_recently": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip management", "skip team"]),
-            "next_question": "Let's discuss your growth strategy and projections. What are your expansion plans, strategic initiatives, and financial projections for the next 3-5 years? Do you have market size/growth data I can use for charts?"
+            "next_question": "Let's discuss your growth strategy and projections. What are your expansion plans, strategic initiatives, and financial projections for the next 3-5 years?"
         },
         # TOPIC 5: Growth Strategy
         "growth_strategy_projections": {
-            "keywords": ["growth", "strategy", "expansion", "projections", "future", "strategic initiatives", "market size", "roadmap"],
+            "position": 5,
+            "interview_question": "Let's discuss your growth strategy and projections. What are your expansion plans, strategic initiatives, and financial projections for the next 3-5 years?",
+            "topic_keywords": ["growth", "strategy", "expansion", "projections"],
+            "substantial_keywords": ["future", "strategic initiatives", "market size", "roadmap", "plans", "2025", "2026"],
             "covered": False,
+            "asked_recently": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip growth", "skip strategy"]),
             "next_question": "How is your company positioned competitively? I need information about key competitors, your competitive advantages, market positioning, and differentiation factors."
         },
         # TOPIC 6: Competitive Positioning
         "competitive_positioning": {
-            "keywords": ["competitive", "competitors", "positioning", "comparison", "advantages", "differentiation", "market position"],
+            "position": 6,
+            "interview_question": "How is your company positioned competitively? I need information about key competitors, your competitive advantages, market positioning, and differentiation factors.",
+            "topic_keywords": ["competitive", "competitors", "positioning", "comparison"],
+            "substantial_keywords": ["advantages", "differentiation", "market position", "competition", "vs", "compared"],
             "covered": False,
+            "asked_recently": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip competitive", "skip positioning"]),
-            "next_question": "Now let's examine precedent transactions. 🚨 IMPORTANT: Focus ONLY on private market M&A transactions where one company acquired another company (NOT public market transactions, IPOs, or funding rounds like Series A/B/C/etc.). I need recent corporate acquisitions in your industry with: target company name, acquiring company name (must be a specific corporation/entity, NOT 'public market' or 'series K'), transaction date, enterprise value, target revenue, and valuation multiples. Exclude any transactions that are public offerings or venture funding rounds."
+            "next_question": "Now let's examine precedent transactions. Focus ONLY on private market M&A transactions where one company acquired another company. I need recent corporate acquisitions in your industry."
         },
         # TOPIC 7: Precedent Transactions
         "precedent_transactions": {
-            "keywords": ["precedent", "transactions", "m&a", "acquisitions", "deals", "transaction multiples"],
+            "position": 7,
+            "interview_question": "Now let's examine precedent transactions. Focus ONLY on private market M&A transactions where one company acquired another company. I need recent corporate acquisitions in your industry with target company, acquirer, transaction date, enterprise value, and multiples.",
+            "topic_keywords": ["precedent", "transactions", "m&a", "acquisitions"],
+            "substantial_keywords": ["deals", "transaction multiples", "enterprise value", "target", "acquirer", "multiple"],
             "covered": False,
+            "asked_recently": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip precedent", "skip transactions"]),
-            "next_question": "What valuation methodologies would be most appropriate for your business? As your investment banker, I recommend we analyze multiple approaches: **DCF (Discounted Cash Flow)** with detailed assumptions, **Trading Multiples** (EV/Revenue, EV/EBITDA), and **Precedent Transactions** analysis. Please specify which methodologies you prefer, or say 'research this' and I'll analyze comparable companies and recent M&A transactions with proper references. I need your expected valuation range, key assumptions (discount rate, growth rates, margins), and rationale with sources."
+            "next_question": "What valuation methodologies would be most appropriate for your business? I recommend DCF, Trading Multiples, and Precedent Transactions analysis."
         },
         # TOPIC 8: Valuation Overview
         "valuation_overview": {
-            "keywords": ["valuation", "multiple", "methodology", "worth", "assumptions", "enterprise value", "dcf", "comparable"],
+            "position": 8,
+            "interview_question": "What valuation methodologies would be most appropriate for your business? I recommend we analyze DCF, Trading Multiples, and Precedent Transactions analysis. What's your expected valuation range and key assumptions?",
+            "topic_keywords": ["valuation", "multiple", "methodology", "worth"],
+            "substantial_keywords": ["assumptions", "enterprise value", "dcf", "comparable", "ev/revenue", "range"],
             "covered": False,
+            "asked_recently": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip valuation", "skip multiple"]),
-            "next_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. 🚨 CRITICAL: As your investment banker, I'll provide REGIONALLY RELEVANT companies with proper market research and verifiable data. Focus on companies from your region/country AND major players with operations in your market. All suggestions will include sources and references. I need 4-5 strategic buyers with company name, strategic rationale (3-30 words), key synergies, fit assessment, financial capacity analysis vs your valuation, and proper references [1][2][3] for all data provided."
+            "next_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. I need 4-5 strategic buyers with strategic rationale, synergies, and fit assessment."
         },
         # TOPIC 9: Strategic Buyers  
         "strategic_buyers": {
-            "keywords": ["strategic buyers", "strategic buyer", "strategic rationale", "corporate buyer", "industry player", "strategic acquisition", "strategic synergies", "strategic fit", "buyer name", "description", "fit assessment", "financial capacity"],
+            "position": 9,
+            "interview_question": "Now let's identify potential strategic buyers—companies that might acquire you for strategic reasons. I need 4-5 strategic buyers with company name, strategic rationale, key synergies, and fit assessment.",
+            "topic_keywords": ["strategic buyers", "strategic buyer", "strategic rationale", "corporate buyer"],
+            "substantial_keywords": ["industry player", "strategic acquisition", "strategic synergies", "strategic fit", "synergies", "acquirer"],
             "covered": False,
+            "asked_recently": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip strategic", "skip buyer"]),
-            "next_question": "Now let's identify financial buyers—private equity firms, VCs, and other financial investors. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT funds based on YOUR company's location and market. Consider local/regional funds, sovereign wealth funds, and international funds with strong presence in your market. Tailor suggestions to your geographic context rather than generic global lists. I need 4-5 financial buyers with fund name, investment rationale (3-30 words), key synergies, fit assessment, and financial capacity vs your valuation."
+            "next_question": "Now let's identify financial buyers—private equity firms, VCs, and other financial investors. I need 4-5 financial buyers with fund name, investment rationale, and fit assessment."
         },
         # TOPIC 10: Financial Buyers
         "financial_buyers": {
-            "keywords": ["financial buyers", "financial buyer", "private equity", "pe fund", "vc fund", "venture capital", "financial investor", "investment fund", "financial rationale", "financial synergies"],
+            "position": 10,
+            "interview_question": "Now let's identify financial buyers—private equity firms, VCs, and other financial investors. I need 4-5 financial buyers with fund name, investment rationale, key synergies, and fit assessment.",
+            "topic_keywords": ["financial buyers", "financial buyer", "private equity", "pe fund"],
+            "substantial_keywords": ["vc fund", "venture capital", "financial investor", "investment fund", "financial rationale"],
             "covered": False,
+            "asked_recently": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip financial", "skip pe"]),
-            "next_question": "Let's identify potential global conglomerates and strategic acquirers. 🚨 CRITICAL: Focus on REGIONALLY RELEVANT conglomerates based on YOUR company's location and industry. Consider major conglomerates from your region/country AND international conglomerates with significant operations in your market. Prioritize companies that understand your local market dynamics and regulatory environment. I need at least 4-5 regionally relevant conglomerates with strong market knowledge in your geography."
+            "next_question": "Let's identify potential global conglomerates and strategic acquirers. I need at least 4-5 regionally relevant conglomerates with strong market knowledge in your geography."
         },
         # TOPIC 11: SEA Conglomerates
         "sea_conglomerates": {
-            "keywords": ["conglomerate", "global conglomerate", "multinational conglomerate", "international conglomerate", "holding company", "diversified corporation", "multinational corporation", "global corporation"],
+            "position": 11,
+            "interview_question": "Let's identify potential global conglomerates and strategic acquirers. I need at least 4-5 regionally relevant conglomerates with strong market knowledge in your geography.",
+            "topic_keywords": ["conglomerate", "global conglomerate", "multinational conglomerate", "international conglomerate"],
+            "substantial_keywords": ["holding company", "diversified corporation", "multinational corporation", "global corporation"],
             "covered": False,
+            "asked_recently": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip conglomerate", "skip global"]),
-            "next_question": "Let's discuss margin and cost data. Can you provide your EBITDA margins for the last 2-3 years, key cost management initiatives, and main risk mitigation strategies for cost control?"
+            "next_question": "Let's discuss margin and cost data. Can you provide your EBITDA margins for the last 2-3 years, key cost management initiatives, and main risk mitigation strategies?"
         },
         # TOPIC 12: Margin/Cost Resilience
         "margin_cost_resilience": {
-            "keywords": ["margin", "cost", "resilience", "stability", "profitability", "efficiency", "cost management"],
+            "position": 12,
+            "interview_question": "Let's discuss margin and cost data. Can you provide your EBITDA margins for the last 2-3 years, key cost management initiatives, and main risk mitigation strategies for cost control?",
+            "topic_keywords": ["margin", "cost", "resilience", "stability"],
+            "substantial_keywords": ["profitability", "efficiency", "cost management", "ebitda", "mitigation"],
             "covered": False,
+            "asked_recently": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip margin", "skip cost"]),
-            "next_question": "Now let's discuss investor considerations. What are the key RISKS and OPPORTUNITIES investors should know about your business? What concerns might they have and how do you mitigate these risks? Include regulatory, competitive, operational, and market risks."
+            "next_question": "Now let's discuss investor considerations. What are the key RISKS and OPPORTUNITIES investors should know about your business?"
         },
         # TOPIC 13: Investor Considerations
         "investor_considerations": {
-            "keywords": ["risk", "opportunity", "investor", "considerations", "challenges", "mitigation", "concerns"],
+            "position": 13,
+            "interview_question": "Now let's discuss investor considerations. What are the key RISKS and OPPORTUNITIES investors should know about your business? What concerns might they have and how do you mitigate these risks?",
+            "topic_keywords": ["risk", "opportunity", "investor", "considerations"],
+            "substantial_keywords": ["challenges", "mitigation", "concerns", "regulatory", "competitive", "operational"],
             "covered": False,
+            "asked_recently": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip investor", "skip risk"]),
-            "next_question": "Finally, what would the investment/acquisition process look like? I need: diligence topics investors would focus on, key synergy opportunities, main risk factors and mitigation strategies, and expected timeline for the transaction process."
+            "next_question": "Finally, what would the investment/acquisition process look like? I need diligence topics, synergy opportunities, risk factors and expected timeline."
         },
         # TOPIC 14: Investor Process Overview
         "investor_process_overview": {
-            "keywords": ["process", "diligence", "due diligence", "timeline", "synergy", "risk factors", "transaction process"],
+            "position": 14,
+            "interview_question": "Finally, what would the investment/acquisition process look like? I need diligence topics investors would focus on, key synergy opportunities, main risk factors and mitigation strategies, and expected timeline for the transaction process.",
+            "topic_keywords": ["process", "diligence", "due diligence", "timeline"],
+            "substantial_keywords": ["synergy", "risk factors", "transaction process", "mitigation", "weeks", "months"],
             "covered": False,
+            "asked_recently": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip process", "skip diligence"]),
             "next_question": "Perfect! I now have all the information needed to create your comprehensive pitch deck. Let me generate the complete Content IR and Render Plan JSON files."
         }
     }
     
-    # Check which topics have been covered or skipped
+    # STEP 4: Check for recently asked questions to prevent repetition
+    for topic_name, topic_info in topics_checklist.items():
+        question = topic_info["interview_question"].lower()
+        # Check if this exact question was asked in recent conversation
+        for recent_q in recent_questions[-3:]:  # Check last 3 AI questions
+            # Extract key phrases from the question to match
+            question_key_phrases = [
+                "let's discuss", "now let's", "can you provide", "tell me about",
+                "what are your", "how is your", "i need information"
+            ]
+            
+            topic_specific_phrases = topic_info["topic_keywords"][:2]  # First 2 topic keywords
+            
+            # If recent question contains both question pattern AND topic keywords
+            has_question_pattern = any(phrase in recent_q for phrase in question_key_phrases)
+            has_topic_content = any(keyword in recent_q for keyword in topic_specific_phrases)
+            
+            if has_question_pattern and has_topic_content:
+                topic_info["asked_recently"] = True
+                print(f"🚨 REPETITION PREVENTION: {topic_name} was asked recently: {recent_q[:100]}")
+                break
+    
+    # STEP 5: Simple, reliable topic coverage detection
     covered_count = 0
     skipped_count = 0
     for topic_name, topic_info in topics_checklist.items():
         if topic_info["skipped"]:
             skipped_count += 1
         else:
-            # Enhanced coverage detection - include AI research responses when user requests research
+            # SIMPLIFIED detection: require substantial content about the topic
             is_covered = False
             
-            # Count how many keywords are found
-            found_keywords = [keyword for keyword in topic_info["keywords"] if keyword in conversation_text]
+            # Count both topic and substantial keywords
+            topic_keywords_found = [kw for kw in topic_info["topic_keywords"] if kw in conversation_text]
+            substantial_keywords_found = [kw for kw in topic_info["substantial_keywords"] if kw in conversation_text]
             
-            # Check for AI research responses (when user asks AI to research)
-            research_indicators = [
-                "research this yourself", "research yourself", "based on current market data",
-                "based on research", "according to", "sources:", "references:", "[1]", "[2]", "[3]",
-                "here are", "based on the latest", "current market research", "industry analysis"
-            ]
+            # SIMPLE COVERAGE LOGIC: Need topic keywords + substantial keywords 
+            basic_coverage = len(topic_keywords_found) >= 2 and len(substantial_keywords_found) >= 2
             
-            has_research_response = any(indicator in conversation_text for indicator in research_indicators)
+            # OR: Extensive discussion detected (many topic keywords + some substantial)
+            extensive_discussion = len(topic_keywords_found) >= 3 and len(substantial_keywords_found) >= 1
             
-            # Enhanced detection to prevent repetition
-            # Check if the topic has been explicitly asked about
-            topic_asked_indicators = [
-                f"let's discuss {topic_name}", f"next topic: {topic_name}", 
-                f"now let's {topic_name}", f"tell me about {topic_name}",
-                f"provide information about {topic_name}", f"describe your {topic_name}"
-            ]
+            # OR: Research response with topic keywords
+            research_indicators = ["based on", "according to", "here are", "research shows", "sources", "[1]", "[2]"]
+            has_research = any(indicator in conversation_text for indicator in research_indicators)
+            research_coverage = has_research and len(topic_keywords_found) >= 2
             
-            has_been_asked = any(indicator in conversation_text for indicator in topic_asked_indicators)
+            # Mark as covered if any condition met
+            is_covered = basic_coverage or extensive_discussion or research_coverage
             
-            # Require multiple keywords OR substantial content OR AI research response OR already asked
-            if len(found_keywords) >= 3 or has_been_asked:  # Multiple keywords found OR already asked
-                is_covered = True
-            elif len(found_keywords) >= 2:
-                # Check if there's substantial content OR AI research response
-                topic_specific_content = False
-                for keyword in found_keywords:
-                    # Find instances of the keyword and check surrounding context
-                    keyword_positions = []
-                    start_pos = 0
-                    while True:
-                        pos = conversation_text.find(keyword, start_pos)
-                        if pos == -1:
-                            break
-                        keyword_positions.append(pos)
-                        start_pos = pos + 1
-                    
-                    # Check if any keyword instance has substantial surrounding content
-                    for pos in keyword_positions:
-                        # Extract 200 chars around the keyword
-                        context_start = max(0, pos - 100)
-                        context_end = min(len(conversation_text), pos + 100)
-                        context = conversation_text[context_start:context_end]
-                        
-                        # Look for indicators of substantial content or AI research
-                        content_indicators = [
-                            "million", "$", "billion", "revenue", "founded", "established", 
-                            "years", "experience", "ceo", "cfo", "headquarters", "operates",
-                            "customers", "users", "employees", "growth rate", "margin",
-                            "ebitda", "percent", "%", "strategy", "partnership", "subsidiary"
-                        ]
-                        
-                        # Also check for AI research indicators in context
-                        ai_research_indicators = [
-                            "according to", "based on", "research shows", "data indicates",
-                            "market analysis", "industry reports", "current trends", "sources",
-                            "references", "[1]", "[2]", "leading", "global", "methodology"
-                        ]
-                        
-                        content_score = len([indicator for indicator in content_indicators if indicator in context])
-                        research_score = len([indicator for indicator in ai_research_indicators if indicator in context])
-                        
-                        # Consider covered if substantial content OR AI research response
-                        if content_score >= 2 or (research_score >= 2 and has_research_response):
-                            topic_specific_content = True
-                            break
-                    
-                    if topic_specific_content:
-                        break
-                
-                if topic_specific_content:
-                    is_covered = True
-            
-            # Special handling for specific topics that need very specific content
-            if topic_name == "business_overview":
-                # Business overview is more lenient - just need company name and basic description
-                business_indicators = ["company", "business", "firm", "corporation", "startup", "organization"]
-                description_indicators = ["provide", "provides", "offer", "offers", "do", "does", "specialize", "focus", "automation", "software", "services", "products"]
-                
-                found_business = [indicator for indicator in business_indicators if indicator in conversation_text]
-                found_description = [indicator for indicator in description_indicators if indicator in conversation_text]
-                
-                # More lenient - just need company mention + any business description
-                basic_overview = len(found_business) >= 1 and len(found_description) >= 1
-                ai_overview_research = has_research_response and len(found_business) >= 1
-                
-                is_covered = basic_overview or ai_overview_research
-                
-            elif topic_name == "management_team":
-                # Require actual executive titles and names/backgrounds - stricter validation
-                management_indicators = ["ceo", "cfo", "cto", "founder", "president", "director", "executive", "years of experience", "previously", "background in", "chief executive", "chief financial", "chief technology"]
-                found_mgmt = [indicator for indicator in management_indicators if indicator in conversation_text]
-                
-                # Require more substantial management content - names, titles, backgrounds
-                detailed_mgmt = len(found_mgmt) >= 3 and ("years" in conversation_text or "experience" in conversation_text or "background" in conversation_text)
-                ai_mgmt_research = (has_research_response and len(found_mgmt) >= 2 and 
-                                   ("chief" in conversation_text or "executive" in conversation_text) and
-                                   ("years" in conversation_text or "experience" in conversation_text))
-                
-                is_covered = detailed_mgmt or ai_mgmt_research
-            
-            elif topic_name == "historical_financial_performance":
-                # Require actual numbers, years, and growth metrics - stricter validation
-                financial_indicators = ["revenue", "ebitda", "profit", "million", "billion", "$", "2020", "2021", "2022", "2023", "2024", "2025", "growth", "%", "margin"]
-                found_financial = [indicator for indicator in financial_indicators if indicator in conversation_text]
-                years_found = [year for year in ["2020", "2021", "2022", "2023", "2024", "2025"] if year in conversation_text]
-                
-                # Require substantial financial data with multiple years
-                detailed_financials = len(found_financial) >= 4 and len(years_found) >= 2 and ("$" in conversation_text or "million" in conversation_text)
-                ai_financial_research = (has_research_response and len(found_financial) >= 3 and len(years_found) >= 2 and 
-                                       ("$" in conversation_text or "million" in conversation_text))
-                
-                is_covered = detailed_financials or ai_financial_research
-            
-            elif topic_name == "investor_considerations":
-                # Require actual risk and opportunity discussion
-                risk_indicators = ["risk", "opportunity", "challenges", "concerns", "mitigation", "regulatory", "competitive", "operational", "market risk"]
-                found_risks = [indicator for indicator in risk_indicators if indicator in conversation_text]
-                
-                # Require substantial risk/opportunity content
-                detailed_risks = len(found_risks) >= 3 and ("risk" in conversation_text and "opportunity" in conversation_text)
-                ai_risk_research = has_research_response and len(found_risks) >= 2 and ("risk" in conversation_text or "challenges" in conversation_text)
-                
-                is_covered = detailed_risks or ai_risk_research
-            
-            elif topic_name == "product_service_footprint":
-                # Require actual product/service descriptions and geographic coverage
-                product_indicators = ["products", "services", "offerings", "footprint", "coverage", "operations", "geographic", "branches", "countries", "regions"]
-                found_products = [indicator for indicator in product_indicators if indicator in conversation_text]
-                
-                # Require substantial product/geographic content
-                detailed_products = len(found_products) >= 4 and ("countries" in conversation_text or "regions" in conversation_text)
-                ai_product_research = has_research_response and len(found_products) >= 3 and "coverage" in conversation_text
-                
-                is_covered = detailed_products or ai_product_research
-            
-            elif topic_name == "precedent_transactions":
-                # Require actual transaction details and multiples
-                transaction_indicators = ["transaction", "acquisition", "deal", "multiple", "revenue", "enterprise value", "target", "acquirer", "m&a"]
-                found_transactions = [indicator for indicator in transaction_indicators if indicator in conversation_text]
-                
-                # Must have specific transaction data
-                detailed_transactions = len(found_transactions) >= 5 and ("multiple" in conversation_text and "enterprise value" in conversation_text)
-                ai_transaction_research = has_research_response and len(found_transactions) >= 3 and "transaction" in conversation_text
-                
-                is_covered = detailed_transactions or ai_transaction_research
-            
-            elif topic_name == "margin_cost_resilience":
-                # Require cost management and margin discussion
-                margin_indicators = ["margin", "cost", "resilience", "efficiency", "management", "operational", "ebitda", "stability"]
-                found_margins = [indicator for indicator in margin_indicators if indicator in conversation_text]
-                
-                # Must have substantial margin/cost content
-                detailed_margins = len(found_margins) >= 4 and ("cost management" in conversation_text or "efficiency" in conversation_text)
-                ai_margin_research = has_research_response and len(found_margins) >= 3 and "margin" in conversation_text
-                
-                is_covered = detailed_margins or ai_margin_research
-            
-            elif topic_name == "sea_conglomerates":
-                # SPECIFIC detection for global conglomerates - avoid confusion with strategic/financial buyers
-                conglomerate_specific_indicators = [
-                    "conglomerate", "global conglomerate", "multinational conglomerate", 
-                    "international conglomerate", "holding company", "diversified corporation",
-                    "multinational corporation", "global corporation"
-                ]
-                geographic_indicators = ["global", "international", "multinational", "worldwide", "regions", "countries"]
-                
-                # Check for conglomerate-specific content - must be explicitly about conglomerates
-                found_conglomerate_specific = [indicator for indicator in conglomerate_specific_indicators if indicator in conversation_text]
-                found_geographic = [indicator for indicator in geographic_indicators if indicator in conversation_text]
-                
-                # Must have explicit conglomerate discussion - not just "strategic acquirer"
-                has_conglomerate_context = len(found_conglomerate_specific) >= 1 and len(found_geographic) >= 1
-                has_research_response = "research" in conversation_text or "here" in conversation_text or "based on" in conversation_text
-                
-                # Require explicit conglomerate terminology to avoid strategic buyer confusion
-                detailed_conglomerates = has_conglomerate_context and (
-                    "conglomerate" in conversation_text or "multinational corporation" in conversation_text or
-                    "holding company" in conversation_text or "global corporation" in conversation_text
-                )
-                ai_conglomerate_research = has_research_response and has_conglomerate_context and "conglomerate" in conversation_text
-                
-                is_covered = detailed_conglomerates or ai_conglomerate_research
-            
-            elif topic_name == "investor_process_overview":
-                # Require process, timeline, and due diligence discussion
-                process_indicators = ["process", "diligence", "timeline", "due diligence", "synerg", "risk factors", "mitigation", "weeks"]
-                found_process = [indicator for indicator in process_indicators if indicator in conversation_text]
-                
-                # Must have comprehensive process discussion
-                detailed_process = len(found_process) >= 4 and ("diligence" in conversation_text and "timeline" in conversation_text)
-                ai_process_research = has_research_response and len(found_process) >= 3 and "process" in conversation_text
-                
-                is_covered = detailed_process or ai_process_research
-            
-            elif topic_name == "strategic_buyers":
-                # SPECIFIC detection for strategic buyers - avoid confusion with sea_conglomerates
-                strategic_specific_indicators = [
-                    "strategic buyer", "strategic rationale", "strategic synergies", 
-                    "corporate buyer", "industry player", "strategic acquisition",
-                    "strategic fit", "strategic acquirer", "synergies"
-                ]
-                general_buyer_indicators = ["acquisition", "acquirer", "investment", "fit", "capacity"]
-                
-                # Check for strategic-specific content
-                found_strategic_specific = [indicator for indicator in strategic_specific_indicators if indicator in conversation_text]
-                found_general_buyers = [indicator for indicator in general_buyer_indicators if indicator in conversation_text]
-                
-                # Must have strategic-specific indicators to avoid conglomerate confusion
-                has_strategic_context = len(found_strategic_specific) >= 1 and len(found_general_buyers) >= 2
-                has_research_response = "research" in conversation_text or "here" in conversation_text or "based on" in conversation_text
-                
-                # More stringent requirements - must explicitly mention strategic buyer context
-                detailed_strategic_content = has_strategic_context and (
-                    "strategic buyer" in conversation_text or "strategic rationale" in conversation_text or 
-                    "strategic synergies" in conversation_text or "corporate buyer" in conversation_text
-                )
-                ai_strategic_research = has_research_response and has_strategic_context and "strategic" in conversation_text
-                
-                is_covered = detailed_strategic_content or ai_strategic_research
-            
-            elif topic_name == "financial_buyers":
-                # SPECIFIC detection for financial buyers - avoid confusion with sea_conglomerates  
-                financial_specific_indicators = [
-                    "financial buyer", "private equity", "pe fund", "vc fund", 
-                    "venture capital", "financial investor", "investment fund", 
-                    "financial rationale", "financial synergies"
-                ]
-                general_buyer_indicators = ["fund", "capital", "equity", "investment", "fit", "capacity"]
-                
-                # Check for financial-specific content
-                found_financial_specific = [indicator for indicator in financial_specific_indicators if indicator in conversation_text]
-                found_general_buyers = [indicator for indicator in general_buyer_indicators if indicator in conversation_text]
-                
-                # Must have financial-specific indicators
-                has_financial_context = len(found_financial_specific) >= 1 and len(found_general_buyers) >= 2
-                has_research_response = "research" in conversation_text or "here" in conversation_text or "based on" in conversation_text
-                
-                # More stringent requirements - must explicitly mention financial buyer context
-                detailed_financial_content = has_financial_context and (
-                    "financial buyer" in conversation_text or "private equity" in conversation_text or 
-                    "financial rationale" in conversation_text or "pe fund" in conversation_text
-                )
-                ai_financial_research = has_research_response and has_financial_context and ("financial" in conversation_text or "private equity" in conversation_text)
-                
-                is_covered = detailed_financial_content or ai_financial_research
+            # Debug logging
+            if len(topic_keywords_found) > 0 or len(substantial_keywords_found) > 0:
+                print(f"[COVERAGE] {topic_name}: topic_kw={len(topic_keywords_found)}, substantial_kw={len(substantial_keywords_found)}, covered={is_covered}")
+
             
             if is_covered:
                 topic_info["covered"] = True
                 covered_count += 1
     
-    # Find next uncovered and unskipped topic
+    # STEP 6: SEQUENTIAL NEXT TOPIC SELECTION WITH CONTEXT AWARENESS
     next_topic = None
     next_question = None
-    for topic_name, topic_info in topics_checklist.items():
-        if not topic_info["covered"] and not topic_info["skipped"]:
-            next_topic = topic_name
-            next_question = topic_info["next_question"]
-            break
     
+    # Sort topics by position to enforce sequential order
+    sorted_topics = sorted(topics_checklist.items(), key=lambda x: x[1]["position"])
+    
+    for topic_name, topic_info in sorted_topics:
+        if not topic_info["covered"] and not topic_info["skipped"]:
+            # CONTEXT AWARENESS: Check if this question was asked recently
+            if topic_info["asked_recently"]:
+                if user_indicated_repetition:
+                    # User complained about repetition - skip this question and move to next
+                    print(f"🚨 SKIPPING {topic_name} due to user repetition complaint")
+                    continue
+                else:
+                    # Recently asked but no complaint - provide follow-up or clarification
+                    next_topic = topic_name
+                    next_question = f"I understand we touched on this briefly. Let me be more specific: {topic_info['interview_question']}"
+                    print(f"🔄 CONTEXT AWARE: Providing clarification for {topic_name}")
+                    break
+            else:
+                # First time asking this question - proceed normally
+                next_topic = topic_name 
+                next_question = topic_info["interview_question"]  # Use the structured interview question
+                print(f"▶️ NEXT TOPIC: {topic_name} (position {topic_info['position']})")
+                break
+    
+    # STEP 7: Calculate completion metrics
     total_applicable_topics = len(topics_checklist) - skipped_count
     completion_percentage = covered_count / total_applicable_topics if total_applicable_topics > 0 else 1.0
     
+    # Enhanced return with context awareness
     return {
         "topics_covered": covered_count,
         "topics_skipped": skipped_count,
@@ -3252,11 +3143,46 @@ def analyze_conversation_progress(messages):
         "completion_percentage": completion_percentage,
         "next_topic": next_topic,
         "next_question": next_question,
-        "is_complete": covered_count >= total_applicable_topics  # All topics must be covered
+        "is_complete": covered_count >= total_applicable_topics,
+        "user_indicated_repetition": user_indicated_repetition,
+        "context_aware": True  # Flag indicating this uses enhanced context awareness
     }
 
+def get_context_aware_response(messages, user_message):
+    """ENHANCED: Generate context-aware responses that prevent repetition"""
+    
+    # Check for user complaints about repetition
+    repetition_complaints = [
+        "you just asked", "already asked", "you asked this", "just discussed", 
+        "we covered this", "repeat", "again", "duplicate", "same question"
+    ]
+    
+    user_complaining_about_repetition = any(complaint in user_message.lower() for complaint in repetition_complaints)
+    
+    if user_complaining_about_repetition:
+        # Acknowledge the repetition and move forward
+        progress = analyze_conversation_progress(messages)
+        if progress["next_question"]:
+            return f"You're absolutely right, I apologize for the repetition. Let me move forward. {progress['next_question']}"
+        else:
+            return "You're right, I apologize for repeating questions. It looks like we have covered all the necessary topics. Let me generate the presentation now."
+    
+    return None  # No special handling needed
+
 def check_interview_completion(messages):
-    """Check if interview has enough information for JSON generation"""
+    """SIMPLIFIED: Check if interview has enough information for JSON generation"""
+    # Use the enhanced analyze_conversation_progress function
+    progress_info = analyze_conversation_progress(messages)
+    
+    # Interview is complete when all applicable topics are covered
+    is_complete = progress_info["is_complete"]
+    covered_count = progress_info["topics_covered"]
+    total_topics = progress_info["applicable_topics"]
+    
+    return is_complete, covered_count, total_topics
+
+def legacy_check_interview_completion(messages):
+    """Legacy function - kept for backward compatibility"""
     conversation_text = " ".join([msg["content"] for msg in messages if msg["role"] != "system"])
     
     required_elements = [
@@ -3287,8 +3213,45 @@ def check_interview_completion(messages):
 
 
 
+# Enhanced context-aware interview integration point
+def get_enhanced_interview_response(messages, user_message, model, api_key, service):
+    """ENHANCED: Get AI response with context awareness and repetition prevention"""
+    
+    # Check for context-aware response first
+    context_response = get_context_aware_response(messages, user_message)
+    if context_response:
+        print("🎯 CONTEXT AWARE: Providing specialized response for user concern")
+        return context_response
+    
+    # Check progress and provide structured next question if needed
+    progress_info = analyze_conversation_progress(messages)
+    
+    # If we have a clear next question and user gave a brief response, use it
+    brief_responses = ["yes", "ok", "good", "correct", "right", "sure", "proceed"]
+    if (user_message.lower().strip() in brief_responses and 
+        progress_info["next_question"] and 
+        not progress_info["is_complete"]):
+        
+        print(f"🔄 AUTO-PROGRESSION: User gave brief confirmation, asking next question")
+        return progress_info["next_question"]
+    
+    # Otherwise, get normal AI response
+    from perfect_json_prompter import get_enhanced_system_prompt
+    
+    # Add context-aware system message
+    enhanced_messages = messages.copy()
+    if enhanced_messages and enhanced_messages[0]["role"] == "system":
+        # Update system prompt with context awareness
+        enhanced_messages[0]["content"] = get_enhanced_system_prompt() + "\n\n🎯 CONTEXT AWARENESS: Avoid asking questions that were recently discussed. Check conversation history before asking new questions."
+    
+    # Use existing LLM call function
+    return call_llm_api(enhanced_messages, model, api_key, service)
+
 # --- BEGIN: Auto-convert buyer_profiles with financials → sea_conglomerates ---
 import os, re as _re
+
+# Context-aware conversation enhancement flag
+USE_ENHANCED_INTERVIEW_FLOW = True
 
 AUTO_USE_SEA_CONGLOMERATES = os.getenv("AUTO_USE_SEA_CONGLOMERATES", "1") not in ("0","false","False","no","No")
 
@@ -4928,14 +4891,26 @@ FAILURE = NOT FOLLOWING THIS EXACT FORMAT"""}]
                         st.session_state.messages.append({"role": "assistant", "content": completion_message})
                         ai_response = completion_message
                     else:
-                        # Get normal AI response
+                        # 🎯 ENHANCED INTERVIEW FLOW: Use context-aware response generation
                         with st.spinner("🤖 Thinking..."):
-                            ai_response = call_llm_api(
-                                st.session_state.messages,
-                                selected_model,
-                                api_key,
-                                api_service
-                            )
+                            if USE_ENHANCED_INTERVIEW_FLOW:
+                                # Use enhanced interview response that prevents repetition
+                                ai_response = get_enhanced_interview_response(
+                                    st.session_state.messages,
+                                    prompt,  # Current user message
+                                    selected_model,
+                                    api_key,
+                                    api_service
+                                )
+                                print("🎯 ENHANCED FLOW: Using context-aware interview response")
+                            else:
+                                # Fallback to normal response
+                                ai_response = call_llm_api(
+                                    st.session_state.messages,
+                                    selected_model,
+                                    api_key,
+                                    api_service
+                                )
                         
                         # Add AI response to history
                         st.session_state.messages.append({"role": "assistant", "content": ai_response})
