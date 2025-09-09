@@ -4772,6 +4772,7 @@ Let's start: **What is your company name and give me a brief overview of what yo
                 col1, col2 = st.columns([3, 1])
                 with col2:
                     if st.button("🚀 Generate JSON Now", type="secondary", help="Generate presentation with available information"):
+                        st.error("🚨 DEBUG: BUTTON CLICKED - Starting generation process...")
                         print(f"🚨 [GENERATE_JSON_NOW] 🚀 BUTTON CLICKED! Starting generation process...")
                         # Force JSON generation with adaptive slide selection
                         from perfect_json_prompter import get_interview_completion_prompt
@@ -4848,6 +4849,7 @@ Start immediately with 'CONTENT IR JSON:' followed by the complete JSON, then 'R
                                 ai_response = "Error: JSON generation timed out or failed. Please try again with a simpler request."
                         
                         # CRITICAL: Apply full validation pipeline to manual generation
+                        st.warning(f"🚨 DEBUG: Starting JSON extraction from response length: {len(ai_response)}")
                         print(f"🚨 [GENERATE_JSON_NOW] Starting JSON extraction from response length: {len(ai_response)}")
                         print(f"🚨 [GENERATE_JSON_NOW] Response preview: {ai_response[:500]}...")
                         
@@ -4856,13 +4858,21 @@ Start immediately with 'CONTENT IR JSON:' followed by the complete JSON, then 'R
                             print(f"🚨 [GENERATE_JSON_NOW] Extraction result - Content IR: {content_ir is not None}, Render Plan: {render_plan is not None}")
                             
                             if content_ir:
+                                st.success(f"🚨 DEBUG: Content IR extracted with {len(content_ir)} keys!")
                                 print(f"🚨 [GENERATE_JSON_NOW] Content IR keys: {list(content_ir.keys())}")
+                            else:
+                                st.error("🚨 DEBUG: Content IR extraction FAILED!")
+                                
                             if render_plan:
+                                st.success(f"🚨 DEBUG: Render Plan extracted with {len(render_plan.get('slides', []))} slides!")
                                 print(f"🚨 [GENERATE_JSON_NOW] Render Plan slides: {len(render_plan.get('slides', []))}")
+                            else:
+                                st.error("🚨 DEBUG: Render Plan extraction FAILED!")
                             
                             if content_ir and render_plan:
                                 print(f"🚨 [GENERATE_JSON_NOW] ✅ Both JSONs extracted successfully! Proceeding with session state storage...")
                                 st.success("✅ Manual JSON generation successful with full validation!")
+                                st.info("🚨 DEBUG: About to set session state variables...")
                                 
                                 # Store validated JSONs in session state
                                 st.session_state['content_ir_json'] = content_ir
@@ -5328,6 +5338,8 @@ FAILURE = NOT FOLLOWING THIS EXACT FORMAT"""}]
                                 print(f"   render_plan_json: {type(st.session_state['render_plan_json'])}")
                                 print(f"   files_ready: {st.session_state['files_ready']}")
                                 print(f"   auto_populated: {st.session_state['auto_populated']}")
+                                
+                                st.success("🚨 DEBUG: Session state variables SET! Check debug section now!")
                                 
                                 # Show validation summary
                                 if validation_results and validation_results.get('overall_valid', False):
