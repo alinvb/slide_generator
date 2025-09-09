@@ -3364,7 +3364,7 @@ def get_enhanced_interview_response(messages, user_message, model, api_key, serv
         
         # Check if user gave brief response or if we should ask the next structured question
         # ENHANCED: More comprehensive brief response detection
-        brief_responses = ["yes", "ok", "good", "correct", "right", "sure", "proceed", "continue", "next", "go ahead", "sounds good", "satisfied", "fine", "perfect", "great", "done"]
+        brief_responses = ["yes", "ok", "okay", "good", "correct", "right", "sure", "proceed", "continue", "next", "go ahead", "sounds good", "satisfied", "fine", "perfect", "great", "done", "yep", "yup", "agreed", "got it", "understood", "thanks", "thank you"]
         user_gave_brief_response = user_message.lower().strip() in brief_responses
         
         # For substantial responses, check if current topic is adequately covered
