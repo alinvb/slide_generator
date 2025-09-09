@@ -20,18 +20,7 @@ from optimized_auto_improvement_integration import (
     auto_improve_if_enabled_optimized,
     get_quick_optimization_tips
 )
-# Fallback to original system if needed
-try:
-    from auto_improvement_integration import (
-        auto_improvement_integrator, 
-        integrate_auto_improvement_with_app, 
-        auto_improve_if_enabled,
-        render_json_validation_status,
-        get_quick_suggestions
-    )
-    FALLBACK_AVAILABLE = True
-except ImportError:
-    FALLBACK_AVAILABLE = False
+# Old auto-improvement fallback removed - using optimized system only
 
 def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
     """
@@ -433,57 +422,7 @@ except Exception:
 st.set_page_config(page_title="AI Deck Builder", page_icon="🤖", layout="wide")
 st.title("🤖 AI Deck Builder – LLM-Powered Pitch Deck Generator")
 
-# JSON CLEANING FUNCTIONS - ALL SAFE STRING OPERATIONS
-def clean_json_string(json_str):
-    """SIMPLE JSON cleaning - minimal processing to avoid parsing errors"""
-    if not json_str:
-        return "{}"
-    
-    print(f"[JSON CLEAN] Input length: {len(json_str)}")
-    
-    # Skip processing if the string is too short to be a meaningful JSON
-    if len(json_str) < 10:
-        print(f"[JSON CLEAN] String too short ({len(json_str)} chars), likely not valid JSON")
-        return "{}"
-    
-    # Only basic cleaning
-    json_str = json_str.strip()
-    
-    # Remove markdown code blocks
-    if json_str.startswith('```json'):
-        json_str = json_str[7:].strip()
-    elif json_str.startswith('```'):
-        json_str = json_str[3:].strip()
-    
-    if json_str.endswith('```'):
-        json_str = json_str[:-3].strip()
-    
-    # Extract JSON content between first { and last }
-    start_idx = json_str.find('{')
-    end_idx = json_str.rfind('}')
-    
-    if start_idx == -1 or end_idx == -1 or start_idx >= end_idx:
-        print(f"[JSON CLEAN] No valid JSON structure found")
-        return "{}"
-    
-    json_str = json_str[start_idx:end_idx+1]
-    
-    # Test if it's already valid
-    try:
-        import json
-        json.loads(json_str)
-        print(f"[JSON CLEAN] JSON is valid as-is")
-        return json_str
-    except json.JSONDecodeError as e:
-        print(f"[JSON CLEAN] JSON parse error: {e}")
-        # Return as-is - let the enhanced error handling deal with it
-        return json_str
-
-def advanced_json_repair(json_str):
-    """DISABLED - Advanced JSON repair causes more problems than it solves"""
-    print(f"[JSON REPAIR] Advanced repair disabled - returning original JSON")
-    # Just return the original - the enhanced parsing will handle errors
-    return json_str
+# JSON CLEANING FUNCTIONS - Removed duplicate, using enhanced version below
 
 def validate_json_char_by_char(json_str, error_pos):
     """DISABLED - Character validation causes parsing errors"""
@@ -3624,36 +3563,8 @@ def extract_and_validate_jsons(response_text):
             'extraction_failed': True
         }
     
-    # PERFECT JSON VALIDATION AND AUTO-REFINEMENT SYSTEM
-    print("\n🚀 APPLYING PERFECT JSON VALIDATION AND AUTO-REFINEMENT...")
-    
-    from json_validator_perfecter import validate_and_perfect_json
-    
-    # Validate and perfect Content IR if extracted
-    if content_ir:
-        print("🎯 PERFECTING CONTENT IR...")
-        try:
-            perfected_content_ir, is_perfect_content_ir = validate_and_perfect_json(content_ir, "content_ir")
-            content_ir = perfected_content_ir
-            if is_perfect_content_ir:
-                print("✅ Content IR is now PERFECT!")
-            else:
-                print("⚠️ Content IR improved but not perfect yet")
-        except Exception as e:
-            print(f"❌ Content IR perfection failed: {str(e)}")
-    
-    # Validate and perfect Render Plan if extracted  
-    if render_plan:
-        print("🎯 PERFECTING RENDER PLAN...")
-        try:
-            perfected_render_plan, is_perfect_render_plan = validate_and_perfect_json(render_plan, "render_plan")
-            render_plan = perfected_render_plan
-            if is_perfect_render_plan:
-                print("✅ Render Plan is now PERFECT!")
-            else:
-                print("⚠️ Render Plan improved but not perfect yet")
-        except Exception as e:
-            print(f"❌ Render Plan perfection failed: {str(e)}")
+    # OPTIMIZED JSON PROCESSING - Using comprehensive_json_fix only
+    print("\n🔧 APPLYING OPTIMIZED JSON PROCESSING...")
     
     # Apply legacy fixes for compatibility
     print("\n🔧 APPLYING LEGACY COMPATIBILITY FIXES...")
@@ -4248,16 +4159,11 @@ with st.sidebar:
     # Use the optimized auto-improvement system for 5-10x faster performance
     try:
         integrate_optimized_auto_improvement()
-        st.success("⚡ Optimized Auto-Improvement loaded (5-10x faster!)")
+        st.success("⚡ Optimized Auto-Improvement System Active")
     except Exception as e:
-        # Fallback to original system if optimized version fails
-        if FALLBACK_AVAILABLE:
-            integrate_auto_improvement_with_app()
-            st.warning("⚠️ Using fallback auto-improvement system")
-        else:
-            st.error(f"❌ Auto-improvement system unavailable: {str(e)}")
-            
-        # Manual improvement controls as final fallback
+        st.error(f"❌ Auto-improvement system unavailable: {str(e)}")
+        
+        # Manual improvement controls as fallback
         st.markdown("---")
         st.markdown("### 🔧 Manual Auto-Improvement")
         
