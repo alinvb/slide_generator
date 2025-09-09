@@ -174,11 +174,22 @@ class TopicBasedSlideGenerator:
                     question_was_asked = True
                     break
             
-            # If question was asked, check if user said 'skip'
-            user_said_skip = any("skip" in response for response in user_responses)
+            # If question was asked, check if user said 'skip' for THIS specific topic
+            # Look for skip requests that happened AFTER the topic was mentioned
+            user_said_skip_for_this_topic = False
+            for i, assistant_msg in enumerate(assistant_messages):
+                if any(pattern in assistant_msg for pattern in question_patterns):
+                    # This topic was mentioned - check user responses after this point
+                    if i < len(user_responses):
+                        subsequent_responses = user_responses[i:]
+                        user_said_skip_for_this_topic = any(
+                            "skip" in response and any(topic_word in response for topic_word in ["this", "topic", "slide"]) 
+                            for response in subsequent_responses[:2]  # Check next 2 user responses only
+                        )
+                    break
             
-            # Topic is covered if question was asked AND user didn't skip
-            is_covered = question_was_asked and not user_said_skip
+            # Topic is covered if question was asked AND user didn't skip THIS specific topic
+            is_covered = question_was_asked and not user_said_skip_for_this_topic
             
             if is_covered:
                 covered_topics.append(topic_name)
@@ -186,7 +197,7 @@ class TopicBasedSlideGenerator:
             else:
                 if not question_was_asked:
                     print(f"❓ TOPIC-BASED: {topic_name} - Question NOT asked")
-                elif user_said_skip:
+                elif user_said_skip_for_this_topic:
                     print(f"⏭️ TOPIC-BASED: {topic_name} - User said SKIP")
         
         print(f"🎯 FINAL RESULT: {len(covered_topics)} topics covered: {covered_topics}")
