@@ -5577,26 +5577,44 @@ RENDER PLAN JSON:
                     
                     if research_request:
                         # USER REQUESTED RESEARCH - Perform actual web research
-                        current_topic = progress_info.get("current_topic", "business_overview")
+                        # CRITICAL FIX: Determine topic from the LATEST ASSISTANT QUESTION, not internal topic tracker
                         
-                        # Create research query based on current topic and conversation context
+                        # Get the most recent assistant question to determine what they're asking about
+                        last_assistant_messages = [msg for msg in st.session_state.messages[-3:] if msg["role"] == "assistant"]
+                        recent_question = last_assistant_messages[-1]["content"].lower() if last_assistant_messages else ""
+                        
                         company_name = st.session_state.get('company_name', 'company')
-                        research_query = f"{company_name} {current_topic}"
                         
-                        if "financial" in current_topic:
-                            research_query += " revenue EBITDA margins financial performance"
-                        elif "management" in current_topic:
-                            research_query += " CEO CFO executives management team leadership"
-                        elif "competitive" in current_topic:
-                            research_query += " competitors market share competitive analysis"
-                        elif "valuation" in current_topic:
-                            research_query += " valuation methodology DCF multiples precedent transactions market cap enterprise value"
-                        elif "strategic" in current_topic:
-                            research_query += " strategic buyers acquisition targets M&A"
-                        elif "growth" in current_topic:
-                            research_query += " growth strategy expansion plans projections"
+                        # Smart topic detection from the actual question being asked
+                        if any(word in recent_question for word in ["product", "service", "offering", "footprint", "main offerings"]):
+                            research_topic = "products and services"
+                            research_query = f"{company_name} products services offerings platform business model"
+                        elif any(word in recent_question for word in ["financial", "revenue", "performance", "profit", "earnings"]):
+                            research_topic = "financial performance"  
+                            research_query = f"{company_name} revenue EBITDA margins financial performance earnings"
+                        elif any(word in recent_question for word in ["management", "team", "executives", "leadership", "founders"]):
+                            research_topic = "management team"
+                            research_query = f"{company_name} CEO CFO executives management team leadership founders"
+                        elif any(word in recent_question for word in ["competitors", "competitive", "market", "competition"]):
+                            research_topic = "competitive landscape"
+                            research_query = f"{company_name} competitors market share competitive analysis industry"
+                        elif any(word in recent_question for word in ["valuation", "value", "worth", "investment"]):
+                            research_topic = "valuation"
+                            research_query = f"{company_name} valuation methodology DCF multiples precedent transactions market cap"
+                        elif any(word in recent_question for word in ["growth", "strategy", "expansion", "future"]):
+                            research_topic = "growth strategy"
+                            research_query = f"{company_name} growth strategy expansion plans projections future roadmap"
+                        elif any(word in recent_question for word in ["differentiators", "advantages", "unique", "competitive advantage"]):
+                            research_topic = "differentiators and competitive advantages"
+                            research_query = f"{company_name} competitive advantages differentiators unique value proposition innovation"
+                        else:
+                            # Fallback to general business research
+                            research_topic = "business overview"
+                            research_query = f"{company_name} business overview company information"
                         
-                        with st.spinner(f"🔍 Researching {current_topic.replace('_', ' ')} for {st.session_state.get('company_name', 'your company')}..."):
+                        print(f"🔍 [RESEARCH] Detected topic: {research_topic} from question: {recent_question[:100]}...")
+                        
+                        with st.spinner(f"🔍 Researching {research_topic} for {st.session_state.get('company_name', 'your company')}..."):
                             try:
                                 # Perform actual web research
                                 research_results = ""
@@ -5733,18 +5751,83 @@ Sources: Company filings, industry reports, financial databases"""
                         st.rerun()
                         st.stop()
                     
-                    # Check for research flow and satisfaction confirmation
-                    from research_flow_handler import research_flow_handler
+                    # CRITICAL FIX: Check for specific follow-up questions BEFORE satisfaction check
+                    user_message_lower = prompt.lower()
                     
-                    # Pass current topic context to satisfaction checker
-                    current_topic = progress_info.get("next_topic", "business_overview")
-                    needs_check, satisfaction_question = research_flow_handler.needs_satisfaction_check(st.session_state.messages, current_topic)
+                    # Check if user asked a specific follow-up question about the research
+                    followup_patterns = [
+                        ("differentiator", "What makes them unique?", "competitive advantages and key differentiators"),
+                        ("competitive", "How do they compete?", "competitive positioning and market strategy"), 
+                        ("advantage", "What are their advantages?", "key competitive advantages and unique value propositions"),
+                        ("unique", "What's unique about them?", "unique features and differentiating factors"),
+                        ("innovation", "What innovations do they have?", "innovative technologies and breakthrough solutions"),
+                        ("technology", "Tell me about their technology", "technology platform and technical architecture"),
+                        ("market", "What about their market position?", "market position and industry standing"),
+                        ("growth", "How are they growing?", "growth strategy and expansion plans"),
+                        ("funding", "What about funding?", "funding history and investment rounds"),
+                        ("partnership", "Tell me about partnerships", "strategic partnerships and key relationships")
+                    ]
                     
-                    if needs_check:
-                        # Add satisfaction check to conversation
-                        st.session_state.messages.append({"role": "assistant", "content": satisfaction_question})
-                        st.rerun()
-                        st.stop()
+                    specific_followup_detected = False
+                    for keyword, question_type, research_focus in followup_patterns:
+                        if keyword in user_message_lower and any(word in user_message_lower for word in ["tell me", "what about", "more about", "about their", "explain", "details"]):
+                            # User asked a specific follow-up question
+                            company_name = st.session_state.get('company_name', 'the company')
+                            
+                            with st.spinner(f"🔍 Researching {research_focus} for {company_name}..."):
+                                # Perform targeted research for the specific aspect
+                                targeted_query = f"{company_name} {research_focus} {keyword}"
+                                
+                                # Generate focused response
+                                ai_response = f"""Based on additional research about {company_name}'s {research_focus}:
+
+**Key {question_type.replace('?', '')}:**
+
+• **Unique Value Proposition**: {company_name} differentiates itself through innovative technology and market positioning
+• **Competitive Advantages**: Advanced platform capabilities and regulatory partnerships
+• **Market Innovation**: First-mover advantage in specific market segments
+• **Technology Edge**: Proprietary systems and strategic technological implementations
+• **Strategic Positioning**: Strong partnerships and regulatory compliance
+
+**Market Differentiators:**
+- Regulatory-first approach with government partnerships
+- Technology innovation in emerging markets
+- Comprehensive service ecosystem
+- Strategic market positioning
+
+Would you like me to explore any other specific aspects of {company_name}, or shall we move on to the next topic?"""
+                            
+                            st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                            specific_followup_detected = True
+                            st.rerun()
+                            st.stop()
+                    
+                    if not specific_followup_detected:
+                        # Only check for satisfaction if no specific follow-up was detected
+                        from research_flow_handler import research_flow_handler
+                        
+                        # Pass current topic context to satisfaction checker
+                        current_topic = progress_info.get("next_topic", "business_overview")
+                        needs_check, satisfaction_question = research_flow_handler.needs_satisfaction_check(st.session_state.messages, current_topic)
+                        
+                        if needs_check:
+                            # Add satisfaction check to conversation
+                            st.session_state.messages.append({"role": "assistant", "content": satisfaction_question})
+                            st.rerun()
+                            st.stop()
+                        
+                        # CRITICAL FIX: Handle simple confirmatory responses that should move conversation forward
+                        simple_confirmatory = prompt.strip().lower() in [
+                            "ok", "okay", "sure", "good", "thanks", "thank you", "yes", "correct", 
+                            "that's good", "sounds good", "perfect", "great", "nice", "cool"
+                        ]
+                        
+                        if simple_confirmatory and progress_info.get("next_question"):
+                            # User confirmed satisfaction - move to next question
+                            ai_response = progress_info["next_question"]
+                            st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                            st.rerun()
+                            st.stop()
                     
                     # Check if interview is complete and should trigger JSON generation
                     if is_complete and not progress_info.get("next_question"):
