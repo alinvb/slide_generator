@@ -492,17 +492,34 @@ def extract_jsons_from_response(response_text):
     print(f"[JSON EXTRACTION] Starting extraction from response of length: {len(response_text)}")
     
     try:
-        # Simple and reliable extraction using exact markers from vector-db branch
-        if "Content IR JSON:" in response_text and "Render Plan JSON:" in response_text:
-            print(f"[JSON EXTRACTION] Found both required markers")
+        # 🚨 PRIORITY 1 FIX: Enhanced extraction supporting both case variations
+        content_ir_markers = ["CONTENT IR JSON:", "Content IR JSON:", "content ir json:", "CONTENT_IR JSON:"]
+        render_plan_markers = ["RENDER PLAN JSON:", "Render Plan JSON:", "render plan json:", "RENDER_PLAN JSON:"]
+        
+        # Find the correct markers (case-insensitive)
+        content_ir_marker = None
+        render_plan_marker = None
+        
+        for marker in content_ir_markers:
+            if marker in response_text:
+                content_ir_marker = marker
+                break
+        
+        for marker in render_plan_markers:
+            if marker in response_text:
+                render_plan_marker = marker
+                break
+        
+        if content_ir_marker and render_plan_marker:
+            print(f"[JSON EXTRACTION] 🎯 Found markers: '{content_ir_marker}' and '{render_plan_marker}'")
             
             # Extract Content IR JSON
-            content_ir_start = response_text.find("Content IR JSON:") + len("Content IR JSON:")
-            content_ir_end = response_text.find("Render Plan JSON:")
+            content_ir_start = response_text.find(content_ir_marker) + len(content_ir_marker)
+            content_ir_end = response_text.find(render_plan_marker)
             content_ir_json_str = response_text[content_ir_start:content_ir_end].strip()
             
-            # Extract Render Plan JSON
-            render_plan_start = response_text.find("Render Plan JSON:") + len("Render Plan JSON:")
+            # Extract Render Plan JSON  
+            render_plan_start = response_text.find(render_plan_marker) + len(render_plan_marker)
             render_plan_json_str = response_text[render_plan_start:].strip()
             
             # Clean JSON strings
@@ -526,9 +543,12 @@ def extract_jsons_from_response(response_text):
                 print(f"[JSON EXTRACTION] Render Plan parse failed: {e}")
                 
         else:
-            print(f"[JSON EXTRACTION] Missing required markers")
-            print(f"Has 'Content IR JSON:': {'Content IR JSON:' in response_text}")
-            print(f"Has 'Render Plan JSON:': {'Render Plan JSON:' in response_text}")
+            print(f"[JSON EXTRACTION] 🚨 PRIORITY 1: Missing required markers")
+            print(f"Content IR marker found: {content_ir_marker}")
+            print(f"Render Plan marker found: {render_plan_marker}")
+            # Show what markers were actually found in the response
+            print(f"Response contains (first 500 chars): {response_text[:500]}...")
+            return None, None
     
     except Exception as e:
         print(f"[JSON EXTRACTION] Extraction failed: {e}")
@@ -4935,29 +4955,58 @@ FAILURE = NOT FOLLOWING THIS EXACT FORMAT"""}]
                                 st.session_state.messages[-1]["content"] = enhanced_response
                                 ai_response = enhanced_response
                     
-                    # Check if this response contains FINAL JSON generation (not interview responses)
-                    # Only attempt JSON extraction when LLM generates complete JSON structures
-                    has_complete_json_keywords = ("content_ir" in ai_response.lower() and "render_plan" in ai_response.lower() and 
-                                                 "entities" in ai_response.lower() and "slides" in ai_response.lower())
-                    has_substantial_json = "{" in ai_response and "}" in ai_response and len(ai_response) > 3000  # Large JSON response
+                    # 🚨 CRITICAL: Enhanced JSON Detection - Fixed to detect both cases and formats
+                    ai_response_lower = ai_response.lower()
                     
-                    # Look for explicit JSON generation completion signals
+                    # Enhanced JSON keyword detection - supports multiple formats
+                    has_content_ir_markers = any(marker in ai_response_lower for marker in [
+                        "content ir json:", "content_ir json:", "content ir:", "content_ir:"
+                    ])
+                    has_render_plan_markers = any(marker in ai_response_lower for marker in [
+                        "render plan json:", "render_plan json:", "render plan:", "render_plan:"
+                    ])
+                    has_json_structure = "entities" in ai_response_lower and "slides" in ai_response_lower
+                    has_substantial_json = "{" in ai_response and "}" in ai_response and len(ai_response) > 1000  # Reduced threshold
+                    
+                    # Enhanced completion signals - includes adaptive generation messages
                     completion_signals = [
                         "here are the complete json files",
-                        "generated json structures",
+                        "generated json structures", 
                         "pitch deck json files",
                         "complete content_ir and render_plan",
                         "json generation is complete",
                         "based on our interview, here are",
-                        "final json files for your pitch deck"
+                        "final json files for your pitch deck",
+                        "adaptive json generation triggered",  # 🚨 CRITICAL: Added this signal
+                        "generated 10 slides based on",         # 🚨 CRITICAL: Added this signal  
+                        "content ir json:",                    # 🚨 CRITICAL: Direct detection
+                        "render plan json:"                    # 🚨 CRITICAL: Direct detection
                     ]
-                    has_completion_signal = any(signal in ai_response.lower() for signal in completion_signals)
+                    has_completion_signal = any(signal in ai_response_lower for signal in completion_signals)
                     
-                    # Only extract JSON when we have clear signals that the LLM generated final JSONs
-                    if (has_complete_json_keywords and has_substantial_json) or has_completion_signal:
+                    # 🚨 PRIORITY 1 FIX: More aggressive JSON detection
+                    has_complete_json_keywords = (has_content_ir_markers and has_render_plan_markers and has_json_structure)
+                    
+                    print(f"🔍 JSON DETECTION DEBUG:")
+                    print(f"   Content IR markers: {has_content_ir_markers}")
+                    print(f"   Render Plan markers: {has_render_plan_markers}") 
+                    print(f"   JSON structure: {has_json_structure}")
+                    print(f"   Substantial JSON: {has_substantial_json}")
+                    print(f"   Completion signal: {has_completion_signal}")
+                    print(f"   Final detection: {(has_complete_json_keywords and has_substantial_json) or has_completion_signal}")
+                    
+                    # 🚨 CRITICAL: Extract JSON when we have clear signals OR direct markers
+                    if (has_complete_json_keywords and has_substantial_json) or has_completion_signal or (has_content_ir_markers and has_render_plan_markers):
                         
-                        # Check if JSONs were generated and extract them with comprehensive validation
-                        content_ir, render_plan, validation_results = extract_and_validate_jsons(ai_response)
+                        print("🚨 PRIORITY 1: JSON DETECTION TRIGGERED - Extracting JSONs...")
+                        
+                        # 🚨 CRITICAL: Enhanced JSON extraction with validation
+                        try:
+                            content_ir, render_plan, validation_results = extract_and_validate_jsons(ai_response)
+                            print(f"🔍 EXTRACTION RESULT: Content IR = {content_ir is not None}, Render Plan = {render_plan is not None}")
+                        except Exception as e:
+                            print(f"❌ EXTRACTION ERROR: {str(e)}")
+                            content_ir, render_plan, validation_results = None, None, None
                         
                         # STRICT VALIDATION: Ensure both JSONs were successfully extracted
                         if content_ir is None or render_plan is None:
@@ -4991,32 +5040,75 @@ FAILURE = NOT FOLLOWING THIS EXACT FORMAT"""}]
                                 st.warning("⚠️ **Action Required**: Please try clicking '🚀 Generate JSON Now' again to get complete JSON generation.")
                                 st.stop()  # Stop processing - do not proceed with partial JSONs
                             
-                            # ONLY proceed if we have BOTH complete JSONs
+                            # 🚨 PRIORITY 1 FIX: AUTOMATIC AUTO-POPULATION (No button required)
                             if content_ir and render_plan:
-                                if st.button("🚀 **Force Auto-Populate JSONs Now**", key="force_populate", type="primary"):
-                                    print(f"[FORCE AUTO-POPULATE] Manual trigger activated...")
-                                    
-                                    # Force the auto-population process
-                                    company_name_extracted = "Unknown_Company"
-                                    if content_ir and 'entities' in content_ir and 'company' in content_ir['entities']:
-                                        company_name_extracted = content_ir['entities']['company'].get('name', 'Unknown_Company')
-                                    
-                                    files_data = create_downloadable_files(content_ir, render_plan, company_name_extracted)
-                                    
-                                    # Force update session state
-                                    st.session_state["generated_content_ir"] = files_data['content_ir_json']
-                                    st.session_state["generated_render_plan"] = files_data['render_plan_json']
-                                    st.session_state["files_ready"] = True
-                                    st.session_state["files_data"] = files_data
-                                    st.session_state["auto_populated"] = True
-                                    
-                                    st.balloons()
-                                    st.success("🚀 **Force Auto-Population Complete!** JSONs populated successfully!")
-                                    st.info("💡 **Switch to JSON Editor tab** to see the populated JSONs!")
-                                    
-                                    # Force page refresh
-                                    st.rerun()
+                                print(f"🚨 PRIORITY 1: AUTO-POPULATION TRIGGERED AUTOMATICALLY")
+                                
+                                # Automatic auto-population process (same logic as line 4649)
+                                company_name_extracted = "Unknown_Company"
+                                if content_ir and 'entities' in content_ir and 'company' in content_ir['entities']:
+                                    company_name_extracted = content_ir['entities']['company'].get('name', 'Unknown_Company')
+                                
+                                # Store validated JSONs in session state first
+                                st.session_state['content_ir_json'] = content_ir
+                                st.session_state['render_plan_json'] = render_plan
+                                st.session_state['validation_results'] = validation_results
+                                
+                                # 🔧 AUTO-IMPROVEMENT INTEGRATION
+                                if st.session_state.get('auto_improve_enabled', False) and st.session_state.get('api_key'):
+                                    with st.spinner("🔧 Auto-improving JSON quality..."):
+                                        try:
+                                            from enhanced_auto_improvement_system import auto_improve_json_with_api_calls
+                                            # Auto-improve the JSONs
+                                            improved_content_ir, improved_render_plan, improvement_report = auto_improve_json_with_api_calls(
+                                                content_ir, render_plan, 
+                                                st.session_state.get('selected_model', 'claude-3-5-sonnet-20241022'),
+                                                st.session_state.get('api_key'),
+                                                st.session_state.get('api_service', 'claude')
+                                            )
+                                            
+                                            if improved_content_ir and improved_render_plan:
+                                                content_ir, render_plan = improved_content_ir, improved_render_plan
+                                                st.success(f"✨ Auto-improvement applied: {improvement_report.get('summary', 'Quality enhanced')}")
+                                            else:
+                                                st.info("📊 Auto-improvement completed with original JSONs")
+                                                
+                                        except Exception as e:
+                                            st.warning(f"⚠️ Auto-improvement failed: {str(e)} - Using original JSONs")
+                                
+                                # Create downloadable files
+                                files_data = create_downloadable_files(content_ir, render_plan, company_name_extracted)
+                                
+                                # Update session state for auto-population
+                                st.session_state["generated_content_ir"] = files_data['content_ir_json']
+                                st.session_state["generated_render_plan"] = files_data['render_plan_json']
+                                st.session_state["content_ir_json"] = content_ir  # Store parsed JSON for validation
+                                st.session_state["render_plan_json"] = render_plan  # Store parsed JSON for validation
+                                st.session_state["files_ready"] = True
+                                st.session_state["files_data"] = files_data
+                                st.session_state["auto_populated"] = True
+                                
+                                # Show validation summary
+                                if validation_results and validation_results.get('overall_valid', False):
+                                    st.success(f"🎯 Validation: {validation_results['summary']['valid_slides']}/{validation_results['summary']['total_slides']} slides validated successfully!")
+                                else:
+                                    st.warning("⚠️ JSONs generated but some validation issues detected (auto-fixes applied)")
+                                
+                                # Show auto-population success
+                                st.balloons()
+                                st.success("🚀 **Auto-Population Complete!** JSONs have been automatically populated!")
+                                st.info("💡 **Switch to JSON Editor tab** to see the populated JSONs and download files!")
+                                
+                                print(f"✅ AUTO-POPULATION SUCCESS: {company_name_extracted}")
+                                
+                                # Add fallback manual button for edge cases
+                                with st.expander("🔧 Manual Re-Population (If Needed)"):
+                                    if st.button("🔄 Re-Populate JSONs", key="manual_repopulate"):
+                                        st.session_state["auto_populated"] = True
+                                        st.success("✅ Manual re-population triggered!")
+                                        st.rerun()
                     else:
+                        print(f"🔍 JSON DETECTION: No JSON markers detected - treating as regular conversation")
                         # Regular conversation - no JSON extraction needed
                         content_ir, render_plan, validation_results = None, None, None
                     
