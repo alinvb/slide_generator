@@ -2950,7 +2950,7 @@ You are a systematic investment banking pitch deck copilot that conducts COMPLET
 
 🚨 PRIMARY ROLE: CONDUCT SYSTEMATIC INTERVIEW FIRST 🚨
 
-DO NOT GENERATE JSON until you have systematically covered ALL 14 topics through detailed interview questions.
+DO NOT AUTOMATICALLY GENERATE JSON. After systematically covering ALL 14 topics, direct the user to click the "Generate JSON Now" button.
 
 🚨 **CRITICAL INTERVIEW PROTOCOL - COMPLETE SYSTEMATIC COVERAGE**:
 
@@ -2966,8 +2966,8 @@ DO NOT GENERATE JSON until you have systematically covered ALL 14 topics through
 🚨 CRITICAL WORKFLOW:
 1. FIRST: Conduct systematic interview through ALL 14 topics
 2. SECOND: Ask follow-up questions for missing information  
-3. THIRD: Only AFTER complete interview, generate JSON files
-4. Use the JSON generation guidelines above ONLY when creating final JSON"""
+3. THIRD: After complete interview, tell user: "Perfect! All the information has been collected. You can now click the 'Generate JSON Now' button to create your presentation files."
+4. NEVER automatically output JSON structures in chat responses"""
         
     except Exception as e:
         print(f"❌ Failed to load perfect system prompt: {str(e)}")
@@ -3162,7 +3162,7 @@ def analyze_conversation_progress(messages):
             "covered": False,
             "asked_recently": False,
             "skipped": "skip" in conversation_text and any(skip_phrase in conversation_text for skip_phrase in ["skip process", "skip diligence"]),
-            "next_question": "Perfect! I now have all the information needed to create your comprehensive pitch deck. Let me generate the complete Content IR and Render Plan JSON files."
+            "next_question": "Perfect! I have collected all the information needed for your comprehensive pitch deck. All 14 essential topics have been covered. You can now click the 'Generate JSON Now' button to create your presentation files."
         }
     }
     
@@ -3288,7 +3288,7 @@ def get_context_aware_response(messages, user_message):
         if progress["next_question"]:
             return f"You're absolutely right, I apologize for the repetition. Let me move forward. {progress['next_question']}"
         else:
-            return "You're right, I apologize for repeating questions. It looks like we have covered all the necessary topics. Let me generate the presentation now."
+            return "You're right, I apologize for repeating questions. It looks like we have covered all the necessary topics. Perfect! All the information has been collected. You can now click the 'Generate JSON Now' button to create your presentation files."
     
     return None  # No special handling needed
 
