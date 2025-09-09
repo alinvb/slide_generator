@@ -109,83 +109,95 @@ class TopicBasedSlideGenerator:
     
     def get_covered_topics_from_progress(self, messages: List[Dict[str, Any]]) -> Tuple[List[str], Dict[str, Any]]:
         """
-        Use a simple approach to determine covered topics from conversation
-        Focus on direct evidence that topics have been discussed
+        SIMPLIFIED: Determine covered topics based on questions asked
+        If a question for a topic was asked and user didn't say 'skip', the topic is covered
         """
-        try:
-            # Import and use existing analyze_conversation_progress function
-            import sys
-            import os
-            sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+        print("🎯 TOPIC-BASED: Using question-based detection (much more reliable)")
+        
+        # Define the question patterns that indicate each topic was asked
+        topic_question_patterns = {
+            "business_overview": [
+                "company name", "brief overview", "what your business does", "what is the company"
+            ],
+            "product_service_footprint": [
+                "product/service footprint", "main offerings", "where do you operate", "geographic"
+            ],
+            "historical_financial_performance": [
+                "financial performance", "revenue", "ebitda", "margins", "key financial metrics"
+            ],
+            "management_team": [
+                "management team", "key executives", "ceo", "cfo", "senior leaders"
+            ],
+            "growth_strategy_projections": [
+                "growth strategy", "expansion plans", "strategic initiatives", "financial projections"
+            ],
+            "competitive_positioning": [
+                "positioned competitively", "key competitors", "competitive advantages", "market positioning"
+            ],
+            "precedent_transactions": [
+                "precedent transactions", "private market m&a", "corporate acquisitions", "recent deals"
+            ],
+            "valuation_overview": [
+                "valuation methodologies", "dcf", "trading multiples", "precedent transactions analysis"
+            ],
+            "strategic_buyers": [
+                "strategic buyers", "afford this acquisition", "strategic assets", "corporate buyers"
+            ],
+            "financial_buyers": [
+                "private equity firms", "pe firms", "financial buyers", "afford your valuation"
+            ],
+            "sea_conglomerates": [
+                "large conglomerates", "geographic region", "conglomerates that operate"
+            ],
+            "margin_cost_resilience": [
+                "margin and cost data", "ebitda margins", "cost management", "risk mitigation"
+            ],
+            "investor_considerations": [
+                "investor considerations", "key risks", "opportunities investors", "risks and opportunities"
+            ],
+            "investor_process_overview": [
+                "investment/acquisition process", "diligence topics", "synergy opportunities", "expected timeline"
+            ]
+        }
+        
+        # Get all assistant messages (questions asked by AI)
+        assistant_messages = [msg["content"].lower() for msg in messages if msg["role"] == "assistant"]
+        user_responses = [msg["content"].lower() for msg in messages if msg["role"] == "user"]
+        
+        covered_topics = []
+        
+        for topic_name, question_patterns in topic_question_patterns.items():
+            # Check if any question pattern appears in assistant messages
+            question_was_asked = False
+            for assistant_msg in assistant_messages:
+                if any(pattern in assistant_msg for pattern in question_patterns):
+                    question_was_asked = True
+                    break
             
-            # Try to import the existing function - if it fails, use fallback
-            try:
-                from app import analyze_conversation_progress
-                progress_info = analyze_conversation_progress(messages)
-                
-                # Extract the covered topics from the progress info
-                covered_topics = []
-                
-                # The analyze_conversation_progress function has different output format
-                # Let's extract covered topics manually
-                conversation_text = " ".join([msg["content"] for msg in messages if msg["role"] != "system"]).lower()
-                
-                # Simple but effective topic detection
-                topics_with_keywords = {
-                    "business_overview": ["company", "business", "overview", "founded", "headquarters", "industry"],
-                    "product_service_footprint": ["products", "services", "offerings", "geographic", "coverage", "operations"],
-                    "historical_financial_performance": ["revenue", "financial", "ebitda", "margin", "growth", "profit", "million"],
-                    "management_team": ["management", "team", "executives", "ceo", "cfo", "founder", "leadership"],
-                    "growth_strategy_projections": ["growth", "strategy", "expansion", "projections", "future", "plans"],
-                    "competitive_positioning": ["competitive", "competitors", "positioning", "advantages", "differentiation"],
-                    "precedent_transactions": ["precedent", "transactions", "m&a", "acquisitions", "deals", "multiple"],
-                    "valuation_overview": ["valuation", "multiple", "methodology", "worth", "enterprise value", "dcf"],
-                    "strategic_buyers": ["strategic buyers", "strategic buyer", "corporate buyer", "strategic rationale"],
-                    "financial_buyers": ["financial buyers", "private equity", "pe fund", "vc fund", "investment fund"],
-                    "sea_conglomerates": ["conglomerate", "global conglomerate", "multinational", "holding company"],
-                    "margin_cost_resilience": ["margin", "cost", "resilience", "profitability", "efficiency"],
-                    "investor_considerations": ["risk", "opportunity", "investor", "considerations", "challenges"],
-                    "investor_process_overview": ["process", "diligence", "timeline", "synergy", "transaction process"]
-                }
-                
-                for topic_name, keywords in topics_with_keywords.items():
-                    # Check if enough keywords are present to indicate topic coverage
-                    keywords_found = sum(1 for keyword in keywords if keyword in conversation_text)
-                    
-                    # ENHANCED: Topic is covered if it has ANY keyword presence + research responses
-                    # Check for research responses indicating topic coverage
-                    research_indicators = ["research", "based on", "according to", "here is", "here are", "analysis shows"]
-                    has_research_response = any(indicator in conversation_text for indicator in research_indicators)
-                    
-                    # More lenient coverage detection
-                    is_covered = (
-                        keywords_found >= 2 or  # Direct keyword match
-                        (keywords_found >= 1 and has_research_response) or  # Research provided for topic
-                        (keywords_found >= 1 and len(conversation_text.split()) > 100)  # Substantial discussion
-                    )
-                    
-                    if is_covered:
-                        covered_topics.append(topic_name)
-                        print(f"✅ TOPIC-BASED: {topic_name} is COVERED ({keywords_found}/{len(keywords)} keywords, research: {has_research_response})")
-                    else:
-                        print(f"❌ TOPIC-BASED: {topic_name} is NOT covered ({keywords_found}/{len(keywords)} keywords, research: {has_research_response})")
-                
-                return covered_topics, {
-                    "covered_topics": covered_topics,
-                    "topics_covered": len(covered_topics),
-                    "total_topics": 14,
-                    "completion_percentage": len(covered_topics) / 14,
-                    "method": "keyword_based"
-                }
-                
-            except ImportError:
-                # Fallback if we can't import the function
-                print("⚠️ Could not import analyze_conversation_progress, using fallback method")
-                return self._fallback_topic_analysis(messages)
-                
-        except Exception as e:
-            print(f"❌ Error analyzing topics: {e}")
-            return self._fallback_topic_analysis(messages)
+            # If question was asked, check if user said 'skip'
+            user_said_skip = any("skip" in response for response in user_responses)
+            
+            # Topic is covered if question was asked AND user didn't skip
+            is_covered = question_was_asked and not user_said_skip
+            
+            if is_covered:
+                covered_topics.append(topic_name)
+                print(f"✅ TOPIC-BASED: {topic_name} - Question asked, not skipped")
+            else:
+                if not question_was_asked:
+                    print(f"❓ TOPIC-BASED: {topic_name} - Question NOT asked")
+                elif user_said_skip:
+                    print(f"⏭️ TOPIC-BASED: {topic_name} - User said SKIP")
+        
+        print(f"🎯 FINAL RESULT: {len(covered_topics)} topics covered: {covered_topics}")
+        
+        return covered_topics, {
+            "covered_topics": covered_topics,
+            "topics_covered": len(covered_topics),
+            "total_topics": 14,
+            "completion_percentage": len(covered_topics) / 14,
+            "method": "question_based"
+        }
     
     def _fallback_topic_analysis(self, messages: List[Dict[str, Any]]) -> Tuple[List[str], Dict[str, Any]]:
         """Fallback topic analysis if main function is unavailable"""

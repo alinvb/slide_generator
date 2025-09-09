@@ -5264,9 +5264,9 @@ Let's start: **What is your company name and give me a brief overview of what yo
 {chr(10).join([f"• {slide}" for slide in slide_list])}
 
 📊 QUALITY GUIDANCE:
-- High quality slides: {analysis_report.get('quality_summary', 'Quality analysis complete')['high_quality_slides']}
-- Medium quality slides: {analysis_report.get('quality_summary', 'Quality analysis complete')['medium_quality_slides']}
-- Estimated content slides: {analysis_report.get('quality_summary', 'Quality analysis complete')['estimated_slides']}
+- High quality slides: {analysis_report.get('quality_summary', {}).get('high_quality_slides', [])}
+- Medium quality slides: {analysis_report.get('quality_summary', {}).get('medium_quality_slides', [])}
+- Estimated content slides: {analysis_report.get('quality_summary', {}).get('estimated_slides', [])}
 
 ⚡ ADAPTIVE INSTRUCTIONS:
 1. Only create content for the slides listed above
