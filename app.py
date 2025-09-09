@@ -4955,11 +4955,58 @@ Let's start: **What is your company name and give me a brief overview of what yo
                             st.rerun()
                             st.stop()
                         
+                        # ENHANCED: Smart topic detection based on actual question content
+                        # Analyze recent assistant question to determine what user is actually asking about
+                        recent_question = ""
+                        if len(st.session_state.messages) >= 2:
+                            for msg in reversed(st.session_state.messages[-3:]):
+                                if msg.get("role") == "assistant":
+                                    recent_question = msg.get("content", "").lower()
+                                    break
+                        
+                        # Smart topic override based on question content
+                        detected_research_topic = None
+                        company_name = st.session_state.get('company_name', 'the company')
+                        
+                        if any(word in recent_question for word in ["product", "service", "offering", "footprint", "main offerings"]):
+                            detected_research_topic = "products and services"
+                        elif any(word in recent_question for word in ["financial", "revenue", "performance", "profit", "earnings"]):
+                            detected_research_topic = "financial performance"
+                        elif any(word in recent_question for word in ["management", "team", "executives", "leadership", "founders"]):
+                            detected_research_topic = "management team"
+                        elif any(word in recent_question for word in ["competitors", "competitive", "market", "competition"]):
+                            detected_research_topic = "competitive landscape"
+                        elif any(word in recent_question for word in ["valuation", "value", "worth", "investment"]):
+                            detected_research_topic = "valuation"
+                        elif any(word in recent_question for word in ["growth", "strategy", "expansion", "future"]):
+                            detected_research_topic = "growth strategy"
+                        
+                        print(f"🎯 [SMART DETECTION] Question: {recent_question[:100]}...")
+                        print(f"🎯 [SMART DETECTION] Detected topic: {detected_research_topic or 'using sequential manager'}")
+                        
                         # Create enhanced messages with context-aware research instruction
                         enhanced_messages = st.session_state.messages.copy()
                         
-                        # Generate research instruction using sequential topic manager
-                        research_instruction = sequential_topic_manager.generate_research_instruction(current_topic_obj, prompt)
+                        # Generate research instruction - use detected topic if available
+                        if detected_research_topic:
+                            # Use smart detected topic for more accurate research
+                            research_instruction = f"""You are conducting comprehensive investment banking research. The user asked about {detected_research_topic} for {company_name} and requested research.
+
+RESEARCH FOCUS: {detected_research_topic.title()}
+
+Provide comprehensive, detailed analysis covering:
+1. Current market position and key metrics
+2. Industry context and competitive landscape  
+3. Strategic implications and opportunities
+4. Data-driven insights with specific examples
+5. Professional investment banking perspective
+
+Format the response professionally with clear sections and actionable insights. Include specific data points and market analysis where relevant."""
+                            print(f"🎯 [SMART RESEARCH] Using detected topic: {detected_research_topic}")
+                        else:
+                            # Fallback to sequential manager
+                            research_instruction = sequential_topic_manager.generate_research_instruction(current_topic_obj, prompt)
+                            print(f"🔄 [FALLBACK] Using sequential manager topic: {current_topic_obj.get('title', 'unknown')}")
 
                         enhanced_messages.append({"role": "system", "content": research_instruction})
                         
