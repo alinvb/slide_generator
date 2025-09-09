@@ -3469,10 +3469,45 @@ def get_enhanced_interview_response(messages, user_message, model, api_key, serv
             user_requested_research = any(phrase in user_message.lower() for phrase in research_request_phrases)
             
             if user_requested_research:
-                print(f"🔍 RESEARCH REQUEST: User requested research, will mark topic as complete after research")
-                # The topic will be marked as complete by the analyze_conversation_progress function
-                # because it now detects research requests. Just proceed with normal flow.
-                return progress_info["next_question"]
+                print(f"🔍 RESEARCH REQUEST: User requested research - performing actual research now")
+                
+                # Determine current topic for research context
+                current_topic = progress_info.get("current_topic", "business_overview")
+                
+                # Create enhanced messages with research instruction
+                enhanced_messages = messages.copy()
+                
+                # Add research instruction to guide the LLM
+                research_instruction = f"""🔍 RESEARCH REQUEST for {current_topic}:
+
+The user has requested research on the current interview topic. You must:
+1. Provide comprehensive research with relevant data, facts, and sources
+2. Include specific details, statistics, and insights about the topic  
+3. End with: "Are you satisfied with this research, or would you like me to investigate any specific areas further?"
+
+Topic: {current_topic}
+User request: {user_message}
+
+Provide detailed research now, then ask for satisfaction confirmation before proceeding."""
+
+                enhanced_messages.append({"role": "system", "content": research_instruction})
+                
+                # Actually perform the research by calling the LLM
+                try:
+                    research_response = call_llm_api(enhanced_messages, model, api_key, service)
+                    
+                    # Ensure satisfaction check is included
+                    from research_flow_handler import research_flow_handler
+                    if not any(phrase in research_response.lower() for phrase in ["satisfied", "investigate", "research further"]):
+                        satisfaction_question = research_flow_handler._generate_contextual_satisfaction_question(research_response, current_topic)
+                        research_response += f"\n\n{satisfaction_question}"
+                    
+                    print(f"🔍 RESEARCH COMPLETED: Provided research for {current_topic} with satisfaction check")
+                    return research_response
+                    
+                except Exception as e:
+                    print(f"❌ RESEARCH FAILED: {e}")
+                    return f"I'll research {current_topic} for you. Let me gather comprehensive information... Are you satisfied with this approach, or would you like me to focus on specific aspects?"
             
             # User provided substantial response - check if we should continue current topic or move to next
             # FIXED: More strict substantial response detection to prevent premature advancement
@@ -5302,25 +5337,8 @@ FAILURE = NOT FOLLOWING THIS EXACT FORMAT"""}]
                         # Add AI response to history
                         st.session_state.messages.append({"role": "assistant", "content": ai_response})
                         
-                        # Only check for satisfaction if user explicitly requested research
-                        from research_flow_handler import research_flow_handler
-                        
-                        # Check if user explicitly requested research in their last message
-                        user_requested_research = False
-                        if len(st.session_state.messages) >= 2:
-                            last_user_msg = next((msg for msg in reversed(st.session_state.messages[:-1]) if msg["role"] == "user"), {})
-                            user_requested_research = research_flow_handler.detect_research_request(last_user_msg.get("content", ""))
-                        
-                        # Only add satisfaction check if user requested research AND AI provided research
-                        if user_requested_research:
-                            needs_check, satisfaction_question = research_flow_handler.needs_satisfaction_check(st.session_state.messages)
-                            
-                            if needs_check:
-                                # Add satisfaction check to conversation
-                                enhanced_response = ai_response + "\n\n" + satisfaction_question
-                                # Update the last message with the satisfaction question
-                                st.session_state.messages[-1]["content"] = enhanced_response
-                                ai_response = enhanced_response
+                        # Research flow satisfaction check is now handled within get_enhanced_interview_response
+                        # No additional satisfaction check needed here since it's already included in the research response
                     
                     # 🚨 CRITICAL: Enhanced JSON Detection - Fixed to detect both cases and formats
                     ai_response_lower = ai_response.lower()
