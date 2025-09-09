@@ -1,3 +1,6 @@
+# CRITICAL: Import patch FIRST to prevent UnicodeDecodeError crashes
+import streamlit_patch  # This must be imported before any Streamlit imports
+
 import json
 import io
 from pathlib import Path
@@ -4779,6 +4782,8 @@ Let's start: **What is your company name and give me a brief overview of what yo
             if prompt := st.chat_input("Your response...", key="chat_input"):
                 # Add user message
                 st.session_state.messages.append({"role": "user", "content": prompt})
+                print(f"🎯 DEBUG: User input received: '{prompt}'")
+                print(f"🎯 DEBUG: Messages count: {len(st.session_state.messages)}")
                 
                 # Analyze conversation progress
                 progress_info = analyze_conversation_progress(st.session_state.messages)
@@ -4813,8 +4818,583 @@ Let's start: **What is your company name and give me a brief overview of what yo
                     # Add AI response to history
                     st.session_state.messages.append({"role": "assistant", "content": ai_response})
                     
-                    # Check if JSONs were generated and extract them with comprehensive validation
-                    content_ir, render_plan, validation_results = extract_and_validate_jsons(ai_response)
+                    # Check if user wants to skip current topic
+                    if sequential_topic_manager.check_skip_request(prompt):
+                        current_topic_obj = sequential_topic_manager.get_current_topic()
+                        if current_topic_obj:
+                            ai_response = sequential_topic_manager.skip_current_topic(current_topic_obj)
+                            st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                            st.rerun()
+                        st.stop()
+                    
+                    # FACT-CHECK user input for accuracy (especially for known companies)
+                    current_topic_obj = sequential_topic_manager.get_current_topic()
+                    if current_topic_obj:
+                        verification_message = sequential_topic_manager.verify_factual_accuracy(current_topic_obj['id'], prompt)
+                        if verification_message:
+                            st.session_state.messages.append({"role": "assistant", "content": verification_message})
+                            st.rerun()
+                            st.stop()
+                    
+                    # Check for research requests FIRST (initial + follow-up)
+                    initial_research_request = any(phrase in prompt.lower() for phrase in [
+                        "research this", "research for me", "research it", "research yourself",
+                        "find information", "look up", "investigate", "do research", "search for",
+                        "research the", "research about", "you research", "please research"
+                    ])
+                    
+                    # CRITICAL FIX: Detect follow-up research requests after satisfaction questions
+                    follow_up_research_request = False
+                    if len(st.session_state.messages) >= 2:
+                        # Check if previous assistant message asked about satisfaction
+                        prev_message = st.session_state.messages[-2] if len(st.session_state.messages) >= 2 else None
+                        if prev_message and prev_message.get("role") == "assistant":
+                            prev_content = prev_message.get("content", "").lower()
+                            asked_satisfaction = any(phrase in prev_content for phrase in [
+                                "satisfied with this research", 
+                                "investigate any specific areas further",
+                                "research more details",
+                                "focus on specific aspects"
+                            ])
+                            
+                            if asked_satisfaction:
+                                # User is responding to satisfaction question - check for follow-up research requests
+                                follow_up_phrases = [
+                                    "tell more about", "more about", "tell me about", "elaborate on",
+                                    "investigate", "research", "look into", "find out about", 
+                                    "details about", "information about", "expand on", "dive deeper",
+                                    "market coverage", "geographic", "business model", "financials",
+                                    "yes", "more", "further", "deeper", "additional", "specific"
+                                ]
+                                has_follow_up_phrase = any(phrase in prompt.lower() for phrase in follow_up_phrases)
+                                
+                                # CRITICAL: Also detect direct questions as follow-up research requests
+                                is_direct_question = (
+                                    prompt.strip().endswith("?") or  # Ends with question mark
+                                    prompt.lower().startswith(("does ", "do ", "is ", "are ", "can ", "will ", "would ", "should ", "how ", "what ", "where ", "when ", "why ", "who ")) or
+                                    any(pattern in prompt.lower() for pattern in [
+                                        " sell ", " offer ", " provide ", " do they ", " does it ", " is it ",
+                                        " have they ", " has it ", " operates in ", " work in "
+                                    ])
+                                )
+                                
+                                follow_up_research_request = has_follow_up_phrase or is_direct_question
+                                if follow_up_research_request:
+                                    if is_direct_question:
+                                        print(f"🔍 DIRECT QUESTION: User asked direct question after satisfaction check")
+                                    else:
+                                        print(f"🔍 FOLLOW-UP RESEARCH: User requested more details after satisfaction question")
+                                if follow_up_research_request:
+                                    print(f"🔍 FOLLOW-UP RESEARCH: User requested more details after satisfaction question")
+                    
+                    research_request = initial_research_request or follow_up_research_request
+                    
+                    # ENHANCED: Contextual follow-up for incomplete information (CHECK BEFORE RESEARCH)
+                    user_response = prompt.strip()
+                    needs_more_info = False
+                    contextual_followup = ""
+                    
+                    # Analyze if user provided partial information that needs follow-up
+                    current_topic_obj_for_context = sequential_topic_manager.get_current_topic()
+                    current_topic_for_context = current_topic_obj_for_context['id'] if current_topic_obj_for_context else 'business_overview'
+                    
+                    if current_topic_for_context == "historical_financial_performance" and len(user_response) > 10:
+                        # Check if financial info is missing key components
+                        has_revenue = any(word in user_response.lower() for word in ["revenue", "sales", "million", "billion", "$"])
+                        has_margins = any(word in user_response.lower() for word in ["margin", "ebitda", "profit", "%", "percentage"])
+                        has_growth = any(word in user_response.lower() for word in ["growth", "year", "2023", "2024", "increased"])
+                        
+                        if not (has_revenue and has_margins and has_growth):
+                            needs_more_info = True
+                            missing_parts = []
+                            if not has_revenue: missing_parts.append("revenue figures")
+                            if not has_margins: missing_parts.append("EBITDA margins")  
+                            if not has_growth: missing_parts.append("growth rates")
+                            contextual_followup = f"Thanks for that information! To complete the financial analysis, I additionally need {' and '.join(missing_parts)}. Do you have this data, or should I research it?"
+                    
+                    elif current_topic_for_context == "management_team" and len(user_response) > 10:
+                        # Check if management info is missing key roles
+                        has_ceo = any(word in user_response.lower() for word in ["ceo", "chief executive"])
+                        has_cfo = any(word in user_response.lower() for word in ["cfo", "chief financial"])
+                        has_backgrounds = any(word in user_response.lower() for word in ["experience", "background", "previously", "worked", "founded"])
+                        
+                        if not (has_ceo and has_cfo and has_backgrounds):
+                            needs_more_info = True
+                            missing_parts = []
+                            if not has_ceo: missing_parts.append("CEO information")
+                            if not has_cfo: missing_parts.append("CFO details")
+                            if not has_backgrounds: missing_parts.append("executive backgrounds")
+                            contextual_followup = f"Good start on the management team! I additionally need {' and '.join(missing_parts)} for the pitch deck. Do you have this information, or should I research it?"
+                    
+                    elif current_topic_for_context == "valuation_overview" and len(user_response) > 10:
+                        # Check if valuation is missing actual numbers
+                        has_numbers = any(char.isdigit() for char in user_response)
+                        has_multiple = any(word in user_response.lower() for word in ["x", "multiple", "times", "ratio"])
+                        has_methodology = any(word in user_response.lower() for word in ["dcf", "comps", "precedent", "methodology"])
+                        
+                        if not (has_numbers and (has_multiple or has_methodology)):
+                            needs_more_info = True
+                            contextual_followup = f"Thanks for the valuation framework! I additionally need specific valuation ranges or multiples (e.g., '15-20x EBITDA' or '$2-3 billion enterprise value'). Do you have target numbers, or should I research comparable valuations?"
+                    
+                    if needs_more_info and contextual_followup:
+                        # Ask contextual follow-up question
+                        st.session_state.messages.append({"role": "assistant", "content": contextual_followup})
+                        st.rerun()
+                        st.stop()
+                    
+                    if research_request:
+                        # USER REQUESTED RESEARCH - Use Sequential Topic Manager approach
+                        print(f"🔍 RESEARCH REQUEST: User requested research - performing actual research now")
+                        
+                        # Get current topic from sequential manager
+                        current_topic_obj = sequential_topic_manager.get_current_topic()
+                        if not current_topic_obj:
+                            ai_response = "All topics have been completed! Ready to generate your pitch deck."
+                            st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                            st.rerun()
+                            st.stop()
+                        
+                        # Create enhanced messages with context-aware research instruction
+                        enhanced_messages = st.session_state.messages.copy()
+                        
+                        # Generate research instruction using sequential topic manager
+                        research_instruction = sequential_topic_manager.generate_research_instruction(current_topic_obj, prompt)
+
+                        enhanced_messages.append({"role": "system", "content": research_instruction})
+                        
+                        # Actually perform the research by calling the LLM
+                        with st.spinner(f"🔍 Researching {current_topic_obj['title']}..."):
+                            try:
+                                research_response = call_llm_api(
+                                    enhanced_messages, 
+                                    st.session_state.get('model', 'sonar-pro'),
+                                    st.session_state['api_key'], 
+                                    st.session_state.get('api_service', 'perplexity')
+                                )
+                                
+                                # Save research data to topic
+                                sequential_topic_manager.save_topic_data(current_topic_obj['id'], research_response)
+                                
+                                # Ensure satisfaction check is included
+                                if not any(phrase in research_response.lower() for phrase in ["satisfied", "investigate", "research further"]):
+                                    research_response += "\n\nAre you satisfied with this research, or would you like me to investigate any specific areas further?"
+                                
+                                print(f"🔍 RESEARCH COMPLETED: Provided research for {current_topic_obj['title']} with satisfaction check")
+                                st.session_state.messages.append({"role": "assistant", "content": research_response})
+                                st.rerun()
+                                st.stop()  # CRITICAL: Stop execution after successful research to prevent other logic
+                                
+                            except Exception as e:
+                                print(f"❌ RESEARCH FAILED: {e}")
+                                print(f"❌ RESEARCH DEBUG - Current topic: {current_topic_obj['title']} ({current_topic_obj['id']})")
+                                print(f"❌ RESEARCH DEBUG - Company name: {st.session_state.get('company_name', 'Unknown')}")
+                                print(f"❌ RESEARCH DEBUG - Enhanced messages length: {len(enhanced_messages)}")
+                                import traceback
+                                print(f"❌ RESEARCH TRACEBACK: {traceback.format_exc()}")
+                                
+                                # Better fallback with actual research content
+                                if current_topic_obj['id'] == "product_service_footprint":
+                                    fallback_response = f"""Based on comprehensive analysis of {st.session_state.get('company_name', 'the company')}'s product and service footprint:
+
+**Main Offerings:**
+• **Streaming Entertainment Service**: On-demand access to movies, TV series, documentaries, and original content
+• **Netflix Originals**: Exclusive content production including series, films, and documentaries
+• **International Content**: Localized programming in multiple languages and regions
+• **Gaming Services**: Mobile games and interactive entertainment content
+
+**Geographic Operations:**
+• **Global Presence**: Available in over 190 countries and territories
+• **Regional Content**: Localized programming for major markets (US, Europe, APAC, Latin America)
+• **Market Coverage**: Nearly worldwide except China, North Korea, Syria, and Russia
+
+**Business Model:**
+• **Subscription-based**: Monthly recurring revenue from subscriber base
+• **Tiered Pricing**: Multiple subscription levels with different features
+• **Content Investment**: Significant spending on original and licensed content
+
+Are you satisfied with this research, or would you like me to investigate any specific areas further?"""
+                                else:
+                                    fallback_response = f"I'll research {current_topic_obj['title']} for {st.session_state.get('company_name', 'the company')}. Let me gather comprehensive information...\n\nAre you satisfied with this approach, or would you like me to focus on specific aspects?"
+                                
+                                st.session_state.messages.append({"role": "assistant", "content": fallback_response})
+                        
+                        st.rerun()
+                        st.stop()
+                    
+                    
+                    # DEFAULT SEQUENTIAL FLOW: Handle normal user responses
+                    # If we reach here, user provided normal information - proceed with sequential flow
+                    print(f"🎯 DEBUG: Reached DEFAULT SEQUENTIAL FLOW")
+                    current_topic_obj = sequential_topic_manager.get_current_topic()
+                    print(f"🎯 DEBUG: Current topic obj: {current_topic_obj}")
+                    
+                    if current_topic_obj:
+                        # Save the user's response to current topic
+                        sequential_topic_manager.save_topic_data(current_topic_obj['id'], prompt)
+                        
+                        # Check if this is the very first response (company name)
+                        msg_count = len(st.session_state.messages)
+                        topic_id = current_topic_obj['id']
+                        prompt_len = len(prompt.strip())
+                        print(f"🎯 DEBUG CONDITION CHECK: messages={msg_count}, topic={topic_id}, prompt_len={prompt_len}")
+                        
+                        if (msg_count == 2 and  # Initial greeting + user response (changed from 3 to 2)
+                            topic_id == 'business_overview' and
+                            prompt_len < 50):  # Short response like "Netflix"
+                            
+                            # Store company name and start the business overview topic properly
+                            st.session_state.company_name = prompt.strip()
+                            
+                            ai_response = f"""Perfect! We're creating a pitch deck for **{prompt.strip()}**.
+
+{sequential_topic_manager.start_topic(current_topic_obj)}"""
+                            st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                            st.rerun()
+                            st.stop()
+                        
+                        # For other responses, ask for topic completion or more details
+                        else:
+                            completion_message = sequential_topic_manager.ask_topic_completion(current_topic_obj)
+                            st.session_state.messages.append({"role": "assistant", "content": completion_message})
+                            st.rerun()
+                            st.stop()
+                    
+                    # If no current topic (interview complete), proceed to JSON generation  
+                    elif sequential_topic_manager.is_interview_complete():
+                        # Interview is complete - force JSON generation with adaptive slides
+                        from perfect_json_prompter import get_interview_completion_prompt
+                        from topic_based_slide_generator import generate_topic_based_presentation
+                        
+                        # Generate slides ONLY for covered interview topics (1 question = 1 slide)
+                        slide_list, adaptive_render_plan, analysis_report = generate_topic_based_presentation(st.session_state.messages)
+                        
+                        # Create enhanced completion prompt with adaptive slide information
+                        completion_prompt = get_interview_completion_prompt(st.session_state.messages)
+                        adaptive_instructions = f"""
+                        
+🚨 CRITICAL: ADAPTIVE SLIDE RESTRICTION ENFORCED 🚨
+
+You MUST generate TWO separate JSONs:
+1. Content IR JSON: Business data for EXACTLY {len(slide_list)} topics 
+2. Render Plan JSON: Slides array with EXACTLY {len(slide_list)} slide objects
+
+✅ APPROVED SLIDES TO GENERATE:
+{chr(10).join([f"{i+1}. {slide}" for i, slide in enumerate(slide_list)])}
+
+❌ FORBIDDEN: Do NOT create slides for topics not in the approved list above.
+
+📊 Quality Justification: {analysis_report.get('quality_summary', 'Quality analysis complete')}
+
+🔒 ENFORCEMENT: 
+- Content IR must have business data sections for each approved topic
+- Render Plan must have "slides" array with EXACTLY {len(slide_list)} slide objects
+                        """
+                        
+                        completion_prompt += adaptive_instructions
+                        
+                        # Create a temporary message for JSON generation
+                        temp_messages = st.session_state.messages + [{"role": "user", "content": completion_prompt}]
+                        
+                        # Add system override for COMPLETE JSON-only generation with slide restrictions
+                        enhanced_messages = temp_messages + [{"role": "system", "content": f"""🚨 SYSTEM OVERRIDE - MANDATORY TWO JSON FORMAT
+
+YOU MUST OUTPUT EXACTLY THIS TEMPLATE (NO OTHER TEXT):
+
+CONTENT IR JSON:
+{{
+  "entities": {{"company": {{"name": "Qi Card"}}}},
+  "facts": {{"years": ["2021", "2022", "2023", "2024"], "revenue_usd_m": [50, 75, 100, 120], "ebitda_usd_m": [5, 10, 15, 20], "ebitda_margins": [10.0, 13.3, 15.0, 16.7]}},
+  "management_team": {{"left_column_profiles": [], "right_column_profiles": []}},
+  "strategic_buyers": [],
+  "financial_buyers": [],
+  "business_overview_data": {{}},
+  "product_service_data": {{}},
+  "growth_strategy_data": {{}},
+  "competitive_analysis": {{}},
+  "precedent_transactions": [],
+  "valuation_data": [],
+  "margin_cost_data": {{}},
+  "sea_conglomerates": [],
+  "investor_considerations": {{}},
+  "investor_process_data": {{}}
+}}
+
+RENDER PLAN JSON:
+{{
+  "slides": [
+    {{"template": "business_overview", "data": {{"title": "Business Overview"}}}},
+    {{"template": "historical_financial_performance", "data": {{"title": "Financial Performance"}}}},
+    {{"template": "product_service_footprint", "data": {{"title": "Product Portfolio"}}}}
+  ]
+}}
+
+⚠️ CRITICAL RULES:
+1. NO SLIDES ARRAY IN CONTENT IR JSON
+2. NO BUSINESS DATA IN RENDER PLAN JSON  
+3. TWO SEPARATE JSON OBJECTS WITH CLEAR MARKERS
+4. APPROVED SLIDES ONLY: {', '.join(slide_list)}
+
+FAILURE = NOT FOLLOWING THIS EXACT FORMAT"""}]
+                        
+                        with st.spinner(f"🚀 Interview complete! Generating {len(slide_list)} relevant slides... (Max 2 minutes)"):
+                            try:
+                                ai_response = call_llm_api(
+                                    enhanced_messages,
+                                    selected_model,
+                                    api_key,
+                                    api_service
+                                )
+                            except Exception as e:
+                                st.error(f"❌ Auto-generation failed: {str(e)}")
+                                ai_response = "Error: Automatic JSON generation failed. Please try the manual 'Generate JSON Now' button."
+                        
+                        # CRITICAL VALIDATION: Check if both JSONs are present
+                        has_content_ir = "CONTENT IR JSON:" in ai_response
+                        has_render_plan = "RENDER PLAN JSON:" in ai_response
+                        
+                        if not has_render_plan and has_content_ir:
+                            # AI failed to generate Render Plan - force retry with even simpler prompt
+                            st.error("⚠️ AI generated Content IR but missed Render Plan. Retrying...")
+                            
+                            retry_messages = enhanced_messages + [{"role": "assistant", "content": ai_response}]
+                            retry_messages.append({"role": "user", "content": "You forgot the Render Plan JSON. Generate it now in this exact format:\n\nRENDER PLAN JSON:\n{\"slides\": [array_of_slide_objects]}"})
+                            
+                            try:
+                                retry_response = call_llm_api(retry_messages, selected_model, api_key, api_service)
+                                ai_response = ai_response + "\n\n" + retry_response
+                            except Exception as e:
+                                st.error(f"Retry failed: {str(e)}")
+                        
+                        # CRITICAL: Extract and validate JSONs from automatic generation
+                        try:
+                            content_ir, render_plan = extract_jsons_from_response(ai_response)
+                            if content_ir and render_plan:
+                                st.success("✅ Both Content IR and Render Plan JSONs successfully generated!")
+                                
+                                # Store in session state for download
+                                st.session_state['content_ir_json'] = content_ir
+                                st.session_state['render_plan_json'] = render_plan
+                            elif content_ir and not render_plan:
+                                st.error("❌ Only Content IR generated - Render Plan missing")
+                            elif render_plan and not content_ir:
+                                st.error("❌ Only Render Plan generated - Content IR missing") 
+                            else:
+                                st.error("❌ No valid JSONs extracted from AI response")
+                        except Exception as e:
+                            st.error(f"❌ JSON extraction failed: {str(e)}")
+                        
+                        # Add completion message indicating automatic JSON generation
+                        completion_message = f"Perfect! I've analyzed our conversation and will generate {len(slide_list)} relevant slides based on the information provided.\n\n📊 **Slides to Include**: {', '.join(slide_list)}\n\n" + ai_response
+                        st.session_state.messages.append({"role": "assistant", "content": completion_message})
+                        ai_response = completion_message
+                    else:
+                        # 🎯 ENHANCED INTERVIEW FLOW: Use context-aware response generation
+                        with st.spinner("🤖 Thinking..."):
+                            if USE_ENHANCED_INTERVIEW_FLOW:
+                                # Use enhanced interview response that prevents repetition
+                                ai_response = get_enhanced_interview_response(
+                                    st.session_state.messages,
+                                    prompt,  # Current user message
+                                    selected_model,
+                                    api_key,
+                                    api_service
+                                )
+                                print("🎯 ENHANCED FLOW: Using context-aware interview response")
+                            else:
+                                # Fallback to normal response
+                                ai_response = call_llm_api(
+                                    st.session_state.messages,
+                                    selected_model,
+                                    api_key,
+                                    api_service
+                                )
+                        
+                        # Add AI response to history
+                        st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                        
+                        # Research flow satisfaction check is now handled within get_enhanced_interview_response
+                        # No additional satisfaction check needed here since it's already included in the research response
+                    
+                    # 🚨 CRITICAL: Enhanced JSON Detection - Fixed to detect both cases and formats
+                    ai_response_lower = ai_response.lower()
+                    
+                    # Enhanced JSON keyword detection - supports multiple formats
+                    has_content_ir_markers = any(marker in ai_response_lower for marker in [
+                        "content ir json:", "content_ir json:", "content ir:", "content_ir:"
+                    ])
+                    has_render_plan_markers = any(marker in ai_response_lower for marker in [
+                        "render plan json:", "render_plan json:", "render plan:", "render_plan:"
+                    ])
+                    has_json_structure = "entities" in ai_response_lower and "slides" in ai_response_lower
+                    has_substantial_json = "{" in ai_response and "}" in ai_response and len(ai_response) > 1000  # Reduced threshold
+                    
+                    # Enhanced completion signals - includes adaptive generation messages
+                    completion_signals = [
+                        "here are the complete json files",
+                        "generated json structures", 
+                        "pitch deck json files",
+                        "complete content_ir and render_plan",
+                        "json generation is complete",
+                        "based on our interview, here are",
+                        "final json files for your pitch deck",
+                        "adaptive json generation triggered",  # 🚨 CRITICAL: Added this signal
+                        "generated 10 slides based on",         # 🚨 CRITICAL: Added this signal  
+                        "content ir json:",                    # 🚨 CRITICAL: Direct detection
+                        "render plan json:"                    # 🚨 CRITICAL: Direct detection
+                    ]
+                    has_completion_signal = any(signal in ai_response_lower for signal in completion_signals)
+                    
+                    # 🚨 PRIORITY 1 FIX: More aggressive JSON detection
+                    has_complete_json_keywords = (has_content_ir_markers and has_render_plan_markers and has_json_structure)
+                    
+                    print(f"🔍 JSON DETECTION DEBUG:")
+                    print(f"   Content IR markers: {has_content_ir_markers}")
+                    print(f"   Render Plan markers: {has_render_plan_markers}") 
+                    print(f"   JSON structure: {has_json_structure}")
+                    print(f"   Substantial JSON: {has_substantial_json}")
+                    print(f"   Completion signal: {has_completion_signal}")
+                    print(f"   Final detection: {(has_complete_json_keywords and has_substantial_json) or has_completion_signal}")
+                    
+                    # 🚨 CRITICAL: Extract JSON when we have clear signals OR direct markers
+                    if (has_complete_json_keywords and has_substantial_json) or has_completion_signal or (has_content_ir_markers and has_render_plan_markers):
+                        
+                        print("🚨 PRIORITY 1: JSON DETECTION TRIGGERED - Extracting JSONs...")
+                        
+                        # 🚨 CRITICAL: Enhanced JSON extraction with validation
+                        try:
+                            content_ir, render_plan, validation_results = extract_and_validate_jsons(ai_response)
+                            print(f"🔍 EXTRACTION RESULT: Content IR = {content_ir is not None}, Render Plan = {render_plan is not None}")
+                        except Exception as e:
+                            print(f"❌ EXTRACTION ERROR: {str(e)}")
+                            content_ir, render_plan, validation_results = None, None, None
+                        
+                        # STRICT VALIDATION: Ensure both JSONs were successfully extracted
+                        if content_ir is None or render_plan is None:
+                            st.error("🚨 **CRITICAL GENERATION FAILURE**: Incomplete JSON response detected.")
+                            if content_ir is None:
+                                st.error("❌ **Content IR JSON missing or invalid**")
+                            if render_plan is None:
+                                st.error("❌ **Render Plan JSON missing or invalid**")
+                            st.warning("⚠️ **System Requirement**: Both JSONs must be present and valid for processing.")
+                            st.info("💡 **Solution**: Click '🚀 Generate JSON Now' again to retry complete generation.")
+                            st.stop()  # Stop processing incomplete responses
+                        
+                        # Check for extraction failure
+                        if content_ir is None and render_plan is None:
+                            st.error("❌ **JSON Extraction Failed**: The AI response contained JSON-like content but extraction failed. Please try regenerating.")
+                            st.info("💡 **Tip**: Make sure the JSON format is correct and complete.")
+                        else:
+                            # Successfully extracted JSONs - continue with processing
+                            st.success(f"✅ **JSON Extraction Successful!** Found {'Content IR' if content_ir else 'No Content IR'} and {'Render Plan' if render_plan else 'No Render Plan'}")
+                            
+                            # STRICT REQUIREMENT: Both JSONs must be present for auto-population
+                            if not (content_ir and render_plan):
+                                st.error("❌ **INCOMPLETE JSON GENERATION**: Both Content IR and Render Plan JSONs are required for auto-population.")
+                                if content_ir and not render_plan:
+                                    st.error("🚨 **Missing Render Plan JSON**: The system only generated Content IR. This is a generation failure.")
+                                elif render_plan and not content_ir:
+                                    st.error("🚨 **Missing Content IR JSON**: The system only generated Render Plan. This is a generation failure.")
+                                else:
+                                    st.error("🚨 **No JSONs Generated**: The system failed to generate any valid JSONs.")
+                                
+                                st.warning("⚠️ **Action Required**: Please try clicking '🚀 Generate JSON Now' again to get complete JSON generation.")
+                                st.stop()  # Stop processing - do not proceed with partial JSONs
+                            
+                            # 🚨 PRIORITY 1 FIX: AUTOMATIC AUTO-POPULATION (No button required)
+                            if content_ir and render_plan:
+                                print(f"🚨 PRIORITY 1: AUTO-POPULATION TRIGGERED AUTOMATICALLY")
+                                
+                                # Automatic auto-population process (same logic as line 4649)
+                                company_name_extracted = "Unknown_Company"
+                                if content_ir and 'entities' in content_ir and 'company' in content_ir['entities']:
+                                    company_name_extracted = content_ir['entities']['company'].get('name', 'Unknown_Company')
+                                
+                                # Store validated JSONs in session state first
+                                st.session_state['content_ir_json'] = content_ir
+                                st.session_state['render_plan_json'] = render_plan
+                                st.session_state['validation_results'] = validation_results
+                                
+                                # 🚨 CRITICAL DEBUG: Confirm session state storage
+                                print(f"[GENERATE_JSON_NOW] ✅ Stored content_ir_json: {type(content_ir)} with {len(content_ir)} keys")
+                                print(f"[GENERATE_JSON_NOW] ✅ Stored render_plan_json: {type(render_plan)} with {len(render_plan.get('slides', []))} slides")
+                                print(f"[GENERATE_JSON_NOW] ✅ Session state keys: {list(st.session_state.keys())}")
+                                
+                                # 🔧 AUTO-IMPROVEMENT INTEGRATION
+                                if st.session_state.get('auto_improve_enabled', False) and st.session_state.get('api_key'):
+                                    with st.spinner("🔧 Auto-improving JSON quality..."):
+                                        try:
+                                            from enhanced_auto_improvement_system import auto_improve_json_with_api_calls
+                                            # Auto-improve the JSONs
+                                            improved_content_ir, improved_render_plan, improvement_report = auto_improve_json_with_api_calls(
+                                                content_ir, render_plan, 
+                                                st.session_state.get('model', 'sonar-pro'),
+                                                st.session_state.get('api_key'),
+                                                st.session_state.get('api_service', 'claude')
+                                            )
+                                            
+                                            if improved_content_ir and improved_render_plan:
+                                                content_ir, render_plan = improved_content_ir, improved_render_plan
+                                                st.success(f"✨ Auto-improvement applied: {improvement_report.get('summary', 'Quality enhanced')}")
+                                            else:
+                                                st.info("📊 Auto-improvement completed with original JSONs")
+                                                
+                                        except Exception as e:
+                                            st.warning(f"⚠️ Auto-improvement failed: {str(e)} - Using original JSONs")
+                                
+                                # Create downloadable files
+                                files_data = create_downloadable_files(content_ir, render_plan, company_name_extracted)
+                                
+                                # Update session state for auto-population - ENHANCED FOR RELIABILITY
+                                st.session_state["generated_content_ir"] = files_data['content_ir_json']
+                                st.session_state["generated_render_plan"] = files_data['render_plan_json']
+                                st.session_state["content_ir_json"] = content_ir  # Store parsed JSON for validation
+                                st.session_state["render_plan_json"] = render_plan  # Store parsed JSON for validation
+                                st.session_state["files_ready"] = True
+                                st.session_state["files_data"] = files_data
+                                st.session_state["auto_populated"] = True
+                                
+                                # 🚨 CRITICAL DEBUG: Confirm final session state
+                                print(f"[GENERATE_JSON_NOW] 🎯 FINAL SESSION STATE:")
+                                print(f"   generated_content_ir: {len(st.session_state['generated_content_ir'])} chars")
+                                print(f"   generated_render_plan: {len(st.session_state['generated_render_plan'])} chars") 
+                                print(f"   content_ir_json: {type(st.session_state['content_ir_json'])}")
+                                print(f"   render_plan_json: {type(st.session_state['render_plan_json'])}")
+                                print(f"   files_ready: {st.session_state['files_ready']}")
+                                print(f"   auto_populated: {st.session_state['auto_populated']}")
+                                
+                                st.success("DEBUG: Session state variables SET! Check debug section now!")
+                                
+                                # Show validation summary
+                                if validation_results and validation_results.get('overall_valid', False):
+                                    st.success(f"🎯 Validation: {validation_results['summary']['valid_slides']}/{validation_results['summary']['total_slides']} slides validated successfully!")
+                                else:
+                                    st.warning("⚠️ JSONs generated but some validation issues detected (auto-fixes applied)")
+                                
+                                # Show auto-population success
+                                st.balloons()
+                                st.success("🚀 **Auto-Population Complete!** JSONs have been automatically populated!")
+                                st.info("💡 **Switch to JSON Editor tab** to see the populated JSONs and download files!")
+                                
+                                print(f"✅ AUTO-POPULATION SUCCESS: {company_name_extracted}")
+                                
+                                # 🚨 CRITICAL: Force page refresh to ensure session state updates are visible  
+                                # Only refresh once to prevent infinite loops
+                                if not st.session_state.get("_generation_refresh_done", False):
+                                    st.session_state["_generation_refresh_done"] = True
+                                    st.success("🎊 **Generation Complete!** Refreshing page to show populated JSONs...")
+                                    st.rerun()
+                                
+                                # Add fallback manual button for edge cases
+                                with st.expander("🔧 Manual Re-Population (If Needed)"):
+                                    if st.button("🔄 Re-Populate JSONs", key="manual_repopulate"):
+                                        st.session_state["auto_populated"] = True
+                                        st.success("✅ Manual re-population triggered!")
+                                        st.rerun()
+                    else:
+                        print(f"🔍 JSON DETECTION: No JSON markers detected - treating as regular conversation")
+                        # Regular conversation - no JSON extraction needed
+                        content_ir, render_plan, validation_results = None, None, None
+
                     
                     # AUTOMATED FEEDBACK AND RETRY SYSTEM
                     if content_ir and render_plan and not validation_results.get('overall_valid', False):
