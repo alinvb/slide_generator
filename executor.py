@@ -13,8 +13,22 @@ except Exception:
 
 import importlib
 
-# Local import (must be importable from working dir)
-adapters = importlib.import_module("adapters")
+# Import slide templates directly instead of adapters
+from slide_templates import (
+    render_business_overview_slide,
+    render_historical_financial_performance_slide, 
+    render_management_team_slide,
+    render_product_service_footprint_slide,
+    render_growth_strategy_projections_slide,
+    render_competitive_positioning_slide,
+    render_precedent_transactions_slide,
+    render_valuation_overview_slide,
+    render_buyer_profiles_slide,
+    render_sea_conglomerates_slide,
+    render_margin_cost_resilience_slide,
+    render_investor_considerations_slide,
+    render_investor_process_overview_slide
+)
 
 def _ensure_prs(prs=None):
     """Return a python-pptx Presentation or create a new one."""
@@ -22,6 +36,55 @@ def _ensure_prs(prs=None):
         raise RuntimeError("python-pptx is not installed. Please `pip install python-pptx`.")
     if prs is None or not hasattr(prs, "slides"):
         return Presentation()
+    return prs
+
+def render_plan_to_pptx(plan=None, content=None, content_ir=None, prs=None, company_name="Your Company", brand_config=None):
+    """
+    Simple render function to replace adapters.render_plan_to_pptx
+    """
+    if prs is None:
+        prs = _ensure_prs()
+    
+    if not plan or 'slides' not in plan:
+        print("❌ No plan or slides found")
+        return prs
+    
+    # Map of template names to render functions
+    template_map = {
+        'business_overview': render_business_overview_slide,
+        'historical_financial_performance': render_historical_financial_performance_slide,
+        'management_team': render_management_team_slide,
+        'product_service_footprint': render_product_service_footprint_slide,
+        'growth_strategy_projections': render_growth_strategy_projections_slide,
+        'competitive_positioning': render_competitive_positioning_slide,
+        'precedent_transactions': render_precedent_transactions_slide,
+        'valuation_overview': render_valuation_overview_slide,
+        'buyer_profiles': render_buyer_profiles_slide,
+        'sea_conglomerates': render_sea_conglomerates_slide,
+        'margin_cost_resilience': render_margin_cost_resilience_slide,
+        'investor_considerations': render_investor_considerations_slide,
+        'investor_process_overview': render_investor_process_overview_slide
+    }
+    
+    # Render each slide
+    for slide_config in plan['slides']:
+        template = slide_config.get('template')
+        if template in template_map:
+            try:
+                render_func = template_map[template]
+                prs = render_func(
+                    data=slide_config.get('data'),
+                    content_ir=content_ir,
+                    prs=prs,
+                    company_name=company_name,
+                    brand_config=brand_config
+                )
+                print(f"✅ Rendered {template} slide")
+            except Exception as e:
+                print(f"❌ Error rendering {template}: {e}")
+        else:
+            print(f"⚠️ Unknown template: {template}")
+    
     return prs
 
 def execute_plan(
@@ -66,13 +129,13 @@ def execute_plan(
     # Determine the save path (try all possible parameter names)
     save_path = out_path or output_path or deck_path or output_file or "deck.pptx"
 
-    prs_out = adapters.render_plan_to_pptx(
+    prs_out = render_plan_to_pptx(
         plan=plan, 
         content=content, 
         content_ir=content_ir, 
         prs=prs_obj, 
         company_name=company_name,
-        brand_config=brand_config  # Pass brand configuration to adapters
+        brand_config=brand_config
     )
 
     # Save if path is provided

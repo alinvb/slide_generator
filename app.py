@@ -3141,28 +3141,81 @@ def analyze_conversation_progress(messages):
             topic_keywords_found = [kw for kw in topic_info["topic_keywords"] if kw in conversation_text]
             substantial_keywords_found = [kw for kw in topic_info["substantial_keywords"] if kw in conversation_text]
             
-            # SIMPLE COVERAGE LOGIC: Need topic keywords + substantial keywords 
-            basic_coverage = len(topic_keywords_found) >= 2 and len(substantial_keywords_found) >= 2
+            # ULTRA-CONSERVATIVE COVERAGE LOGIC: Only mark topics as covered when explicitly discussed
+            # This prevents comprehensive responses from accidentally marking all topics as covered
             
-            # OR: Extensive discussion detected (many topic keywords + some substantial)
-            extensive_discussion = len(topic_keywords_found) >= 3 and len(substantial_keywords_found) >= 1
+            # STRICT REQUIREMENT: Must have dedicated discussion of this specific topic
+            # Count recent messages (last 6) that specifically discuss this topic  
+            # Handle case where messages parameter might be different in test context
+            try:
+                recent_messages = " ".join([msg["content"] for msg in messages[-6:] if msg["role"] != "system"]).lower()
+            except (KeyError, TypeError, AttributeError):
+                # Fallback to using conversation_text if messages structure is different
+                recent_messages = conversation_text
             
-            # OR: Research response with topic keywords
-            research_indicators = ["based on", "according to", "here are", "research shows", "sources", "[1]", "[2]"]
-            has_research = any(indicator in conversation_text for indicator in research_indicators)
-            research_coverage = has_research and len(topic_keywords_found) >= 2
+            # Topic-specific focused coverage detection
+            focused_coverage = False
             
-            # Mark as covered if any condition met
-            is_covered = basic_coverage or extensive_discussion or research_coverage
+            if topic_name == "business_overview":
+                # Business overview needs company name + business description
+                focused_coverage = (
+                    ("company" in recent_messages or "business" in recent_messages) and
+                    ("founded" in recent_messages or "headquarter" in recent_messages or "industry" in recent_messages) and
+                    len(topic_keywords_found) >= 2 and len(substantial_keywords_found) >= 2
+                )
+            elif topic_name == "historical_financial_performance":
+                # Financial performance needs specific numbers
+                focused_coverage = (
+                    ("revenue" in recent_messages or "ebitda" in recent_messages) and
+                    ("million" in recent_messages or "$" in recent_messages or "%" in recent_messages) and
+                    len(topic_keywords_found) >= 2 and len(substantial_keywords_found) >= 2
+                )
+            elif topic_name == "management_team":
+                # Management team needs names and titles
+                focused_coverage = (
+                    ("ceo" in recent_messages or "cfo" in recent_messages or "founder" in recent_messages) and
+                    ("management" in recent_messages or "team" in recent_messages) and
+                    len(topic_keywords_found) >= 2 and len(substantial_keywords_found) >= 1
+                )
+            elif topic_name == "valuation_overview":
+                # Valuation needs methodology discussion
+                focused_coverage = (
+                    ("valuation" in recent_messages or "dcf" in recent_messages or "multiple" in recent_messages) and
+                    ("enterprise value" in recent_messages or "methodology" in recent_messages or "range" in recent_messages) and
+                    len(topic_keywords_found) >= 2 and len(substantial_keywords_found) >= 2
+                )
+            else:
+                # Default: stricter requirement for other topics
+                focused_coverage = (
+                    len(topic_keywords_found) >= 3 and len(substantial_keywords_found) >= 2 and
+                    # Must have recent dedicated discussion of this topic
+                    any(kw in recent_messages for kw in topic_info["topic_keywords"][:2])
+                )
             
-            # Debug logging
+            # Mark as covered only if focused coverage is detected
+            is_covered = focused_coverage
+            
+            # Enhanced debug logging with detailed breakdown
             if len(topic_keywords_found) > 0 or len(substantial_keywords_found) > 0:
-                print(f"[COVERAGE] {topic_name}: topic_kw={len(topic_keywords_found)}, substantial_kw={len(substantial_keywords_found)}, covered={is_covered}")
+                coverage_reasons = []
+                if basic_coverage: coverage_reasons.append("basic")
+                if extensive_discussion: coverage_reasons.append("extensive")
+                if research_coverage: coverage_reasons.append("research")
+                if has_detailed_info: coverage_reasons.append("detailed")
+                
+                print(f"[COVERAGE] {topic_name}: topic_kw={len(topic_keywords_found)}, substantial_kw={len(substantial_keywords_found)}, reasons={coverage_reasons}, covered={is_covered}")
+                if topic_keywords_found:
+                    print(f"  └─ Topic keywords found: {topic_keywords_found[:3]}")
+                if substantial_keywords_found:
+                    print(f"  └─ Substantial keywords found: {substantial_keywords_found[:3]}")
 
             
             if is_covered:
                 topic_info["covered"] = True
                 covered_count += 1
+                print(f"✅ TOPIC MARKED COMPLETE: {topic_name} (position {topic_info['position']})")
+            elif len(topic_keywords_found) > 0:
+                print(f"🔄 TOPIC IN PROGRESS: {topic_name} needs more substantial content")
     
     # STEP 6: SEQUENTIAL NEXT TOPIC SELECTION WITH CONTEXT AWARENESS
     next_topic = None
@@ -3293,22 +3346,32 @@ def get_enhanced_interview_response(messages, user_message, model, api_key, serv
     if (progress_info["next_question"] and not progress_info["is_complete"]):
         
         # Check if user gave brief response or if we should ask the next structured question
-        brief_responses = ["yes", "ok", "good", "correct", "right", "sure", "proceed"]
+        # ENHANCED: More comprehensive brief response detection
+        brief_responses = ["yes", "ok", "good", "correct", "right", "sure", "proceed", "continue", "next", "go ahead", "sounds good"]
         user_gave_brief_response = user_message.lower().strip() in brief_responses
         
         # For substantial responses, check if current topic is adequately covered
         if not user_gave_brief_response:
             # User provided substantial response - check if we should continue current topic or move to next
-            # Look for signs that user has provided sufficient information for current topic
+            # FIXED: More strict substantial response detection to prevent premature advancement
             substantial_response_indicators = [
-                len(user_message.split()) > 10,  # More than 10 words
-                any(indicator in user_message.lower() for indicator in ['revenue', 'million', '$', 'ebitda', 'years', 'founded', 'ceo', 'employees']),  # Has business details
-                len(user_message) > 50  # More than 50 characters
+                len(user_message.split()) > 20,  # INCREASED: More than 20 words (was 10)
+                # ENHANCED: Multiple business detail indicators required
+                sum(1 for indicator in ['revenue', 'million', '$', 'ebitda', 'years', 'founded', 'ceo', 'employees', 'company', 'business'] if indicator in user_message.lower()) >= 3,
+                len(user_message) > 150,  # INCREASED: More than 150 characters (was 50)
+                # NEW: Check for structured business information (multiple sentences with details)
+                len([s for s in user_message.split('.') if len(s.strip()) > 10]) >= 3
             ]
             
-            if any(substantial_response_indicators):
-                print(f"🔄 STRUCTURED FLOW: User provided substantial response, asking next structured question")
+            # CRITICAL FIX: Require MULTIPLE indicators, not just any single one
+            substantial_indicators_met = sum(1 for indicator in substantial_response_indicators if indicator) >= 2
+            
+            if substantial_indicators_met:
+                print(f"🔄 STRUCTURED FLOW: User provided truly substantial response ({sum(1 for i in substantial_response_indicators if i)}/4 indicators), asking next structured question")
                 return progress_info["next_question"]
+            else:
+                print(f"🔄 STRUCTURED FLOW: User response not substantial enough ({sum(1 for i in substantial_response_indicators if i)}/4 indicators), staying with LLM for clarification")
+                # Fall through to LLM for follow-up questions on current topic
         else:
             print(f"🔄 STRUCTURED FLOW: User gave brief confirmation, asking next structured question")
             return progress_info["next_question"]
