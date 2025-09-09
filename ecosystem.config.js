@@ -1,8 +1,8 @@
 module.exports = {
   apps: [{
     name: 'investment-banking-app',
-    script: 'streamlit',
-    args: 'run app.py --server.port=8501 --server.address=0.0.0.0 --server.headless=true --server.fileWatcherType=none',
+    script: 'python',
+    args: '-m streamlit run app.py --server.port=8501 --server.address=0.0.0.0 --server.headless=true --server.fileWatcherType=none',
     cwd: '/home/user/webapp',
     env: {
       'PYTHONPATH': '/home/user/webapp',
