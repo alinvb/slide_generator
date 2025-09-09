@@ -3341,18 +3341,26 @@ def analyze_conversation_progress(messages):
     
     for topic_name, topic_info in sorted_topics:
         if not topic_info["covered"] and not topic_info["skipped"]:
-            # CONTEXT AWARENESS: Check if this question was asked recently
+            # ENHANCED CONTEXT AWARENESS: Intelligent repetition prevention
             if topic_info["asked_recently"]:
                 if user_indicated_repetition:
-                    # User complained about repetition - skip this question and move to next
-                    print(f"🚨 SKIPPING {topic_name} due to user repetition complaint")
+                    # User explicitly complained about repetition - skip this question
+                    print(f"🚨 USER COMPLAINT: Skipping {topic_name} due to repetition feedback")
+                    topic_info["covered"] = True  # Mark as covered to move forward
                     continue
                 else:
-                    # Recently asked but no complaint - STILL SKIP to prevent repetition
-                    # Mark as covered to move to next topic
-                    topic_info["covered"] = True
-                    print(f"🚨 REPETITION PREVENTION: Skipping recently asked {topic_name}, moving to next topic")
-                    continue
+                    # Recently asked but no user complaint - allow ONE more attempt if substantial new context
+                    recent_context = " ".join([msg["content"] for msg in messages[-4:] if msg["role"] == "user"]).lower()
+                    has_substantial_response = len(recent_context) > 50 and any(word in recent_context for word in ["research", "satisfied", "ok", "yes", "good"])
+                    
+                    if has_substantial_response:
+                        # User provided substantial response - mark as covered and move forward
+                        topic_info["covered"] = True
+                        print(f"✅ SUBSTANTIAL RESPONSE: Marking {topic_name} complete, moving forward")
+                        continue
+                    else:
+                        # No substantial response yet - ask one more time
+                        print(f"🔄 FOLLOW-UP: Asking {topic_name} one more time for completion")
             else:
                 # First time asking this question - proceed normally
                 next_topic = topic_name 
@@ -3489,14 +3497,31 @@ def get_enhanced_interview_response(messages, user_message, model, api_key, serv
                 
                 # Enhanced research instruction based on topic - DYNAMIC for any company
                 if current_topic == "valuation_overview":
-                    research_instruction = f"""🔍 VALUATION ANALYSIS REQUEST for {company_name}:
+                    research_instruction = f"""🔍 COMPREHENSIVE VALUATION ANALYSIS for {company_name}:
 
-Based on the conversation history, you must provide ACTUAL VALUATION CALCULATIONS, not just methodologies:
+You must provide THREE COMPLETE VALUATION METHODOLOGIES with actual calculations:
 
-1. **DCF Analysis**: 
-   - Use the company's disclosed/discussed revenue and growth rates from conversation
-   - Project 5-year revenue based on stated growth trajectory  
-   - Apply appropriate EBITDA margins for the {company_sector} sector
+1. **DCF Analysis** (Provide full calculation):
+   - Extract company's latest revenue from conversation history
+   - Project 5-year revenue growth using stated/researched growth rates
+   - Apply sector-appropriate EBITDA margins (research industry benchmarks)
+   - Calculate FCF using typical tax rates, capex, and working capital assumptions
+   - Apply terminal growth rate (2-3%) and appropriate WACC (8-12% based on risk profile)
+   - **PROVIDE ENTERPRISE VALUE AND EQUITY VALUE ESTIMATES**
+
+2. **Trading Multiples** (Calculate actual valuation):
+   - Research current EV/Revenue multiples for public company peers in {company_sector}
+   - Research EV/EBITDA multiples for comparable companies
+   - Apply median, 25th percentile, and 75th percentile multiples to company metrics
+   - **PROVIDE VALUATION RANGE BASED ON MULTIPLE APPROACHES**
+
+3. **Precedent Transactions** (Calculate transaction-based value):
+   - Identify recent M&A transactions in {company_sector} with similar characteristics
+   - Extract transaction multiples (EV/Revenue, EV/EBITDA) from recent deals
+   - Apply transaction multiples to company's financial metrics
+   - **PROVIDE TRANSACTION-BASED VALUATION ESTIMATE**
+
+**REQUIRED OUTPUT**: Three distinct valuation estimates with methodology details, assumptions, and final enterprise/equity values for {company_name}.
    - Use sector-appropriate WACC (typically 8-12% for established companies, 10-15% for high-growth)
    - Terminal growth: 2-4% (based on company maturity)
    - **Calculate and provide specific enterprise value range**
@@ -5018,9 +5043,9 @@ Let's start: **What is your company name and give me a brief overview of what yo
 {chr(10).join([f"• {slide}" for slide in slide_list])}
 
 📊 QUALITY GUIDANCE:
-- High quality slides: {analysis_report['quality_summary']['high_quality_slides']}
-- Medium quality slides: {analysis_report['quality_summary']['medium_quality_slides']}
-- Estimated content slides: {analysis_report['quality_summary']['estimated_slides']}
+- High quality slides: {analysis_report.get('quality_summary', 'Quality analysis complete')['high_quality_slides']}
+- Medium quality slides: {analysis_report.get('quality_summary', 'Quality analysis complete')['medium_quality_slides']}
+- Estimated content slides: {analysis_report.get('quality_summary', 'Quality analysis complete')['estimated_slides']}
 
 ⚡ ADAPTIVE INSTRUCTIONS:
 1. Only create content for the slides listed above
@@ -5211,7 +5236,7 @@ Start immediately with 'CONTENT IR JSON:' followed by the complete JSON, then 'R
                             content_ir, render_plan, validation_results = None, None, None
                         
                         # Add completion message indicating manual JSON generation
-                        completion_message = f"🚀 **Adaptive JSON Generation Triggered**\n\n📊 Generated {len(slide_list)} slides based on conversation analysis:\n• **Included**: {', '.join(slide_list)}\n• **Quality**: {analysis_report['quality_summary']}\n\n" + ai_response
+                        completion_message = f"🚀 **Adaptive JSON Generation Triggered**\n\n📊 Generated {len(slide_list)} slides based on conversation analysis:\n• **Included**: {', '.join(slide_list)}\n• **Quality**: {analysis_report.get('quality_summary', 'Quality analysis complete')}\n\n" + ai_response
                         st.session_state.messages.append({"role": "assistant", "content": completion_message})
                         st.rerun()
             
@@ -5278,7 +5303,7 @@ You MUST generate TWO separate JSONs:
 
 ❌ FORBIDDEN: Do NOT create slides for topics not in the approved list above.
 
-📊 Quality Justification: {analysis_report['quality_summary']}
+📊 Quality Justification: {analysis_report.get('quality_summary', 'Quality analysis complete')}
 
 🔒 ENFORCEMENT: 
 - Content IR must have business data sections for each approved topic
