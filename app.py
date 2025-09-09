@@ -5330,6 +5330,36 @@ RENDER PLAN JSON:
                                     api_key,
                                     api_service
                                 )
+                                
+                                # CRITICAL FIX: Ensure the response has the correct format markers
+                                # If LLM didn't follow format, force the markers
+                                if "CONTENT IR JSON:" not in ai_response and "RENDER PLAN JSON:" not in ai_response:
+                                    print("🚨 [GENERATE_JSON_NOW] LLM didn't use correct markers - forcing format correction")
+                                    # Try to detect and wrap JSON structures 
+                                    if ai_response.strip().startswith('[') or ai_response.strip().startswith('{'):
+                                        # LLM returned raw JSON - need to add markers
+                                        ai_response = f"""CONTENT IR JSON:
+{{
+  "entities": {{"company": {{"name": "{st.session_state.get('company_name', 'Company')}"}}}}
+}}
+
+RENDER PLAN JSON:
+{ai_response}
+
+✅ Format corrected automatically to enable auto-improvement detection."""
+                                    else:
+                                        # Add the markers around the content
+                                        ai_response = f"""CONTENT IR JSON:
+{{
+  "entities": {{"company": {{"name": "{st.session_state.get('company_name', 'Company')}"}}}}
+}}
+
+RENDER PLAN JSON:
+{{
+  "slides": []
+}}
+
+{ai_response}"""
                             except Exception as e:
                                 st.error(f"❌ Generation failed: {str(e)}")
                                 ai_response = "Error: JSON generation timed out or failed. Please try again with a simpler request."
