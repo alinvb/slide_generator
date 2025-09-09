@@ -4220,13 +4220,104 @@ with st.sidebar:
                 avg_time = usage_stats['total_time'] / max(usage_stats['total_calls'], 1)
                 st.metric("Avg Time", f"{avg_time:.1f}s")
         
-        # Manual improvement trigger
+        # Manual improvement trigger - ENHANCED TO WORK IMMEDIATELY
         if st.button("🔧 Improve Current JSON", help="Manually trigger JSON improvement"):
-            if st.session_state.get('content_ir_json') and st.session_state.get('render_plan_json'):
-                st.success("🔄 Improvement will be triggered after next generation")
-                st.session_state['trigger_manual_improvement'] = True
+            # Check both storage formats for JSONs
+            content_ir_json = st.session_state.get('content_ir_json')
+            render_plan_json = st.session_state.get('render_plan_json')
+            
+            # Fallback: try to parse from string representations
+            if not content_ir_json:
+                try:
+                    content_ir_str = st.session_state.get("generated_content_ir", "")
+                    if content_ir_str and len(content_ir_str.strip()) > 10:
+                        content_ir_json = json.loads(content_ir_str)
+                except Exception as e:
+                    print(f"[IMPROVE] Failed to parse content_ir from string: {e}")
+            
+            if not render_plan_json:
+                try:
+                    render_plan_str = st.session_state.get("generated_render_plan", "")
+                    if render_plan_str and len(render_plan_str.strip()) > 10:
+                        render_plan_json = json.loads(render_plan_str)
+                except Exception as e:
+                    print(f"[IMPROVE] Failed to parse render_plan from string: {e}")
+            
+            if content_ir_json and render_plan_json:
+                with st.spinner("🔧 Improving JSON quality..."):
+                    try:
+                        from enhanced_auto_improvement_system import auto_improve_json_with_api_calls
+                        
+                        print(f"[IMPROVE] Starting improvement for Content IR and Render Plan")
+                        
+                        # Improve Content IR
+                        improved_content_ir, is_perfect_content, content_report = auto_improve_json_with_api_calls(
+                            content_ir_json, "content_ir", 
+                            st.session_state['api_key'],
+                            st.session_state.get('selected_model', st.session_state.get('model', 'claude-3-5-sonnet-20241022')),
+                            st.session_state.get('api_service', 'claude')
+                        )
+                        
+                        # Improve Render Plan
+                        improved_render_plan, is_perfect_render, render_plan_report = auto_improve_json_with_api_calls(
+                            render_plan_json, "render_plan",
+                            st.session_state['api_key'], 
+                            st.session_state.get('selected_model', st.session_state.get('model', 'claude-3-5-sonnet-20241022')),
+                            st.session_state.get('api_service', 'claude')
+                        )
+                        
+                        # Update session state with improved JSONs - BOTH FORMATS
+                        if improved_content_ir:
+                            st.session_state['content_ir_json'] = improved_content_ir
+                            st.session_state["generated_content_ir"] = json.dumps(improved_content_ir, indent=2)
+                        
+                        if improved_render_plan:
+                            st.session_state['render_plan_json'] = improved_render_plan
+                            st.session_state["generated_render_plan"] = json.dumps(improved_render_plan, indent=2)
+                        
+                        # Update files_data if it exists
+                        if st.session_state.get("files_data"):
+                            files_data = st.session_state["files_data"]
+                            if improved_content_ir:
+                                files_data['content_ir_json'] = json.dumps(improved_content_ir, indent=2)
+                            if improved_render_plan:
+                                files_data['render_plan_json'] = json.dumps(improved_render_plan, indent=2)
+                            st.session_state["files_data"] = files_data
+                        
+                        # Show results
+                        if is_perfect_content and is_perfect_render:
+                            st.success("✅ Both JSONs improved to target quality!")
+                            st.balloons()
+                        elif improved_content_ir or improved_render_plan:
+                            st.success("✅ JSONs improved! Check JSON Editor for results.")
+                        else:
+                            st.info("ℹ️ JSONs were already at good quality")
+                        
+                        # Update API usage stats
+                        usage_stats = st.session_state.get('auto_improve_api_usage', {
+                            "total_calls": 0, "successful_calls": 0, "total_tokens": 0, "total_time": 0.0
+                        })
+                        
+                        # Track successful improvement
+                        usage_stats["successful_calls"] += 2  # Content IR + Render Plan
+                        usage_stats["total_calls"] += 2
+                        st.session_state['auto_improve_api_usage'] = usage_stats
+                        
+                        print(f"[IMPROVE] ✅ Improvement completed successfully")
+                        
+                        # Trigger page refresh to show updated JSONs
+                        st.rerun()
+                        
+                    except Exception as e:
+                        st.error(f"❌ Auto-improvement failed: {str(e)}")
+                        print(f"[IMPROVE] ❌ Improvement failed: {e}")
             else:
-                st.warning("Generate JSON first before improvement")
+                missing_parts = []
+                if not content_ir_json:
+                    missing_parts.append("Content IR")
+                if not render_plan_json:
+                    missing_parts.append("Render Plan")
+                st.warning(f"⚠️ Missing: {', '.join(missing_parts)}. Generate JSONs first before improvement.")
     
     elif auto_improve_enabled and not api_key:
         st.warning("⚠️ Auto-improvement requires API key")
@@ -4721,16 +4812,16 @@ Start immediately with 'CONTENT IR JSON:' followed by the complete JSON, then 'R
                                             improved_content_ir, is_perfect_content, content_report = auto_improve_json_with_api_calls(
                                                 content_ir, "content_ir", 
                                                 st.session_state['api_key'],
-                                                st.session_state.get('model', 'sonar-pro'),
-                                                st.session_state.get('api_service', 'perplexity')
+                                                st.session_state.get('selected_model', st.session_state.get('model', 'claude-3-5-sonnet-20241022')),
+                                                st.session_state.get('api_service', 'claude')
                                             )
                                             
                                             # Improve Render Plan
                                             improved_render_plan, is_perfect_render, render_report = auto_improve_json_with_api_calls(
                                                 render_plan, "render_plan",
                                                 st.session_state['api_key'], 
-                                                st.session_state.get('model', 'sonar-pro'),
-                                                st.session_state.get('api_service', 'perplexity')
+                                                st.session_state.get('selected_model', st.session_state.get('model', 'claude-3-5-sonnet-20241022')),
+                                                st.session_state.get('api_service', 'claude')
                                             )
                                             
                                             # Update with improved JSONs
@@ -6423,16 +6514,16 @@ with tab_json:
                             improved_content_ir, is_perfect_content, content_report = auto_improve_json_with_api_calls(
                                 content_ir_json, "content_ir", 
                                 st.session_state['api_key'],
-                                st.session_state.get('model', 'sonar-pro'),
-                                st.session_state.get('api_service', 'perplexity')
+                                st.session_state.get('selected_model', st.session_state.get('model', 'claude-3-5-sonnet-20241022')),
+                                st.session_state.get('api_service', 'claude')
                             )
                             
                             # Improve Render Plan
                             improved_render_plan, is_perfect_render, render_report = auto_improve_json_with_api_calls(
                                 render_plan_json, "render_plan",
                                 st.session_state['api_key'], 
-                                st.session_state.get('model', 'sonar-pro'),
-                                st.session_state.get('api_service', 'perplexity')
+                                st.session_state.get('selected_model', st.session_state.get('model', 'claude-3-5-sonnet-20241022')),
+                                st.session_state.get('api_service', 'claude')
                             )
                             
                             # Update session state with improved JSONs
