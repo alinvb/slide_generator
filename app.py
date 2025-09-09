@@ -3113,7 +3113,7 @@ def analyze_conversation_progress(messages):
             # Extract key phrases from the question to match
             question_key_phrases = [
                 "let's discuss", "now let's", "can you provide", "tell me about",
-                "what are your", "how is your", "i need information"
+                "what are your", "how is your", "i need information", "let's analyze"
             ]
             
             topic_specific_phrases = topic_info["topic_keywords"][:2]  # First 2 topic keywords
@@ -3135,29 +3135,31 @@ def analyze_conversation_progress(messages):
     if recent_questions:
         most_recent_ai_question = recent_questions[-1]
         
-        # Enhanced topic detection using multiple methods
+        # Enhanced topic detection using multiple methods - find BEST match, not first match
+        topic_scores = {}
+        
+        topic_patterns = {
+            "business_overview": ["company name", "business does", "overview"],
+            "product_service_footprint": ["product", "service", "footprint", "offerings", "geographic"],
+            "historical_financial_performance": ["financial performance", "analyze your historical", "revenue", "ebitda", "financial metrics"],
+            "management_team": ["management team", "executives", "ceo", "leadership"],
+            "growth_strategy_projections": ["growth strategy", "projections", "expansion"],
+            "competitive_positioning": ["competitive", "competitors", "positioning"],
+            "precedent_transactions": ["precedent transactions", "m&a", "acquisitions"],
+            "valuation_overview": ["valuation", "methodology", "enterprise value", "dcf"],
+            "strategic_buyers": ["strategic buyers", "strategic buyer", "corporate"],
+            "financial_buyers": ["private equity", "pe firm", "financial buyers"],
+            "sea_conglomerates": ["conglomerate", "multinational"],
+            "margin_cost_resilience": ["margin", "cost", "ebitda margin"],
+            "investor_considerations": ["risk", "opportunity", "investor"],
+            "investor_process_overview": ["process", "diligence", "timeline"]
+        }
+        
         for topic_name, topic_info in topics_checklist.items():
             # Method 1: Check if topic keywords appear in recent AI question
             topic_keywords_in_question = sum(1 for kw in topic_info["topic_keywords"] if kw in most_recent_ai_question)
             
             # Method 2: Check specific topic patterns
-            topic_patterns = {
-                "business_overview": ["company name", "business does", "overview"],
-                "product_service_footprint": ["product", "service", "footprint", "offerings", "geographic"],
-                "historical_financial_performance": ["financial", "revenue", "ebitda", "historical"],
-                "management_team": ["management team", "executives", "ceo", "leadership"],
-                "growth_strategy_projections": ["growth strategy", "projections", "expansion"],
-                "competitive_positioning": ["competitive", "competitors", "positioning"],
-                "precedent_transactions": ["precedent transactions", "m&a", "acquisitions"],
-                "valuation_overview": ["valuation", "methodology", "enterprise value", "dcf"],
-                "strategic_buyers": ["strategic buyers", "strategic buyer", "corporate"],
-                "financial_buyers": ["private equity", "pe firm", "financial buyers"],
-                "sea_conglomerates": ["conglomerate", "multinational"],
-                "margin_cost_resilience": ["margin", "cost", "ebitda margin"],
-                "investor_considerations": ["risk", "opportunity", "investor"],
-                "investor_process_overview": ["process", "diligence", "timeline"]
-            }
-            
             pattern_matches = 0
             if topic_name in topic_patterns:
                 pattern_matches = sum(1 for pattern in topic_patterns[topic_name] if pattern in most_recent_ai_question)
@@ -3165,9 +3167,17 @@ def analyze_conversation_progress(messages):
             total_score = topic_keywords_in_question + pattern_matches
             
             if total_score >= 2 or topic_keywords_in_question >= 2:  # Strong match
-                current_topic_being_discussed = topic_name
-                print(f"🎯 CURRENT TOPIC DETECTED: {topic_name} (keywords: {topic_keywords_in_question}, patterns: {pattern_matches})")
-                break
+                topic_scores[topic_name] = total_score
+                print(f"📊 TOPIC SCORED: {topic_name} (keywords: {topic_keywords_in_question}, patterns: {pattern_matches}, total: {total_score})")
+        
+        # Select the topic with the highest score
+        if topic_scores:
+            best_topic = max(topic_scores, key=topic_scores.get)
+            best_score = topic_scores[best_topic]
+            current_topic_being_discussed = best_topic
+            print(f"🎯 BEST TOPIC SELECTED: {best_topic} (score: {best_score})")
+        else:
+            print("⚠️ NO TOPICS SCORED - using fallback logic")
     
     # Fallback: If no current topic detected, assume we're working on the first uncovered topic
     if not current_topic_being_discussed:
@@ -3289,8 +3299,23 @@ def analyze_conversation_progress(messages):
             # 1. This is the current topic being discussed, OR
             # 2. This is a previous topic (lower position) than current topic, OR  
             # 3. No current topic detected (fallback to original logic)
+            # 4. SPECIAL CASE: A topic was just asked about and research was provided (even if slightly "future")
             
             should_allow_coverage = True  # Default: allow coverage
+            
+            # SPECIAL CASE: Check if this topic was just asked about in the recent conversation
+            topic_just_asked = False
+            if recent_questions:
+                latest_ai_question = recent_questions[-1]
+                # Check if the latest AI question was about this specific topic
+                topic_keywords_in_latest = sum(1 for kw in topic_info["topic_keywords"] if kw in latest_ai_question)
+                topic_patterns_in_latest = 0
+                if topic_name in topic_patterns:
+                    topic_patterns_in_latest = sum(1 for pattern in topic_patterns[topic_name] if pattern in latest_ai_question)
+                
+                if topic_keywords_in_latest >= 2 or topic_patterns_in_latest >= 1:
+                    topic_just_asked = True
+                    print(f"📝 TOPIC JUST ASKED: {topic_name} was just asked about (keywords: {topic_keywords_in_latest}, patterns: {topic_patterns_in_latest})")
             
             if current_topic_being_discussed and topic_name != current_topic_being_discussed:
                 # Not the current topic - check if it's a previous topic or future topic
@@ -3298,10 +3323,15 @@ def analyze_conversation_progress(messages):
                 this_topic_position = topic_info["position"]
                 
                 if this_topic_position > current_topic_position:
-                    # This is a future topic - prevent premature coverage
-                    should_allow_coverage = False
-                    if focused_coverage or ai_research_coverage:
-                        print(f"🚫 PREVENTED PREMATURE COVERAGE: {topic_name} (position {this_topic_position}) is future topic, current is {current_topic_being_discussed} (position {current_topic_position})")
+                    # This is a future topic - but allow if it was just asked about
+                    if topic_just_asked:
+                        should_allow_coverage = True
+                        if focused_coverage or ai_research_coverage:
+                            print(f"✅ SPECIAL ALLOWANCE: {topic_name} (position {this_topic_position}) was just asked about, allowing coverage despite being future topic")
+                    else:
+                        should_allow_coverage = False
+                        if focused_coverage or ai_research_coverage:
+                            print(f"🚫 PREVENTED PREMATURE COVERAGE: {topic_name} (position {this_topic_position}) is future topic, current is {current_topic_being_discussed} (position {current_topic_position})")
                 else:
                     # This is a previous topic or current topic - allow coverage
                     should_allow_coverage = True
