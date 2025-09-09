@@ -2925,7 +2925,137 @@ DO NOT AUTOMATICALLY GENERATE JSON. After systematically covering ALL 14 topics,
 SYSTEM_PROMPT = get_perfect_system_prompt()
 
 # Helper Functions for Interview Flow and File Generation
+
 def analyze_conversation_progress(messages):
+    """SIMPLIFIED: Clean sequential interview progress tracking"""
+    
+    # The 14 mandatory topics in order
+    topics = [
+        {
+            "id": "business_overview", "position": 1,
+            "question": "What is your company name and give me a brief overview of what your business does?",
+            "next_question": "Now let's discuss your product/service footprint. What are your main offerings? Please provide the title and description for each product/service. Also, where do you operate geographically and what's your market coverage?"
+        },
+        {
+            "id": "product_service_footprint", "position": 2, 
+            "question": "Now let's discuss your product/service footprint. What are your main offerings? Please provide the title and description for each product/service. Also, where do you operate geographically and what's your market coverage?",
+            "next_question": "Let's analyze your historical financial performance. Can you provide your revenue, EBITDA, margins, and key financial metrics for the last 3-5 years? I need specific numbers: annual revenue in USD millions, EBITDA figures, margin percentages, growth rates, and key performance drivers. What are the main revenue streams and how have they evolved?"
+        },
+        {
+            "id": "historical_financial_performance", "position": 3,
+            "question": "Let's analyze your historical financial performance. Can you provide your revenue, EBITDA, margins, and key financial metrics for the last 3-5 years? I need specific numbers: annual revenue in USD millions, EBITDA figures, margin percentages, growth rates, and key performance drivers. What are the main revenue streams and how have they evolved?",
+            "next_question": "Now I need information about your management team. Can you provide names, titles, and brief backgrounds for 4-6 key executives including CEO, CFO, and other senior leaders?"
+        },
+        {
+            "id": "management_team", "position": 4,
+            "question": "Now I need information about your management team. Can you provide names, titles, and brief backgrounds for 4-6 key executives including CEO, CFO, and other senior leaders?",
+            "next_question": "Let's discuss your growth strategy and projections. What are your expansion plans, strategic initiatives, and financial projections for the next 3-5 years?"
+        },
+        {
+            "id": "growth_strategy_projections", "position": 5,
+            "question": "Let's discuss your growth strategy and projections. What are your expansion plans, strategic initiatives, and financial projections for the next 3-5 years?",
+            "next_question": "How is your company positioned competitively? I need information about key competitors, your competitive advantages, market positioning, and differentiation factors."
+        },
+        {
+            "id": "competitive_positioning", "position": 6,
+            "question": "How is your company positioned competitively? I need information about key competitors, your competitive advantages, market positioning, and differentiation factors.",
+            "next_question": "Now let's examine precedent transactions. Focus ONLY on private market M&A transactions where one company acquired another company. I need recent corporate acquisitions in your industry."
+        },
+        {
+            "id": "precedent_transactions", "position": 7,
+            "question": "Now let's examine precedent transactions. Focus ONLY on private market M&A transactions where one company acquired another company. I need recent corporate acquisitions in your industry with target company, acquirer, transaction date, enterprise value, and multiples.",
+            "next_question": "What valuation methodologies would be most appropriate for your business? I recommend DCF, Trading Multiples, and Precedent Transactions analysis."
+        },
+        {
+            "id": "valuation_overview", "position": 8,
+            "question": "Based on your financial performance and growth projections, what valuation methodologies would be most appropriate? I recommend: (1) DCF Analysis with your specific cash flow projections and discount rate, (2) Trading Multiples from comparable public companies in your sector, and (3) Precedent Transactions from recent M&A deals. What's your expected enterprise value range?",
+            "next_question": "Based on your valuation range, let's identify strategic buyers who can afford this acquisition and would value your strategic assets."
+        },
+        {
+            "id": "strategic_buyers", "position": 9,
+            "question": "Now let's identify potential strategic buyers based on your valuation and geography. I need 4-5 strategic buyers (corporations) who can afford your valuation range and would benefit from strategic synergies.",
+            "next_question": "Now let's identify private equity firms that can afford your valuation and have experience with companies in your sector."
+        },
+        {
+            "id": "financial_buyers", "position": 10,
+            "question": "Let's identify PRIVATE EQUITY FIRMS only. I need 4-5 PE firms that have the financial capacity for your valuation range and experience acquiring companies in your sector.",
+            "next_question": "Finally, let's identify large conglomerates that operate in your geographic region and could afford your valuation."
+        },
+        {
+            "id": "sea_conglomerates", "position": 11,
+            "question": "Let's identify large conglomerates that could afford your valuation and are relevant to your geographic markets.",
+            "next_question": "Let's discuss margin and cost data. Can you provide your EBITDA margins for the last 2-3 years, key cost management initiatives, and main risk mitigation strategies?"
+        },
+        {
+            "id": "margin_cost_resilience", "position": 12,
+            "question": "Let's discuss margin and cost data. Can you provide your EBITDA margins for the last 2-3 years, key cost management initiatives, and main risk mitigation strategies for cost control?",
+            "next_question": "Now let's discuss investor considerations. What are the key RISKS and OPPORTUNITIES investors should know about your business?"
+        },
+        {
+            "id": "investor_considerations", "position": 13,
+            "question": "Now let's discuss investor considerations. What are the key RISKS and OPPORTUNITIES investors should know about your business? What concerns might they have and how do you mitigate these risks?",
+            "next_question": "Finally, what would the investment/acquisition process look like? I need diligence topics, synergy opportunities, risk factors and expected timeline."
+        },
+        {
+            "id": "investor_process_overview", "position": 14,
+            "question": "Finally, what would the investment/acquisition process look like? I need diligence topics investors would focus on, key synergy opportunities, main risk factors and mitigation strategies, and expected timeline for the transaction process.",
+            "next_question": "Perfect! All the information has been collected. You can now click the 'Generate JSON Now' button to create your presentation files."
+        }
+    ]
+    
+    # SIMPLIFIED: Count completed topics by analyzing conversation flow
+    completed_topics = 0
+    satisfaction_responses = ["yes", "ok", "okay", "correct", "satisfied", "good", "right", "sure", "proceed", "continue", "next", "go ahead"]
+    
+    i = 0
+    while i < len(messages):
+        msg = messages[i]
+        
+        # Look for AI asking a topic question
+        if msg["role"] == "assistant" and ("?" in msg["content"] or "let's" in msg["content"].lower()):
+            
+            # Case 1: User provides direct answer
+            if i + 1 < len(messages) and messages[i + 1]["role"] == "user":
+                user_response = messages[i + 1]["content"].lower()
+                
+                # Case 1a: Direct informational response (not research request)
+                if "research" not in user_response and len(user_response) > 10:
+                    completed_topics += 1
+                    print(f"✅ TOPIC {completed_topics} COMPLETED: Direct response")
+                    i += 2
+                    continue
+                
+                # Case 1b: Research request
+                elif "research" in user_response:
+                    # Look for AI research response + user satisfaction
+                    if (i + 2 < len(messages) and messages[i + 2]["role"] == "assistant" and
+                        i + 3 < len(messages) and messages[i + 3]["role"] == "user"):
+                        satisfaction_response = messages[i + 3]["content"].lower().strip()
+                        if any(resp in satisfaction_response for resp in satisfaction_responses):
+                            completed_topics += 1
+                            print(f"✅ TOPIC {completed_topics} COMPLETED: Research + satisfaction")
+                            i += 4
+                            continue
+        i += 1
+    
+    # Current position = completed topics + 1 (next topic to ask)
+    current_position = min(completed_topics + 1, 14)
+    is_complete = current_position > 14
+    
+    # Build result in format expected by existing code
+    result = {
+        "current_topic": topics[current_position - 1]["id"] if current_position <= 14 else "completed",
+        "next_topic": topics[current_position - 1]["id"] if current_position <= 14 else "completed", 
+        "next_question": topics[current_position - 1]["next_question"] if current_position <= 14 else "Interview complete!",
+        "is_complete": is_complete,
+        "topics_completed": completed_topics,
+        "current_position": current_position
+    }
+    
+    print(f"🎯 SIMPLE PROGRESS: {completed_topics} topics completed, asking topic {current_position} ({result['current_topic']})")
+    return result
+
+def analyze_conversation_progress_COMPLEX_OLD(messages):
     """ENHANCED: Context-aware conversation analysis with repetition prevention"""
     # STEP 1: Build conversation history with context awareness
     recent_questions = []
