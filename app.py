@@ -5600,7 +5600,7 @@ RENDER PLAN JSON:
                             st.session_state.messages.append({"role": "assistant", "content": f"I encountered an issue while researching. Could you provide more details about {research_topic} for {company_name}?"})
                     
                     st.rerun()
-                    return  # Exit early after research
+                    st.stop()  # Exit early after research
                 
                 # Analyze conversation progress
                 progress_info = analyze_conversation_progress(st.session_state.messages)
