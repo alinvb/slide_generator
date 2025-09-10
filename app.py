@@ -3029,7 +3029,7 @@ def analyze_conversation_progress(messages):
                     i += 2
                     continue
                 
-                # Case 1b: Explicit research request
+                # Case 1b: Research request
                 elif "research" in user_response:
                     # Look for AI research response + user satisfaction
                     if (i + 2 < len(messages) and messages[i + 2]["role"] == "assistant" and
@@ -5575,145 +5575,97 @@ RENDER PLAN JSON:
                     
                     user_message_lower = prompt.lower()
                     
-                    # SMART CONVERSATION HANDLER: Classify user intent without hard-coded patterns
-                    # Users should be able to: 1) Ask questions, 2) Request research, 3) Provide info, 4) Move to next topic
+                    # 1. Check for research requests FIRST
+                    research_request = any(phrase in user_message_lower for phrase in [
+                        "research this", "research for me", "research it", "research yourself",
+                        "find information", "look up", "investigate", "do research", "search for"
+                    ])
                     
-                    # Special case: Handle "next topic" explicitly since it's a specific system command
-                    if "next topic" in user_message_lower:
-                        # This will be handled by existing logic later, so continue
-                        pass
-                    else:
-                        # Use AI to classify the user's intent and respond appropriately
-                        print(f"🧠 [INTENT CLASSIFICATION] Analyzing user message: {prompt[:100]}...")
+                    # 2. Check for specific information requests
+                    specific_info_request = any(phrase in user_message_lower for phrase in [
+                        "tell me more", "what about", "can you explain", "more details", 
+                        "elaborate", "expand on", "i want to know", "what are"
+                    ])
+                    
+                    # 3. Check for clarification or follow-up questions
+                    clarification_request = any(phrase in user_message_lower for phrase in [
+                        "what do you mean", "can you clarify", "i don't understand",
+                        "explain that", "what is", "how does", "why"
+                    ])
+                    
+                    # 4. Check for topic switching or new information (excluding "next topic" which is handled separately)
+                    topic_switch = any(phrase in user_message_lower for phrase in [
+                        "let's talk about", "i want to discuss", "moving on", 
+                        "what about", "tell me about", "i need help with"
+                    ])
+                    
+                    # 5. Check for disagreement or corrections  
+                    disagreement = any(phrase in user_message_lower for phrase in [
+                        "that's wrong", "not correct", "actually", "no that's", 
+                        "i disagree", "that's not right", "incorrect"
+                    ])
+                    
+                    # 6. Check for positive engagement
+                    positive_engagement = any(phrase in user_message_lower for phrase in [
+                        "interesting", "great", "excellent", "perfect", "good point",
+                        "i like", "that's helpful", "useful", "good to know"
+                    ])
+                    
+                    # ENHANCED: Contextual follow-up for incomplete information (CHECK BEFORE RESEARCH)
+                    user_response = prompt.strip()
+                    needs_more_info = False
+                    contextual_followup = ""
+                    
+                    # Analyze if user provided partial information that needs follow-up
+                    progress_info = analyze_conversation_progress(st.session_state.messages) if 'analyze_conversation_progress' in globals() else {}
+                    current_topic_for_context = progress_info.get("current_topic", "business_overview")
+                    
+                    if current_topic_for_context == "historical_financial_performance" and len(user_response) > 10:
+                        # Check if financial info is missing key components
+                        has_revenue = any(word in user_response.lower() for word in ["revenue", "sales", "million", "billion", "$"])
+                        has_margins = any(word in user_response.lower() for word in ["margin", "ebitda", "profit", "%", "percentage"])
+                        has_growth = any(word in user_response.lower() for word in ["growth", "year", "2023", "2024", "increased"])
                         
-                        with st.spinner("💭 Understanding your message..."):
-                            try:
-                                # Get recent conversation context
-                                recent_messages = st.session_state.messages[-8:]
-                                conversation_context = "\n".join([f"{msg['role']}: {msg['content'][:200]}..." if len(msg['content']) > 200 else f"{msg['role']}: {msg['content']}" for msg in recent_messages])
-                                
-                                # Get current topic context
-                                progress_info = analyze_conversation_progress(st.session_state.messages)
-                                current_topic = progress_info.get('current_topic', 'business_overview')
-                                company_name = st.session_state.get('company_name', 'the company')
-                                
-                                # AI-powered intent classification and response
-                                intent_analysis_prompt = f"""You are helping with an investment banking interview about {company_name}. We're currently discussing: {current_topic.replace('_', ' ')}.
-
-The user just said: "{prompt}"
-
-Recent conversation:
-{conversation_context}
-
-Analyze the user's intent and respond appropriately. The user might be:
-1. **Asking a follow-up question** - Answer their question directly and conversationally
-2. **Requesting research** - If they want you to research something, perform research and provide detailed information
-3. **Providing information** - If they're giving you information, acknowledge it and ask relevant follow-up questions if needed
-4. **Making general conversation** - Respond naturally while keeping focus on the current topic
-
-Be conversational, helpful, and stay focused on the investment banking context. Do NOT ask for more financial data unless the user is clearly providing incomplete financial information that needs completion.
-
-Respond naturally as if you're an experienced investment banking professional having a conversation."""
-
-                                # Create messages for LLM API
-                                intent_messages = [
-                                    {"role": "system", "content": "You are an experienced investment banking professional conducting interviews."},
-                                    {"role": "user", "content": intent_analysis_prompt}
-                                ]
-                                
-                                ai_response = call_llm_api(
-                                    intent_messages,
-                                    st.session_state.get('model', 'sonar-pro'), 
-                                    st.session_state['api_key'],
-                                    st.session_state.get('api_service', 'perplexity')
-                                )
-                                
-                                # Check if the AI response suggests research is needed
-                                if any(research_indicator in ai_response.lower() for research_indicator in [
-                                    "let me research", "i'll look up", "let me find information", 
-                                    "i'll investigate", "let me search for", "researching"
-                                ]):
-                                    print(f"🔍 [AUTO-RESEARCH] AI indicated research needed, performing research...")
-                                    
-                                    # Perform research based on current topic
-                                    topic_research_mapping = {
-                                        "business_overview": "business overview and operations",
-                                        "product_service_footprint": "products and services", 
-                                        "historical_financial_performance": "financial performance",
-                                        "management_team": "management team",
-                                        "growth_strategy_projections": "growth strategy",
-                                        "competitive_positioning": "competitive landscape",
-                                        "precedent_transactions": "precedent transactions and M&A activity", 
-                                        "valuation_overview": "valuation",
-                                        "strategic_buyers": "strategic buyers",
-                                        "financial_buyers": "financial buyers", 
-                                        "sea_conglomerates": "regional conglomerates",
-                                        "margin_cost_resilience": "margins and cost structure",
-                                        "investor_considerations": "investment risks and considerations",
-                                        "investor_process_overview": "investment process and due diligence"
-                                    }
-                                    
-                                    research_topic = topic_research_mapping.get(current_topic, "business overview")
-                                    
-                                    # Include the user's specific question in the research
-                                    research_query = f"{company_name} {research_topic} - specifically addressing: {prompt}"
-                                    
-                                    try:
-                                        # Enhanced research instruction based on current topic and user question
-                                        research_instruction = f"""Research {company_name} focusing on {research_topic}, specifically to answer the user's question: "{prompt}"
-
-Provide comprehensive, investment banking-grade analysis with specific details, numbers, and actionable insights. Include relevant context and be thorough in your response."""
-
-                                        # Create messages for research LLM API
-                                        research_messages = [
-                                            {"role": "system", "content": "You are a senior investment banking analyst providing comprehensive market research and company analysis."},
-                                            {"role": "user", "content": research_instruction}
-                                        ]
-                                        
-                                        research_results = call_llm_api(
-                                            research_messages,
-                                            st.session_state.get('model', 'sonar-pro'), 
-                                            st.session_state['api_key'],
-                                            st.session_state.get('api_service', 'perplexity')
-                                        )
-                                        
-                                        if research_results and len(research_results.strip()) > 50:
-                                            st.session_state.messages.append({"role": "assistant", "content": research_results})
-                                            st.rerun()
-                                            st.stop()
-                                        else:
-                                            # Fallback to the original AI response if research failed
-                                            st.session_state.messages.append({"role": "assistant", "content": ai_response})
-                                            st.rerun()
-                                            st.stop()
-                                            
-                                    except Exception as research_error:
-                                        print(f"❌ Research failed: {research_error}")
-                                        # Fallback to conversational response
-                                        st.session_state.messages.append({"role": "assistant", "content": ai_response})
-                                        st.rerun()
-                                        st.stop()
-                                else:
-                                    # Regular conversational response
-                                    st.session_state.messages.append({"role": "assistant", "content": ai_response})
-                                    st.rerun()
-                                    st.stop()
-                                
-                            except Exception as e:
-                                print(f"❌ [CONVERSATION ERROR] {str(e)}")
-                                st.error(f"Error processing your message: {str(e)}")
-                                st.stop()
+                        if not (has_revenue and has_margins and has_growth):
+                            needs_more_info = True
+                            missing_parts = []
+                            if not has_revenue: missing_parts.append("revenue figures")
+                            if not has_margins: missing_parts.append("EBITDA margins")  
+                            if not has_growth: missing_parts.append("growth rates")
+                            contextual_followup = f"Thanks for that information! To complete the financial analysis, I additionally need {' and '.join(missing_parts)}. Do you have this data, or should I research it?"
                     
-                    # All non-"next topic" conversation is now handled by the AI conversation system above
-                    # The only thing that should reach here is "next topic" which is handled further down
+                    elif current_topic_for_context == "management_team" and len(user_response) > 10:
+                        # Check if management info is missing key roles
+                        has_ceo = any(word in user_response.lower() for word in ["ceo", "chief executive"])
+                        has_cfo = any(word in user_response.lower() for word in ["cfo", "chief financial"])
+                        has_backgrounds = any(word in user_response.lower() for word in ["experience", "background", "previously", "worked", "founded"])
+                        
+                        if not (has_ceo and has_cfo and has_backgrounds):
+                            needs_more_info = True
+                            missing_parts = []
+                            if not has_ceo: missing_parts.append("CEO information")
+                            if not has_cfo: missing_parts.append("CFO details")
+                            if not has_backgrounds: missing_parts.append("executive backgrounds")
+                            contextual_followup = f"Good start on the management team! I additionally need {' and '.join(missing_parts)} for the pitch deck. Do you have this information, or should I research it?"
                     
-                    # Continue to existing logic (this will handle "next topic" and any fallback cases)
+                    elif current_topic_for_context == "valuation_overview" and len(user_response) > 10:
+                        # Check if valuation is missing actual numbers
+                        has_numbers = any(char.isdigit() for char in user_response)
+                        has_multiple = any(word in user_response.lower() for word in ["x", "multiple", "times", "ratio"])
+                        has_methodology = any(word in user_response.lower() for word in ["dcf", "comps", "precedent", "methodology"])
+                        
+                        if not (has_numbers and (has_multiple or has_methodology)):
+                            needs_more_info = True
+                            contextual_followup = f"Thanks for the valuation framework! I additionally need specific valuation ranges or multiples (e.g., '15-20x EBITDA' or '$2-3 billion enterprise value'). Do you have target numbers, or should I research comparable valuations?"
                     
-                    # Legacy research_request variable (no longer used but keeping for compatibility)
-                    research_request = False
+                    if needs_more_info and contextual_followup:
+                        # Ask contextual follow-up question
+                        st.session_state.messages.append({"role": "assistant", "content": contextual_followup})
+                        st.rerun()
+                        st.stop()
                     
-                    # Skip old research logic since it's now handled by AI conversation system above
-                    if False:  # Disabled old research logic - all conversation now handled by AI system above
+                    if research_request:
+                        # USER REQUESTED RESEARCH - Use current topic from 14-topic sequence
                         progress_info = analyze_conversation_progress(st.session_state.messages)
                         current_topic = progress_info.get('current_topic', 'business_overview')
                         company_name = st.session_state.get('company_name', 'company')
@@ -6001,7 +5953,6 @@ Sources: Company filings, industry reports, financial databases"""
                         
                         st.rerun()
                         st.stop()
-                    # END of disabled old research logic block
                     
                     # CRITICAL: Check for follow-up research requests after satisfaction questions
                     follow_up_research_request = False
