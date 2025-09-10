@@ -123,6 +123,136 @@ Use the context to extract known metrics and provide LOW/BASE/HIGH scenarios wit
     except Exception as e:
         return f"I'll need more financial data to estimate {entity} revenue. What metrics do you have available?"
 
+# CRITICAL PATCH: Loop Breakers, Move-On Router, and Topic Sanity
+def _norm(s: str) -> str:
+    """Normalize text for consistent comparison"""
+    import re
+    return re.sub(r"\s+", " ", (s or "").strip().lower())
+
+# Move-on and skip detection
+MOVE_ON_SYNONYMS = {
+    "next", "next topic", "move on", "skip", "skip this", "stop", "proceed", "go on",
+    "continue", "let's move on", "we're done", "advance"
+}
+
+ALREADY_ASKED_SYNONYMS = {
+    "you already asked this", "we already did this", "already did this", "asked already",
+    "you already did this topic", "done with this", "covered this", "we covered this"
+}
+
+def _is_move_on(text: str) -> bool:
+    """Detect move-on signals"""
+    t = _norm(text)
+    return any(kw in t for kw in MOVE_ON_SYNONYMS)
+
+def _is_already_asked(text: str) -> bool:
+    """Detect 'already asked' signals"""
+    t = _norm(text)
+    return any(kw in t for kw in ALREADY_ASKED_SYNONYMS)
+
+def _topic_key_from_text(text: str):
+    """Extract topic identifier from user text"""
+    t = _norm(text)
+    aliases = {
+        "valuation": {"valuation", "valuations", "ev", "enterprise value", "dcf", "comps", "precedents"},
+        "financials": {"financials", "financial performance", "ebitda", "margins", "growth"},
+        "products": {"product", "products", "service", "services", "footprint"},
+        "team": {"team", "management", "executives", "leadership"},
+        "synergies": {"synergy", "synergies", "value enhancement"},
+        "competitive": {"competitive", "competition", "competitors", "positioning"}
+    }
+    for key, words in aliases.items():
+        if any(w in t for w in words):
+            return key
+    return None
+
+def _topic_index_by_id(topic_id: str):
+    """Find topic index by ID"""
+    try:
+        # Use analyze_conversation_progress topics structure
+        topics = [
+            {"id": "business_overview"},
+            {"id": "product_service_footprint"}, 
+            {"id": "historical_financial_performance"},
+            {"id": "management_team"},
+            {"id": "growth_strategy_projections"},
+            {"id": "competitive_positioning"},
+            {"id": "valuation_overview"},
+            {"id": "precedent_transactions"},
+            {"id": "strategic_buyers"},
+            {"id": "financial_buyers"},
+            {"id": "sea_conglomerates"},
+            {"id": "margin_cost_resilience"},
+            {"id": "investor_considerations"},
+            {"id": "investor_process_overview"}
+        ]
+        for i, t in enumerate(topics):
+            if t.get("id") == topic_id:
+                return i
+    except Exception:
+        pass
+    return None
+
+def _mark_topic_covered_by_id(topic_id: str):
+    """Mark specific topic as covered"""
+    if "covered_topics" not in st.session_state:
+        st.session_state.covered_topics = []
+    if topic_id and topic_id not in st.session_state.covered_topics:
+        st.session_state.covered_topics.append(topic_id)
+        print(f"🎯 [TOPIC SKIP] Marked {topic_id} as covered by user request")
+
+def _recent_assistant_question_duplicate(new_q: str, window: int = 6) -> bool:
+    """Check if we recently asked the same or very similar question"""
+    import re
+    if not new_q:
+        return False
+    
+    def normalize(x): 
+        return re.sub(r"[^a-z0-9]+", " ", x.lower()).strip()
+    
+    nq = normalize(new_q)
+    count = 0
+    
+    for m in st.session_state.messages[-window:]:
+        if m.get("role") == "assistant":
+            content = m.get("content", "")
+            # Check for repetitive valuation questions specifically
+            if "recommend" in content.lower() and "valuation" in nq:
+                count += 1
+            if normalize(content) == nq:
+                count += 1
+            # Check for similar question patterns
+            if "valuation" in nq and "valuation" in content.lower() and "?" in content:
+                count += 1
+                
+    return count >= 1
+
+def _strip_transcript_tokens(text: str) -> str:
+    """Remove stray transcript tokens from outputs"""
+    import re
+    return re.sub(r"\[transcript\]", "", text or "", flags=re.I)
+
+def _sanitize_all(text: str) -> str:
+    """Apply all sanitization functions"""
+    try:
+        s = _strip_unresolved_citations(text)
+    except Exception:
+        s = text or ""
+    s = _strip_transcript_tokens(s)
+    return s
+
+def _is_topic_in_agenda(topic_id: str) -> bool:
+    """Check if topic is in the 14-topic agenda"""
+    return _topic_index_by_id(topic_id) is not None
+
+def _next_uncovered_prompt():
+    """Get next uncovered topic question"""
+    try:
+        progress_info = analyze_conversation_progress(st.session_state.messages)
+        return progress_info.get('next_question', '')
+    except Exception:
+        return "Let's continue with the next topic in our investment banking interview."
+
 # CRITICAL PATCH: Memory and conversation helpers  
 def _meaningful_since_last_question(min_tokens: int = 6) -> bool:
     """Check if user provided substantial content since last assistant question"""
@@ -5745,6 +5875,41 @@ RENDER PLAN JSON:
                 if research_request:
                     print(f"🔍 [RESEARCH] Detected via priority router: '{user_norm}'")
                 
+                # PRIORITY 4: Meta-questions about agenda
+                if "is synergies even a topic" in user_norm or "is synergy even a topic" in user_norm:
+                    in_plan = _is_topic_in_agenda("synergies")
+                    msg = "Yes — Synergies is in the plan; we'll cover it later." if in_plan else \
+                          "Synergies isn't on the required list. I can add it as an optional slide or skip it entirely."
+                    st.session_state.messages.append({"role": "assistant", "content": msg})
+                    st.rerun()
+                    st.stop()
+                
+                # PRIORITY 5: Move-on and skip signals - prevent repetitive questioning
+                if _is_already_asked(user_norm) or _is_move_on(user_norm):
+                    print(f"⏭️ [MOVE ON] Detected skip/move-on signal: '{user_norm}'")
+                    
+                    # Check if user is skipping a specific topic
+                    tkey = _topic_key_from_text(user_norm)
+                    if tkey and _is_topic_in_agenda(tkey):
+                        _mark_topic_covered_by_id(tkey)
+                        print(f"🎯 [TOPIC SKIP] Marked {tkey} as covered due to user request")
+
+                    st.session_state.messages.append({"role": "assistant", "content": "Moving on."})
+                    
+                    # Get next uncovered topic
+                    progress_info = analyze_conversation_progress(st.session_state.messages)
+                    next_question = progress_info.get('next_question', '')
+                    
+                    if next_question and not _recent_assistant_question_duplicate(next_question):
+                        # Generate brief transition and ask next question
+                        st.session_state.messages.append({"role": "assistant", "content": next_question})
+                    else:
+                        # Find alternative question if current one is duplicate
+                        st.session_state.messages.append({"role": "assistant", "content": "Let's continue with the next topic in our investment banking interview."})
+                    
+                    st.rerun()
+                    st.stop()
+                
                 # CONSOLIDATED RESEARCH HANDLING - Handle all research requests here
                 if research_request:
                     print(f"🔍 [RESEARCH HANDLER] Processing research request: '{prompt}'")
@@ -5817,8 +5982,8 @@ ENSURE you research the correct company mentioned in our conversation."""
                         try:
                             research_results = call_llm_api(research_messages, selected_model, api_key, api_service)
                             if research_results:
-                                # Strip unresolved citations and improve formatting
-                                clean_results = _strip_unresolved_citations(research_results)
+                                # Apply full sanitization - citations and transcript tokens
+                                clean_results = _sanitize_all(research_results)
                                 st.session_state.messages.append({"role": "assistant", "content": clean_results})
                                 print(f"✅ [RESEARCH] Research completed for {research_topic}")
                             else:
