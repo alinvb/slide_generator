@@ -5615,7 +5615,18 @@ Be conversational, helpful, and stay focused on the investment banking context. 
 
 Respond naturally as if you're an experienced investment banking professional having a conversation."""
 
-                                ai_response = get_ai_response(intent_analysis_prompt)
+                                # Create messages for LLM API
+                                intent_messages = [
+                                    {"role": "system", "content": "You are an experienced investment banking professional conducting interviews."},
+                                    {"role": "user", "content": intent_analysis_prompt}
+                                ]
+                                
+                                ai_response = call_llm_api(
+                                    intent_messages,
+                                    st.session_state.get('model', 'sonar-pro'), 
+                                    st.session_state['api_key'],
+                                    st.session_state.get('api_service', 'perplexity')
+                                )
                                 
                                 # Check if the AI response suggests research is needed
                                 if any(research_indicator in ai_response.lower() for research_indicator in [
@@ -5653,7 +5664,18 @@ Respond naturally as if you're an experienced investment banking professional ha
 
 Provide comprehensive, investment banking-grade analysis with specific details, numbers, and actionable insights. Include relevant context and be thorough in your response."""
 
-                                        research_results = get_ai_response(research_instruction)
+                                        # Create messages for research LLM API
+                                        research_messages = [
+                                            {"role": "system", "content": "You are a senior investment banking analyst providing comprehensive market research and company analysis."},
+                                            {"role": "user", "content": research_instruction}
+                                        ]
+                                        
+                                        research_results = call_llm_api(
+                                            research_messages,
+                                            st.session_state.get('model', 'sonar-pro'), 
+                                            st.session_state['api_key'],
+                                            st.session_state.get('api_service', 'perplexity')
+                                        )
                                         
                                         if research_results and len(research_results.strip()) > 50:
                                             st.session_state.messages.append({"role": "assistant", "content": research_results})
