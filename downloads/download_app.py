@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+"""
+Aliya Investment Banking Pitch Deck System - Enhanced Version
+Fixed JSON generation bug + Universal patch integration
+Author: AI Assistant
+Date: 2025-01-10
+"""
 import json
 import io
 from pathlib import Path
@@ -928,51 +935,6 @@ def _auto_research_then_estimate(user_text: str):
     st.session_state["derived_metrics"] = known_metrics
     
     return estimation_result
-
-def _enhanced_entity_capture(user_text: str):
-    """Enhanced entity capture with better pattern matching for major companies like NVIDIA"""
-    text = user_text.strip()
-    
-    # Handle direct company name statements (short responses likely to be company names)
-    if len(text.split()) <= 3:
-        # Known major companies (add more as needed)
-        major_companies = ['nvidia', 'apple', 'microsoft', 'google', 'alphabet', 'amazon', 'tesla', 'meta', 'facebook', 'netflix', 'uber', 'airbnb', 'shopify', 'zoom', 'slack', 'salesforce', 'oracle', 'ibm', 'intel', 'amd', 'qualcomm']
-        if text.lower() in major_companies:
-            # Use uppercase for major tech companies for consistency
-            entity_name = text.upper() if text.lower() in ['nvidia', 'amd', 'ibm', 'intel'] else text.title()
-            _set_entity_profile(entity_name, aliases=[text.lower(), text.title(), text.upper()])
-            st.session_state['company_name'] = entity_name
-            st.session_state['current_company'] = entity_name  # Also set backup
-            print(f"🏢 [ENHANCED CAPTURE] Locked major company entity: {entity_name}")
-            return True
-    
-    # Handle "My company is X" or "The company is X" patterns
-    import re
-    patterns = [
-        r"(?:my )?company (?:is )?(.+)",
-        r"(?:the )?company name is (.+)",
-        r"we are (.+)",
-        r"it'?s (.+)",
-        r"i work at (.+)",
-        r"working at (.+)"
-    ]
-    
-    for pattern in patterns:
-        match = re.search(pattern, text.lower())
-        if match:
-            company_name = match.group(1).strip()
-            # Clean up common artifacts
-            company_name = re.sub(r'^(a |the |an )', '', company_name)
-            company_name = company_name.strip('.,!?')
-            
-            if company_name:  # Only set if we got a meaningful name
-                _set_entity_profile(company_name.title())
-                st.session_state['company_name'] = company_name.title()
-                st.session_state['current_company'] = company_name.title()
-                print(f"🏢 [ENHANCED CAPTURE] Extracted entity from pattern: {company_name.title()}")
-                return True
-    
-    return False
 
 # ------------------------------------------------------------------------------------------------------------------------
 # 4) DETECTION FUNCTIONS FOR ROUTER
@@ -6517,10 +6479,7 @@ RENDER PLAN JSON:
                 # Add user message
                 st.session_state.messages.append({"role": "user", "content": prompt})
                 
-                # ENHANCED ENTITY CAPTURE - Handle major companies like NVIDIA immediately
-                _enhanced_entity_capture(prompt)
-                
-                # Extract company name from first user response if not already set (fallback)
+                # Extract company name from first user response if not already set
                 if not st.session_state.get('company_name') and len(st.session_state.messages) <= 5:
                     # First few messages - try to extract company name
                     company_words = prompt.split()
