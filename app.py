@@ -8,6 +8,9 @@ import zipfile
 from datetime import datetime
 import re
 
+# Import shared functions to avoid circular imports
+from shared_functions import call_llm_api as shared_call_llm_api
+
 # CRITICAL PATCH: Priority Intent Router + Fact Lookup
 def _normalize_text(s: str) -> str:
     """Normalize common typos and phrasing variations"""
@@ -160,7 +163,7 @@ Only include fields that are clearly mentioned in the research. Return just the 
             {"role": "user", "content": extraction_prompt}
         ]
         
-        response = call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
+        response = shared_call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
                               st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
         
         if response:
@@ -263,7 +266,7 @@ Answer briefly and factually. If you don't know, say so and offer to research.""
     ]
     
     try:
-        response = call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
+        response = shared_call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
                               st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
         return _strip_unresolved_citations(response or "I'm not sure about that. Would you like me to research it?")
     except Exception as e:
@@ -298,7 +301,7 @@ Use the context to extract known metrics and provide LOW/BASE/HIGH scenarios wit
     ]
     
     try:
-        response = call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
+        response = shared_call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
                               st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
         return _strip_unresolved_citations(response or "I'll need more financial data to provide a reliable revenue estimate.")
     except Exception as e:
@@ -885,7 +888,7 @@ def _run_research_universal(user_text: str):
             {"role": "system", "content": "You are a research assistant. Use readable titles + links."},
             {"role": "user", "content": guarded}
         ]
-        out = call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
+        out = shared_call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
                           st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
     except Exception as e:
         print(f"Research error: {e}")
@@ -897,7 +900,7 @@ def _run_research_universal(user_text: str):
         refine = f"{prefix}{user_text} (exclude confusable entities; adhere strictly to the specified entity profile)"
         try:
             messages[1]["content"] = refine
-            out2 = call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
+            out2 = shared_call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
                                st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
             out2 = _sanitize_output(out2 or "")
             if len(out2) > len(out) * 0.5:
@@ -919,7 +922,7 @@ def _run_fact_lookup_universal(user_text: str):
             {"role": "system", "content": "You answer direct factual questions briefly."},
             {"role": "user", "content": prompt}
         ]
-        out = call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
+        out = shared_call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
                           st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
         return _sanitize_output(out or "I'm not sure about that. Would you like me to research it?")
     except Exception:
@@ -1028,7 +1031,7 @@ def _run_research_for_estimation(entity_hint: str, user_text: str) -> tuple[str,
             {"role": "system", "content": "You are a research assistant. Find recent, reputable sources for the target entity/sector. Return a concise bullet list with TITLE and LINK for each source (no naked [1]/[2]). Then add a short 'Metrics' section with any numeric signals: active users/cardholders, ARPU ($/user), TPV/GMV (USD), take-rate (%), POS count."},
             {"role": "user", "content": query}
         ]
-        txt = call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
+        txt = shared_call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
                           st.session_state.get('api_key'), st.session_state.get('api_service', 'claude')) or ""
     except Exception:
         txt = f"Research on {entity_hint} for estimation purposes."
@@ -1064,7 +1067,7 @@ def _estimate_from_metrics(metrics: dict) -> str:
             {"role": "system", "content": instructions},
             {"role": "user", "content": primer}
         ]
-        res = call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
+        res = shared_call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
                           st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
         return _sanitize_output(res or "")
     except Exception:
@@ -3434,7 +3437,7 @@ Ensure ZERO placeholder content, proper data types, and complete information."""
     
     try:
         # Call LLM with feedback
-        corrected_response = call_llm_api(
+        corrected_response = shared_call_llm_api(
             feedback_conversation,
             selected_model,
             api_key,
@@ -5043,7 +5046,7 @@ Provide detailed research now, then ask for satisfaction confirmation before pro
                 
                 # Actually perform the research by calling the LLM
                 try:
-                    research_response = call_llm_api(enhanced_messages, model, api_key, service)
+                    research_response = shared_call_llm_api(enhanced_messages, model, api_key, service)
                     
                     # Ensure satisfaction check is included
                     from research_flow_handler import research_flow_handler
@@ -5092,7 +5095,7 @@ Provide detailed research now, then ask for satisfaction confirmation before pro
         enhanced_messages[0]["content"] = get_enhanced_system_prompt() + "\n\n🎯 CONTEXT AWARENESS: Avoid asking questions that were recently discussed. Check conversation history before asking new questions."
     
     # Use existing LLM call function
-    return call_llm_api(enhanced_messages, model, api_key, service)
+    return shared_call_llm_api(enhanced_messages, model, api_key, service)
 
 # --- BEGIN: Auto-convert buyer_profiles with financials → sea_conglomerates ---
 import os, re as _re
@@ -6530,7 +6533,71 @@ with tab_chat:
             })
         
         st.session_state.chat_started = True  # Enable JSON generation
+        
+        # Edit functionality - Allow users to modify research results
+        st.markdown("---")
+        col1, col2 = st.columns([3, 1])
+        
+        with col1:
+            st.markdown("**Ready to generate JSON?** Review your research above, then proceed to JSON generation.")
+        
+        with col2:
+            if st.button("✏️ Edit Results Before JSON Generation", key="edit_research_results"):
+                st.session_state.edit_mode = True
+                st.rerun()
+
+    # Edit mode interface
+    if st.session_state.get('edit_mode', False) and st.session_state.get('research_results'):
+        st.markdown("---")
+        st.markdown("## ✏️ Review & Edit Results")
+        st.markdown("Review the research results below. You can edit any section before generating the final JSON.")
+        
+        edited_results = {}
+        
+        for topic_id, topic_data in st.session_state.research_results.items():
+            st.markdown(f"### {topic_data['title']}")
             
+            # Create text area for editing
+            edited_content = st.text_area(
+                f"Edit {topic_data['title']} content:",
+                value=topic_data['content'],
+                height=200,
+                key=f"edit_{topic_id}",
+                help=f"Edit the research content for {topic_data['title']}"
+            )
+            
+            edited_results[topic_id] = {
+                **topic_data,
+                'content': edited_content
+            }
+            
+            st.markdown("---")
+        
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button("💾 Save Changes & Continue", type="primary", key="save_edited_results"):
+                # Update session state with edited results
+                st.session_state.research_results = edited_results
+                
+                # Update conversation messages with edited content
+                st.session_state.messages = [
+                    {"role": "system", "content": "Investment banking research data"}
+                ]
+                
+                for topic_id, topic_data in edited_results.items():
+                    st.session_state.messages.append({
+                        "role": "assistant",
+                        "content": f"**{topic_data['title']}**: {topic_data['content']}"
+                    })
+                
+                st.session_state.edit_mode = False
+                st.success("✅ Changes saved! You can now generate JSON with your edited content.")
+                st.rerun()
+        
+        with col2:
+            if st.button("❌ Cancel Edit Mode", key="cancel_edit_mode"):
+                st.session_state.edit_mode = False
+                st.rerun()
 
     # Manual JSON Generation Trigger Button - Always show if research completed
     if st.session_state.get('research_completed', False) or len(st.session_state.get('messages', [])) > 4:
@@ -6619,7 +6686,7 @@ RENDER PLAN JSON:
                         with st.spinner(f"🚀 Generating {len(slide_list)} relevant slides... (Max 2 minutes)"):
                             try:
                                 # HYBRID APPROACH: Let LLM generate naturally, then bulletproof the format
-                                ai_response = call_llm_api(
+                                ai_response = shared_call_llm_api(
                                     enhanced_messages,
                                     selected_model,
                                     api_key,
@@ -6636,7 +6703,7 @@ RENDER PLAN JSON:
                                 from bulletproof_json_generator import generate_bulletproof_json
                                 
                                 def bulletproof_llm_call(messages):
-                                    return call_llm_api(messages, selected_model, api_key, api_service)
+                                    return shared_call_llm_api(messages, selected_model, api_key, api_service)
                                 
                                 # Generate bulletproof JSONs with conversation extraction and research
                                 bulletproof_response, content_ir_direct, render_plan_direct = generate_bulletproof_json(
@@ -6946,7 +7013,7 @@ with tab_extract:
                         from bulletproof_json_generator import generate_bulletproof_json
                         
                         def llm_wrapper(messages, model=None, api_key=None, api_service=None):
-                            return call_llm_api(
+                            return shared_call_llm_api(
                                 messages, 
                                 st.session_state.get('model', 'sonar-pro'),
                                 st.session_state.get('api_key'),
