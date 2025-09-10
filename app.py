@@ -5554,6 +5554,54 @@ RENDER PLAN JSON:
                 
                 print(f"🧠 Enhanced decision: {enhanced_decision}")
                 
+                # CONSOLIDATED RESEARCH HANDLING - Handle all research requests here
+                if research_request:
+                    print(f"🔍 [RESEARCH HANDLER] Processing research request: '{prompt}'")
+                    
+                    # Get current topic for research context
+                    progress_info = analyze_conversation_progress(st.session_state.messages)
+                    current_topic = progress_info.get('current_topic', 'business_overview')
+                    company_name = st.session_state.get('company_name', 'your company')
+                    
+                    # Map current topic to research focus
+                    topic_research_mapping = {
+                        "business_overview": "business model and market overview",
+                        "product_service_footprint": "products services and geographic coverage",
+                        "historical_financial_performance": "financial data and performance metrics",
+                        "management_team": "executive team and leadership",
+                        "growth_strategy_projections": "growth strategy and market expansion", 
+                        "competitive_positioning": "competitive landscape and differentiation",
+                        "valuation_overview": "valuation methodologies and comparables"
+                    }
+                    
+                    research_topic = topic_research_mapping.get(current_topic, "business overview")
+                    print(f"🔍 [RESEARCH] Topic: {current_topic} → Research: {research_topic}")
+                    
+                    with st.spinner(f"🔍 Researching {research_topic} for {company_name}..."):
+                        # Call LLM for research
+                        research_prompt = f"""Research comprehensive information about {company_name} focusing on {research_topic}. 
+                        Provide specific data, numbers, and insights relevant for investment banking analysis.
+                        Include recent developments, financial metrics, and market positioning."""
+                        
+                        research_messages = [
+                            {"role": "system", "content": "You are an investment banking research analyst. Provide detailed, factual research."},
+                            {"role": "user", "content": research_prompt}
+                        ]
+                        
+                        try:
+                            research_results = call_llm_api(research_messages, selected_model, api_key, api_service)
+                            if research_results:
+                                st.session_state.messages.append({"role": "assistant", "content": research_results})
+                                print(f"✅ [RESEARCH] Research completed for {research_topic}")
+                            else:
+                                st.session_state.messages.append({"role": "assistant", "content": f"I'd be happy to help research {research_topic} for {company_name}. Could you provide more specific areas you'd like me to focus on?"})
+                        except Exception as e:
+                            print(f"❌ [RESEARCH] Error: {str(e)}")
+                            st.session_state.messages.append({"role": "assistant", "content": f"I encountered an issue while researching. Could you provide more details about {research_topic} for {company_name}?"})
+                    
+                    st.rerun()
+                    return  # Exit early after research
+                
                 # Analyze conversation progress
                 progress_info = analyze_conversation_progress(st.session_state.messages)
                 
@@ -5579,10 +5627,10 @@ RENDER PLAN JSON:
                     st.session_state.messages.append({"role": "assistant", "content": ai_response})
                     st.rerun()
                 elif enhanced_decision['action'] == 'trigger_research':
-                    # Enhanced system detected research request - use existing research flow
-                    print("🧠 Enhanced system triggered research flow")
+                    # Enhanced system detected research request - IMMEDIATELY proceed to research
+                    print("🧠 Enhanced system triggered research flow - skipping conversation analysis")
                     research_request = True
-                    # Continue to existing research handling logic below
+                    user_message_lower = prompt.lower()  # Set this for research flow below
                 elif enhanced_decision['action'] in ['advance_topic', 'auto_advance_topic']:
                     # Enhanced system suggests topic advancement
                     if enhanced_decision['bridge_message']:
@@ -5598,24 +5646,24 @@ RENDER PLAN JSON:
                     # Trigger your existing JSON generation logic
                     st.rerun()
                 else:
-                    # ENHANCED CONVERSATION SYSTEM WITH VERIFICATION AND INTELLIGENT FOLLOW-UPS
-                    # Handle user responses with fact-checking, verification, and smart follow-ups
-                    
+                    # NON-RESEARCH ENHANCED CONVERSATION - Handle normally
                     user_message_lower = prompt.lower()
                     
-                    # CRITICAL FIX: Check for research requests FIRST before enhanced conversation handler
-                    # This prevents the infinite loop issue at Topic 3
-                    research_request = any(phrase in user_message_lower for phrase in [
+                    # Check if this is a legacy research request (fallback)
+                    legacy_research_request = any(phrase in user_message_lower for phrase in [
                         "research this", "research for me", "research it", "research yourself",
                         "please research", "find information", "look up", "investigate", 
                         "do research", "search for"
                     ])
                     
-                    if research_request:
-                        # IMMEDIATE RESEARCH - Skip enhanced handler to prevent loops
-                        print(f"🔍 [IMMEDIATE RESEARCH] Research request detected: '{prompt}' - bypassing verification")
-                        # Continue directly to research flow below
+                    if legacy_research_request:
+                        # Legacy research detection - set flag and continue to research handling
+                        print(f"🔍 [LEGACY RESEARCH] Research request detected: '{prompt}'")
+                        research_request = True
+                        user_message_lower = prompt.lower()  # Ensure this is set
                     else:
+                        # Normal conversation flow
+                        research_request = False
                         # Use enhanced conversation handler for non-research interactions
                         from enhanced_conversation_handler import create_information_verification_system
                         enhanced_handler = create_information_verification_system()
