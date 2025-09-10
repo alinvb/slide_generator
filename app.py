@@ -3049,7 +3049,7 @@ def analyze_conversation_progress(messages):
     result = {
         "current_topic": topics[current_position - 1]["id"] if current_position <= 14 else "completed",
         "next_topic": topics[current_position - 1]["id"] if current_position <= 14 else "completed", 
-        "next_question": topics[current_position - 1]["next_question"] if current_position <= 14 else "Interview complete!",
+        "next_question": topics[current_position - 1]["question"] if current_position <= 14 else "Interview complete!",
         "is_complete": is_complete,
         "topics_completed": completed_topics,
         "current_position": current_position,
@@ -5999,7 +5999,8 @@ Sources: Company filings, industry reports, financial databases"""
                     research_request = research_request or follow_up_research_request
                     
                     # PRIORITY 1: Handle "next topic" for sequential interview progression
-                    if "next topic" in user_message_lower and not research_request:
+                    # CRITICAL FIX: "next topic" should ALWAYS be handled, regardless of research_request detection
+                    if "next topic" in user_message_lower:
                         # User wants to advance to next topic in the 14-topic sequence
                         progress_info = analyze_conversation_progress(st.session_state.messages)
                         
