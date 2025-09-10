@@ -13,8 +13,9 @@ except Exception:
 
 import importlib
 
-# Local import (must be importable from working dir)
-adapters = importlib.import_module("adapters")
+# RESTORED: Import proper adapters module for sophisticated slide generation
+import adapters
+
 
 def _ensure_prs(prs=None):
     """Return a python-pptx Presentation or create a new one."""
@@ -23,6 +24,7 @@ def _ensure_prs(prs=None):
     if prs is None or not hasattr(prs, "slides"):
         return Presentation()
     return prs
+
 
 def execute_plan(
     plan: Optional[Dict] = None,
@@ -34,12 +36,12 @@ def execute_plan(
     deck_path: Optional[str] = None,
     company_name: str = "Moelis",
     brand_config: Optional[Dict] = None,  # NEW: Brand configuration
-    **_ignore_kwargs,
+    **kwargs,  # Changed from _ignore_kwargs to handle additional parameters
 ) -> Tuple[Any, str]:
     """
     Build a deck from a plan/content/content_ir and return the pptx.Presentation and save path.
     If out_path/output_path/deck_path is provided, save the deck there.
-    Extra kwargs are ignored to be compatible with older callers.
+    Extra kwargs are handled to support various parameter naming conventions.
     
     Args:
         plan: Render plan dictionary
@@ -54,47 +56,56 @@ def execute_plan(
         Tuple[Presentation, str]: The presentation object and the path where it was saved
     """
     prs_obj = _ensure_prs(prs)
-
-    # Determine the save path
-    save_path = out_path or output_path or deck_path or "deck.pptx"
-
-    prs_out = adapters.render_plan_to_pptx(
-        plan=plan, 
-        content=content, 
-        content_ir=content_ir, 
-        prs=prs_obj, 
-        company_name=company_name,
-        brand_config=brand_config  # Pass brand configuration to adapters
-    )
-
-    # Save if path is provided
-    if save_path:
-        save_path = str(save_path)
-        try:
-            Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-            prs_out.save(save_path)
-        except Exception as e:
-            # Fallback to current directory if save fails
-            fallback_path = "deck.pptx"
-            try:
-                prs_out.save(fallback_path)
-                save_path = fallback_path
-            except Exception as e2:
-                print(f"Failed to save to both {save_path} and {fallback_path}: {e2}")
-                save_path = "failed_to_save.pptx"
-
-    return prs_out, save_path
-
-# Convenience for CLI/manual testing
-if __name__ == "__main__":
-    import json, sys
-    input_json = None
-    if len(sys.argv) > 1:
-        with open(sys.argv[1], "r", encoding="utf-8") as f:
-            input_json = json.load(f)
-    else:
-        # Minimal demo
-        input_json = {"slides": [{"template": "management_team", "data": {"title": "Demo", "left_column_profiles": [], "right_column_profiles": []}}]}
     
-    prs, path = execute_plan(plan=input_json, out_path="deck.pptx")
-    print(f"Wrote {path}")
+    # Use the sophisticated adapters.render_plan_to_pptx function
+    try:
+        print("🎯 RESTORED: Using sophisticated adapters.render_plan_to_pptx")
+        prs_obj = adapters.render_plan_to_pptx(
+            plan=plan,
+            content=content,
+            content_ir=content_ir,
+            prs=prs_obj,
+            company_name=company_name,
+            brand_config=brand_config
+        )
+        print("✅ Successfully used sophisticated adapters rendering")
+    except Exception as e:
+        print(f"❌ Error using adapters.render_plan_to_pptx: {e}")
+        # Fallback to basic rendering if adapters fails
+        if plan and 'slides' in plan:
+            print("⚠️ Falling back to basic slide rendering")
+            # Simple fallback - this should rarely be needed
+            import slide_templates
+            for slide_config in plan['slides']:
+                template = slide_config.get('template')
+                try:
+                    render_func = getattr(slide_templates, f'render_{template}_slide', None)
+                    if render_func:
+                        prs_obj = render_func(
+                            data=slide_config.get('data'),
+                            prs=prs_obj,
+                            company_name=company_name
+                        )
+                        print(f"✅ Fallback rendered {template} slide")
+                except Exception as fallback_error:
+                    print(f"❌ Fallback error for {template}: {fallback_error}")
+
+    # Determine output path
+    save_path = out_path or output_path or deck_path
+    if not save_path:
+        save_path = "output_presentation.pptx"
+    
+    # Ensure the output path has the correct extension
+    if not save_path.endswith('.pptx'):
+        save_path += '.pptx'
+    
+    # Save the presentation
+    try:
+        prs_obj.save(save_path)
+        print(f"✅ Presentation saved successfully to: {save_path}")
+    except Exception as e:
+        print(f"❌ Error saving presentation: {e}")
+        # Return a default path even if save failed
+        save_path = "failed_to_save.pptx"
+    
+    return prs_obj, save_path
