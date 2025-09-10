@@ -7,6 +7,7 @@ Preserves ALL JSON generation logic while preventing getting stuck
 """
 
 import streamlit as st
+from collections import deque
 from enhanced_conversation_manager import enhanced_manager
 from typing import Dict, Optional, Tuple, Any
 
