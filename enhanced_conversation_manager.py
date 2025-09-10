@@ -96,12 +96,28 @@ class EnhancedConversationManager:
         
         user_lower = user_message.lower().strip()
         
+        # PRIORITY: Handle short confirmatory responses FIRST to prevent misclassification
+        if user_lower in ["ok", "okay", "yes", "sure", "right", "correct", "sounds good", 
+                         "that's right", "good", "fine", "alright", "yep", "yeah"]:
+            return "answering_question"
+        
+        # Handle very short responses that are clearly not research requests
+        if len(user_message.split()) <= 2 and not any(word in user_lower for word in 
+                                                      ["research", "find", "look", "search"]):
+            return "answering_question"
+        
         # Primary: Use transformers zero-shot classification if available
         if _HAS_TRANSFORMERS and _ZERO_SHOT:
             try:
                 result = _ZERO_SHOT(user_message, self.intent_labels)
                 if result and 'labels' in result and len(result['labels']) > 0:
-                    return result['labels'][0]
+                    # Double-check: Don't trust transformers for obvious short responses
+                    predicted_intent = result['labels'][0]
+                    if predicted_intent == "requesting_research" and len(user_message.split()) <= 3:
+                        if not any(word in user_lower for word in ["research", "find", "look", "search", "investigate"]):
+                            print(f"⚠️ Overriding transformers research classification for short response: '{user_message}'")
+                            return "answering_question"
+                    return predicted_intent
             except Exception as e:
                 print(f"⚠️ Intent classification failed: {e}")
         
