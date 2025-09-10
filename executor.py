@@ -34,12 +34,12 @@ def execute_plan(
     deck_path: Optional[str] = None,
     company_name: str = "Moelis",
     brand_config: Optional[Dict] = None,  # NEW: Brand configuration
-    **_ignore_kwargs,
+    **kwargs,  # Changed from _ignore_kwargs to handle additional parameters
 ) -> Tuple[Any, str]:
     """
     Build a deck from a plan/content/content_ir and return the pptx.Presentation and save path.
     If out_path/output_path/deck_path is provided, save the deck there.
-    Extra kwargs are ignored to be compatible with older callers.
+    Extra kwargs are handled to support various parameter naming conventions.
     
     Args:
         plan: Render plan dictionary
@@ -55,8 +55,16 @@ def execute_plan(
     """
     prs_obj = _ensure_prs(prs)
 
-    # Determine the save path
-    save_path = out_path or output_path or deck_path or "deck.pptx"
+    # Handle alternative parameter names for render plan
+    if plan is None and 'render_plan' in kwargs:
+        plan = kwargs['render_plan']
+        print(f"[DEBUG] Using render_plan parameter as plan")
+    
+    # Handle alternative parameter names for output file
+    output_file = kwargs.get('output_file')
+    
+    # Determine the save path (try all possible parameter names)
+    save_path = out_path or output_path or deck_path or output_file or "deck.pptx"
 
     prs_out = adapters.render_plan_to_pptx(
         plan=plan, 

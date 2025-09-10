@@ -1,0 +1,726 @@
+{
+  "slides": [
+    {
+      "template": "business_overview",
+      "data": {
+        "title": "Business Overview",
+        "description": "Databricks is a global leader in unified data, analytics, and AI, offering a cloud-based lakehouse platform that integrates data engineering, machine learning, and business intelligence for large enterprises.",
+        "timeline": {
+          "start_year": 2013,
+          "end_year": 2025
+        },
+        "highlights": [
+          "Pioneered the data lakehouse architecture for unified analytics and AI workflows at scale",
+          "Achieved $3.7B revenue run-rate in 2025 with 50% YoY growth",
+          "Originator and primary contributor to Apache Spark, Delta Lake, and MLflow open-source projects"
+        ],
+        "services": [
+          "Unified Data Intelligence Platform for end-to-end data engineering, analytics, and AI",
+          "Cloud-native data lakehouse supporting batch, streaming, BI, and ML workloads on any cloud",
+          "Open source and proprietary tools for data governance, orchestration, and scalable machine learning"
+        ],
+        "positioning_desc": "Databricks is positioned as the industry-defining platform for modern enterprise data, analytics, and AI transformation, with unmatched open-source leadership and AI/ML integration."
+      }
+    },
+    {
+      "template": "investor_considerations",
+      "data": {
+        "title": "Investor Considerations",
+        "considerations": [
+          "Escalating competition from cloud and AI infrastructure giants",
+          "Margin pressure from rising AI compute and cloud costs",
+          "Reliance on key technical leadership and open-source talent",
+          "Rapidly evolving customer demands and technology standards",
+          "Potential regulatory scrutiny in data privacy and AI ethics"
+        ],
+        "mitigants": [
+          "Multi-cloud support and open ecosystem partnerships",
+          "Ongoing platform optimization and AI cost management",
+          "Talent retention plans and deep technical bench",
+          "Diversified enterprise customer base and long-term contracts",
+          "Investments in security, compliance, and responsible AI governance"
+        ]
+      }
+    },
+    {
+      "template": "product_service_footprint",
+      "data": {
+        "title": "Product & Service Footprint",
+        "services": [
+          {
+            "title": "Delta Lake",
+            "desc": "Reliable lakehouse storage with ACID transactions, schema enforcement, and open data formats."
+          },
+          {
+            "title": "Unity Catalog",
+            "desc": "Unified governance for all data and AI assets, access control, lineage, and centralized discovery."
+          },
+          {
+            "title": "MLflow",
+            "desc": "Open source MLOps for experiment tracking, model registry, and generative AI/LLM integration."
+          },
+          {
+            "title": "Photon Engine",
+            "desc": "High-performance, vectorized query engine for Spark SQL and AI workloads, proprietary C++ core."
+          },
+          {
+            "title": "Databricks SQL",
+            "desc": "Cloud-native data warehousing and SQL analytics for the lakehouse, supporting BI and ad hoc queries."
+          },
+          {
+            "title": "Delta Live Tables",
+            "desc": "Declarative ETL pipelines with automatic orchestration, error handling, and data quality."
+          }
+        ],
+        "coverage_table": [
+          [
+            "Region",
+            "Market Segment",
+            "Major Assets/Products",
+            "Coverage Details"
+          ],
+          [
+            "North America",
+            "Cloud Data & AI",
+            "Delta Lake, Unity Catalog",
+            "AWS, Azure, GCP; Fortune 500; Marketplace"
+          ],
+          [
+            "EMEA",
+            "Analytics/Lakehouse",
+            "Databricks SQL, Photon",
+            "Multi-cloud, Financial services, Public sector"
+          ],
+          [
+            "Asia-Pacific",
+            "AI/ML, BI",
+            "MLflow, Genie Dashboards",
+            "Tech, Retail, Gov, Cloud-native deployments"
+          ],
+          [
+            "Global",
+            "Data Governance",
+            "Unity Catalog, Clean Rooms",
+            "Multi-cloud, privacy-preserving collaboration"
+          ]
+        ],
+        "metrics": {
+          "customer_count": 11500,
+          "net_retention": 140,
+          "gross_margin": 80,
+          "enterprise_customers": 500
+        }
+      }
+    },
+    {
+      "template": "historical_financial_performance",
+      "data": {
+        "title": "Historical Financial Performance",
+        "chart": {
+          "categories": [
+            "2021",
+            "2022",
+            "2023",
+            "2024",
+            "2025E"
+          ],
+          "revenue": [
+            800,
+            1200,
+            1600,
+            3000,
+            3700
+          ],
+          "ebitda": [
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "key_metrics": {
+          "metrics": [
+            "50%",
+            "$3.7B",
+            "140%",
+            "11,500"
+          ]
+        },
+        "revenue_growth": {
+          "title": "Revenue Growth",
+          "points": [
+            "2023–2025 CAGR: ~50%",
+            "2025 run-rate: $3.7B",
+            "Free cash flow positive in 2024"
+          ]
+        },
+        "banker_view": {
+          "title": "Banker Perspective",
+          "text": "Databricks posts category-leading SaaS/AI growth, with revenue doubling in two years, gross margin 80%, and net retention 140%—a benchmark for high-performance data/AI infrastructure."
+        }
+      }
+    },
+    {
+      "template": "management_team",
+      "data": {
+        "title": "Management Team",
+        "left_column_profiles": [
+          {
+            "role_title": "Chief Executive Officer – Ali Ghodsi",
+            "experience_bullets": [
+              "Co-founder and CEO since 2016",
+              "Former VP Engineering & Product, Databricks",
+              "PhD in Distributed Computing, KTH/Royal Institute of Technology",
+              "Adjunct professor at UC Berkeley",
+              "Led Databricks' global expansion and AI innovation"
+            ]
+          },
+          {
+            "role_title": "Executive Chairman – Ion Stoica",
+            "experience_bullets": [
+              "Co-founder and Executive Chairman since 2016",
+              "Professor at UC Berkeley, PhD Computer Science",
+              "Co-founder of Conviva and NetSeer",
+              "Drives funding, partnerships, and corporate governance",
+              "Guides M&A and R&D priorities"
+            ]
+          },
+          {
+            "role_title": "Chief Technology Officer – Matei Zaharia",
+            "experience_bullets": [
+              "Co-founder and CTO at Databricks",
+              "Creator of Apache Spark and key architect",
+              "PhD from UC Berkeley",
+              "Professor at Stanford University",
+              "Leads technical innovation and open-source strategy"
+            ]
+          }
+        ],
+        "right_column_profiles": [
+          {
+            "role_title": "SVP Engineering – Patrick Wendell",
+            "experience_bullets": [
+              "Co-founder and SVP Engineering",
+              "Leads global engineering teams",
+              "BS and MS, UC Berkeley",
+              "Early Spark innovator at AMPLab",
+              "Expert in distributed systems and scaling engineering orgs"
+            ]
+          },
+          {
+            "role_title": "Chief Revenue Officer – Ron Gabrisko",
+            "experience_bullets": [
+              "Joined as CRO in 2015",
+              "Leads global sales and revenue operations",
+              "Scaled SaaS and enterprise sales teams",
+              "Former CRO/VP at high-growth tech firms",
+              "Drove Fortune 500 and enterprise expansion"
+            ]
+          },
+          {
+            "role_title": "Chief Product Officer – Reynold Xin",
+            "experience_bullets": [
+              "Co-founder and CPO at Databricks",
+              "Leads product management and strategy",
+              "Launched Spark SQL, Delta Lake, MLflow",
+              "Background in distributed systems, open source",
+              "Key driver of commercial product vision"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "template": "growth_strategy_projections",
+      "data": {
+        "title": "Growth Strategy & Financial Projections",
+        "slide_data": {
+          "title": "Growth Strategy & Projections",
+          "growth_strategy": {
+            "strategies": [
+              "Accelerate AI product innovation (Agent Bricks, Lakebase, enterprise copilots)",
+              "Expand unified platform for full data lifecycle—data ingestion to AI-powered apps",
+              "Drive multi-cloud global expansion and deepen cloud/enterprise partnerships",
+              "Strategic M&A to strengthen AI, data, and agent infrastructure"
+            ]
+          },
+          "financial_projections": {
+            "categories": [
+              "2024",
+              "2025E",
+              "2026E",
+              "2027E"
+            ],
+            "revenue": [
+              3000,
+              3700,
+              5500,
+              7500
+            ],
+            "ebitda": [
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        }
+      }
+    },
+    {
+      "template": "competitive_positioning",
+      "data": {
+        "title": "Competitive Positioning",
+        "competitors": [
+          {
+            "name": "Snowflake",
+            "revenue": 2700
+          },
+          {
+            "name": "Google BigQuery",
+            "revenue": 2000
+          },
+          {
+            "name": "Microsoft SQL Server",
+            "revenue": 5000
+          },
+          {
+            "name": "Amazon Redshift",
+            "revenue": 1000
+          },
+          {
+            "name": "MongoDB",
+            "revenue": 1800
+          }
+        ],
+        "assessment": [
+          [
+            "Company",
+            "Market Share",
+            "Tech Platform",
+            "Coverage",
+            "Revenue (M)"
+          ],
+          [
+            "Databricks",
+            "⭐⭐⭐⭐⭐",
+            "⭐⭐⭐⭐⭐",
+            "⭐⭐⭐⭐⭐",
+            "$3,000M"
+          ],
+          [
+            "Snowflake",
+            "⭐⭐⭐⭐⭐",
+            "⭐⭐⭐⭐",
+            "⭐⭐⭐⭐⭐",
+            "$2,700M"
+          ],
+          [
+            "BigQuery",
+            "⭐⭐⭐⭐",
+            "⭐⭐⭐⭐⭐",
+            "⭐⭐⭐⭐⭐",
+            "$2,000M"
+          ],
+          [
+            "SQL Server",
+            "⭐⭐⭐⭐",
+            "⭐⭐⭐",
+            "⭐⭐⭐⭐",
+            "$5,000M"
+          ],
+          [
+            "Redshift",
+            "⭐⭐⭐",
+            "⭐⭐⭐⭐",
+            "⭐⭐⭐⭐",
+            "$1,000M"
+          ]
+        ],
+        "barriers": [
+          {
+            "title": "Platform Complexity",
+            "desc": "Requires skilled data engineers and DevOps for optimal deployment"
+          },
+          {
+            "title": "Switching Costs",
+            "desc": "High for large enterprises with integrated pipelines"
+          },
+          {
+            "title": "Ecosystem Lock-in",
+            "desc": "Competing platforms leverage deep cloud integrations"
+          },
+          {
+            "title": "Security & Compliance",
+            "desc": "Stringent requirements in regulated industries"
+          },
+          {
+            "title": "Cost Structure",
+            "desc": "Lakehouse architecture can be costlier for small-scale analytics"
+          }
+        ],
+        "advantages": [
+          {
+            "title": "Unified Lakehouse Platform",
+            "desc": "Combines lake and warehouse in a single, governed architecture"
+          },
+          {
+            "title": "Open Source Leadership",
+            "desc": "Primary contributor to Spark, Delta Lake, MLflow"
+          },
+          {
+            "title": "AI/ML Integration",
+            "desc": "Native support for advanced AI/ML workloads and agents"
+          },
+          {
+            "title": "Scalability & Performance",
+            "desc": "Optimized for petabyte-scale, real-time analytics and ETL"
+          },
+          {
+            "title": "Collaborative Workspace",
+            "desc": "Secure, collaborative environment for engineering and analytics"
+          }
+        ]
+      }
+    },
+    {
+      "template": "valuation_overview",
+      "data": {
+        "title": "Valuation Overview",
+        "valuation_data": [
+          {
+            "methodology": "Trading Multiples",
+            "enterprise_value": "$100B+",
+            "metric": "EV/Revenue",
+            "22a_multiple": "33.3x",
+            "23e_multiple": "27.0x",
+            "commentary": "Databricks revenue reached $3.7B by July 2025; premium for AI leadership vs. SaaS peers.",
+            "methodology_type": "trading_comps"
+          },
+          {
+            "methodology": "Trading Multiples",
+            "enterprise_value": "$100B+",
+            "metric": "EV/EBITDA",
+            "22a_multiple": "n/a",
+            "23e_multiple": "n/a",
+            "commentary": "EBITDA not disclosed; gross margin ~80%; comps trade 25–40x EV/EBITDA.",
+            "methodology_type": "trading_comps"
+          },
+          {
+            "methodology": "Discounted Cash Flow (DCF)",
+            "enterprise_value": "$100–120B",
+            "metric": "NPV of FCF",
+            "22a_multiple": "n/a",
+            "23e_multiple": "n/a",
+            "commentary": "Based on 40–50% YoY FCF growth, AI capex, and >140% retention; supports premium.",
+            "methodology_type": "dcf"
+          }
+        ],
+        "__hide_metric_col": false,
+        "__hide_22a_col": false,
+        "__hide_23e_col": false
+      }
+    },
+    {
+      "template": "precedent_transactions",
+      "data": {
+        "title": "Precedent Transactions",
+        "transactions": [
+          {
+            "target": "Neon",
+            "acquirer": "Databricks",
+            "date": "2025",
+            "country": "US",
+            "enterprise_value": 1000,
+            "revenue": null,
+            "ev_revenue_multiple": null
+          },
+          {
+            "target": "Tabular",
+            "acquirer": "Databricks",
+            "date": "2024",
+            "country": "US",
+            "enterprise_value": 1800,
+            "revenue": null,
+            "ev_revenue_multiple": null
+          },
+          {
+            "target": "MosaicML",
+            "acquirer": "Databricks",
+            "date": "2023",
+            "country": "US",
+            "enterprise_value": 1300,
+            "revenue": null,
+            "ev_revenue_multiple": null
+          },
+          {
+            "target": "Fivetran",
+            "acquirer": "Vista Equity",
+            "date": "2024",
+            "country": "US",
+            "enterprise_value": 5600,
+            "revenue": 350,
+            "ev_revenue_multiple": 16
+          },
+          {
+            "target": "Snowflake",
+            "acquirer": null,
+            "date": "2025",
+            "country": "US",
+            "enterprise_value": 65000,
+            "revenue": 3800,
+            "ev_revenue_multiple": 17
+          },
+          {
+            "target": "Confluent",
+            "acquirer": "Google Cloud",
+            "date": "2024",
+            "country": "US",
+            "enterprise_value": 6000,
+            "revenue": 800,
+            "ev_revenue_multiple": 7.5
+          }
+        ]
+      }
+    },
+    {
+      "template": "margin_cost_resilience",
+      "data": {
+        "title": "Margin & Cost Resilience",
+        "chart_title": "Margins, Cash Flow, and Retention",
+        "chart_data": {
+          "categories": [
+            "2023",
+            "2024",
+            "2025E"
+          ],
+          "gross_margin": [
+            85,
+            80,
+            80
+          ],
+          "free_cash_flow": [
+            null,
+            0,
+            0
+          ],
+          "net_retention": [
+            140,
+            140,
+            140
+          ]
+        },
+        "cost_management": {
+          "items": [
+            {
+              "title": "Cloud-Native Usage Model",
+              "description": "Consumption-based pricing and elastic scaling drive cost efficiency."
+            },
+            {
+              "title": "Enterprise Tiering",
+              "description": "Premium features and pricing support blended margin stability."
+            },
+            {
+              "title": "Performance Optimization",
+              "description": "Photon engine and pipeline orchestration reduce cloud costs at scale."
+            },
+            {
+              "title": "Operational Efficiency",
+              "description": "Automation and lean SG&A preserve margins during rapid growth."
+            }
+          ]
+        },
+        "risk_mitigation": {
+          "main_strategy": "Multi-cloud partnerships, AI compute cost controls, and high net retention mitigate margin risk."
+        }
+      }
+    },
+    {
+      "template": "sea_conglomerates",
+      "data": {
+        "title": "Global Conglomerates",
+        "data": [
+          {
+            "name": "NVIDIA",
+            "country": "USA",
+            "description": "AI chip, accelerator, and data infrastructure leader; #1 global market cap in 2025.",
+            "key_shareholders": "BlackRock, Vanguard",
+            "key_financials": "Revenue $120B; Market Cap $4T+",
+            "contact": "N/A"
+          },
+          {
+            "name": "Microsoft",
+            "country": "USA",
+            "description": "Global leader in cloud, AI, enterprise software, and data platforms.",
+            "key_shareholders": "Vanguard, BlackRock",
+            "key_financials": "Revenue $225B; Market Cap $3.1T",
+            "contact": "N/A"
+          },
+          {
+            "name": "Saudi Aramco",
+            "country": "Saudi Arabia",
+            "description": "Largest energy conglomerate, expanding into tech, renewables, and AI infrastructure.",
+            "key_shareholders": "Saudi Government",
+            "key_financials": "Revenue $650B; Market Cap $2.2T",
+            "contact": "N/A"
+          },
+          {
+            "name": "Tencent",
+            "country": "China",
+            "description": "Chinese internet, cloud, and fintech conglomerate; major global tech investor.",
+            "key_shareholders": "Naspers, Prosus",
+            "key_financials": "Revenue $95B; Market Cap $500B",
+            "contact": "N/A"
+          },
+          {
+            "name": "Berkshire Hathaway",
+            "country": "USA",
+            "description": "Global investment conglomerate with holdings in tech, insurance, utilities, and manufacturing.",
+            "key_shareholders": "Warren Buffett, public shareholders",
+            "key_financials": "Revenue $450B; Market Cap $900B",
+            "contact": "N/A"
+          }
+        ]
+      }
+    },
+    {
+      "template": "buyer_profiles",
+      "data": {
+        "title": "Strategic Buyer Profiles",
+        "table_headers": [
+          "Buyer Name",
+          "Description",
+          "Strategic Rationale",
+          "Key Synergies",
+          "Fit"
+        ],
+        "table_rows": [
+          {
+            "buyer_name": "Microsoft",
+            "strategic_rationale": "Global leader in cloud, AI, and enterprise platforms (Azure, Copilot, OpenAI partner)",
+            "key_synergies": "Deepen Azure integration, accelerate AI/ML and data lakehouse adoption at scale",
+            "fit": "High (10/10) – Full-stack AI/computing fit"
+          },
+          {
+            "buyer_name": "Amazon (AWS)",
+            "strategic_rationale": "World's largest cloud provider; leader in data, analytics, ML",
+            "key_synergies": "Consolidate data/AI ecosystem, counter Google/MSFT, expand lakehouse/ML reach",
+            "fit": "High (9/10) – Cloud/AI expansion alignment"
+          },
+          {
+            "buyer_name": "Google (Alphabet)",
+            "strategic_rationale": "Cloud/AI leader (BigQuery, Vertex AI, Gemini, global data reach)",
+            "key_synergies": "Enhance GCP data/AI, migrate customers, compete with AWS/Azure for AI workloads",
+            "fit": "High (9/10) – Data+AI portfolio synergy"
+          },
+          {
+            "buyer_name": "SAP",
+            "strategic_rationale": "ERP/AI software leader; strong in enterprise digital transformation",
+            "key_synergies": "Add unified data/AI platform, empower SAP BTP with Databricks' lakehouse, drive AI",
+            "fit": "Medium (7/10) – Strong enterprise overlap"
+          },
+          {
+            "buyer_name": "Meta (Facebook)",
+            "strategic_rationale": "Global social/AI platform; open-source AI, data infra at scale",
+            "key_synergies": "Build open foundation for genAI/agents, apply Databricks' tools to large data graphs",
+            "fit": "Medium (7/10) – Open data/AI alignment"
+          }
+        ],
+        "subtitle": "",
+        "company": "",
+        "content_ir_key": "strategic_buyers"
+      }
+    },
+    {
+      "template": "buyer_profiles",
+      "data": {
+        "title": "Financial Buyer Profiles",
+        "table_headers": [
+          "Buyer Name",
+          "Description",
+          "Investment Rationale",
+          "Key Synergies",
+          "Fit"
+        ],
+        "table_rows": [
+          {
+            "buyer_name": "Thrive Capital",
+            "strategic_rationale": "Leading growth-stage VC/PE, strong tech and SaaS focus",
+            "key_synergies": "Backed Series K ($100B); accelerate GTM, AI investments, IPO readiness",
+            "fit": "High (10/10) – Lead investor, strong fit"
+          },
+          {
+            "buyer_name": "Andreessen Horowitz",
+            "strategic_rationale": "Top-tier VC/PE, pioneer in cloud/AI infrastructure",
+            "key_synergies": "Anchor investor; supports AI-native SaaS, industry-defining platform bets",
+            "fit": "High (10/10) – AI/cloud domain specialist"
+          },
+          {
+            "buyer_name": "Insight Partners",
+            "strategic_rationale": "Global growth equity leader, SaaS/infra focus",
+            "key_synergies": "Serial investor; drives value creation, M&A, operational scaling",
+            "fit": "High (9/10) – SaaS scaling expert"
+          },
+          {
+            "buyer_name": "WCM Investment Management",
+            "strategic_rationale": "High-conviction public/private equity manager",
+            "key_synergies": "Seeking exposure to pre-IPO AI/infra leaders, supports long hold periods",
+            "fit": "Medium (8/10) – Long-term capital, support"
+          },
+          {
+            "buyer_name": "DST Global",
+            "strategic_rationale": "Global tech investor, focus on category-defining companies",
+            "key_synergies": "Participated in Series J/K; cross-border expansion, late-stage scaling",
+            "fit": "High (9/10) – Growth, global expansion"
+          }
+        ],
+        "subtitle": "",
+        "company": "",
+        "content_ir_key": "financial_buyers"
+      }
+    },
+    {
+      "template": "investor_process_overview",
+      "data": {
+        "title": "Investor Process Overview",
+        "diligence_topics": [
+          "Product & Technology: platform architecture, AI/ML, open-source assets",
+          "Financials: revenue, margins, retention, churn, customer concentration",
+          "Go-to-Market: customer base, contracts, cloud partnerships",
+          "Security/Compliance: governance, privacy, operational resilience",
+          "Leadership: technical depth, retention, innovation culture",
+          "Legal/IP: patents, open-source, litigation"
+        ],
+        "synergy_opportunities": [
+          "Leverage buyer's cloud or distribution for Databricks' platform expansion",
+          "Combine AI/ML assets for new joint offerings",
+          "Expand international and regulated industry reach",
+          "Optimize infrastructure, engineering, and go-to-market"
+        ],
+        "risk_factors": [
+          "Escalating competition (Snowflake, Google, AWS)",
+          "Margin compression from AI compute costs",
+          "Talent attrition post-acquisition",
+          "Open source/platform fragmentation",
+          "Customer concentration risk"
+        ],
+        "mitigants": [
+          "Long-term cloud contracts and enterprise deals",
+          "Structured retention incentives for key talent",
+          "AI infrastructure cost controls",
+          "Open-source innovation commitment",
+          "Diversified revenue streams and verticals"
+        ],
+        "timeline": [
+          "Weeks 0-2: NDA, data room setup",
+          "Weeks 2-6: Diligence (product, tech, financial, legal)",
+          "Weeks 6-8: Management presentations, references",
+          "Weeks 8-9: Board/investment committee approval",
+          "Week 10: Term sheet negotiation/signing",
+          "Weeks 11-12: Closing, announcement"
+        ]
+      }
+    }
+  ]
+}

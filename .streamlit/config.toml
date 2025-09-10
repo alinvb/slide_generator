@@ -1,0 +1,24 @@
+[global]
+developmentMode = false
+gatherUsageStats = false
+dataFrameSerialization = "legacy"
+
+[browser]
+gatherUsageStats = false
+
+[logger]
+level = "error"
+
+[server]
+headless = true
+enableCORS = false
+enableWebsocketCompression = false
+enableStaticServing = false
+port = 8502
+address = "0.0.0.0"
+fileWatcherType = "none"
+enableXsrfProtection = false
+
+[client]
+toolbarMode = "minimal"
+showErrorDetails = false
