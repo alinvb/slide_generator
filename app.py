@@ -5554,6 +5554,9 @@ RENDER PLAN JSON:
                 
                 print(f"🧠 Enhanced decision: {enhanced_decision}")
                 
+                # Initialize research_request based on enhanced decision
+                research_request = (enhanced_decision.get('action') == 'trigger_research')
+                
                 # CONSOLIDATED RESEARCH HANDLING - Handle all research requests here
                 if research_request:
                     print(f"🔍 [RESEARCH HANDLER] Processing research request: '{prompt}'")
@@ -5627,10 +5630,9 @@ RENDER PLAN JSON:
                     st.session_state.messages.append({"role": "assistant", "content": ai_response})
                     st.rerun()
                 elif enhanced_decision['action'] == 'trigger_research':
-                    # Enhanced system detected research request - IMMEDIATELY proceed to research
-                    print("🧠 Enhanced system triggered research flow - skipping conversation analysis")
-                    research_request = True
-                    user_message_lower = prompt.lower()  # Set this for research flow below
+                    # Enhanced system detected research request - already handled above
+                    print("🧠 Enhanced system triggered research flow - already set research_request=True")
+                    user_message_lower = prompt.lower()  # Set this for research flow
                 elif enhanced_decision['action'] in ['advance_topic', 'auto_advance_topic']:
                     # Enhanced system suggests topic advancement
                     if enhanced_decision['bridge_message']:
@@ -5657,13 +5659,10 @@ RENDER PLAN JSON:
                     ])
                     
                     if legacy_research_request:
-                        # Legacy research detection - set flag and continue to research handling
+                        # Legacy research detection - update flag for research handling
                         print(f"🔍 [LEGACY RESEARCH] Research request detected: '{prompt}'")
-                        research_request = True
+                        research_request = True  # Override the initial setting
                         user_message_lower = prompt.lower()  # Ensure this is set
-                    else:
-                        # Normal conversation flow
-                        research_request = False
                         # Use enhanced conversation handler for non-research interactions
                         from enhanced_conversation_handler import create_information_verification_system
                         enhanced_handler = create_information_verification_system()
