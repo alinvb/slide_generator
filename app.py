@@ -300,6 +300,127 @@ def _memory_transcript(max_turns: int = 12, max_chars: int = 2400) -> str:
             transcript = transcript[cut+1:]
     return transcript
 
+# ================= DATA BACKING & RESEARCH VALIDATION SYSTEM =================
+
+def _validate_data_sources(text: str) -> tuple[str, list]:
+    """Validate that research includes proper data sources and flag fabricated claims"""
+    import re
+    
+    warnings = []
+    clean_text = text
+    
+    # Flag specific number claims without proper sources
+    specific_numbers = re.findall(r'\$[\d,\.]+\s*(?:billion|million|trillion)', text)
+    if specific_numbers and "estimate" not in text.lower() and "based on" not in text.lower():
+        warnings.append("⚠️ Specific financial figures provided without clear data sources")
+    
+    # Flag generic source citations
+    generic_sources = [
+        "industry analysis", "market research reports", "company data", 
+        "competitive intelligence", "financial databases", "industry reports"
+    ]
+    
+    for source in generic_sources:
+        if source in text.lower():
+            warnings.append(f"⚠️ Generic source reference detected: '{source}' - needs specific sourcing")
+    
+    # Flag unverified claims
+    unverified_claims = re.findall(r'(?:leading|dominant|strong)\s+(?:position|market|share)', text, re.I)
+    if unverified_claims and "estimated" not in text.lower():
+        warnings.append("⚠️ Market position claims need verification")
+    
+    return clean_text, warnings
+
+def _add_data_backing_disclaimer(text: str, research_type: str) -> str:
+    """Add appropriate disclaimers for research limitations"""
+    
+    disclaimer_templates = {
+        "financial": """
+
+📊 **DATA SOURCING NOTE:**
+*This analysis is based on publicly available information and industry estimates. For investment decisions, please verify all financial figures through official company filings (10-K, 10-Q), verified financial databases (Bloomberg, FactSet), or directly with the company's investor relations.*""",
+        
+        "valuation": """
+
+💰 **VALUATION METHODOLOGY NOTE:**
+*These valuation estimates are illustrative and based on general industry multiples. Actual valuation requires: (1) Verified financial statements, (2) Detailed cash flow models, (3) Current market comps, (4) Professional appraisal. Please consult investment banking professionals for formal valuation analysis.*""",
+        
+        "market": """
+
+📈 **MARKET DATA NOTE:**
+*Market analysis is based on industry research and public information. For critical business decisions, please verify market data through specialized research firms (Gartner, IDC, McKinsey), government statistics, or commissioned market studies.*""",
+        
+        "competitive": """
+
+🏆 **COMPETITIVE ANALYSIS NOTE:**
+*Competitive positioning assessment is based on publicly available information. For strategic planning, consider commissioning detailed competitive intelligence from specialized firms or conducting primary market research.*"""
+    }
+    
+    # Determine appropriate disclaimer
+    if "financial" in research_type.lower() or "ebitda" in research_type.lower():
+        disclaimer = disclaimer_templates["financial"]
+    elif "valuation" in research_type.lower():
+        disclaimer = disclaimer_templates["valuation"]
+    elif "market" in research_type.lower() or "competitive" in research_type.lower():
+        if "competitive" in research_type.lower():
+            disclaimer = disclaimer_templates["competitive"]
+        else:
+            disclaimer = disclaimer_templates["market"]
+    else:
+        disclaimer = """
+
+ℹ️ **RESEARCH METHODOLOGY NOTE:**
+*This analysis is based on publicly available information and industry knowledge. For critical business decisions, please verify key claims through official sources, professional research services, or direct company validation.*"""
+    
+    return text + disclaimer
+
+def _enhance_research_with_sourcing_requirements(research_instruction: str) -> str:
+    """Enhance research instructions to require proper data sourcing"""
+    
+    sourcing_requirements = """
+
+🔍 **CRITICAL SOURCING REQUIREMENTS:**
+
+1. **SPECIFY DATA SOURCES**: For every claim, indicate the type of source (e.g., "Based on company 10-K filings", "According to industry research by [Firm]", "Estimated using comparable company analysis")
+
+2. **AVOID FABRICATED SPECIFICS**: Do not provide specific financial figures unless:
+   - You can cite the exact source document
+   - You clearly label estimates as "Estimated based on [methodology]"
+   - You provide ranges rather than precise numbers when uncertain
+
+3. **TRANSPARENT METHODOLOGY**: Explain how conclusions were reached (e.g., "Based on peer analysis of 5 comparable companies", "Using industry standard WACC range of 8-12%")
+
+4. **ACKNOWLEDGE LIMITATIONS**: If information is limited, state: "Based on available public information" or "Requires verification through [specific sources]"
+
+5. **PROFESSIONAL DISCLAIMERS**: Include appropriate disclaimers about data verification needs for investment decisions
+
+"""
+    
+    return research_instruction + sourcing_requirements
+
+def _flag_unsupported_claims(text: str) -> str:
+    """Add warnings for potentially unsupported claims in research"""
+    import re
+    
+    # Look for specific claims that need verification
+    patterns = [
+        (r'\$[\d,\.]+\s*billion(?:\s+(?:enterprise\s+)?value)', 'Specific valuation figures'),
+        (r'(?:leading|dominant|#1)\s+(?:position|player|company)', 'Market leadership claims'),
+        (r'\d+(?:\.\d+)?%\s+(?:growth|margin|share)', 'Specific percentage figures'),
+        (r'(?:significantly|substantially|dramatically)\s+(?:outperform|exceed|higher)', 'Comparative performance claims')
+    ]
+    
+    warnings = []
+    for pattern, description in patterns:
+        if re.search(pattern, text, re.I):
+            warnings.append(f"🔍 {description} detected - verify through official sources")
+    
+    if warnings:
+        warning_text = "\n\n⚠️ **VERIFICATION NEEDED:**\n" + "\n".join([f"• {w}" for w in warnings])
+        text += warning_text
+    
+    return text
+
 # Apply Unicode crash prevention patch
 import streamlit_patch
 
@@ -5980,12 +6101,32 @@ ENSURE you research the correct company mentioned in our conversation."""
                         ]
                         
                         try:
-                            research_results = call_llm_api(research_messages, selected_model, api_key, api_service)
+                            # Enhance research instruction with data sourcing requirements
+                            enhanced_messages = research_messages.copy()
+                            enhanced_messages[-1]["content"] = _enhance_research_with_sourcing_requirements(enhanced_messages[-1]["content"])
+                            
+                            research_results = call_llm_api(enhanced_messages, selected_model, api_key, api_service)
                             if research_results:
                                 # Apply full sanitization - citations and transcript tokens
                                 clean_results = _sanitize_all(research_results)
-                                st.session_state.messages.append({"role": "assistant", "content": clean_results})
-                                print(f"✅ [RESEARCH] Research completed for {research_topic}")
+                                
+                                # Validate data backing and add warnings if needed
+                                validated_results, warnings = _validate_data_sources(clean_results)
+                                
+                                # Add appropriate disclaimer based on research type
+                                final_results = _add_data_backing_disclaimer(validated_results, research_topic)
+                                
+                                # Flag any unsupported claims
+                                final_results = _flag_unsupported_claims(final_results)
+                                
+                                # Log any data backing issues
+                                if warnings:
+                                    print(f"⚠️ [DATA BACKING] Warnings for {research_topic}: {len(warnings)} issues detected")
+                                    for warning in warnings:
+                                        print(f"   - {warning}")
+                                
+                                st.session_state.messages.append({"role": "assistant", "content": final_results})
+                                print(f"✅ [RESEARCH] Research completed for {research_topic} with data backing validation")
                             else:
                                 st.session_state.messages.append({"role": "assistant", "content": f"I'd be happy to help research {research_topic} for {company_name}. Could you provide more specific areas you'd like me to focus on?"})
                         except Exception as e:
@@ -6246,9 +6387,12 @@ Provide specific financial metrics for each buyer to demonstrate affordability."
                                     else:
                                         research_instruction = f"You are a senior investment banking analyst with access to comprehensive market databases. Conduct detailed research on {company_name} focusing specifically on {research_topic}. Provide:\n\n1. Current market position and key metrics\n2. Industry context and competitive landscape\n3. Recent developments and strategic implications\n4. Investment banking perspective with data points\n5. Professional analysis with proper sourcing\n\nEnsure the research is detailed, factual, and includes specific data points where available."
                                     
+                                    # Enhance research instruction with data sourcing requirements
+                                    enhanced_instruction = _enhance_research_with_sourcing_requirements(research_instruction)
+                                    
                                     research_messages = [
-                                        {"role": "system", "content": "You are a senior investment banking analyst providing comprehensive market research and company analysis. Provide detailed, factual information with proper sourcing and citations."},
-                                        {"role": "user", "content": research_instruction}
+                                        {"role": "system", "content": "You are a senior investment banking analyst providing comprehensive market research and company analysis. Provide detailed, factual information with proper sourcing and citations. Always specify your sources and methodology."},
+                                        {"role": "user", "content": enhanced_instruction}
                                     ]
                                     
                                     research_results = call_llm_api(
@@ -6257,6 +6401,16 @@ Provide specific financial metrics for each buyer to demonstrate affordability."
                                         st.session_state['api_key'],
                                         st.session_state.get('api_service', 'perplexity')
                                     )
+                                    
+                                    # Apply data backing validation if research was successful
+                                    if research_results:
+                                        validated_results, warnings = _validate_data_sources(research_results)
+                                        research_results = _add_data_backing_disclaimer(validated_results, research_topic)
+                                        research_results = _flag_unsupported_claims(research_results)
+                                        
+                                        if warnings:
+                                            print(f"⚠️ [DATA BACKING] Research validation warnings: {len(warnings)} issues")
+                                    
                                     print(f"✅ [RESEARCH] LLM research completed: {len(research_results) if research_results else 0} characters")
                                     
                                 except Exception as search_error:
@@ -6383,9 +6537,18 @@ Sources: Company filings, industry reports, financial databases"""
                                         # Generic comprehensive research fallback using detected research_topic
                                         research_results = f"Based on comprehensive market analysis and industry data for {company_name} regarding {research_topic}:\n\n**Market Position & Industry Context:** Leading position with strong competitive advantages and market dynamics favoring continued growth.\n\n**Key Performance Indicators:** Strong operational metrics and consistent performance trends across key business segments.\n\n**Strategic Analysis:** Deep-dive analysis of {research_topic} showing strong fundamentals and positive outlook.\n\n**Investment Implications:** Well-positioned for market leadership with multiple growth vectors and defensive characteristics in {research_topic}.\n\n*Sources: Industry analysis, market research reports, company data, competitive intelligence*"
                                 
-                                # Create comprehensive research response with natural follow-up
+                                # Apply data backing validation to fallback research results
                                 if research_results:
-                                    ai_response = f"{research_results}\n\nIs this helpful? Feel free to ask follow-up questions if you'd like me to explore any specific aspects in more detail."
+                                    # Validate fallback templates for data backing issues  
+                                    validated_fallback, warnings = _validate_data_sources(research_results)
+                                    validated_fallback = _add_data_backing_disclaimer(validated_fallback, research_topic)
+                                    validated_fallback = _flag_unsupported_claims(validated_fallback)
+                                    
+                                    if warnings:
+                                        print(f"⚠️ [FALLBACK VALIDATION] Template validation warnings: {len(warnings)} issues")
+                                        print("📝 [FALLBACK] Using template data - added validation disclaimers")
+                                    
+                                    ai_response = f"{validated_fallback}\n\nIs this helpful? Feel free to ask follow-up questions if you'd like me to explore any specific aspects in more detail."
                                 else:
                                     # Use the topic-specific fallback content we created
                                     ai_response = f"I've conducted comprehensive research on {research_topic} for {company_name}. Based on the analysis:\n\n{research_results if research_results else '[Comprehensive research findings would be provided here]'}\n\nLet me know if you'd like me to investigate any specific aspects further!"
