@@ -9,12 +9,7 @@ import json
 import time
 from typing import Dict, List, Tuple, Any
 
-# Import existing functions from app.py
-from app import (
-    call_llm_api,
-    _run_research,
-    _current_company
-)
+# Functions will be imported conditionally to avoid circular import
 from bulletproof_json_generator import generate_bulletproof_json
 
 def init_research_agent():
@@ -451,6 +446,8 @@ def research_all_topics(company_name: str, user_info: str = "") -> Dict[str, Any
         try:
             # Use existing research system
             st.session_state['current_company'] = company_name
+            # Import function conditionally to avoid circular import
+            from app import _run_research
             research_result = _run_research(formatted_prompt)
             
             results[topic_id] = {
@@ -510,6 +507,8 @@ def fact_check_user_info(user_info: str, company_name: str) -> Dict[str, Any]:
             {"role": "user", "content": fact_check_prompt}
         ]
         
+        # Import function conditionally to avoid circular import
+        from app import call_llm_api
         response = call_llm_api(messages, 
                               st.session_state.get('model', 'sonar-pro'),
                               st.session_state.get('api_key'), 
@@ -746,6 +745,8 @@ def main():
                         
                         # Generate JSON using existing bulletproof system
                         def llm_wrapper(messages, model=None, api_key=None, api_service=None):
+                            # Import function conditionally to avoid circular import
+                            from app import call_llm_api
                             return call_llm_api(
                                 messages, 
                                 st.session_state.get('model'),
