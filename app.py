@@ -25,6 +25,9 @@ from optimized_auto_improvement_integration import (
 )
 # Old auto-improvement fallback removed - using optimized system only
 
+# ENHANCED CONVERSATION FEATURES: Advanced conversation management
+from aliya_enhanced_integration import integrate_enhanced_conversation_into_aliya, show_enhanced_progress_sidebar
+
 def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
     """
     MANDATORY validation and fixing function that enforces all requirements
@@ -5211,6 +5214,11 @@ if "messages" not in st.session_state:
 if "chat_started" not in st.session_state:
     st.session_state.chat_started = False
 
+# ENHANCED CONVERSATION SYSTEM: Initialize enhanced conversation management
+if "enhanced_initialized" not in st.session_state:
+    st.session_state.enhanced_funcs = integrate_enhanced_conversation_into_aliya()
+    st.session_state.enhanced_initialized = True
+
 # Main App Layout
 tab_chat, tab_json, tab_execute, tab_validate = st.tabs(["🤖 AI Copilot", "📄 JSON Editor", "⚙️ Execute", "🔍 JSON Validator & Auto-Fix"])
 
@@ -5577,11 +5585,23 @@ RENDER PLAN JSON:
                             st.session_state['company_name'] = potential_company
                             print(f"🏢 Detected company name: {potential_company}")
                 
+                # ENHANCED CONVERSATION DECISION: Get intelligent action from enhanced system
+                enhanced_funcs = st.session_state.enhanced_funcs
+                enhanced_decision = enhanced_funcs['enhanced_chat_handler'](
+                    prompt, analyze_conversation_progress, call_llm_api
+                )
+                
+                print(f"🧠 Enhanced decision: {enhanced_decision}")
+                
                 # Analyze conversation progress
                 progress_info = analyze_conversation_progress(st.session_state.messages)
                 
-                # Show progress in sidebar
+                # Show progress in sidebar (ENHANCED VERSION)
                 is_complete = show_interview_progress(st.session_state.messages)
+                
+                # ENHANCED SIDEBAR: Show enhanced conversation progress and intelligence
+                with st.sidebar:
+                    show_enhanced_progress_sidebar()
                 
                 # Check if this was a brief confirmatory response or skip request
                 brief_confirmatory = prompt.strip().lower() in ["yes", "correct", "that's right", "sounds good", "ok", "okay", "sure", "right"]
@@ -5596,6 +5616,25 @@ RENDER PLAN JSON:
                     # User wants to skip current topic
                     ai_response = f"Understood, I'll skip this topic. {progress_info['next_question']}"
                     st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                    st.rerun()
+                elif enhanced_decision['action'] == 'trigger_research':
+                    # Enhanced system detected research request - use existing research flow
+                    print("🧠 Enhanced system triggered research flow")
+                    research_request = True
+                    # Continue to existing research handling logic below
+                elif enhanced_decision['action'] in ['advance_topic', 'auto_advance_topic']:
+                    # Enhanced system suggests topic advancement
+                    if enhanced_decision['bridge_message']:
+                        st.session_state.messages.append({
+                            "role": "assistant", 
+                            "content": enhanced_decision['bridge_message']
+                        })
+                        enhanced_funcs['add_to_memory'](enhanced_decision['bridge_message'])
+                        st.rerun()
+                elif enhanced_decision['action'] == 'trigger_json_generation':
+                    # Enhanced system detected completion - trigger JSON generation
+                    st.success("🎉 All topics covered! Ready for JSON generation.")
+                    # Trigger your existing JSON generation logic
                     st.rerun()
                 else:
                     # ENHANCED CONVERSATION SYSTEM WITH VERIFICATION AND INTELLIGENT FOLLOW-UPS
