@@ -582,6 +582,369 @@ def _flag_unsupported_claims(text: str) -> str:
     
     return text
 
+# ================= UNIVERSAL PATCH: Generalized Follow-ups, Enrichment, Research, and Entity Guardrails =================
+
+def _norm(s: str) -> str:
+    import re
+    return re.sub(r"\s+", " ", (s or "").strip().lower())
+
+def _unscramble_broken_words(text: str) -> str:
+    import re
+    if not text: return text
+    s = re.sub(r"[ \t]{2,}", " ", text)
+    s = re.sub(r"\n{2,}", "\n", s)
+    def _rejointoken(m):
+        letters = m.group(0)
+        letters = re.sub(r"[\s\n]+", "", letters)
+        return letters
+    s = re.sub(r"(?:[A-Za-z]\s+){4,}[A-Za-z]", _rejointoken, s)
+    s = re.sub(r"(?:[A-Za-z]\n){4,}[A-Za-z]", _rejointoken, s)
+    return s
+
+def _strip_transcript_tokens(text: str) -> str:
+    import re
+    return re.sub(r"\[transcript\]", "", text or "", flags=re.I)
+
+# Enhanced _sanitize_output that incorporates universal patch improvements
+def _sanitize_output(text: str) -> str:
+    s = _unscramble_broken_words(text or "")
+    s = _strip_unresolved_citations(s)
+    s = _strip_transcript_tokens(s)
+    return s
+
+# ------------------------------------------------------------------------------------------------------------------------
+# 1) ENTITY PROFILE & GUARDRAILS (GENERALIZED)
+# ------------------------------------------------------------------------------------------------------------------------
+
+def _set_entity_profile(name: str, *, aliases=None, confusions=None, home_country=None, tickers=None):
+    # Persist an entity profile to bias research and detect cross-entity leakage.
+    if not name: return
+    st.session_state["entity_profile"] = {
+        "name": name.strip(),
+        "aliases": set((aliases or [])) | {name.strip()},
+        "confusions": set(confusions or []),    # e.g., {"Mars Group Holdings (JP)", "Traditional Chinese Medicine"}
+        "home_country": home_country or "",
+        "tickers": set(tickers or []),
+    }
+
+def _get_entity_name() -> str:
+    # Try universal entity profile first, then fallback to existing system
+    ep = st.session_state.get("entity_profile", {})
+    if ep.get("name"):
+        return ep["name"]
+    # Fallback to existing company name system
+    return st.session_state.get('company_name', st.session_state.get('current_company', ''))
+
+def _maybe_lock_entity_from_text(text: str):
+    t = (text or "").strip()
+    if not t: return
+    low = t.lower()
+    if "company name is" in low:
+        nm = t.split("is",1)[1].strip()
+        _set_entity_profile(nm)
+        # Also update existing session state for backward compatibility
+        st.session_state['company_name'] = nm
+        st.session_state['current_company'] = nm
+    else:
+        # lightweight heuristic: single token with caps (e.g., IKEA, NVIDIA), or phrase with Inc./Ltd./LLC
+        import re
+        m = re.search(r"\b([A-Z][A-Za-z0-9&\.\- ]+(?:Inc\.|Incorporated|Ltd\.|LLC|PLC)?)\b", t)
+        if m and len(m.group(1).split()) <= 5:
+            _set_entity_profile(m.group(1))
+            st.session_state['company_name'] = m.group(1)
+            st.session_state['current_company'] = m.group(1)
+
+def _entity_conflict_detect(text: str) -> bool:
+    # Generic cross-entity drift detector using 'confusions' set and currency/country clues.
+    ep = st.session_state.get("entity_profile", {})
+    if not ep or not text: return False
+    s = text.lower()
+    # direct confusion terms
+    for bad in ep.get("confusions", []):
+        if bad.lower() in s:
+            return True
+    # crude currency/country mismatch heuristic
+    hc = ep.get("home_country","").lower()
+    if hc:
+        currency_flags = {
+            "united states":"¥| jpy| yen| eur ",
+            "japan":"\\$| usd| euro ",
+            "europe|european union|germany|france|italy|spain":"\\$| usd|¥|jpy",
+            "united kingdom":"€| eur|¥| jpy",
+        }
+        for geo, badcur in currency_flags.items():
+            if hc in geo and __import__("re").search(badcur, s):
+                # only flag if we also see a specific foreign market org name nearby
+                if any(w in s for w in ["holdings", "group", "co., ltd", "plc", "tse", "lse", "bse"]):
+                    return True
+    return False
+
+RESEARCH_STRICT_GUARDRAILS = (
+    "ENTITY GUARDRAILS:\n"
+    "- Disambiguate similarly named entities. Use the entity profile (name, aliases, home country).\n"
+    "- Exclude known confusions if they appear in results (see 'confusions').\n"
+    "- Prefer reputable sources (company site, filings, Reuters/FT/WSJ/Bloomberg, major trade press).\n"
+    "- Output as 3–8 bullets with a TITLE and a LINK each. No bracket-only [1]/[2] cites.\n"
+)
+
+def _run_research_universal(user_text: str):
+    # Entity-aware research with conflict refine + sanitization.
+    entity = _get_entity_name()
+    prefix = f"[Entity: {entity}] " if entity else ""
+    guarded = prefix + user_text + "\n\n" + RESEARCH_STRICT_GUARDRAILS
+    
+    # Use existing LLM call system
+    try:
+        messages = [
+            {"role": "system", "content": "You are a research assistant. Use readable titles + links."},
+            {"role": "user", "content": guarded}
+        ]
+        out = call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
+                          st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
+    except Exception as e:
+        print(f"Research error: {e}")
+        out = f"Research on {entity or 'target company'} regarding {user_text}."
+    
+    out = _sanitize_output(out or "")
+    # If conflict detected, refine once
+    if _entity_conflict_detect(out) and entity:
+        refine = f"{prefix}{user_text} (exclude confusable entities; adhere strictly to the specified entity profile)"
+        try:
+            messages[1]["content"] = refine
+            out2 = call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
+                               st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
+            out2 = _sanitize_output(out2 or "")
+            if len(out2) > len(out) * 0.5:
+                out = out2
+        except Exception:
+            pass
+    
+    # cache last sources for follow-ups
+    st.session_state["last_research_sources"] = out
+    return out
+
+def _run_fact_lookup_universal(user_text: str):
+    entity = _get_entity_name()
+    hint = f" (Entity: {entity})" if entity else ""
+    prompt = f"{user_text}{hint}\n\nAnswer in 1–2 sentences. If unknown or not public, say so and offer research. Include a link if possible."
+    
+    try:
+        messages = [
+            {"role": "system", "content": "You answer direct factual questions briefly."},
+            {"role": "user", "content": prompt}
+        ]
+        out = call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
+                          st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
+        return _sanitize_output(out or "I'm not sure about that. Would you like me to research it?")
+    except Exception:
+        return f"I'm not sure about that. Would you like me to research {entity} for more details?"
+
+# ------------------------------------------------------------------------------------------------------------------------
+# 2) LOOP BREAKERS: "next / you already asked this" + DUPLICATE SUPPRESS
+# ------------------------------------------------------------------------------------------------------------------------
+
+MOVE_ON_SYNONYMS = {"next","next topic","move on","skip","skip this","stop","proceed","go on","continue","let's move on","we're done","advance"}
+ALREADY_ASKED_SYNONYMS = {"you already asked this","we already did this","already did this","asked already","you already did this topic","done with this","covered this","we covered this"}
+
+def _is_move_on_universal(text: str) -> bool:
+    t = _norm(text); return any(kw in t for kw in MOVE_ON_SYNONYMS)
+
+def _is_already_asked_universal(text: str) -> bool:
+    t = _norm(text); return any(kw in t for kw in ALREADY_ASKED_SYNONYMS)
+
+def _recent_assistant_question_duplicate(new_q: str, window: int = 6) -> bool:
+    import re
+    if not new_q: return False
+    def normalize(x): return re.sub(r"[^a-z0-9]+", " ", x.lower()).strip()
+    nq = normalize(new_q)
+    count = 0
+    
+    for m in st.session_state.get("messages", [])[-window:]:
+        if m.get("role") == "assistant":
+            content = m.get("content", "")
+            # Check for repetitive valuation questions specifically
+            if "recommend" in content.lower() and "valuation" in nq:
+                count += 1
+            if normalize(content) == nq:
+                count += 1
+            # Check for similar question patterns
+            if "valuation" in nq and "valuation" in content.lower() and "?" in content:
+                count += 1
+                
+    return count >= 1
+
+# ------------------------------------------------------------------------------------------------------------------------
+# 3) AUTO-RESEARCH-THEN-ESTIMATE (LOW/BASE/HIGH) — ENTITY-AGNOSTIC
+# ------------------------------------------------------------------------------------------------------------------------
+
+AUTO_RESEARCH_FOR_ESTIMATION = True
+MAX_RESEARCH_ROUNDS = 1
+MIN_REQUIRED_FOR_ARPU_MODEL = {"active_users_est", "arpu"}     # A-model
+MIN_REQUIRED_FOR_TPV_MODEL  = {"tpv", "take_rate_pct"}         # B-model
+
+import re as _re
+
+def _parse_metrics_from_text(text: str) -> dict:
+    if not text: return {}
+    t = text.replace(",", " ")
+    def _first_float(pattern, flags=_re.I):
+        m = _re.search(pattern, t, flags); 
+        if not m: return None
+        try: return float(m.group(1))
+        except: return None
+    def _num_unit(pattern, flags=_re.I):
+        m = _re.search(pattern, t, flags); 
+        if not m: return None
+        raw, unit = m.group(1), (m.group(2) or "").lower()
+        try: val = float(raw)
+        except: return None
+        if unit in ("k","thousand"): val *= 1_000
+        elif unit in ("m","million"): val *= 1_000_000
+        elif unit in ("b","bn","billion"): val *= 1_000_000_000
+        return val
+    out = {}
+    v = _num_unit(r"(\d+(?:\.\d+)?)\s*(k|m|b|bn|thousand|million|billion)?\s*(?:active\s*)?(?:users?|customers?|cardholders?)")
+    if v: out["active_users_est"] = v
+    v = _num_unit(r"(\d+(?:\.\d+)?)\s*(k|m|b|bn|thousand|million|billion)?\s*(?:app\s*)users?")
+    if v and "active_users_est" not in out: out["active_users_est"] = v
+    v = _num_unit(r"(\d+(?:\.\d+)?)\s*(k|m|b|bn|thousand|million|billion)?\s*(?:tpv|gmv|transaction volume|payment volume)\b")
+    if v: out["tpv"] = v
+    v = _first_float(r"(\d+(?:\.\d+)?)\s*%\s*(?:take\s*rate|mdr|merchant\s*discount)")
+    if v: out["take_rate_pct"] = v
+    v = _first_float(r"\$?\s*(\d+(?:\.\d+)?)\s*(?:\/|per)\s*(?:user|customer)\b")
+    if v: out["arpu"] = v
+    return out
+
+def _merge_metrics(*dicts) -> dict:
+    merged = {}
+    for d in dicts:
+        for k,v in (d or {}).items():
+            if v and k not in merged: merged[k] = v
+    return merged
+
+def _known_metrics_for_estimation() -> dict:
+    try: 
+        transcript = _memory_transcript(max_turns=18, max_chars=6000)
+    except Exception: 
+        transcript = ""
+    sess = " ".join(m.get("content","") for m in st.session_state.get("messages", [])[-10:])
+    km = _parse_metrics_from_text(transcript + "\n" + sess)
+    if "derived_metrics" in st.session_state: 
+        km = _merge_metrics(km, st.session_state["derived_metrics"])
+    return km
+
+def _run_research_for_estimation(entity_hint: str, user_text: str) -> tuple[str, dict]:
+    hint = f"[Entity: {entity_hint}]\n" if entity_hint else ""
+    query = hint + user_text + "\n\nPlease include 3-6 sources with titles+links, then a 'Metrics' section with numeric data."
+    
+    try:
+        messages = [
+            {"role": "system", "content": "You are a research assistant. Find recent, reputable sources for the target entity/sector. Return a concise bullet list with TITLE and LINK for each source (no naked [1]/[2]). Then add a short 'Metrics' section with any numeric signals: active users/cardholders, ARPU ($/user), TPV/GMV (USD), take-rate (%), POS count."},
+            {"role": "user", "content": query}
+        ]
+        txt = call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
+                          st.session_state.get('api_key'), st.session_state.get('api_service', 'claude')) or ""
+    except Exception:
+        txt = f"Research on {entity_hint} for estimation purposes."
+    
+    txt = _strip_unresolved_citations(txt)
+    parsed = _parse_metrics_from_text(txt)
+    return txt, parsed
+
+def _insufficient_for_models(metrics: dict) -> bool:
+    have_a = MIN_REQUIRED_FOR_ARPU_MODEL.issubset(metrics.keys())
+    have_b = MIN_REQUIRED_FOR_TPV_MODEL.issubset(metrics.keys())
+    return not (have_a or have_b)
+
+def _select_model(metrics: dict) -> str:
+    if MIN_REQUIRED_FOR_TPV_MODEL.issubset(metrics.keys()): return "B"   # TPV × take-rate
+    if MIN_REQUIRED_FOR_ARPU_MODEL.issubset(metrics.keys()): return "A" # ARPU × Active Users
+    return "A" if "active_users_est" in metrics else "B"
+
+def _estimate_from_metrics(metrics: dict) -> str:
+    ctx_lines = [f"- {k}: {v}" for k,v in metrics.items()]
+    method = "TPV × Take Rate" if _select_model(metrics)=="B" else "ARPU × Active Users"
+    instructions = (
+        "You are an analyst. Compute LOW/BASE/HIGH revenue scenarios from the metrics.\n"
+        f"Use model: {method}. Show the formula and the math. "
+        "Use reasonable benchmark ranges for any missing sub-assumptions (state them). "
+        "Limit to revenue estimation—do not ask for EBITDA or growth now. "
+        "End with 1-line summary and 2 items of NEXT data that would tighten the estimate."
+    )
+    primer = "[Metrics]\n" + "\n".join(ctx_lines)
+    
+    try:
+        messages = [
+            {"role": "system", "content": instructions},
+            {"role": "user", "content": primer}
+        ]
+        res = call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
+                          st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
+        return _sanitize_output(res or "")
+    except Exception:
+        return "I'll need more financial data to provide a reliable revenue estimate."
+
+def _run_estimation_universal(user_text: str):
+    known = _known_metrics_for_estimation()
+    research_text = ""
+    if AUTO_RESEARCH_FOR_ESTIMATION and _insufficient_for_models(known):
+        entity = _get_entity_name()
+        for _ in range(MAX_RESEARCH_ROUNDS):
+            rtxt, parsed = _run_research_for_estimation(entity, user_text)
+            research_text = (research_text + "\n" + (rtxt or "")).strip()
+            known = _merge_metrics(known, parsed)
+            if not _insufficient_for_models(known): break
+    estimate = _estimate_from_metrics(known)
+    if research_text: estimate += "\n\nSources (selected):\n" + research_text
+    st.session_state["derived_metrics"] = known
+    return estimate
+
+# Auto-research-then-estimate main function
+def _auto_research_then_estimate(user_text: str):
+    """Enhanced estimation that auto-researches missing metrics first"""
+    print(f"📊 [AUTO-RESEARCH-ESTIMATE] Starting for: '{user_text}'")
+    entity = _get_entity_name()
+    
+    # Check existing metrics
+    known_metrics = _known_metrics_for_estimation()
+    print(f"📊 [AUTO-RESEARCH-ESTIMATE] Known metrics: {list(known_metrics.keys())}")
+    
+    # If insufficient metrics, auto-research
+    research_text = ""
+    if _insufficient_for_models(known_metrics):
+        print(f"📊 [AUTO-RESEARCH-ESTIMATE] Insufficient metrics, starting auto-research...")
+        research_text, new_metrics = _run_research_for_estimation(entity, user_text)
+        known_metrics = _merge_metrics(known_metrics, new_metrics)
+        print(f"📊 [AUTO-RESEARCH-ESTIMATE] After research metrics: {list(known_metrics.keys())}")
+    
+    # Generate estimation
+    estimation_result = _estimate_from_metrics(known_metrics)
+    
+    # Append research sources if any
+    if research_text:
+        estimation_result += "\n\n**Research Sources:**\n" + research_text
+    
+    # Store derived metrics for future use
+    st.session_state["derived_metrics"] = known_metrics
+    
+    return estimation_result
+
+# ------------------------------------------------------------------------------------------------------------------------
+# 4) DETECTION FUNCTIONS FOR ROUTER
+# ------------------------------------------------------------------------------------------------------------------------
+
+def _is_fact_query_universal(user_text: str) -> bool:
+    t = _norm(user_text)
+    return any(t.startswith(k) for k in ["who is","what is","when is","where is","ticker of","ceo of","cfo of"]) or bool(__import__("re").search(r'^(who|what|where|when|how many|how much)\b', user_text.strip().lower()))
+
+def _is_estimation_request_universal(user_text: str) -> bool:
+    t = _norm(user_text)
+    return t.startswith("estimate") or "estimate " in t or "roughly how much" in t or bool(__import__("re").search(r'\b(estimate|ball[\- ]?park|back[ \-]of[ \-]the[ \-]envelope|rough(ly)?|approx(imate)?)\b', user_text, __import__("re").I))
+
+def _is_research_request_universal(user_text: str) -> bool:
+    t = _norm(user_text)
+    return t in {"research this","research this for me","research"} or t.startswith("research ") or bool(__import__("re").search(r'\b(research( this)?|look it up|find sources?|check (the )?web)\b', user_text, __import__("re").I))
+
 # Apply Unicode crash prevention patch
 import streamlit_patch
 

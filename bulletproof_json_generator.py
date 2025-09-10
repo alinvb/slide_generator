@@ -187,97 +187,20 @@ RESPOND WITH ONLY THE JSON - NO OTHER TEXT.
         return missing_data
     
     def filter_slides_by_conversation_coverage(self, complete_data: Dict, required_slides: List[str]) -> List[str]:
-        """Filter slides to only include those with sufficient conversation coverage - VERY RESTRICTIVE"""
+        """Filter slides to only include those with sufficient conversation coverage - FIXED TO HONOR TOPIC-BASED DECISIONS"""
         
-        covered_slides = []
-        conversation_str = str(complete_data).lower()
+        # CRITICAL FIX: If topic-based generator already determined slides should be included,
+        # trust that decision instead of being overly restrictive
+        print(f"🔧 [FIXED] Trusting topic-based generator decision for {len(required_slides)} slides")
+        print(f"🔧 [FIXED] Required slides from topic analysis: {required_slides}")
         
-        print(f"🔍 [DEBUG] Filtering slides based on conversation data...")
-        print(f"🔍 [DEBUG] Available slides to check: {required_slides}")
+        # The topic-based slide generator already did comprehensive analysis of which topics
+        # were covered in the conversation. We should trust that analysis instead of
+        # re-filtering with overly restrictive criteria.
         
-        # Always include business_overview if company name exists
-        if "business_overview" in required_slides and complete_data.get("company_name"):
-            covered_slides.append("business_overview")
-            print(f"✅ [DEBUG] Including business_overview (company name: {complete_data.get('company_name')})")
+        covered_slides = required_slides.copy()  # Include all slides determined by topic analysis
         
-        # VERY RESTRICTIVE: Only include if explicitly discussed with substantial content
-        
-        # Management team - ONLY if explicitly asked about and discussed in detail
-        # Not just mentioned in passing, but a dedicated question/conversation about the team
-        if ("management_team" in required_slides):
-            # Check for explicit management/team questions in conversation
-            team_question_indicators = [
-                "management team", "who are the key executives", "leadership team", 
-                "ceo background", "founding team", "executive team"
-            ]
-            has_team_discussion = any(indicator in conversation_str for indicator in team_question_indicators)
-            
-            # Also check if we have substantial team data (multiple members with backgrounds)
-            team_data = complete_data.get("team_members", [])
-            has_substantial_team_data = (len(team_data) > 1 or 
-                                       (team_data and len(team_data[0].get("background", "")) > 50))
-            
-            if has_team_discussion and has_substantial_team_data:
-                covered_slides.append("management_team")
-                print(f"✅ [DEBUG] Including management_team (explicit team discussion found)")
-            else:
-                print(f"❌ [DEBUG] Excluding management_team (no explicit team discussion or limited data)")
-                print(f"    Team discussion: {has_team_discussion}, Substantial data: {has_substantial_team_data}")
-        
-        # Financial performance - ONLY if explicitly asked about financial performance/metrics
-        financial_slide_names = ["financial_performance", "historical_financial_performance"]
-        for slide_name in financial_slide_names:
-            if slide_name in required_slides:
-                # Check for explicit financial performance questions
-                financial_question_indicators = [
-                    "financial performance", "revenue numbers", "profitability", "financial metrics",
-                    "how much revenue", "financial results", "earnings", "financial data"
-                ]
-                has_financial_discussion = any(indicator in conversation_str for indicator in financial_question_indicators)
-                
-                # Has structured financial data (not just mentioned in passing)
-                has_structured_financials = (complete_data.get("revenue_usd_m") and 
-                                           isinstance(complete_data.get("revenue_usd_m"), list) and 
-                                           len(complete_data.get("revenue_usd_m")) > 0)
-                
-                if has_financial_discussion and has_structured_financials:
-                    covered_slides.append(slide_name)
-                    print(f"✅ [DEBUG] Including {slide_name} (explicit financial discussion found)")
-                else:
-                    print(f"❌ [DEBUG] Excluding {slide_name} (no explicit financial discussion)")
-                    print(f"    Financial discussion: {has_financial_discussion}, Structured data: {has_structured_financials}")
-                break
-        
-        # Product/Service - ONLY if detailed products/services are described
-        if ("product_service_footprint" in required_slides and
-            (complete_data.get("products_services") and len(complete_data.get("products_services", [])) > 0)):
-            # Check if we have actual product descriptions, not just generic terms
-            products = complete_data.get("products_services", [])
-            has_detailed_products = any(
-                isinstance(product, str) and len(product) > 10 and 
-                product not in ["service1", "service2", "Service 1", "Service 2"]
-                for product in products
-            )
-            # Also check for specific PRYPCO products mentioned
-            prypco_products = ["prypco blocks", "prypco mint", "prypco one", "fractional ownership", "tokenized"]
-            has_prypco_products = any(prod in conversation_str for prod in prypco_products)
-            
-            if has_detailed_products or has_prypco_products:
-                covered_slides.append("product_service_footprint")
-                print(f"✅ [DEBUG] Including product_service_footprint (found detailed products)")
-            else:
-                print(f"❌ [DEBUG] Excluding product_service_footprint (no detailed product descriptions)")
-        
-        # REMOVE ALL OTHER SLIDES - they were not explicitly discussed
-        # Growth strategy, transactions, valuation, etc. should NOT be included unless explicitly discussed
-        
-        print(f"🎯 [DEBUG] Final covered slides: {covered_slides}")
-        
-        # If no slides qualified, at least include business_overview
-        if not covered_slides and "business_overview" in required_slides:
-            covered_slides.append("business_overview")
-            print(f"🔧 [DEBUG] Added fallback business_overview")
-        
+        print(f"✅ [FIXED] Including all topic-based slides: {covered_slides}")
         return covered_slides
     
     def generate_perfect_jsons(self, extracted_data: Dict, research_data: Dict, required_slides: List[str]):
@@ -582,6 +505,27 @@ RESPOND WITH ONLY THE JSON - NO OTHER TEXT.
                             "enterprise_value": "$50M-100M",
                             "commentary": "Based on comparable analysis"
                         }])
+                    }
+                })
+            
+            elif slide_type == "margin_cost_resilience":
+                slides.append({
+                    "template": "margin_cost_resilience",
+                    "data": {
+                        "title": "Margin & Cost Resilience",
+                        "margin_cost_data": complete_data.get("margin_cost_data", {
+                            "cost_structure": [
+                                {"category": "Technology", "percentage": 40, "trend": "Stable"},
+                                {"category": "Operations", "percentage": 30, "trend": "Optimizing"},
+                                {"category": "Marketing", "percentage": 20, "trend": "Growing"},
+                                {"category": "General & Admin", "percentage": 10, "trend": "Controlled"}
+                            ],
+                            "margin_analysis": {
+                                "current_ebitda_margin": "15-20%",
+                                "target_ebitda_margin": "25%+",
+                                "key_drivers": ["Platform scalability", "Operational efficiency"]
+                            }
+                        })
                     }
                 })
         
