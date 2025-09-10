@@ -8,7 +8,122 @@ import zipfile
 from datetime import datetime
 import re
 
-# CRITICAL PATCH: Memory and conversation helpers
+# CRITICAL PATCH: Priority Intent Router + Fact Lookup
+def _normalize_text(s: str) -> str:
+    """Normalize common typos and phrasing variations"""
+    import re
+    s = s.strip()
+    # Common typos / phrasing
+    s = re.sub(r'\biraw\b', 'iraq', s, flags=re.I)
+    s = re.sub(r'\bresearch this me\b', 'research this for me', s, flags=re.I)
+    return s
+
+def _is_fact_query(text: str) -> bool:
+    """Detect direct factual questions like 'who is the CEO?'"""
+    import re
+    return bool(re.search(r'^(who|what|where|when|how many|how much)\b', text.strip().lower()))
+
+def _is_research_request(text: str) -> bool:
+    """Detect research requests with better pattern matching"""
+    import re
+    return bool(re.search(r'\b(research( this)?|look it up|find sources?|check (the )?web)\b', text, flags=re.I))
+
+def _is_estimation_request(text: str) -> bool:
+    """Detect estimation requests like 'estimate revenue'"""
+    import re
+    return bool(re.search(r'\b(estimate|ball[\- ]?park|back[ \-]of[ \-]the[ \-]envelope|rough(ly)?|approx(imate)?)\b', text, flags=re.I))
+
+def _maybe_set_company(text: str):
+    """Light entity capture for company name persistence"""
+    t = text.strip()
+    if len(t) <= 3 and t.lower() in {'ikea', 'qi', 'qi card'}:
+        st.session_state['current_company'] = 'Qi Card' if 'qi' in t.lower() else t
+    # Generic capture like: "company is X" or just a proper noun
+    if 'company name is' in t.lower():
+        st.session_state['current_company'] = t.split('is',1)[1].strip()
+
+def _current_company() -> str:
+    """Get current company context"""
+    return st.session_state.get('current_company', st.session_state.get('company_name', ''))
+
+def _bias_entity_from_context(text: str):
+    """Fix entity drift - map qi+iraq -> Qi Card"""
+    t = text.lower()
+    if 'qi' in t and 'iraq' in t and not _current_company():
+        st.session_state['current_company'] = 'Qi Card'
+        st.session_state['company_name'] = 'Qi Card'  # Also set in standard location
+
+def _run_fact_lookup(user_text: str):
+    """Handle direct factual questions immediately"""
+    entity = _current_company()
+    hint = f" (Entity: {entity})" if entity else ""
+    prompt = user_text + hint
+    
+    DIRECT_QA_INSTRUCTIONS = (
+        "You answer direct factual questions briefly (1-2 sentences). "
+        "If unknown, say 'Not publicly disclosed' or 'Unclear from public sources' and offer research. "
+        "When citing, include readable titles with links; avoid bare [1]/[2] brackets."
+    )
+    
+    # Use conversation transcript for context
+    conversation_transcript = _memory_transcript(max_turns=8, max_chars=1500)
+    enhanced_prompt = f"""Based on our conversation about {entity}, please answer this direct question:
+
+CONVERSATION CONTEXT:
+{conversation_transcript}
+
+QUESTION: {user_text}
+
+Answer briefly and factually. If you don't know, say so and offer to research."""
+    
+    messages = [
+        {"role": "system", "content": DIRECT_QA_INSTRUCTIONS},
+        {"role": "user", "content": enhanced_prompt}
+    ]
+    
+    try:
+        response = call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
+                              st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
+        return _strip_unresolved_citations(response or "I'm not sure about that. Would you like me to research it?")
+    except Exception as e:
+        return f"I'm not sure about that. Would you like me to research {entity} for more details?"
+
+def _run_estimation(user_text: str):
+    """Handle estimation requests with proper financial modeling"""
+    entity = _current_company()
+    
+    ESTIMATION_INSTRUCTIONS = (
+        "You are an analyst. When asked to ESTIMATE revenue from customers, compute LOW/BASE/HIGH scenarios.\n"
+        "Allowed models: (A) ARPU × Active Users; (B) TPV × Take Rate. Prefer (B) if TPV or take-rate is known.\n"
+        "Write assumptions explicitly, use reasonable benchmarks when missing, and show the formula and math.\n"
+        "Ask for at most TWO missing inputs if both models are impossible; otherwise, proceed with a range.\n"
+        "Never ask for EBITDA or growth if the user asked specifically for a revenue estimate.\n"
+        "End with a one-line summary and a short list of NEXT data that would tighten the estimate."
+    )
+    
+    conversation_transcript = _memory_transcript(max_turns=10, max_chars=2000)
+    enhanced_prompt = f"""Based on our conversation about {entity}, provide revenue estimation:
+
+CONVERSATION CONTEXT:
+{conversation_transcript}
+
+ESTIMATION REQUEST: {user_text}
+
+Use the context to extract known metrics and provide LOW/BASE/HIGH scenarios with clear assumptions."""
+    
+    messages = [
+        {"role": "system", "content": ESTIMATION_INSTRUCTIONS},
+        {"role": "user", "content": enhanced_prompt}
+    ]
+    
+    try:
+        response = call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
+                              st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
+        return _strip_unresolved_citations(response or "I'll need more financial data to provide a reliable revenue estimate.")
+    except Exception as e:
+        return f"I'll need more financial data to estimate {entity} revenue. What metrics do you have available?"
+
+# CRITICAL PATCH: Memory and conversation helpers  
 def _meaningful_since_last_question(min_tokens: int = 6) -> bool:
     """Check if user provided substantial content since last assistant question"""
     import re
@@ -5601,18 +5716,34 @@ RENDER PLAN JSON:
                 
                 print(f"🧠 Enhanced decision: {enhanced_decision}")
                 
-                # Initialize research_request based on enhanced decision
-                research_request = (enhanced_decision.get('action') == 'trigger_research')
+                # PRIORITY INTENT ROUTER - Process user input with normalization and entity bias
+                user_norm = _normalize_text(prompt)
+                _bias_entity_from_context(user_norm)
+                _maybe_set_company(user_norm)
                 
-                # CRITICAL FIX: Explicit research phrase detection to prevent "next topic" confusion
-                user_lower = prompt.lower().strip()
-                explicit_research_phrases = [
-                    "research this for me", "research this", "research it for me", "research it",
-                    "find information", "look this up", "investigate this", "get more info"
-                ]
-                if any(phrase in user_lower for phrase in explicit_research_phrases):
-                    research_request = True
-                    print(f"🔍 [EXPLICIT RESEARCH] Detected: '{prompt}' - overriding other decisions")
+                print(f"🔄 [ROUTER] Normalized: '{user_norm}' | Company: {_current_company()}")
+                
+                # PRIORITY 1: Direct factual questions - answer immediately
+                if _is_fact_query(user_norm):
+                    print(f"❓ [FACT QUERY] Detected: '{user_norm}'")
+                    fact_answer = _run_fact_lookup(user_norm)
+                    st.session_state.messages.append({"role": "assistant", "content": fact_answer})
+                    st.rerun()
+                    st.stop()
+                
+                # PRIORITY 2: Estimation requests - compute with assumptions
+                if _is_estimation_request(user_norm):
+                    print(f"📊 [ESTIMATION] Detected: '{user_norm}'") 
+                    estimation_result = _run_estimation(user_norm)
+                    st.session_state.messages.append({"role": "assistant", "content": estimation_result})
+                    st.rerun()
+                    st.stop()
+                
+                # PRIORITY 3: Research requests - improved detection
+                research_request = _is_research_request(user_norm) or (enhanced_decision.get('action') == 'trigger_research')
+                
+                if research_request:
+                    print(f"🔍 [RESEARCH] Detected via priority router: '{user_norm}'")
                 
                 # CONSOLIDATED RESEARCH HANDLING - Handle all research requests here
                 if research_request:
@@ -5686,7 +5817,9 @@ ENSURE you research the correct company mentioned in our conversation."""
                         try:
                             research_results = call_llm_api(research_messages, selected_model, api_key, api_service)
                             if research_results:
-                                st.session_state.messages.append({"role": "assistant", "content": research_results})
+                                # Strip unresolved citations and improve formatting
+                                clean_results = _strip_unresolved_citations(research_results)
+                                st.session_state.messages.append({"role": "assistant", "content": clean_results})
                                 print(f"✅ [RESEARCH] Research completed for {research_topic}")
                             else:
                                 st.session_state.messages.append({"role": "assistant", "content": f"I'd be happy to help research {research_topic} for {company_name}. Could you provide more specific areas you'd like me to focus on?"})
