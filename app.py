@@ -3022,7 +3022,6 @@ def analyze_conversation_progress(messages):
                 user_response = messages[i + 1]["content"].lower()
                 
                 # Case 1a: Direct informational response (not research request)
-                # Changed from len > 10 to len > 2 to handle short but valid responses like company names
                 if "research" not in user_response and len(user_response) > 2:
                     completed_topics += 1
                     print(f"✅ TOPIC {completed_topics} COMPLETED: Direct response")
@@ -3050,7 +3049,7 @@ def analyze_conversation_progress(messages):
     result = {
         "current_topic": topics[current_position - 1]["id"] if current_position <= 14 else "completed",
         "next_topic": topics[current_position - 1]["id"] if current_position <= 14 else "completed", 
-        "next_question": topics[current_position - 1]["question"] if current_position <= 14 else "Interview complete!",
+        "next_question": topics[current_position - 1]["next_question"] if current_position <= 14 else "Interview complete!",
         "is_complete": is_complete,
         "topics_completed": completed_topics,
         "current_position": current_position,
@@ -5593,9 +5592,9 @@ RENDER PLAN JSON:
                         "explain that", "what is", "how does", "why"
                     ])
                     
-                    # 4. Check for topic switching or new information
+                    # 4. Check for topic switching or new information (excluding "next topic" which is handled separately)
                     topic_switch = any(phrase in user_message_lower for phrase in [
-                        "let's talk about", "i want to discuss", "moving on", "next topic",
+                        "let's talk about", "i want to discuss", "moving on", 
                         "what about", "tell me about", "i need help with"
                     ])
                     
@@ -5611,47 +5610,89 @@ RENDER PLAN JSON:
                         "i like", "that's helpful", "useful", "good to know"
                     ])
                     
+                    # ENHANCED: Contextual follow-up for incomplete information (CHECK BEFORE RESEARCH)
+                    user_response = prompt.strip()
+                    needs_more_info = False
+                    contextual_followup = ""
+                    
+                    # Analyze if user provided partial information that needs follow-up
+                    progress_info = analyze_conversation_progress(st.session_state.messages) if 'analyze_conversation_progress' in globals() else {}
+                    current_topic_for_context = progress_info.get("current_topic", "business_overview")
+                    
+                    if current_topic_for_context == "historical_financial_performance" and len(user_response) > 10:
+                        # Check if financial info is missing key components
+                        has_revenue = any(word in user_response.lower() for word in ["revenue", "sales", "million", "billion", "$"])
+                        has_margins = any(word in user_response.lower() for word in ["margin", "ebitda", "profit", "%", "percentage"])
+                        has_growth = any(word in user_response.lower() for word in ["growth", "year", "2023", "2024", "increased"])
+                        
+                        if not (has_revenue and has_margins and has_growth):
+                            needs_more_info = True
+                            missing_parts = []
+                            if not has_revenue: missing_parts.append("revenue figures")
+                            if not has_margins: missing_parts.append("EBITDA margins")  
+                            if not has_growth: missing_parts.append("growth rates")
+                            contextual_followup = f"Thanks for that information! To complete the financial analysis, I additionally need {' and '.join(missing_parts)}. Do you have this data, or should I research it?"
+                    
+                    elif current_topic_for_context == "management_team" and len(user_response) > 10:
+                        # Check if management info is missing key roles
+                        has_ceo = any(word in user_response.lower() for word in ["ceo", "chief executive"])
+                        has_cfo = any(word in user_response.lower() for word in ["cfo", "chief financial"])
+                        has_backgrounds = any(word in user_response.lower() for word in ["experience", "background", "previously", "worked", "founded"])
+                        
+                        if not (has_ceo and has_cfo and has_backgrounds):
+                            needs_more_info = True
+                            missing_parts = []
+                            if not has_ceo: missing_parts.append("CEO information")
+                            if not has_cfo: missing_parts.append("CFO details")
+                            if not has_backgrounds: missing_parts.append("executive backgrounds")
+                            contextual_followup = f"Good start on the management team! I additionally need {' and '.join(missing_parts)} for the pitch deck. Do you have this information, or should I research it?"
+                    
+                    elif current_topic_for_context == "valuation_overview" and len(user_response) > 10:
+                        # Check if valuation is missing actual numbers
+                        has_numbers = any(char.isdigit() for char in user_response)
+                        has_multiple = any(word in user_response.lower() for word in ["x", "multiple", "times", "ratio"])
+                        has_methodology = any(word in user_response.lower() for word in ["dcf", "comps", "precedent", "methodology"])
+                        
+                        if not (has_numbers and (has_multiple or has_methodology)):
+                            needs_more_info = True
+                            contextual_followup = f"Thanks for the valuation framework! I additionally need specific valuation ranges or multiples (e.g., '15-20x EBITDA' or '$2-3 billion enterprise value'). Do you have target numbers, or should I research comparable valuations?"
+                    
+                    if needs_more_info and contextual_followup:
+                        # Ask contextual follow-up question
+                        st.session_state.messages.append({"role": "assistant", "content": contextual_followup})
+                        st.rerun()
+                        st.stop()
+                    
                     if research_request:
-                        # USER REQUESTED RESEARCH - Perform actual web research
-                        # CRITICAL FIX: Determine topic from the LATEST ASSISTANT QUESTION, not internal topic tracker
-                        
-                        # Get the most recent assistant question to determine what they're asking about
-                        last_assistant_messages = [msg for msg in st.session_state.messages[-3:] if msg["role"] == "assistant"]
-                        recent_question = last_assistant_messages[-1]["content"].lower() if last_assistant_messages else ""
-                        
+                        # USER REQUESTED RESEARCH - Use current topic from 14-topic sequence
+                        progress_info = analyze_conversation_progress(st.session_state.messages)
+                        current_topic = progress_info.get('current_topic', 'business_overview')
                         company_name = st.session_state.get('company_name', 'company')
                         
-                        # Smart topic detection from the actual question being asked
-                        if any(word in recent_question for word in ["product", "service", "offering", "footprint", "main offerings"]):
-                            research_topic = "products and services"
-                            research_query = f"{company_name} products services offerings platform business model"
-                        elif any(word in recent_question for word in ["financial", "revenue", "performance", "profit", "earnings"]):
-                            research_topic = "financial performance"  
-                            research_query = f"{company_name} revenue EBITDA margins financial performance earnings"
-                        elif any(word in recent_question for word in ["management", "team", "executives", "leadership", "founders"]):
-                            research_topic = "management team"
-                            research_query = f"{company_name} CEO CFO executives management team leadership founders"
-                        elif any(word in recent_question for word in ["competitors", "competitive", "market", "competition"]):
-                            research_topic = "competitive landscape"
-                            research_query = f"{company_name} competitors market share competitive analysis industry"
-                        elif any(word in recent_question for word in ["valuation", "value", "worth", "investment"]):
-                            research_topic = "valuation"
-                            research_query = f"{company_name} valuation methodology DCF multiples precedent transactions market cap"
-                        elif any(word in recent_question for word in ["growth", "strategy", "expansion", "future"]):
-                            research_topic = "growth strategy"
-                            research_query = f"{company_name} growth strategy expansion plans projections future roadmap"
-                        elif any(word in recent_question for word in ["differentiators", "advantages", "unique", "competitive advantage"]):
-                            research_topic = "differentiators and competitive advantages"
-                            research_query = f"{company_name} competitive advantages differentiators unique value proposition innovation"
-                        else:
-                            # Fallback to general business research
-                            research_topic = "business overview"
-                            research_query = f"{company_name} business overview company information"
+                        # Map the current sequential topic to research focus
+                        topic_research_mapping = {
+                            "business_overview": "business overview and operations",
+                            "product_service_footprint": "products and services", 
+                            "historical_financial_performance": "financial performance",
+                            "management_team": "management team",
+                            "growth_strategy_projections": "growth strategy",
+                            "competitive_positioning": "competitive landscape",
+                            "precedent_transactions": "precedent transactions and M&A activity", 
+                            "valuation_overview": "valuation",
+                            "strategic_buyers": "strategic buyers",
+                            "financial_buyers": "financial buyers", 
+                            "sea_conglomerates": "regional conglomerates",
+                            "margin_cost_resilience": "margins and cost structure",
+                            "investor_considerations": "investment risks and considerations",
+                            "investor_process_overview": "investment process and due diligence"
+                        }
                         
-                        print(f"🔍 [RESEARCH] Detected topic: {research_topic} from question: {recent_question[:100]}...")
+                        research_topic = topic_research_mapping.get(current_topic, "business overview")
+                        research_query = f"{company_name} {research_topic}"
                         
-                        # FIXED: Use the detected research_topic instead of progress current_topic
-                        # This ensures we research what the user actually asked about
+                        print(f"🔍 [RESEARCH] Sequential topic: {current_topic} → Research focus: {research_topic}")
+                        
+                        # Use the current sequential topic for research
                         
                         with st.spinner(f"🔍 Researching {research_topic} for {st.session_state.get('company_name', 'your company')}..."):
                             try:
@@ -5688,7 +5729,42 @@ MANDATORY 3-WAY VALUATION ANALYSIS:
 - Present specific transaction-based valuation range
 
 RECOMMENDED VALUATION RANGE: Weighted average methodology with specific numbers."""
-                                    elif "buyers" in research_topic.lower() or "strategic" in research_topic.lower() or "financial" in research_topic.lower():
+                                    elif research_topic == "financial performance":
+                                        research_instruction = f"""You are conducting comprehensive financial performance analysis for {company_name}.
+
+MANDATORY FINANCIAL PERFORMANCE ANALYSIS:
+
+**1. HISTORICAL REVENUE ANALYSIS:**
+- Annual revenue figures for last 3-5 years (in USD millions)
+- Year-over-year growth rates and trends
+- Revenue by business segment/product line if available
+- Key revenue drivers and market dynamics
+
+**2. PROFITABILITY METRICS:**
+- EBITDA figures for last 3-5 years (in USD millions)
+- EBITDA margin percentages and trends
+- Operating margin analysis
+- Net profit margins and bottom-line performance
+
+**3. KEY FINANCIAL METRICS:**
+- Gross margins by business segment
+- Operating leverage and scalability
+- Cash flow generation and conversion
+- Return on equity (ROE) and return on assets (ROA)
+
+**4. PERFORMANCE DRIVERS:**
+- Main revenue streams and their evolution
+- Cost structure and margin improvement initiatives  
+- Working capital management
+- Capital allocation and investment returns
+
+**5. INDUSTRY BENCHMARKING:**
+- Performance vs. sector peers
+- Market share and competitive position
+- Financial efficiency metrics vs. industry average
+
+Provide specific numbers, percentages, and year-over-year comparisons with professional analysis."""
+                                    elif "buyers" in research_topic.lower() or "strategic" in research_topic.lower():
                                         research_instruction = f"""You are conducting comprehensive buyer identification and affordability analysis for {company_name}.
 
 CRITICAL AFFORDABILITY ANALYSIS:
@@ -5854,17 +5930,17 @@ Sources: Company filings, industry reports, financial databases"""
                                         # Generic comprehensive research fallback using detected research_topic
                                         research_results = f"Based on comprehensive market analysis and industry data for {company_name} regarding {research_topic}:\n\n**Market Position & Industry Context:** Leading position with strong competitive advantages and market dynamics favoring continued growth.\n\n**Key Performance Indicators:** Strong operational metrics and consistent performance trends across key business segments.\n\n**Strategic Analysis:** Deep-dive analysis of {research_topic} showing strong fundamentals and positive outlook.\n\n**Investment Implications:** Well-positioned for market leadership with multiple growth vectors and defensive characteristics in {research_topic}.\n\n*Sources: Industry analysis, market research reports, company data, competitive intelligence*"
                                 
-                                # Create comprehensive research response with follow-up options
+                                # Create comprehensive research response with natural follow-up
                                 if research_results:
-                                    ai_response = f"{research_results}\n\n---\n\n**Would you like me to:**\n• Dive deeper into any specific area?\n• Research additional topics?\n• Move on to the next discussion topic?"
+                                    ai_response = f"{research_results}\n\nIs this helpful? Feel free to ask follow-up questions if you'd like me to explore any specific aspects in more detail."
                                 else:
                                     # Use the topic-specific fallback content we created
-                                    ai_response = f"I've conducted comprehensive research on {research_topic} for {company_name}. Based on the analysis:\n\n{research_results if research_results else '[Comprehensive research findings would be provided here]'}\n\n**Would you like me to:**\n• Investigate specific aspects in more detail?\n• Research related areas?\n• Continue with the next topic?"
+                                    ai_response = f"I've conducted comprehensive research on {research_topic} for {company_name}. Based on the analysis:\n\n{research_results if research_results else '[Comprehensive research findings would be provided here]'}\n\nLet me know if you'd like me to investigate any specific aspects further!"
                                 
                             except Exception as e:
                                 print(f"⚠️ [RESEARCH] Complete research process failed: {e}")
                                 # Comprehensive fallback response using detected research_topic
-                                ai_response = f"I've conducted comprehensive analysis on {research_topic} for {st.session_state.get('company_name', 'your company')}. Based on available market data and industry analysis:\n\n**Key Findings:**\n• Market position and competitive standing\n• Industry dynamics and growth trends\n• Strategic opportunities and challenges\n• Investment implications and outlook\n\n**Would you like me to:**\n• Provide more detailed analysis on specific aspects?\n• Research additional related topics?\n• Continue with the next discussion area?"
+                                ai_response = f"I've conducted comprehensive analysis on {research_topic} for {st.session_state.get('company_name', 'your company')}. Based on available market data and industry analysis:\n\n**Key Findings:**\n• Market position and competitive standing\n• Industry dynamics and growth trends\n• Strategic opportunities and challenges\n• Investment implications and outlook\n\nWhat specific aspects would you like to explore further?"
                         
                         # Add the research response to conversation history
                         st.session_state.messages.append({"role": "assistant", "content": ai_response})
@@ -5877,24 +5953,84 @@ Sources: Company filings, industry reports, financial databases"""
                         st.rerun()
                         st.stop()
                     
-                    # DYNAMIC CONVERSATION HANDLING - Restore full adaptive system
-                    elif specific_info_request or clarification_request or topic_switch or disagreement:
-                        # User wants more information, clarification, or is switching topics
-                        with st.spinner("🤔 Processing your request..."):
+                    # CRITICAL: Check for follow-up research requests after satisfaction questions
+                    follow_up_research_request = False
+                    if len(st.session_state.messages) >= 2:
+                        # Check if previous assistant message asked about satisfaction  
+                        prev_message = st.session_state.messages[-2] if len(st.session_state.messages) >= 2 else None
+                        if prev_message and prev_message.get("role") == "assistant":
+                            prev_content = prev_message.get("content", "").lower()
+                            asked_satisfaction = any(phrase in prev_content for phrase in [
+                                "satisfied with this research",
+                                "investigate any specific areas further", 
+                                "research more details",
+                                "focus on specific aspects",
+                                "dive deeper into",
+                                "research additional topics",
+                                "move on to the next"
+                            ])
+                            
+                            if asked_satisfaction:
+                                # User is responding to satisfaction question - check for follow-up research requests
+                                follow_up_phrases = [
+                                    "tell more about", "more about", "tell me about", "elaborate on",
+                                    "investigate", "research", "look into", "find out about",
+                                    "details about", "information about", "expand on", "dive deeper",
+                                    "market coverage", "geographic", "business model", "financials",
+                                    "yes", "more", "further", "deeper", "additional", "specific"
+                                ]
+                                has_follow_up_phrase = any(phrase in user_message_lower for phrase in follow_up_phrases)
+                                
+                                # CRITICAL: Also detect direct questions as follow-up research requests
+                                is_direct_question = (
+                                    prompt.strip().endswith("?") or  # Ends with question mark
+                                    prompt.lower().startswith(("does ", "do ", "is ", "are ", "can ", "will ", "would ", "should ", "how ", "what ", "where ", "when ", "why ", "who ")) or
+                                    any(pattern in user_message_lower for pattern in [
+                                        " sell ", " offer ", " provide ", " do they ", " does it ", " is it ",
+                                        " have they ", " has it ", " operates in ", " work in "
+                                    ])
+                                )
+                                
+                                follow_up_research_request = has_follow_up_phrase or is_direct_question
+                                if follow_up_research_request:
+                                    print(f"🔍 FOLLOW-UP RESEARCH: User requested more details after satisfaction question")
+                    
+                    # Update research request detection to include follow-up requests
+                    research_request = research_request or follow_up_research_request
+                    
+                    # PRIORITY 1: Handle "next topic" for sequential interview progression
+                    if "next topic" in user_message_lower and not research_request:
+                        # User wants to advance to next topic in the 14-topic sequence
+                        progress_info = analyze_conversation_progress(st.session_state.messages)
+                        
+                        if progress_info.get("is_complete", False):
+                            ai_response = "Perfect! I have collected all the information needed for your comprehensive pitch deck. All 14 essential topics have been covered. You can now click the 'Generate JSON Now' button to create your presentation files."
+                        elif progress_info.get("next_question"):
+                            ai_response = progress_info["next_question"]
+                            print(f"🎯 [NEXT TOPIC] Advancing to topic {progress_info.get('current_position', '?')}: {progress_info.get('current_topic', 'unknown')}")
+                        else:
+                            ai_response = "Let me continue with the next topic in our investment banking interview."
+                        
+                        st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                        st.rerun()
+                        st.stop()
+                    
+                    # DYNAMIC CONVERSATION HANDLING - Use natural LLM responses instead of robotic patterns  
+                    if not research_request and (specific_info_request or clarification_request or topic_switch or disagreement or positive_engagement):
+                        # Handle natural conversation with LLM intelligence
+                        with st.spinner("💭 Processing your request..."):
                             try:
-                                # Enhanced contextual response with comprehensive conversation awareness
+                                # Create natural conversation prompt
                                 conversation_context = " ".join([msg["content"] for msg in st.session_state.messages[-5:]])
                                 company_name = st.session_state.get('company_name', 'your company')
-                                progress_info = analyze_conversation_progress(st.session_state.messages)
-                                current_topic = progress_info.get("current_topic", "general discussion")
                                 
-                                # Build enhanced contextual messages for LLM with full conversation awareness
+                                # Build natural contextual messages for LLM 
                                 contextual_messages = [
-                                    {"role": "system", "content": f"You are a senior investment banking advisor conducting a comprehensive interview for {company_name}. You are adaptive, knowledgeable, and focused on gathering information for a professional pitch deck. Current discussion topic: {current_topic}. Respond naturally to user requests while maintaining the professional investment banking context."},
-                                    {"role": "user", "content": f"**Investment Banking Interview Context:**\n- Company: {company_name}\n- Current Topic: {current_topic}\n- Recent Conversation: {conversation_context[-1000:]}\n\n**User's Latest Request:** \"{prompt}\"\n\n**Instructions:** Provide a helpful, contextual response that addresses their specific request. If they're asking for more details, elaboration, or clarification, provide it naturally. If they're changing topics, acknowledge the switch and ask relevant follow-up questions. Be conversational but maintain professional investment banking expertise."}
+                                    {"role": "system", "content": f"You are a senior investment banking advisor having a natural conversation about {company_name}. Respond naturally and conversationally to the user's request. Be helpful, professional, and adaptive. Don't use robotic language or menu options. Just have a natural conversation while staying focused on gathering information for the pitch deck."},
+                                    {"role": "user", "content": f"Context: We're discussing {company_name} for a pitch deck.\n\nRecent conversation:\n{conversation_context[-800:]}\n\nUser just said: \"{prompt}\"\n\nPlease respond naturally and conversationally. Be helpful and engaging without being robotic."}
                                 ]
                                 
-                                # Get comprehensive adaptive response from LLM
+                                # Get natural response from LLM
                                 ai_response = call_llm_api(
                                     contextual_messages,
                                     st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
@@ -5902,42 +6038,28 @@ Sources: Company filings, industry reports, financial databases"""
                                     st.session_state.get('api_service', 'claude')
                                 )
                                 
-                                # Log the context-aware response for debugging
-                                print(f"🤔 [CONTEXT] Generated contextual response for: {prompt[:50]}...")
-                                print(f"🎯 [CONTEXT] Current topic: {current_topic}, Response length: {len(ai_response) if ai_response else 0}")
+                                print(f"💭 [NATURAL] Generated conversational response for: {prompt[:50]}...")
                                 
                             except Exception as e:
-                                print(f"⚠️ [CONTEXT] LLM context generation failed: {e}")
-                                # Enhanced fallback responses with more context awareness
+                                print(f"⚠️ [NATURAL] LLM conversation failed: {e}")
+                                # Simple, natural fallback responses 
                                 company_name = st.session_state.get('company_name', 'your company')
-                                progress_info = analyze_conversation_progress(st.session_state.messages)
-                                current_topic = progress_info.get("current_topic", "general discussion")
                                 
                                 if specific_info_request:
-                                    ai_response = f"I'd be happy to provide more details about {company_name}! Given we're discussing {current_topic.replace('_', ' ')}, what specific aspect would you like me to elaborate on? I can dive deeper into any area that would be helpful for your pitch deck."
+                                    ai_response = f"Sure! What specifically would you like to know more about regarding {company_name}?"
                                 elif clarification_request:
-                                    ai_response = f"Great question about {company_name}! Let me clarify that for you. In the context of {current_topic.replace('_', ' ')}, what specifically would you like me to explain in more detail?"
+                                    ai_response = f"Of course! What part would you like me to clarify or explain further?"
                                 elif topic_switch:
-                                    ai_response = f"Absolutely! I'm flexible with our discussion about {company_name}. What topic would you like to explore? Whether it's business model, financials, team, market analysis, competitive positioning, or any other area - I'm here to help gather the information for your pitch deck."
+                                    ai_response = f"Absolutely! What aspect of {company_name} would you like to explore next?"
                                 elif disagreement:
-                                    ai_response = f"Thank you for the correction regarding {company_name}! I want to make sure I have accurate information. Please share the correct details, and I'll incorporate them properly into our {current_topic.replace('_', ' ')} discussion."
+                                    ai_response = f"Thanks for the correction! Please share the accurate information so I can get it right."
+                                elif positive_engagement:
+                                    ai_response = f"Great! Is there anything else you'd like to discuss about {company_name}?"
                                 else:
-                                    ai_response = f"I understand your request about {company_name}. We're currently discussing {current_topic.replace('_', ' ')} - how can I better assist you? What information would be most valuable for your pitch deck?"
+                                    ai_response = f"Got it! How can I help you further with {company_name}?"
                         
-                        # Add contextual response to conversation history
+                        # Add natural response to conversation history
                         st.session_state.messages.append({"role": "assistant", "content": ai_response})
-                        
-                        # Update context tracking for better conversation flow
-                        if 'conversation_context_history' not in st.session_state:
-                            st.session_state['conversation_context_history'] = []
-                        
-                        st.session_state['conversation_context_history'].append({
-                            'user_request': prompt,
-                            'context_type': 'dynamic_conversation',
-                            'current_topic': progress_info.get("current_topic", "unknown"),
-                            'response_generated': True
-                        })
-                        
                         st.rerun()
                         st.stop()
                     
