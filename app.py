@@ -5598,99 +5598,86 @@ RENDER PLAN JSON:
                     st.session_state.messages.append({"role": "assistant", "content": ai_response})
                     st.rerun()
                 else:
-                    # RESTORE FULL DYNAMIC CONVERSATION SYSTEM  
-                    # Handle different types of user responses with intelligence and context
+                    # ENHANCED CONVERSATION SYSTEM WITH VERIFICATION AND INTELLIGENT FOLLOW-UPS
+                    # Handle user responses with fact-checking, verification, and smart follow-ups
                     
                     user_message_lower = prompt.lower()
                     
-                    # 1. Check for research requests FIRST
+                    # CRITICAL FIX: Check for research requests FIRST before enhanced conversation handler
+                    # This prevents the infinite loop issue at Topic 3
                     research_request = any(phrase in user_message_lower for phrase in [
                         "research this", "research for me", "research it", "research yourself",
-                        "find information", "look up", "investigate", "do research", "search for"
+                        "please research", "find information", "look up", "investigate", 
+                        "do research", "search for"
                     ])
                     
-                    # 2. Check for specific information requests
-                    specific_info_request = any(phrase in user_message_lower for phrase in [
-                        "tell me more", "what about", "can you explain", "more details", 
-                        "elaborate", "expand on", "i want to know", "what are"
-                    ])
-                    
-                    # 3. Check for clarification or follow-up questions
-                    clarification_request = any(phrase in user_message_lower for phrase in [
-                        "what do you mean", "can you clarify", "i don't understand",
-                        "explain that", "what is", "how does", "why"
-                    ])
-                    
-                    # 4. Check for topic switching or new information (excluding "next topic" which is handled separately)
-                    topic_switch = any(phrase in user_message_lower for phrase in [
-                        "let's talk about", "i want to discuss", "moving on", 
-                        "what about", "tell me about", "i need help with"
-                    ])
-                    
-                    # 5. Check for disagreement or corrections  
-                    disagreement = any(phrase in user_message_lower for phrase in [
-                        "that's wrong", "not correct", "actually", "no that's", 
-                        "i disagree", "that's not right", "incorrect"
-                    ])
-                    
-                    # 6. Check for positive engagement
-                    positive_engagement = any(phrase in user_message_lower for phrase in [
-                        "interesting", "great", "excellent", "perfect", "good point",
-                        "i like", "that's helpful", "useful", "good to know"
-                    ])
-                    
-                    # ENHANCED: Contextual follow-up for incomplete information (CHECK BEFORE RESEARCH)
-                    user_response = prompt.strip()
-                    needs_more_info = False
-                    contextual_followup = ""
-                    
-                    # Analyze if user provided partial information that needs follow-up
-                    progress_info = analyze_conversation_progress(st.session_state.messages) if 'analyze_conversation_progress' in globals() else {}
-                    current_topic_for_context = progress_info.get("current_topic", "business_overview")
-                    
-                    if current_topic_for_context == "historical_financial_performance" and len(user_response) > 10:
-                        # Check if financial info is missing key components
-                        has_revenue = any(word in user_response.lower() for word in ["revenue", "sales", "million", "billion", "$"])
-                        has_margins = any(word in user_response.lower() for word in ["margin", "ebitda", "profit", "%", "percentage"])
-                        has_growth = any(word in user_response.lower() for word in ["growth", "year", "2023", "2024", "increased"])
+                    if research_request:
+                        # IMMEDIATE RESEARCH - Skip enhanced handler to prevent loops
+                        print(f"🔍 [IMMEDIATE RESEARCH] Research request detected: '{prompt}' - bypassing verification")
+                        # Continue directly to research flow below
+                    else:
+                        # Use enhanced conversation handler for non-research interactions
+                        from enhanced_conversation_handler import create_information_verification_system
+                        enhanced_handler = create_information_verification_system()
                         
-                        if not (has_revenue and has_margins and has_growth):
-                            needs_more_info = True
-                            missing_parts = []
-                            if not has_revenue: missing_parts.append("revenue figures")
-                            if not has_margins: missing_parts.append("EBITDA margins")  
-                            if not has_growth: missing_parts.append("growth rates")
-                            contextual_followup = f"Thanks for that information! To complete the financial analysis, I additionally need {' and '.join(missing_parts)}. Do you have this data, or should I research it?"
-                    
-                    elif current_topic_for_context == "management_team" and len(user_response) > 10:
-                        # Check if management info is missing key roles
-                        has_ceo = any(word in user_response.lower() for word in ["ceo", "chief executive"])
-                        has_cfo = any(word in user_response.lower() for word in ["cfo", "chief financial"])
-                        has_backgrounds = any(word in user_response.lower() for word in ["experience", "background", "previously", "worked", "founded"])
+                        # Get current topic context
+                        progress_info = analyze_conversation_progress(st.session_state.messages)
+                        current_topic = progress_info.get('current_topic', 'business_overview')
+                        company_name = st.session_state.get('company_name', 'your company')
                         
-                        if not (has_ceo and has_cfo and has_backgrounds):
-                            needs_more_info = True
-                            missing_parts = []
-                            if not has_ceo: missing_parts.append("CEO information")
-                            if not has_cfo: missing_parts.append("CFO details")
-                            if not has_backgrounds: missing_parts.append("executive backgrounds")
-                            contextual_followup = f"Good start on the management team! I additionally need {' and '.join(missing_parts)} for the pitch deck. Do you have this information, or should I research it?"
-                    
-                    elif current_topic_for_context == "valuation_overview" and len(user_response) > 10:
-                        # Check if valuation is missing actual numbers
-                        has_numbers = any(char.isdigit() for char in user_response)
-                        has_multiple = any(word in user_response.lower() for word in ["x", "multiple", "times", "ratio"])
-                        has_methodology = any(word in user_response.lower() for word in ["dcf", "comps", "precedent", "methodology"])
+                        # Use enhanced conversation handler for intelligent processing
+                        with st.spinner("🧠 Verifying information and preparing response..."):
+                            conversation_result = enhanced_handler(
+                                messages=st.session_state.messages,
+                                current_topic=current_topic,
+                                company_name=company_name, 
+                                user_message=prompt,
+                                call_llm_api=call_llm_api,
+                                api_key=selected_api_key,
+                                api_service=selected_api_service,
+                                selected_model=selected_model
+                            )
                         
-                        if not (has_numbers and (has_multiple or has_methodology)):
-                            needs_more_info = True
-                            contextual_followup = f"Thanks for the valuation framework! I additionally need specific valuation ranges or multiples (e.g., '15-20x EBITDA' or '$2-3 billion enterprise value'). Do you have target numbers, or should I research comparable valuations?"
+                        # Handle enhanced conversation results
+                        if conversation_result['action'] == 'advancement':
+                            # User wants to advance to next topic
+                            if progress_info.get("is_complete", False):
+                                ai_response = "Perfect! I have collected all the information needed for your comprehensive pitch deck. All 14 essential topics have been covered. You can now click the 'Generate JSON Now' button to create your presentation files."
+                            elif progress_info.get("next_question"):
+                                ai_response = progress_info["next_question"]
+                                print(f"🎯 [ENHANCED ADVANCEMENT] Moving to topic {progress_info.get('current_position', '?')}: {progress_info.get('current_topic', 'unknown')}")
+                            else:
+                                ai_response = "Let me continue with the next topic in our investment banking interview."
+                            
+                            st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                            st.rerun()
+                            st.stop()
+                        
+                        elif conversation_result['action'] == 'verification':
+                            # AI provided verification and intelligent follow-up
+                            ai_response = conversation_result['response']
+                            print(f"✅ [VERIFICATION] Provided fact-check and follow-up for {current_topic}")
+                            st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                            st.rerun()
+                            st.stop()
+                        
+                        elif conversation_result['action'] == 'clarification':
+                            # AI provided natural clarification response
+                            ai_response = conversation_result['response']
+                            print(f"💭 [CLARIFICATION] Provided natural response for {current_topic}")
+                            st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                            st.rerun()
+                            st.stop()
+                        
+                        elif conversation_result['action'] == 'research':
+                            # Enhanced handler detected research - set flag and continue to research flow
+                            research_request = True
+                            print(f"🔍 [ENHANCED RESEARCH] Enhanced handler detected research request for {current_topic}")
                     
-                    if needs_more_info and contextual_followup:
-                        # Ask contextual follow-up question
-                        st.session_state.messages.append({"role": "assistant", "content": contextual_followup})
-                        st.rerun()
-                        st.stop()
+                    # Skip all the verification logic if user requested research - this prevents infinite loops
+                    if not research_request:
+                        # Original logic for non-research interactions (currently disabled to prevent loops)
+                        pass
                     
                     if research_request:
                         # USER REQUESTED RESEARCH - Use current topic from 14-topic sequence
