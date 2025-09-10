@@ -606,8 +606,13 @@ def _create_targeted_followup(topic_id: str, missing_fields: list, company_name:
     
     # Create specific follow-up based on topic
     if topic_id == "business_overview":
-        missing_list = [f["description"] for f in missing_fields]
-        return f"I have some information about {company_name}, but I still need: {', '.join(missing_list)}. Can you provide these details?"
+        # INTELLIGENT RESPONSE: If user provided company name, acknowledge and offer research
+        if len(missing_fields) >= 4:  # Most fields missing, likely just got company name
+            return f"Thanks! I have {company_name} as the company name. 💡 Tip: Answer directly first, or say \"research this for me\" if you want me to find market data with proper references"
+        else:
+            # Only a few fields missing, ask specifically
+            missing_list = [f["description"] for f in missing_fields]
+            return f"I have some information about {company_name}, but I still need: {', '.join(missing_list)}. Can you provide these details?"
     
     elif topic_id == "management_team":
         return f"For the management team section, I need 4-6 executives with their role titles and 5 experience bullets for each executive. Can you provide the executive team details?"
@@ -6844,32 +6849,46 @@ RENDER PLAN JSON:
                     if len(summary) > 200:  # Substantial research provided
                         print(f"🔍 [RESEARCH COMPLETED] Substantial research provided ({len(summary)} chars)")
                         
-                        # SMART RESEARCH PROCESSOR: Extract entity info from research and update context
+                        # SMART RESEARCH PROCESSOR: Extract entity info and ADVANCE TOPIC 
                         entity = _current_company()
                         if entity and entity.lower() in summary.lower():
                             print(f"🧠 [SMART PROCESSOR] Research contains info about {entity}, processing...")
                             
+                            # CRITICAL FIX: Mark current topic as satisfied by research
+                            current_topic = progress_info.get('current_topic', 'business_overview')
+                            print(f"🎯 [RESEARCH ADVANCEMENT] Marking {current_topic} as complete due to comprehensive research")
+                            
+                            # Mark topic as covered to prevent re-asking same question
+                            try:
+                                _mark_topic_covered_by_id(current_topic)
+                                print(f"✅ [RESEARCH ADVANCEMENT] Successfully marked {current_topic} as covered")
+                            except Exception as e:
+                                print(f"⚠️ [RESEARCH ADVANCEMENT] Could not mark topic as covered: {e}")
+                                # Fallback: add to covered topics manually
+                                if 'covered_topics' not in st.session_state:
+                                    st.session_state['covered_topics'] = []
+                                if current_topic not in st.session_state['covered_topics']:
+                                    st.session_state['covered_topics'].append(current_topic)
+                            
                             # Use LLM to extract structured information from research
                             extraction_result = _extract_entity_info_from_research(summary, entity)
-                            if extraction_result:
-                                print(f"✅ [ENTITY EXTRACTION] Populated context for {entity}")
-                                
-                                # Add a context-aware transition message  
-                                transition_msg = f"\n\nThanks for letting me research that! Based on the research about {entity}, I can continue our investment banking discussion with this context."
-                                st.session_state.messages[-1]["content"] += transition_msg
-                                
-                                # Get next logical question that acknowledges the research context
-                                smart_next_q = _get_context_aware_next_question(entity, progress_info)
-                                if smart_next_q and not _recent_assistant_question_duplicate(smart_next_q):
-                                    st.session_state.messages.append({"role": "assistant", "content": smart_next_q})
+                            
+                            # Add a context-aware transition message  
+                            transition_msg = f"\n\nThanks for letting me research that! Based on the research about {entity}, I can continue our investment banking discussion with this context."
+                            st.session_state.messages[-1]["content"] += transition_msg
+                            
+                            # FORCE ADVANCEMENT: Get fresh progress info after marking topic complete
+                            fresh_progress = analyze_conversation_progress(st.session_state.messages)
+                            next_topic_question = fresh_progress.get('next_question', '')
+                            
+                            if next_topic_question and current_topic not in next_topic_question.lower():
+                                print(f"✅ [RESEARCH ADVANCEMENT] Moving to next topic: {next_topic_question[:50]}...")
+                                st.session_state.messages.append({"role": "assistant", "content": next_topic_question})
                             else:
-                                # Fallback to regular transition
-                                transition_msg = "\n\nThanks for letting me research that! Let's continue with our discussion."
-                                st.session_state.messages[-1]["content"] += transition_msg
-                                
-                                if progress_info.get('next_question') and not _recent_assistant_question_duplicate(progress_info['next_question']):
-                                    next_q = progress_info['next_question']
-                                    st.session_state.messages.append({"role": "assistant", "content": next_q})
+                                # Manual advancement to Topic 2 if automatic doesn't work
+                                print(f"🔧 [RESEARCH ADVANCEMENT] Manual advancement to Topic 2")
+                                topic_2_question = "Now let's discuss your product/service footprint. What are your main offerings? Please provide the title and description for each product/service. Also, where do you operate geographically and what's your market coverage?"
+                                st.session_state.messages.append({"role": "assistant", "content": topic_2_question})
                         else:
                             # Regular transition when research doesn't match entity context
                             transition_msg = "\n\nThanks for letting me research that! Let's continue with our discussion."
