@@ -6079,6 +6079,24 @@ Sources: Company filings, industry reports, financial databases"""
                         st.rerun()
                         st.stop()
                     
+                    # Initialize conversation classification variables
+                    user_message_lower = prompt.lower()
+                    specific_info_request = any(phrase in user_message_lower for phrase in [
+                        "more details", "can you explain", "tell me more", "expand on", "elaborate"
+                    ])
+                    clarification_request = any(phrase in user_message_lower for phrase in [
+                        "what do you mean", "clarify", "explain", "i don't understand"
+                    ])
+                    topic_switch = any(phrase in user_message_lower for phrase in [
+                        "let's talk about", "what about", "tell me about", "switch to"
+                    ])
+                    disagreement = any(phrase in user_message_lower for phrase in [
+                        "that's not right", "i disagree", "that's wrong", "actually"
+                    ])
+                    positive_engagement = any(phrase in user_message_lower for phrase in [
+                        "great", "excellent", "perfect", "that's right", "exactly"
+                    ])
+                    
                     # DYNAMIC CONVERSATION HANDLING - Use natural LLM responses instead of robotic patterns  
                     if not research_request and (specific_info_request or clarification_request or topic_switch or disagreement or positive_engagement):
                         # Handle natural conversation with LLM intelligence
