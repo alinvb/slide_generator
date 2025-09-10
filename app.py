@@ -1612,6 +1612,9 @@ except Exception:
 st.set_page_config(page_title="AI Deck Builder", page_icon="🤖", layout="wide")
 st.title("🤖 AI Deck Builder – LLM-Powered Pitch Deck Generator")
 
+# Link to new Research Agent
+st.info("🔬 **NEW: Try our streamlined [Research Agent](https://8502-ikj6s88jczm4laiut7xkl-6532622b.e2b.dev)** - Enter company name, get comprehensive research for all 14 topics automatically!")
+
 # JSON CLEANING FUNCTIONS - Removed duplicate, using enhanced version below
 
 def validate_json_char_by_char(json_str, error_pos):
