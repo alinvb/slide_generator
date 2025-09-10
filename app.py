@@ -6410,60 +6410,115 @@ if "enhanced_initialized" not in st.session_state:
 tab_chat, tab_json, tab_execute, tab_validate = st.tabs(["🤖 AI Copilot", "📄 JSON Editor", "⚙️ Execute", "🔍 JSON Validator & Auto-Fix"])
 
 with tab_chat:
-    st.subheader("🤖 Investment Banking Pitch Deck Copilot")
+    st.subheader("🔬 Research Agent - AI Investment Banking Research")
     
     if not api_key:
-        st.error("⚠️ Please enter your API key in the sidebar to start the interview")
-    else:
-        # Start conversation button
-        if not st.session_state.chat_started:
-            if st.button("🚀 Start Pitch Deck Interview"):
-                st.session_state.chat_started = True
-                st.rerun()
-        
-        # Display chat messages
-        if st.session_state.chat_started:
-            # Display conversation (skip system message)
-            display_messages = [m for m in st.session_state.messages if m["role"] != "system"]
+        st.error("⚠️ Please enter your API key in the sidebar to start research")
+        return
+    
+    # Import Research Agent functions
+    from research_agent import research_all_topics, fact_check_user_info
+    
+    # Research Agent Interface - Clean and Simple
+    st.markdown("**Enter a company name and let AI research all 14 investment banking topics automatically**")
+    st.info("🌐 **Powered by Perplexity Sonar Pro** - Real-time web research with citations")
+    
+    # Company input section
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        company_name = st.text_input(
+            "Company Name *", 
+            placeholder="e.g., Netflix, Apple, Microsoft",
+            help="Enter the company name you want to research",
+            key="research_company_input"
+        )
+    
+    with col2:
+        user_info = st.text_area(
+            "Additional Information (Optional)",
+            placeholder="Enter any information you already have about the company...\n\nExample:\n- Founded in 1997\n- Streaming service company\n- Headquarters in Los Gatos, CA",
+            height=100,
+            help="Provide any information you have. The AI will fact-check it and use correct information.",
+            key="research_user_info"
+        )
+    
+    # Research button
+    if st.button("🚀 Start Comprehensive Research", type="primary", disabled=not company_name, key="start_research"):
+        if not company_name.strip():
+            st.error("Please enter a company name")
+        else:
+            # Store in session state for JSON generation
+            st.session_state['company_name'] = company_name
+            st.session_state['current_company'] = company_name
             
-            # If no conversation yet, add the initial interview question to session
-            if not display_messages:
-                initial_message = """Hello! I'm your highly trained, astute investment banking advisor and pitch deck specialist. As an experienced investment banker, I'll conduct a comprehensive interview to gather all the information needed for your pitch deck, then automatically generate complete JSON structures with verifiable data and proper references.
-
-**What I'll collect with investment banking precision:**
-- Company overview & business model analysis
-- Financial performance & DCF projections with assumptions  
-- Management team profiles with backgrounds
-- Growth strategy & market data with sources
-- **Valuation analysis using multiple methodologies** (DCF, Trading Multiples, Precedent Transactions)
-- Strategic & financial buyer targets with capacity analysis
-
-**Enhanced Investment Banking Features:**
-- **DCF Analysis**: I'll calculate valuations with detailed assumptions and methodology
-- **Precedent Transactions**: I'll analyze comparable M&A deals with multiples
-- **Valuation Methodologies**: I'll ask which methods you prefer (DCF, Comps, Precedents)
-- **Verifiable References**: Every answer includes sources and data citations
-- Say "I don't know" or "research this" and I'll provide market research with references
-- After research, I'll confirm if you're satisfied or want deeper investigation  
-- Say "skip this slide" to exclude any topic you don't want
-- **Zero Empty Boxes Policy**: All slides will have complete, verified content
-
-Let's start: **What is your company name and give me a brief overview of what your business does?**
-
-💡 *Tip: Answer directly first, or say "research this for me" if you want me to find market data with proper references*"""
+            # Fact-check user info if provided
+            if user_info and user_info.strip():
+                st.markdown("### 🔍 Fact-Checking User Information")
+                with st.spinner("Fact-checking provided information..."):
+                    fact_check_results = fact_check_user_info(user_info, company_name)
                 
-                # Add initial message to session state so it persists
-                st.session_state.messages.append({"role": "assistant", "content": initial_message})
-                display_messages = [{"role": "assistant", "content": initial_message}]
+                if fact_check_results.get('has_info'):
+                    st.markdown("**Fact-Check Results:**")
+                    st.markdown(fact_check_results['fact_check'])
+                    st.markdown("---")
             
-            # Display conversation
-            for message in display_messages:
-                with st.chat_message(message["role"]):
-                    st.markdown(message["content"])
+            # Start comprehensive research
+            with st.spinner("Researching all 14 topics... This may take 3-5 minutes."):
+                research_results = research_all_topics(company_name, user_info)
+                st.session_state.research_results = research_results
+                st.session_state.research_completed = True
+            
+            st.success("✅ Research completed!")
+            st.rerun()
+    
+    # Display results if research is completed
+    if st.session_state.get('research_completed', False) and st.session_state.get('research_results'):
+        st.markdown("## 📊 Research Results")
+        
+        # Create tabs for each topic
+        research_results = st.session_state.research_results
+        topic_tabs = st.tabs([research_results[topic]['title'] for topic in research_results.keys()])
+        
+        for i, (topic_id, topic_data) in enumerate(research_results.items()):
+            with topic_tabs[i]:
+                st.markdown(f"### {topic_data['title']}")
+                
+                # Show status
+                if topic_data['status'] == 'completed':
+                    st.success("✅ Research completed")
+                else:
+                    st.error("❌ Research failed")
+                
+                # Show content
+                st.markdown("**Research Results:**")
+                st.markdown(topic_data['content'])
+                
+                # Show required fields that should be covered
+                with st.expander(f"📋 Required fields for {topic_data['title']}"):
+                    for field in topic_data['required_fields']:
+                        st.write(f"• {field}")
+        
+        # Convert research to conversation format for existing JSON system
+        if 'messages' not in st.session_state:
+            st.session_state.messages = []
+        
+        # Clear existing messages and populate with research data
+        st.session_state.messages = [
+            {"role": "system", "content": "Investment banking research data"}
+        ]
+        
+        for topic_id, topic_data in research_results.items():
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": f"**{topic_data['title']}**: {topic_data['content']}"
+            })
+        
+        st.session_state.chat_started = True  # Enable JSON generation
             
 
-            # Manual JSON Generation Trigger Button
-            if len(st.session_state.messages) > 4:  # Only show after some conversation
+    # Manual JSON Generation Trigger Button - Always show if research completed
+    if st.session_state.get('research_completed', False) or len(st.session_state.get('messages', [])) > 4:
                 col1, col2 = st.columns([3, 1])
                 with col2:
                     # 🚨 TEST: Simple test button first
@@ -6716,24 +6771,52 @@ RENDER PLAN JSON:
                         completion_message = f"🚀 **Adaptive JSON Generation Triggered**\n\n📊 Generated {len(slide_list)} slides based on conversation analysis:\n• **Included**: {', '.join(slide_list)}\n• **Quality**: {analysis_report.get('quality_summary', 'Quality analysis complete')}\n\n" + ai_response
                         st.session_state.messages.append({"role": "assistant", "content": completion_message})
                         st.rerun()
-            
-            # Chat input - ENHANCED with comprehensive validation
-            if prompt := st.chat_input("Your response...", key="chat_input"):
-                # Add user message
-                st.session_state.messages.append({"role": "user", "content": prompt})
+    
+    # Research Agent Interface Complete - No chat input needed
+    if not st.session_state.get('research_completed', False):
+        st.markdown("---")
+        st.info("💡 **How to use**: Enter a company name above and click 'Start Comprehensive Research' to automatically generate all 14 investment banking research topics, then use 'Generate JSON Now' button to create your presentation files.")
+    
+    # Export chat history for compatibility
+    if st.session_state.get("messages") and len(st.session_state.messages) > 1:
+        # Research data export interface
+        st.markdown("---")
+        col1, col2, col3 = st.columns([1, 1, 2])
+        
+        with col1:
+            if st.button("🔥 Reset Chat"):
+                st.session_state.messages = [{"role": "system", "content": "Investment banking research data"}]
+                st.session_state.chat_started = False
+                st.session_state["files_ready"] = False
+                st.session_state.pop("files_data", None)
+                st.session_state.pop("research_results", None)
+                st.session_state.pop("research_completed", None)
+                st.rerun()
+        
+        with col2:
+            if st.button("💾 Export Chat"):
+                chat_export = {
+                    "model": st.session_state.get('model', 'llama-3.1-sonar-large-128k-online'),
+                    "messages": st.session_state.messages[1:],  # Exclude system message
+                    "timestamp": str(pd.Timestamp.now())
+                }
                 
-                # HOOK 1: Sticky company memory - remember company from user input
-                _remember_company_from_user(prompt)
-                
-                # Extract company name from first user response if not already set (fallback)
-                if not st.session_state.get('company_name') and len(st.session_state.messages) <= 5:
-                    # First few messages - try to extract company name
-                    company_words = prompt.split()
-                    if len(company_words) >= 1 and len(company_words[0]) > 2:
-                        # Simple heuristic: first significant word is likely company name
-                        potential_company = company_words[0].strip(".,!?").title()
-                        if not potential_company.lower() in ['i', 'the', 'a', 'an', 'my', 'our']:
-                            st.session_state['company_name'] = potential_company
+                st.download_button(
+                    "⬇️ Download Chat History",
+                    data=json.dumps(chat_export, indent=2),
+                    file_name=f"pitch_deck_interview_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.json",
+                    mime="application/json"
+                )
+
+with tab_json:
+    st.subheader("📄 JSON Editor")
+    
+    # Check if JSONs were auto-populated from AI Copilot
+    auto_populated = st.session_state.get("auto_populated", False)
+    files_ready = st.session_state.get("files_ready", False)
+    
+    # 🔧 AUTO-IMPROVEMENT VALIDATION STATUS
+    if st.session_state.get('auto_improve_enabled', False) and st.session_state.get('api_key'):
                             print(f"🏢 Detected company name: {potential_company}")
                 
                 # ENHANCED CONVERSATION DECISION: Get intelligent action from enhanced system
