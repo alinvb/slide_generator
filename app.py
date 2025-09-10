@@ -5865,7 +5865,8 @@ with st.sidebar:
     llm_service = st.radio(
         "LLM Service",
         ["🔍 Perplexity (Recommended)", "🧠 Claude (Anthropic)"],
-        help="Choose your preferred LLM service"
+        help="Choose your preferred LLM service",
+        key="llm_service_selection"
     )
     
     if llm_service.startswith("🔍"):
@@ -5881,7 +5882,8 @@ with st.sidebar:
             "Choose Perplexity Model",
             model_options,
             index=0,  # Default to sonar-pro (most capable)
-            help="sonar-pro offers the best balance of capability and speed. Token limit: 16,000 tokens for complete JSON generation."
+            help="sonar-pro offers the best balance of capability and speed. Token limit: 16,000 tokens for complete JSON generation.",
+            key="perplexity_model_selection"
         )
         api_service = "perplexity"
     else:
@@ -5897,7 +5899,8 @@ with st.sidebar:
             "Choose Claude Model",
             model_options,
             index=0,  # Default to latest Sonnet
-            help="Claude Sonnet offers the best balance of speed and capability. Token limit: 16,000 tokens for complete JSON generation."
+            help="Claude Sonnet offers the best balance of speed and capability. Token limit: 16,000 tokens for complete JSON generation.",
+            key="claude_model_selection"
         )
         api_service = "claude"
     
@@ -5939,7 +5942,8 @@ with st.sidebar:
         auto_improve_enabled = st.toggle(
             "Enable Auto-Improvement",
             value=st.session_state.get('auto_improve_enabled', False),
-            help="Automatically improve JSON quality using API calls after generation"
+            help="Automatically improve JSON quality using API calls after generation",
+            key="sidebar_auto_improve_toggle"
         )
         st.session_state['auto_improve_enabled'] = auto_improve_enabled
         
@@ -6827,7 +6831,8 @@ with tab_extract:
     brand_extraction_enabled = st.toggle(
         "Enable Brand Extraction",
         value=st.session_state.get('brand_extraction_enabled', False),
-        help="Extract brand and company information from research data"
+        help="Extract brand and company information from research data",
+        key="extract_tab_brand_extraction_toggle"
     )
     st.session_state['brand_extraction_enabled'] = brand_extraction_enabled
     
@@ -6995,7 +7000,8 @@ with tab_extract:
             auto_improve_enabled = st.toggle(
                 "Enable Auto-Improvement",
                 value=st.session_state.get('auto_improve_enabled', False),
-                help="Automatically improve JSON quality using AI"
+                help="Automatically improve JSON quality using AI",
+                key="extract_tab_auto_improve_toggle"
             )
             st.session_state['auto_improve_enabled'] = auto_improve_enabled
             
@@ -7221,7 +7227,8 @@ with tab_execute:
             output_format = st.radio(
                 "Output Format:",
                 ["PPTX (PowerPoint)", "PDF (Portable)", "Both"],
-                horizontal=True
+                horizontal=True,
+                key="output_format_selection"
             )
         
         # Generate button
