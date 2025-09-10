@@ -929,50 +929,62 @@ def _auto_research_then_estimate(user_text: str):
     
     return estimation_result
 
-def _enhanced_entity_capture(user_text: str):
-    """Enhanced entity capture with better pattern matching for major companies like NVIDIA"""
+def _remember_company_from_user(user_text: str):
+    """STICKY COMPANY MEMORY: Remember company mentioned by user and anchor all research to it"""
     text = user_text.strip()
     
-    # Handle direct company name statements (short responses likely to be company names)
+    # Short responses likely to be company names (like "NVIDIA", "Apple", etc.)
     if len(text.split()) <= 3:
-        # Known major companies (add more as needed)
+        # Known major companies
         major_companies = ['nvidia', 'apple', 'microsoft', 'google', 'alphabet', 'amazon', 'tesla', 'meta', 'facebook', 'netflix', 'uber', 'airbnb', 'shopify', 'zoom', 'slack', 'salesforce', 'oracle', 'ibm', 'intel', 'amd', 'qualcomm']
         if text.lower() in major_companies:
-            # Use uppercase for major tech companies for consistency
+            # Use uppercase for major tech companies
             entity_name = text.upper() if text.lower() in ['nvidia', 'amd', 'ibm', 'intel'] else text.title()
-            _set_entity_profile(entity_name, aliases=[text.lower(), text.title(), text.upper()])
+            # Set sticky memory in both places
+            st.session_state['current_company'] = entity_name
             st.session_state['company_name'] = entity_name
-            st.session_state['current_company'] = entity_name  # Also set backup
-            print(f"🏢 [ENHANCED CAPTURE] Locked major company entity: {entity_name}")
+            # Mirror into entity profile for guardrails
+            _set_entity_profile(entity_name, aliases=[text.lower(), text.title(), text.upper()])
+            print(f"📌 [STICKY MEMORY] Locked company: {entity_name}")
             return True
     
-    # Handle "My company is X" or "The company is X" patterns
+    # Conversation patterns like "My company is NVIDIA"
     import re
     patterns = [
         r"(?:my )?company (?:is )?(.+)",
         r"(?:the )?company name is (.+)",
         r"we are (.+)",
         r"it'?s (.+)",
-        r"i work at (.+)",
-        r"working at (.+)"
+        r"i work at (.+)"
     ]
     
     for pattern in patterns:
         match = re.search(pattern, text.lower())
         if match:
             company_name = match.group(1).strip()
-            # Clean up common artifacts
-            company_name = re.sub(r'^(a |the |an )', '', company_name)
-            company_name = company_name.strip('.,!?')
+            company_name = re.sub(r'^(a |the |an )', '', company_name).strip('.,!?')
             
-            if company_name:  # Only set if we got a meaningful name
-                _set_entity_profile(company_name.title())
-                st.session_state['company_name'] = company_name.title()
+            if company_name:
+                # Set sticky memory
                 st.session_state['current_company'] = company_name.title()
-                print(f"🏢 [ENHANCED CAPTURE] Extracted entity from pattern: {company_name.title()}")
+                st.session_state['company_name'] = company_name.title()
+                _set_entity_profile(company_name.title())
+                print(f"📌 [STICKY MEMORY] Extracted company: {company_name.title()}")
                 return True
     
     return False
+
+def _run_research(user_text: str):
+    """PATCHED RESEARCH: Uses sticky entity + guardrails"""
+    # Get sticky company from memory
+    entity = st.session_state.get('current_company') or st.session_state.get('company_name', '')
+    
+    if entity:
+        # Use universal research with entity guardrails
+        return _run_research_universal(f"[Company: {entity}] {user_text}")
+    else:
+        # Fallback to generic research
+        return _run_research_universal(user_text)
 
 # ------------------------------------------------------------------------------------------------------------------------
 # 4) DETECTION FUNCTIONS FOR ROUTER
@@ -6517,8 +6529,8 @@ RENDER PLAN JSON:
                 # Add user message
                 st.session_state.messages.append({"role": "user", "content": prompt})
                 
-                # ENHANCED ENTITY CAPTURE - Handle major companies like NVIDIA immediately
-                _enhanced_entity_capture(prompt)
+                # HOOK 1: Sticky company memory - remember company from user input
+                _remember_company_from_user(prompt)
                 
                 # Extract company name from first user response if not already set (fallback)
                 if not st.session_state.get('company_name') and len(st.session_state.messages) <= 5:
@@ -6603,53 +6615,16 @@ RENDER PLAN JSON:
                     st.rerun()
                     st.stop()
                 
-                # CONSOLIDATED RESEARCH HANDLING - Handle all research requests here
+                # HOOK 2: PATCHED RESEARCH HANDLING - Uses sticky entity + guardrails
                 if research_request:
                     print(f"🔍 [RESEARCH HANDLER] Processing research request: '{prompt}'")
                     
-                    # Get current topic for research context
-                    progress_info = analyze_conversation_progress(st.session_state.messages)
-                    current_topic = progress_info.get('current_topic', 'business_overview')
-                    
-                    # MEMORY FIX: Extract company name from conversation transcript if not in session
-                    stored_company_name = st.session_state.get('company_name', '')
-                    if not stored_company_name:
-                        # Extract from recent conversation
-                        conversation_text = _memory_transcript(max_turns=8, max_chars=1000)
-                        # Look for company mentions in conversation
-                        import re
-                        # Simple pattern to find company names mentioned in conversation
-                        for line in conversation_text.split('\n'):
-                            if 'user:' in line.lower():
-                                user_content = line.split(':', 1)[-1].strip()
-                                # Extract potential company names (capitalized words, avoid common words)
-                                potential_names = re.findall(r'\b[A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]*)*\b', user_content)
-                                for name in potential_names:
-                                    if name.lower() not in ['i', 'the', 'my', 'our', 'company', 'business', 'we', 'they']:
-                                        stored_company_name = name
-                                        st.session_state['company_name'] = name
-                                        print(f"🏢 [MEMORY FIX] Extracted company name from conversation: {name}")
-                                        break
-                                if stored_company_name:
-                                    break
-                    
-                    company_name = stored_company_name or 'your company'
-                    
-                    # Map current topic to research focus
-                    topic_research_mapping = {
-                        "business_overview": "business model and market overview",
-                        "product_service_footprint": "products services and geographic coverage",
-                        "historical_financial_performance": "financial data and performance metrics",
-                        "management_team": "executive team and leadership",
-                        "growth_strategy_projections": "growth strategy and market expansion", 
-                        "competitive_positioning": "competitive landscape and differentiation",
-                        "valuation_overview": "valuation methodologies and comparables"
-                    }
-                    
-                    research_topic = topic_research_mapping.get(current_topic, "business overview")
-                    print(f"🔍 [RESEARCH] Topic: {current_topic} → Research: {research_topic}")
-                    
-                    with st.spinner(f"🔍 Researching {research_topic} for {company_name}..."):
+                    # Use patched research function with sticky company memory
+                    summary = _run_research(prompt)
+                    st.session_state.messages.append({"role": "assistant", "content": summary})
+                    st.rerun()
+                    st.stop()
+
                         # MEMORY-GROUNDED RESEARCH: Include conversation transcript for proper context
                         conversation_transcript = _memory_transcript(max_turns=10, max_chars=2000)
                         
