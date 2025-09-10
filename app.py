@@ -6624,64 +6624,6 @@ RENDER PLAN JSON:
                     st.session_state.messages.append({"role": "assistant", "content": summary})
                     st.rerun()
                     st.stop()
-
-                        # MEMORY-GROUNDED RESEARCH: Include conversation transcript for proper context
-                        conversation_transcript = _memory_transcript(max_turns=10, max_chars=2000)
-                        
-                        research_prompt = f"""Research comprehensive information about {company_name} focusing on {research_topic}. 
-
-CRITICAL: Use the conversation transcript below to understand the correct company context.
-
-CONVERSATION TRANSCRIPT:
-{conversation_transcript}
-
-RESEARCH FOCUS: {research_topic}
-COMPANY: {company_name}
-
-Provide specific data, numbers, and insights relevant for investment banking analysis.
-Include recent developments, financial metrics, and market positioning.
-ENSURE you research the correct company mentioned in our conversation."""
-                        
-                        research_messages = [
-                            {"role": "system", "content": "You are an investment banking research analyst. Use the conversation transcript to understand the correct company context. Provide detailed, factual research."},
-                            {"role": "user", "content": research_prompt}
-                        ]
-                        
-                        try:
-                            # Enhance research instruction with data sourcing requirements
-                            enhanced_messages = research_messages.copy()
-                            enhanced_messages[-1]["content"] = _enhance_research_with_sourcing_requirements(enhanced_messages[-1]["content"])
-                            
-                            research_results = call_llm_api(enhanced_messages, selected_model, api_key, api_service)
-                            if research_results:
-                                # Apply full sanitization - citations and transcript tokens
-                                clean_results = _sanitize_all(research_results)
-                                
-                                # Validate data backing and add warnings if needed
-                                validated_results, warnings = _validate_data_sources(clean_results)
-                                
-                                # Add appropriate disclaimer based on research type
-                                final_results = _add_data_backing_disclaimer(validated_results, research_topic)
-                                
-                                # Flag any unsupported claims
-                                final_results = _flag_unsupported_claims(final_results)
-                                
-                                # Log any data backing issues
-                                if warnings:
-                                    print(f"⚠️ [DATA BACKING] Warnings for {research_topic}: {len(warnings)} issues detected")
-                                    for warning in warnings:
-                                        print(f"   - {warning}")
-                                
-                                st.session_state.messages.append({"role": "assistant", "content": final_results})
-                                print(f"✅ [RESEARCH] Research completed for {research_topic} with data backing validation")
-                            else:
-                                st.session_state.messages.append({"role": "assistant", "content": f"I'd be happy to help research {research_topic} for {company_name}. Could you provide more specific areas you'd like me to focus on?"})
-                        except Exception as e:
-                            print(f"❌ [RESEARCH] Error: {str(e)}")
-                            st.session_state.messages.append({"role": "assistant", "content": f"I encountered an issue while researching. Could you provide more details about {research_topic} for {company_name}?"})
-                    
-                    st.rerun()
-                    st.stop()  # Exit early after research
                 
                 # Analyze conversation progress
                 progress_info = analyze_conversation_progress(st.session_state.messages)
