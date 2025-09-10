@@ -133,6 +133,81 @@ def _user_provided_company_info(text: str) -> bool:
     
     return False
 
+def _extract_entity_info_from_research(research_text: str, entity: str) -> bool:
+    """
+    Extract key entity information from research and populate session context.
+    Returns True if successful extraction occurred.
+    """
+    try:
+        # Use LLM to extract structured info from research
+        extraction_prompt = f"""
+Extract key business information about {entity} from this research text and format as structured data:
+
+RESEARCH TEXT:
+{research_text}
+
+Extract and format as JSON:
+{{
+    "company_name": "{entity}",
+    "business_description": "Brief description of what the company does",
+    "founding_year": "Year founded (if mentioned)",
+    "legal_structure": "Legal entity type (if mentioned)", 
+    "core_operations": "Primary business operations",
+    "target_markets": "Key markets and geography (if mentioned)"
+}}
+
+Only include fields that are clearly mentioned in the research. Return just the JSON, no other text.
+"""
+        
+        messages = [
+            {"role": "system", "content": "You extract structured business information from research text. Return only valid JSON."},
+            {"role": "user", "content": extraction_prompt}
+        ]
+        
+        response = call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
+                              st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
+        
+        if response:
+            import json
+            try:
+                # Try to parse JSON from response
+                entity_data = json.loads(response.strip())
+                
+                # Store in session state for later use
+                if 'extracted_entity_data' not in st.session_state:
+                    st.session_state['extracted_entity_data'] = {}
+                
+                st.session_state['extracted_entity_data'][entity] = entity_data
+                print(f"🧠 [ENTITY EXTRACTION] Stored data for {entity}: {list(entity_data.keys())}")
+                return True
+                
+            except json.JSONDecodeError:
+                print(f"❌ [ENTITY EXTRACTION] Failed to parse JSON from LLM response")
+                return False
+        
+    except Exception as e:
+        print(f"❌ [ENTITY EXTRACTION] Error: {e}")
+        return False
+    
+    return False
+
+def _get_context_aware_next_question(entity: str, progress_info: dict) -> str:
+    """
+    Generate next question that acknowledges the research context about the entity.
+    """
+    # Check if we have extracted data about this entity
+    extracted_data = st.session_state.get('extracted_entity_data', {}).get(entity, {})
+    
+    if extracted_data:
+        # We have research context, ask more targeted questions
+        if extracted_data.get('business_description'):
+            return f"Based on the research about {entity}'s business ({extracted_data['business_description'][:100]}...), let's dive into the financial performance metrics. What are the key revenue streams and recent financial highlights?"
+        else:
+            return f"Now that I have context about {entity}, let's discuss the financial performance and key metrics. What are the main revenue streams and recent financial highlights?"
+    
+    # Fallback to regular next question
+    return progress_info.get('next_question', '')
+
 def _bias_entity_from_context(text: str):
     """Fix entity drift - map qi+iraq -> Qi Card"""
     t = text.lower()
@@ -6769,14 +6844,40 @@ RENDER PLAN JSON:
                     if len(summary) > 200:  # Substantial research provided
                         print(f"🔍 [RESEARCH COMPLETED] Substantial research provided ({len(summary)} chars)")
                         
-                        # Add a transition message to continue the conversation
-                        transition_msg = "\n\nThanks for letting me research that! Let's continue with our discussion."
-                        st.session_state.messages[-1]["content"] += transition_msg
-                        
-                        # Get next logical question but don't repeat the same one
-                        if progress_info.get('next_question') and not _recent_assistant_question_duplicate(progress_info['next_question']):
-                            next_q = progress_info['next_question']
-                            st.session_state.messages.append({"role": "assistant", "content": next_q})
+                        # SMART RESEARCH PROCESSOR: Extract entity info from research and update context
+                        entity = _current_company()
+                        if entity and entity.lower() in summary.lower():
+                            print(f"🧠 [SMART PROCESSOR] Research contains info about {entity}, processing...")
+                            
+                            # Use LLM to extract structured information from research
+                            extraction_result = _extract_entity_info_from_research(summary, entity)
+                            if extraction_result:
+                                print(f"✅ [ENTITY EXTRACTION] Populated context for {entity}")
+                                
+                                # Add a context-aware transition message  
+                                transition_msg = f"\n\nThanks for letting me research that! Based on the research about {entity}, I can continue our investment banking discussion with this context."
+                                st.session_state.messages[-1]["content"] += transition_msg
+                                
+                                # Get next logical question that acknowledges the research context
+                                smart_next_q = _get_context_aware_next_question(entity, progress_info)
+                                if smart_next_q and not _recent_assistant_question_duplicate(smart_next_q):
+                                    st.session_state.messages.append({"role": "assistant", "content": smart_next_q})
+                            else:
+                                # Fallback to regular transition
+                                transition_msg = "\n\nThanks for letting me research that! Let's continue with our discussion."
+                                st.session_state.messages[-1]["content"] += transition_msg
+                                
+                                if progress_info.get('next_question') and not _recent_assistant_question_duplicate(progress_info['next_question']):
+                                    next_q = progress_info['next_question']
+                                    st.session_state.messages.append({"role": "assistant", "content": next_q})
+                        else:
+                            # Regular transition when research doesn't match entity context
+                            transition_msg = "\n\nThanks for letting me research that! Let's continue with our discussion."
+                            st.session_state.messages[-1]["content"] += transition_msg
+                            
+                            if progress_info.get('next_question') and not _recent_assistant_question_duplicate(progress_info['next_question']):
+                                next_q = progress_info['next_question']
+                                st.session_state.messages.append({"role": "assistant", "content": next_q})
                     
                     st.rerun()
                     st.stop()
