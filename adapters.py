@@ -51,26 +51,58 @@ RENDERER_MAP = {
 
 def _convert_brand_colors(brand_config: Optional[Dict]) -> Optional[Dict]:
     """Convert brand configuration colors to RGBColor objects"""
-    if not brand_config or not brand_config.get('color_scheme'):
+    if not brand_config:
         return None
     
-    color_scheme = brand_config['color_scheme']
     converted_colors = {}
     
-    for name, color in color_scheme.items():
-        if isinstance(color, str) and color.startswith('#'):
-            # Convert hex to RGBColor
-            hex_color = color.lstrip('#')
-            converted_colors[name] = RGBColor(
-                int(hex_color[0:2], 16),
-                int(hex_color[2:4], 16), 
-                int(hex_color[4:6], 16)
-            )
-        elif hasattr(color, 'r'):  # Already RGBColor
-            converted_colors[name] = color
-        else:
-            # Fallback to default
-            converted_colors[name] = RGBColor(24, 58, 88)  # Default blue
+    # Handle different color formats that might be in brand_config
+    if 'color_scheme' in brand_config:
+        # Standard format: brand_config['color_scheme']
+        color_scheme = brand_config['color_scheme']
+        for name, color in color_scheme.items():
+            if isinstance(color, str) and color.startswith('#'):
+                # Convert hex to RGBColor
+                hex_color = color.lstrip('#')
+                converted_colors[name] = RGBColor(
+                    int(hex_color[0:2], 16),
+                    int(hex_color[2:4], 16), 
+                    int(hex_color[4:6], 16)
+                )
+            elif isinstance(color, tuple) and len(color) == 3:
+                # Convert tuple (r, g, b) to RGBColor
+                r, g, b = color
+                converted_colors[name] = RGBColor(r, g, b)
+            elif hasattr(color, 'r'):  # Already RGBColor
+                converted_colors[name] = color
+            else:
+                # Fallback to default
+                converted_colors[name] = RGBColor(24, 58, 88)  # Default blue
+    
+    # Handle the actual format from brand extraction: list of tuples
+    elif 'extracted_colors' in brand_config:
+        extracted_colors = brand_config['extracted_colors']
+        if isinstance(extracted_colors, list):
+            for name, color_value in extracted_colors:
+                if isinstance(color_value, str) and color_value.startswith('#'):
+                    # Convert hex to RGBColor
+                    hex_color = color_value.lstrip('#')
+                    converted_colors[name] = RGBColor(
+                        int(hex_color[0:2], 16),
+                        int(hex_color[2:4], 16), 
+                        int(hex_color[4:6], 16)
+                    )
+                elif isinstance(color_value, tuple) and len(color_value) == 3:
+                    # Convert tuple (r, g, b) to RGBColor
+                    r, g, b = color_value
+                    converted_colors[name] = RGBColor(r, g, b)
+                else:
+                    # Fallback to default
+                    converted_colors[name] = RGBColor(24, 58, 88)  # Default blue
+    
+    # If no colors found, return None
+    if not converted_colors:
+        return None
     
     return converted_colors
 
@@ -210,10 +242,10 @@ def _safe_call(renderer, data: Dict, prs, company_name: str, content: Dict = Non
             color_scheme = _convert_brand_colors(brand_config)
             typography = _standardize_typography(brand_config)
         
-        # Your renderers expect slide_data as POSITIONAL parameter, not keyword
-        # Pass brand configuration if available
+        # FIXED: Pass data as KEYWORD parameter, not positional
+        # This prevents 'str' object has no attribute 'get' errors
         result = renderer(
-            data, 
+            data=data,  # Pass as keyword argument
             color_scheme=color_scheme,
             typography=typography, 
             company_name=company_name, 
@@ -224,11 +256,11 @@ def _safe_call(renderer, data: Dict, prs, company_name: str, content: Dict = Non
     except TypeError as te:
         try:
             # Try without brand_config in case some renderers don't support it yet
-            result = renderer(data, color_scheme=None, typography=None, company_name=company_name, prs=prs)
+            result = renderer(data=data, color_scheme=None, typography=None, company_name=company_name, prs=prs)
         except TypeError as te2:
             try:
                 # Try minimal signature
-                result = renderer(data, prs=prs)
+                result = renderer(data=data, prs=prs)
             except Exception as e:
                 # On renderer failure, add a diagnostic slide
                 from pptx.util import Inches, Pt
@@ -277,9 +309,33 @@ def render_plan_to_pptx(
     Returns the Presentation.
     Extra kwargs are ignored for forward compatibility.
     Now supports brand configuration for consistent styling.
+    Automatically applies comprehensive JSON fixing to ensure data structure compatibility.
     """
     prs = _ensure_prs(prs)
     plan_obj = _coerce_plan(plan=plan, content=content, content_ir=content_ir)
+    
+    # Apply comprehensive JSON fixing to ensure data structure compatibility
+    try:
+        from json_data_fixer import comprehensive_json_fix
+        
+        # Prepare content_ir for fixing
+        content_ir_to_fix = content_ir if isinstance(content_ir, dict) else {}
+        
+        print(f"[DEBUG] Applying automatic JSON fixes before rendering...")
+        fixed_plan_obj, fixed_content_ir = comprehensive_json_fix(plan_obj, content_ir_to_fix)
+        
+        # Use the fixed objects for rendering
+        plan_obj = fixed_plan_obj
+        if isinstance(content_ir, dict):
+            content_ir = fixed_content_ir
+        
+        print(f"[DEBUG] JSON fixes applied successfully")
+        
+    except ImportError:
+        print(f"[DEBUG] JSON data fixer not available, using original data")
+    except Exception as e:
+        print(f"[DEBUG] JSON fixing failed, using original data: {e}")
+        # Continue with original data if fixing fails
 
     slides = plan_obj.get("slides", [])
     if not isinstance(slides, list):
