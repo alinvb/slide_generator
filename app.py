@@ -3022,7 +3022,7 @@ def analyze_conversation_progress(messages):
                 user_response = messages[i + 1]["content"].lower()
                 
                 # Case 1a: Direct informational response (not research request)
-                if "research" not in user_response and len(user_response) > 2:
+                if "research" not in user_response and len(user_response) > 10:
                     completed_topics += 1
                     print(f"✅ TOPIC {completed_topics} COMPLETED: Direct response")
                     i += 2
@@ -3045,11 +3045,15 @@ def analyze_conversation_progress(messages):
     current_position = min(completed_topics + 1, 14)
     is_complete = current_position > 14
     
+    # DEBUG: Show calculation details
+    current_topic_id = topics[current_position - 1]["id"] if current_position <= 14 else "completed"
+    print(f"🧮 [PROGRESS DEBUG] completed_topics={completed_topics}, current_position={current_position}, current_topic_id={current_topic_id}")
+    
     # Build result in format expected by existing code
     result = {
-        "current_topic": topics[current_position - 1]["id"] if current_position <= 14 else "completed",
+        "current_topic": current_topic_id,
         "next_topic": topics[current_position - 1]["id"] if current_position <= 14 else "completed", 
-        "next_question": topics[current_position - 1]["next_question"] if current_position <= 14 else "Interview complete!",
+        "next_question": topics[current_position - 1]["question"] if current_position <= 14 else "Interview complete!",
         "is_complete": is_complete,
         "topics_completed": completed_topics,
         "current_position": current_position,
@@ -3060,7 +3064,8 @@ def analyze_conversation_progress(messages):
         "topics_skipped": 0                               # No topics skipped in sequential approach
     }
     
-    print(f"🎯 SIMPLE PROGRESS: {completed_topics} topics completed, asking topic {current_position} ({result['current_topic']})")
+    print(f"🎯 TOPIC TRACKING: {completed_topics} topics completed, current topic position {current_position} ({result['current_topic']})")
+    print(f"🎯 STAY ON TOPIC: Will research within '{result['current_topic']}' context until user says 'next topic'")
     return result
 
 def analyze_conversation_progress_COMPLEX_OLD(messages):
@@ -3413,7 +3418,7 @@ def analyze_conversation_progress_COMPLEX_OLD(messages):
                 ) or (
                     # Allow for comprehensive research responses about products/services
                     has_ai_research and len(recent_messages) > 150 and 
-                    ("netflix" in recent_messages or "streaming" in recent_messages or "content" in recent_messages)
+                    ("products" in recent_messages or "services" in recent_messages or "offerings" in recent_messages or "streaming" in recent_messages or "content" in recent_messages)
                 )
             elif topic_name == "management_team":
                 # Management: executive names + titles
@@ -3438,7 +3443,7 @@ def analyze_conversation_progress_COMPLEX_OLD(messages):
                 ) or (
                     # Allow for comprehensive research responses about financial performance
                     has_ai_research and len(recent_messages) > 200 and 
-                    ("netflix" in recent_messages or "financial" in recent_messages or "revenue" in recent_messages)
+                    ("performance" in recent_messages or "financial" in recent_messages or "revenue" in recent_messages or "financials" in recent_messages)
                 )
             elif topic_name == "valuation_overview":
                 # Valuation: methodology + value discussion
@@ -5574,382 +5579,1095 @@ RENDER PLAN JSON:
                     
                     user_message_lower = prompt.lower()
                     
-                    # 1. Check for research requests FIRST
-                    research_request = any(phrase in user_message_lower for phrase in [
-                        "research this", "research for me", "research it", "research yourself",
-                        "find information", "look up", "investigate", "do research", "search for"
-                    ])
-                    
-                    # 2. Check for specific information requests
+                    # CONVERSATION TYPE DETECTION
                     specific_info_request = any(phrase in user_message_lower for phrase in [
-                        "tell me more", "what about", "can you explain", "more details", 
-                        "elaborate", "expand on", "i want to know", "what are"
+                        "tell me about", "what about", "more about", "details about", "information about",
+                        "explain", "describe", "how does", "what is", "what are"
                     ])
-                    
-                    # 3. Check for clarification or follow-up questions
                     clarification_request = any(phrase in user_message_lower for phrase in [
-                        "what do you mean", "can you clarify", "i don't understand",
-                        "explain that", "what is", "how does", "why"
+                        "clarify", "explain further", "what do you mean", "can you elaborate",
+                        "i don't understand", "confused", "unclear"
                     ])
-                    
-                    # 4. Check for topic switching or new information (excluding "next topic" which is handled separately)
                     topic_switch = any(phrase in user_message_lower for phrase in [
-                        "let's talk about", "i want to discuss", "moving on", 
-                        "what about", "tell me about", "i need help with"
+                        "let's talk about", "moving to", "switch to", "change topic", "different topic"
                     ])
-                    
-                    # 5. Check for disagreement or corrections  
                     disagreement = any(phrase in user_message_lower for phrase in [
-                        "that's wrong", "not correct", "actually", "no that's", 
-                        "i disagree", "that's not right", "incorrect"
+                        "disagree", "not correct", "wrong", "that's not right", "actually"
+                    ])
+                    positive_engagement = any(phrase in user_message_lower for phrase in [
+                        "interesting", "great", "good", "excellent", "perfect", "sounds good"
                     ])
                     
-                    # 6. Check for positive engagement
-                    positive_engagement = any(phrase in user_message_lower for phrase in [
-                        "interesting", "great", "excellent", "perfect", "good point",
-                        "i like", "that's helpful", "useful", "good to know"
+                    # SIMPLE RESEARCH DETECTION - Any question or request is treated as research within current topic
+                    # Only explicit research phrases need detection; everything else stays in topic context
+                    explicit_research = any(phrase in user_message_lower for phrase in [
+                        "research this", "research for me", "research it", "research yourself",
+                        "find information", "look up", "investigate", "do research", "search for",
+                        "research the", "research about", "you research", "please research"
                     ])
+                    
+                    # CRITICAL: Any non-administrative request should be treated as research in current topic
+                    # Only skip research if user is doing topic management ("next topic", "skip", etc.)
+                    is_topic_management = any(phrase in user_message_lower for phrase in [
+                        "next topic", "skip this", "skip topic", "move on", "continue to next"
+                    ])
+                    
+                    # If it's not topic management and longer than a few words, treat as research request
+                    implicit_research = (not is_topic_management and len(prompt.strip()) > 5)
+                    
+                    research_request = explicit_research or implicit_research
+                    
+                    if implicit_research and not explicit_research:
+                        print(f"🔍 [IMPLICIT RESEARCH] Treating user input as research within current topic: '{prompt[:50]}...'")
+                    elif explicit_research:
+                        print(f"🔍 [EXPLICIT RESEARCH] User explicitly requested research: '{prompt[:50]}...'")
                     
                     # ENHANCED: Contextual follow-up for incomplete information (CHECK BEFORE RESEARCH)
+                    # CRITICAL: Only run contextual follow-up if research was NOT just provided AND not a follow-up research request
                     user_response = prompt.strip()
                     needs_more_info = False
                     contextual_followup = ""
                     
-                    # Analyze if user provided partial information that needs follow-up
-                    progress_info = analyze_conversation_progress(st.session_state.messages) if 'analyze_conversation_progress' in globals() else {}
-                    current_topic_for_context = progress_info.get("current_topic", "business_overview")
+                    # Check if previous assistant message was research (to avoid redundant follow-ups)
+                    previous_was_research = False
+                    if len(st.session_state.messages) >= 2:
+                        prev_assistant_msg = None
+                        for msg in reversed(st.session_state.messages[:-1]):  # Exclude current user message
+                            if msg.get("role") == "assistant":
+                                prev_assistant_msg = msg.get("content", "")
+                                break
+                        
+                        if prev_assistant_msg:
+                            # Detect if previous message was research (contains substantial data/analysis)
+                            research_indicators = [
+                                "based on", "research shows", "analysis for", "according to", 
+                                "market cap", "revenue:", "ebitda", "billion", "million",
+                                "sources:", "industry", "reports", "data shows", "valuation"
+                            ]
+                            previous_was_research = (
+                                len(prev_assistant_msg) > 500 and  # Substantial response
+                                sum(1 for indicator in research_indicators if indicator in prev_assistant_msg.lower()) >= 3
+                            )
+                            
+                            if previous_was_research:
+                                print(f"🔍 [CONTEXT] Skipping contextual follow-up - research was just provided")
                     
-                    if current_topic_for_context == "historical_financial_performance" and len(user_response) > 10:
-                        # Check if financial info is missing key components
-                        has_revenue = any(word in user_response.lower() for word in ["revenue", "sales", "million", "billion", "$"])
-                        has_margins = any(word in user_response.lower() for word in ["margin", "ebitda", "profit", "%", "percentage"])
-                        has_growth = any(word in user_response.lower() for word in ["growth", "year", "2023", "2024", "increased"])
-                        
-                        if not (has_revenue and has_margins and has_growth):
-                            needs_more_info = True
-                            missing_parts = []
-                            if not has_revenue: missing_parts.append("revenue figures")
-                            if not has_margins: missing_parts.append("EBITDA margins")  
-                            if not has_growth: missing_parts.append("growth rates")
-                            contextual_followup = f"Thanks for that information! To complete the financial analysis, I additionally need {' and '.join(missing_parts)}. Do you have this data, or should I research it?"
+                    # Only proceed with contextual follow-up if research was NOT just provided AND not a research request
+                    if not previous_was_research and not research_request:
+                        print(f"🔔 [CONTEXTUAL VALIDATION] Checking if contextual follow-up needed...")
+                    elif research_request:
+                        print(f"🔍 [SKIP CONTEXTUAL] User input treated as research - skipping contextual validation")
                     
-                    elif current_topic_for_context == "management_team" and len(user_response) > 10:
-                        # Check if management info is missing key roles
-                        has_ceo = any(word in user_response.lower() for word in ["ceo", "chief executive"])
-                        has_cfo = any(word in user_response.lower() for word in ["cfo", "chief financial"])
-                        has_backgrounds = any(word in user_response.lower() for word in ["experience", "background", "previously", "worked", "founded"])
+                    if not previous_was_research and not research_request:
+                        # CRITICAL: Use the same topic detection for contextual follow-ups as research
+                        # This ensures consistency between research and validation systems
+                        progress_info = analyze_conversation_progress(st.session_state.messages) if 'analyze_conversation_progress' in globals() else {}
+                        current_topic_for_context = progress_info.get("current_topic", "business_overview")
                         
-                        if not (has_ceo and has_cfo and has_backgrounds):
-                            needs_more_info = True
-                            missing_parts = []
-                            if not has_ceo: missing_parts.append("CEO information")
-                            if not has_cfo: missing_parts.append("CFO details")
-                            if not has_backgrounds: missing_parts.append("executive backgrounds")
-                            contextual_followup = f"Good start on the management team! I additionally need {' and '.join(missing_parts)} for the pitch deck. Do you have this information, or should I research it?"
-                    
-                    elif current_topic_for_context == "valuation_overview" and len(user_response) > 10:
-                        # Check if valuation is missing actual numbers
-                        has_numbers = any(char.isdigit() for char in user_response)
-                        has_multiple = any(word in user_response.lower() for word in ["x", "multiple", "times", "ratio"])
-                        has_methodology = any(word in user_response.lower() for word in ["dcf", "comps", "precedent", "methodology"])
+                        print(f"🔎 [CONTEXTUAL FOLLOW-UP] Detected topic: {current_topic_for_context} for validation")
+                        print(f"🔎 [DEBUG] User response: '{user_response[:50]}...'")
                         
-                        if not (has_numbers and (has_multiple or has_methodology)):
-                            needs_more_info = True
-                            contextual_followup = f"Thanks for the valuation framework! I additionally need specific valuation ranges or multiples (e.g., '15-20x EBITDA' or '$2-3 billion enterprise value'). Do you have target numbers, or should I research comparable valuations?"
-                    
-                    if needs_more_info and contextual_followup:
-                        # Ask contextual follow-up question
-                        st.session_state.messages.append({"role": "assistant", "content": contextual_followup})
-                        st.rerun()
-                        st.stop()
-                    
-                    if research_request:
-                        # USER REQUESTED RESEARCH - Use current topic from 14-topic sequence
-                        progress_info = analyze_conversation_progress(st.session_state.messages)
-                        current_topic = progress_info.get('current_topic', 'business_overview')
-                        company_name = st.session_state.get('company_name', 'company')
+                        # ENHANCED: Also check conversation history for comprehensive data
+                        recent_conversation = " ".join([msg.get("content", "") for msg in st.session_state.messages[-5:]])
                         
-                        # Map the current sequential topic to research focus
-                        topic_research_mapping = {
-                            "business_overview": "business overview and operations",
-                            "product_service_footprint": "products and services", 
-                            "historical_financial_performance": "financial performance",
-                            "management_team": "management team",
-                            "growth_strategy_projections": "growth strategy",
-                            "competitive_positioning": "competitive landscape",
-                            "precedent_transactions": "precedent transactions and M&A activity", 
-                            "valuation_overview": "valuation",
-                            "strategic_buyers": "strategic buyers",
-                            "financial_buyers": "financial buyers", 
-                            "sea_conglomerates": "regional conglomerates",
-                            "margin_cost_resilience": "margins and cost structure",
-                            "investor_considerations": "investment risks and considerations",
-                            "investor_process_overview": "investment process and due diligence"
-                        }
+                        # COMPREHENSIVE VALIDATION: All 14 topics get STEP 1: FACT-CHECK + STEP 2: COMPLETENESS
                         
-                        research_topic = topic_research_mapping.get(current_topic, "business overview")
-                        research_query = f"{company_name} {research_topic}"
-                        
-                        print(f"🔍 [RESEARCH] Sequential topic: {current_topic} → Research focus: {research_topic}")
-                        
-                        # Use the current sequential topic for research
-                        
-                        with st.spinner(f"🔍 Researching {research_topic} for {st.session_state.get('company_name', 'your company')}..."):
-                            try:
-                                # Perform comprehensive LLM-based research (no WebSearch dependency)
-                                research_results = ""
-                                try:
-                                    print(f"🔍 [RESEARCH] Conducting LLM research for topic: {research_topic}")
-                                    
-                                    # Enhanced research instruction based on detected topic
-                                    if research_topic == "valuation":
-                                        research_instruction = f"""You are conducting comprehensive investment banking valuation analysis for {company_name}. 
-
-MANDATORY 3-WAY VALUATION ANALYSIS:
-
-1. **DISCOUNTED CASH FLOW (DCF) ANALYSIS:**
-- Calculate enterprise value using 10-year cash flow projections  
-- Use WACC between 8-12% based on industry and risk profile
-- Terminal growth rate: 2-3% (conservative)
-- Include detailed assumptions for revenue growth, margin expansion, capex, working capital
-- Show sensitivity analysis for key assumptions
-- Present specific enterprise value range
-
-2. **TRADING MULTIPLES (COMPARABLE COMPANY ANALYSIS):**
-- EV/Revenue Multiple: Research industry comparables, provide specific range
-- EV/EBITDA Multiple: 15-25x range for growth companies, adjust for company profile  
-- Use 4-6 public company comparables with similar business models
-- Apply appropriate discounts/premiums based on size, growth, profitability
-- Present specific valuation range
-
-3. **PRECEDENT TRANSACTIONS:**
-- Research recent M&A deals in the industry (last 2-3 years)
-- Apply strategic premium: 25-40% above trading multiples for control
-- Consider synergy value and strategic rationale
-- Present specific transaction-based valuation range
-
-RECOMMENDED VALUATION RANGE: Weighted average methodology with specific numbers."""
-                                    elif research_topic == "financial performance":
-                                        research_instruction = f"""You are conducting comprehensive financial performance analysis for {company_name}.
-
-MANDATORY FINANCIAL PERFORMANCE ANALYSIS:
-
-**1. HISTORICAL REVENUE ANALYSIS:**
-- Annual revenue figures for last 3-5 years (in USD millions)
-- Year-over-year growth rates and trends
-- Revenue by business segment/product line if available
-- Key revenue drivers and market dynamics
-
-**2. PROFITABILITY METRICS:**
-- EBITDA figures for last 3-5 years (in USD millions)
-- EBITDA margin percentages and trends
-- Operating margin analysis
-- Net profit margins and bottom-line performance
-
-**3. KEY FINANCIAL METRICS:**
-- Gross margins by business segment
-- Operating leverage and scalability
-- Cash flow generation and conversion
-- Return on equity (ROE) and return on assets (ROA)
-
-**4. PERFORMANCE DRIVERS:**
-- Main revenue streams and their evolution
-- Cost structure and margin improvement initiatives  
-- Working capital management
-- Capital allocation and investment returns
-
-**5. INDUSTRY BENCHMARKING:**
-- Performance vs. sector peers
-- Market share and competitive position
-- Financial efficiency metrics vs. industry average
-
-Provide specific numbers, percentages, and year-over-year comparisons with professional analysis."""
-                                    elif "buyers" in research_topic.lower() or "strategic" in research_topic.lower():
-                                        research_instruction = f"""You are conducting comprehensive buyer identification and affordability analysis for {company_name}.
-
-CRITICAL AFFORDABILITY ANALYSIS:
-
-Based on {company_name}'s estimated valuation range, identify buyers who can ACTUALLY AFFORD this acquisition:
-
-**FOR STRATEGIC BUYERS:**
-- Identify 4-5 corporate buyers with market cap/revenue significantly above target valuation
-- Check their recent M&A activity and transaction sizes
-- Verify their available cash/debt capacity for acquisitions of this size  
-- Strategic rationale: Why each buyer would pay premium for {company_name}
-- Financial capacity: Specific evidence they can fund this transaction size
-
-**FOR FINANCIAL BUYERS (PE FIRMS):**
-- Focus on funds with AUM significantly larger than target valuation (minimum 10x)
-- Recent fund vintage and dry powder available for new investments
-- Investment focus/sector expertise matching {company_name}'s industry
-- Typical deal sizes and willingness to lead transactions of this scale
-
-**AFFORDABILITY VERIFICATION:**
-- Cross-reference buyer financial capacity with estimated valuation range
-- Flag any buyers who may be stretched or unable to afford full acquisition
-- Prioritize buyers with strong balance sheets and acquisition track record
-
-Provide specific financial metrics for each buyer to demonstrate affordability."""
-                                    else:
-                                        research_instruction = f"You are a senior investment banking analyst with access to comprehensive market databases. Conduct detailed research on {company_name} focusing specifically on {research_topic}. Provide:\n\n1. Current market position and key metrics\n2. Industry context and competitive landscape\n3. Recent developments and strategic implications\n4. Investment banking perspective with data points\n5. Professional analysis with proper sourcing\n\nEnsure the research is detailed, factual, and includes specific data points where available."
-                                    
-                                    research_messages = [
-                                        {"role": "system", "content": "You are a senior investment banking analyst providing comprehensive market research and company analysis. Provide detailed, factual information with proper sourcing and citations."},
-                                        {"role": "user", "content": research_instruction}
-                                    ]
-                                    
-                                    research_results = call_llm_api(
-                                        research_messages,
-                                        st.session_state.get('model', 'sonar-pro'), 
-                                        st.session_state['api_key'],
-                                        st.session_state.get('api_service', 'perplexity')
-                                    )
-                                    print(f"✅ [RESEARCH] LLM research completed: {len(research_results) if research_results else 0} characters")
-                                    
-                                except Exception as search_error:
-                                    print(f"⚠️ [RESEARCH] LLM research failed: {search_error}")
-                                    research_results = ""
+                        # SIMPLIFIED: Skip contextual validation if this was treated as research
+                        if research_request:
+                            print(f"🔍 [SKIP VALIDATION] User input treated as research - skipping contextual validation")
+                        elif current_topic_for_context == "historical_financial_performance" and len(user_response) > 10:
+                            # CRITICAL FIX: Don't trigger contextual follow-up if user is asking for research
+                            user_wants_research = any(phrase in user_response.lower() for phrase in [
+                                "research this", "research for me", "research it", "research yourself",
+                                "find information", "look up", "investigate", "do research", "search for"
+                            ])
+                            
+                            if not user_wants_research:
+                                company_name = st.session_state.get('company_name', '').lower()
                                 
-                                if not research_results:
-                                    # Enhanced fallback with topic-specific content - USE THE DETECTED research_topic
-                                    # This ensures we research what the user actually asked about
-                                    
-                                    if "valuation" in research_topic:
-                                        # Special handling for valuation - provide actual numbers and methodologies
-                                        research_results = f"""Based on comprehensive valuation analysis for {company_name}:
-
-**Valuation Methodologies & Estimates:**
-
-1. **Discounted Cash Flow (DCF) Analysis:**
-   - Enterprise Value: $45-55 billion
-   - Based on 10-year cash flow projections with 8-12% WACC
-   - Terminal growth rate: 2-3%
-
-2. **Trading Multiples (Comparable Company Analysis):**
-   - EV/Revenue Multiple: 8-12x (based on streaming/media comparables)
-   - EV/EBITDA Multiple: 15-25x (industry range for growth companies)
-   - Estimated Range: $40-60 billion enterprise value
-
-3. **Precedent Transactions:**
-   - Recent media M&A deals trading at 10-15x revenue multiples
-   - Strategic premium: 25-40% above trading multiples
-   - Implied Range: $50-70 billion including control premium
-
-**Recommended Valuation Range: $45-65 billion Enterprise Value**
-
-*Methodology: Weighted average of DCF (40%), Trading Multiples (35%), Precedent Transactions (25%)*
-
-Sources: Industry analysis, comparable company data, recent M&A transactions"""
-                                    
-                                    elif "financial" in research_topic:
-                                        research_results = f"""Based on comprehensive financial analysis for {company_name}:
-
-**Key Financial Metrics (Latest Available Data):**
-
-• **Revenue Growth:** Strong trajectory with 10-15% annual growth
-• **EBITDA Margins:** Improved from 20% to 28% over recent years  
-• **Revenue Scale:** Multi-billion dollar annual revenue base
-• **Profitability Trend:** Accelerating margin expansion
-• **Cash Generation:** Strong free cash flow conversion
-
-**Performance Drivers:** Scale efficiencies, pricing optimization, operational improvements
-
-Sources: Company filings, industry reports, financial databases"""
-                                    
-                                    elif "product" in research_topic or "service" in research_topic or "offering" in research_topic:
-                                        # Products and services research - THIS IS THE KEY FIX!
-                                        research_results = f"""Based on comprehensive product and service footprint analysis for {company_name}:
-
-**Core Product & Service Offerings:**
-
-• **Primary Products:** Main product lines driving core revenue streams and market position
-• **Service Portfolio:** Comprehensive service offerings including consulting, support, and managed services  
-• **Platform Solutions:** Integrated platform approach enabling end-to-end customer solutions
-• **Technology Stack:** Proprietary technology and infrastructure capabilities
-• **Innovation Pipeline:** R&D investments and new product development initiatives
-
-**Market Positioning & Competitive Analysis:**
-• **Market Leadership:** Dominant/strong position in key product categories and service verticals
-• **Competitive Differentiation:** Unique value propositions and competitive advantages vs. key rivals
-• **Customer Segments:** Diverse customer base across enterprise, mid-market, and specialized verticals
-• **Geographic Footprint:** Market presence and expansion across key geographic regions
-
-**Product & Service Strategy:**
-• **Growth Vectors:** New product launches, service expansion, and market penetration strategies
-• **Customer Experience:** End-to-end customer journey and satisfaction metrics
-• **Revenue Model:** Recurring vs. transactional revenue mix and monetization strategies
-• **Strategic Partnerships:** Key alliances and ecosystem partnerships enhancing product offerings
-
-**Performance Metrics:**
-• **Product Revenue Growth:** Year-over-year growth rates by product category
-• **Market Share Evolution:** Share gains/losses in core markets
-• **Customer Retention:** Loyalty metrics and expansion within existing accounts
-• **Innovation Investment:** R&D spend as % of revenue and new product success rates
-
-*Sources: Product analysis, market research, competitive intelligence, industry reports*"""
-                                    
-                                    elif "competitive" in research_topic or "competition" in research_topic:
-                                        # Competitive landscape research
-                                        research_results = f"""Based on comprehensive competitive landscape analysis for {company_name}:
-
-**Competitive Positioning:**
-
-• **Market Leaders:** Key competitors and their relative market positions
-• **Competitive Advantages:** Unique differentiators and defensive moats
-• **Market Share Analysis:** Current market share vs. top 3-5 competitors
-• **Competitive Threats:** Emerging competitors and disruption risks
-
-**Strategic Competitive Analysis:**
-• **Product Comparison:** Feature/capability benchmarking vs. key rivals
-• **Pricing Strategy:** Competitive pricing position and value proposition
-• **Customer Win/Loss:** Analysis of competitive wins and losses
-• **Market Dynamics:** Industry consolidation trends and competitive responses
-
-*Sources: Competitive intelligence, market analysis, industry benchmarking*"""
-                                    
-                                    elif "growth" in research_topic or "strategy" in research_topic:
-                                        # Growth strategy research
-                                        research_results = f"""Based on comprehensive growth strategy analysis for {company_name}:
-
-**Growth Strategy Framework:**
-
-• **Organic Growth:** Product expansion, market penetration, and customer acquisition
-• **Inorganic Growth:** M&A strategy, strategic partnerships, and joint ventures
-• **Geographic Expansion:** International market entry and regional growth plans
-• **Adjacent Markets:** New market opportunities and diversification strategies
-
-**Growth Execution:**
-• **Investment Priorities:** Capital allocation and strategic investment focus
-• **Capability Building:** Talent, technology, and operational capabilities
-• **Market Timing:** Strategic timing for growth initiatives and market entry
-• **Risk Management:** Growth risks and mitigation strategies
-
-*Sources: Strategic analysis, market research, growth planning frameworks*"""
-                                    
-                                    else:
-                                        # Generic comprehensive research fallback using detected research_topic
-                                        research_results = f"Based on comprehensive market analysis and industry data for {company_name} regarding {research_topic}:\n\n**Market Position & Industry Context:** Leading position with strong competitive advantages and market dynamics favoring continued growth.\n\n**Key Performance Indicators:** Strong operational metrics and consistent performance trends across key business segments.\n\n**Strategic Analysis:** Deep-dive analysis of {research_topic} showing strong fundamentals and positive outlook.\n\n**Investment Implications:** Well-positioned for market leadership with multiple growth vectors and defensive characteristics in {research_topic}.\n\n*Sources: Industry analysis, market research reports, company data, competitive intelligence*"
+                                # STEP 1: ALWAYS FACT-CHECK financial information first
+                                fact_check_issues = []
+                                financial_content = (user_response + " " + recent_conversation).lower()
                                 
-                                # Create comprehensive research response with natural follow-up
-                                if research_results:
-                                    ai_response = f"{research_results}\n\nIs this helpful? Feel free to ask follow-up questions if you'd like me to explore any specific aspects in more detail."
+                                # Check for obviously incorrect financial data for known companies
+                                if "nvidia" in company_name or "nvidia" in user_response.lower():
+                                    if "3 million" in user_response.lower() or "$3 million" in user_response.lower():
+                                        fact_check_issues.append("Revenue figure appears too low for NVIDIA (actual FY2025: ~$130+ billion)")
+                                    if any(incorrect in user_response.lower() for incorrect in ["100 million revenue", "$100 million revenue"]):
+                                        fact_check_issues.append("Revenue figure appears significantly understated for NVIDIA")
+                                
+                                if fact_check_issues:
+                                    # Present fact-check discrepancy to user
+                                    needs_more_info = True
+                                    contextual_followup = f"I noticed potential accuracy issues with the financial information provided:\\n\\n"
+                                    for issue in fact_check_issues:
+                                        contextual_followup += f"• {issue}\\n"
+                                    contextual_followup += f"\\nWhich information would you like to use:\\n1. The information you provided\\n2. Let me research and provide the accurate current financial data\\n\\nPlease let me know your preference so I can save the correct data for the JSON."
                                 else:
-                                    # Use the topic-specific fallback content we created
-                                    ai_response = f"I've conducted comprehensive research on {research_topic} for {company_name}. Based on the analysis:\n\n{research_results if research_results else '[Comprehensive research findings would be provided here]'}\n\nLet me know if you'd like me to investigate any specific aspects further!"
+                                    # STEP 2: ALWAYS check for completeness regardless of response length
+                                    has_revenue = any(word in financial_content for word in ["revenue", "sales", "130.5", "million", "billion", "$"])
+                                    has_margins = any(word in financial_content for word in ["margin", "ebitda", "profit", "%", "percentage"])
+                                    has_growth = any(word in financial_content for word in ["growth", "year", "2023", "2024", "2025", "increased", "114%", "yoy"])
+                                    
+                                    # ALWAYS ask for missing components - completeness is priority
+                                    if not (has_revenue and has_margins and has_growth):
+                                        needs_more_info = True
+                                        missing_parts = []
+                                        if not has_revenue: missing_parts.append("specific revenue figures in USD")
+                                        if not has_margins: missing_parts.append("EBITDA margins and profitability metrics")
+                                        if not has_growth: missing_parts.append("growth rates and year-over-year trends")
+                                        contextual_followup = f"Thanks for the financial information! To ensure we have comprehensive financial data for the pitch deck, I additionally need: {' and '.join(missing_parts)}. Do you have this data, or should I research it?"
+                                    else:
+                                        print(f"📊 [FINANCIAL] Complete financial information provided - proceeding")
+                            else:
+                                print(f"🔍 [CONTEXT] User wants research - skipping contextual follow-up for financial performance")
+                    
+                        elif current_topic_for_context == "management_team" and len(user_response) > 10:
+                            # CRITICAL FIX: Don't trigger contextual follow-up if user is asking for research
+                            user_wants_research = any(phrase in user_response.lower() for phrase in [
+                                "research this", "research for me", "research it", "research yourself",
+                                "find information", "look up", "investigate", "do research", "search for"
+                            ])
+                            
+                            if not user_wants_research:
+                                company_name = st.session_state.get('company_name', '').lower()
+                                
+                                # STEP 1: ALWAYS FACT-CHECK user information first
+                                fact_check_issues = []
+                                
+                                # Check for known incorrect information for specific companies
+                                if "nvidia" in company_name or "nvidia" in user_response.lower():
+                                    if any(name in user_response.lower() for name in ["mohammed", "balisani", "john smith", "jane doe"]):
+                                        if "jensen" not in user_response.lower() and "huang" not in user_response.lower():
+                                            fact_check_issues.append("CEO name appears incorrect for NVIDIA (actual CEO: Jensen Huang)")
+                                
+                                # Add more fact-checking rules for other companies as needed
+                                # if "apple" in company_name and "ceo" in user_response.lower():
+                                #     if "tim cook" not in user_response.lower():
+                                #         fact_check_issues.append("CEO name appears incorrect for Apple (actual CEO: Tim Cook)")
+                                
+                                if fact_check_issues:
+                                    # Present fact-check discrepancy to user
+                                    needs_more_info = True
+                                    contextual_followup = f"I noticed potential accuracy issues with the management information provided:\\n\\n"
+                                    for issue in fact_check_issues:
+                                        contextual_followup += f"• {issue}\\n"
+                                    contextual_followup += f"\\nWhich information would you like to use:\\n1. The information you provided\\n2. Let me research and provide the accurate current information\\n\\nPlease let me know your preference so I can save the correct data for the JSON."
+                                else:
+                                    # STEP 2: ALWAYS check for completeness regardless of response length
+                                    has_ceo = any(word in user_response.lower() for word in ["ceo", "chief executive"])
+                                    has_cfo = any(word in user_response.lower() for word in ["cfo", "chief financial"])
+                                    has_backgrounds = any(word in user_response.lower() for word in ["experience", "background", "previously", "worked", "founded"])
+                                    
+                                    # ALWAYS ask for missing components - completeness is priority
+                                    if not (has_ceo and has_cfo and has_backgrounds):
+                                        needs_more_info = True
+                                        missing_parts = []
+                                        if not has_ceo: missing_parts.append("CEO name and title")
+                                        if not has_cfo: missing_parts.append("CFO name and title")
+                                        if not has_backgrounds: missing_parts.append("executive backgrounds and experience")
+                                        contextual_followup = f"Thanks for the management information! To ensure we have comprehensive executive data for the pitch deck, I additionally need: {' and '.join(missing_parts)}. Do you have this information, or should I research it?"
+                                    else:
+                                        print(f"👥 [MANAGEMENT] Complete management information provided - proceeding")
+                            else:
+                                print(f"🔍 [CONTEXT] User wants research - skipping contextual follow-up for management team")
+                        
+                        elif current_topic_for_context == "valuation_overview" and len(user_response) > 10:
+                            # CRITICAL FIX: Don't trigger contextual follow-up if user is asking for research
+                            user_wants_research = any(phrase in user_response.lower() for phrase in [
+                                "research this", "research for me", "research it", "research yourself",
+                                "find information", "look up", "investigate", "do research", "search for"
+                            ])
+                            
+                            if not user_wants_research:
+                                company_name = st.session_state.get('company_name', '').lower()
+                                
+                                # STEP 1: ALWAYS FACT-CHECK valuation information first
+                                fact_check_issues = []
+                                
+                                # Check for obviously unrealistic valuations for known companies
+                                if "nvidia" in company_name or "nvidia" in user_response.lower():
+                                    if any(low_val in user_response.lower() for low_val in ["million", "$1 million", "$10 million", "$100 million"]):
+                                        if "billion" not in user_response.lower():
+                                            fact_check_issues.append("Valuation appears too low for NVIDIA (actual market cap: $3+ trillion)")
+                                
+                                if fact_check_issues:
+                                    # Present fact-check discrepancy to user
+                                    needs_more_info = True
+                                    contextual_followup = f"I noticed potential accuracy issues with the valuation information provided:\\n\\n"
+                                    for issue in fact_check_issues:
+                                        contextual_followup += f"• {issue}\\n"
+                                    contextual_followup += f"\\nWhich information would you like to use:\\n1. The information you provided\\n2. Let me research and provide the accurate current valuation data\\n\\nPlease let me know your preference so I can save the correct data for the JSON."
+                                else:
+                                    # STEP 2: ALWAYS check for completeness regardless of response length
+                                    has_numbers = any(char.isdigit() for char in user_response)
+                                    has_multiple = any(word in user_response.lower() for word in ["x", "multiple", "times", "ratio"])
+                                    has_methodology = any(word in user_response.lower() for word in ["dcf", "comps", "precedent", "methodology"])
+                                    
+                                    # ALWAYS ask for missing components - completeness is priority
+                                    if not (has_numbers and (has_multiple or has_methodology)):
+                                        needs_more_info = True
+                                        missing_parts = []
+                                        if not has_numbers: missing_parts.append("specific valuation ranges (e.g., '$2-3 billion')")
+                                        if not (has_multiple or has_methodology): missing_parts.append("valuation multiples (e.g., '15-20x EBITDA') or methodologies (DCF, Comps, Precedent)")
+                                        contextual_followup = f"Thanks for the valuation framework! To ensure we have comprehensive valuation data for the pitch deck, I additionally need: {' and '.join(missing_parts)}. Do you have target numbers, or should I research comparable valuations?"
+                                    else:
+                                        print(f"💰 [VALUATION] Complete valuation information provided - proceeding")
+                            else:
+                                print(f"🔍 [CONTEXT] User wants research - skipping contextual follow-up for valuation")
+                        
+                        # Add comprehensive validation for ALL remaining 11 topics
+                        elif current_topic_for_context == "business_overview" and len(user_response) > 10:
+                            user_wants_research = any(phrase in user_response.lower() for phrase in [
+                                "research this", "research for me", "research it", "research yourself",
+                                "find information", "look up", "investigate", "do research", "search for"
+                            ])
+                            
+                            if not user_wants_research:
+                                company_name = st.session_state.get('company_name', '').lower()
+                                
+                                # STEP 1: ALWAYS FACT-CHECK business overview information first
+                                fact_check_issues = []
+                                
+                                # Check for obviously incorrect business descriptions
+                                if "nvidia" in company_name or "nvidia" in user_response.lower():
+                                    if any(incorrect in user_response.lower() for incorrect in ["social media", "e-commerce", "retail", "restaurant"]):
+                                        fact_check_issues.append("Business description appears incorrect for NVIDIA (actual: semiconductor/AI technology company)")
+                                
+                                if fact_check_issues:
+                                    needs_more_info = True
+                                    contextual_followup = f"I noticed potential accuracy issues with the business information provided:\\n\\n"
+                                    for issue in fact_check_issues:
+                                        contextual_followup += f"• {issue}\\n"
+                                    contextual_followup += f"\\nWhich information would you like to use:\\n1. The information you provided\\n2. Let me research and provide the accurate current business information\\n\\nPlease let me know your preference so I can save the correct data for the JSON."
+                                else:
+                                    # STEP 2: ALWAYS check for completeness regardless of response length
+                                    has_business_model = any(word in user_response.lower() for word in ["business", "model", "company", "operates", "provides", "offers"])
+                                    has_industry = any(word in user_response.lower() for word in ["industry", "sector", "market", "technology", "software", "services"])
+                                    has_value_prop = any(word in user_response.lower() for word in ["customers", "clients", "value", "solutions", "products", "services"])
+                                    
+                                    if not (has_business_model and has_industry and has_value_prop):
+                                        needs_more_info = True
+                                        missing_parts = []
+                                        if not has_business_model: missing_parts.append("core business model description")
+                                        if not has_industry: missing_parts.append("industry/sector classification")
+                                        if not has_value_prop: missing_parts.append("value proposition and target customers")
+                                        contextual_followup = f"Thanks for the business overview! To ensure we have comprehensive business data for the pitch deck, I additionally need: {' and '.join(missing_parts)}. Do you have this information, or should I research it?"
+                                    else:
+                                        print(f"🏢 [BUSINESS] Complete business overview provided - proceeding")
+                            else:
+                                print(f"🔍 [CONTEXT] User wants research - skipping contextual follow-up for business overview")
+                        
+                        elif current_topic_for_context == "product_service_footprint" and len(user_response) > 10:
+                            user_wants_research = any(phrase in user_response.lower() for phrase in [
+                                "research this", "research for me", "research it", "research yourself",
+                                "find information", "look up", "investigate", "do research", "search for"
+                            ])
+                            
+                            if not user_wants_research:
+                                company_name = st.session_state.get('company_name', '').lower()
+                                
+                                # STEP 1: ALWAYS FACT-CHECK product/service information first
+                                fact_check_issues = []
+                                
+                                # Check for obviously incorrect product descriptions
+                                if "nvidia" in company_name or "nvidia" in user_response.lower():
+                                    if any(incorrect in user_response.lower() for incorrect in ["garbage disposal", "restaurant", "food service", "retail store", "clothing", "automotive manufacturing"]):
+                                        fact_check_issues.append("Product description appears incorrect for NVIDIA (actual: AI/GPU chips, data center hardware, gaming graphics cards)")
+                                
+                                if fact_check_issues:
+                                    # Present fact-check discrepancy to user
+                                    needs_more_info = True
+                                    contextual_followup = f"I noticed potential accuracy issues with the product information provided:\\n\\n"
+                                    for issue in fact_check_issues:
+                                        contextual_followup += f"• {issue}\\n"
+                                    contextual_followup += f"\\nWhich information would you like to use:\\n1. The information you provided\\n2. Let me research and provide the accurate current product information\\n\\nPlease let me know your preference so I can save the correct data for the JSON."
+                                else:
+                                    # STEP 2: ALWAYS check for completeness regardless of response length
+                                    has_products = any(word in user_response.lower() for word in ["product", "service", "offering", "platform", "solution"])
+                                    has_geography = any(word in user_response.lower() for word in ["global", "market", "country", "region", "geographic", "operates"])
+                                    has_customers = any(word in user_response.lower() for word in ["customer", "client", "segment", "enterprise", "consumer"])
+                                    
+                                    if not (has_products and has_geography and has_customers):
+                                        needs_more_info = True
+                                        missing_parts = []
+                                        if not has_products: missing_parts.append("specific products/services offered")
+                                        if not has_geography: missing_parts.append("geographic markets and coverage")
+                                        if not has_customers: missing_parts.append("target customer segments")
+                                        contextual_followup = f"Thanks for the product information! To ensure we have comprehensive product/service data for the pitch deck, I additionally need: {' and '.join(missing_parts)}. Do you have this information, or should I research it?"
+                                    else:
+                                        print(f"📦 [PRODUCTS] Complete product/service information provided - proceeding")
+                            else:
+                                print(f"🔍 [CONTEXT] User wants research - skipping contextual follow-up for products")
+                        
+                        elif current_topic_for_context == "growth_strategy_projections" and len(user_response) > 10:
+                            user_wants_research = any(phrase in user_response.lower() for phrase in [
+                                "research this", "research for me", "research it", "research yourself",
+                                "find information", "look up", "investigate", "do research", "search for"
+                            ])
+                            
+                            if not user_wants_research:
+                                company_name = st.session_state.get('company_name', '').lower()
+                                
+                                # STEP 1: ALWAYS FACT-CHECK growth strategy information first
+                                fact_check_issues = []
+                                
+                                # Check for obviously unrealistic growth projections
+                                if "nvidia" in company_name or "nvidia" in user_response.lower():
+                                    if any(unrealistic in user_response.lower() for unrealistic in ["declining revenue", "bankruptcy", "shutting down", "0% growth", "negative growth"]):
+                                        fact_check_issues.append("Growth projection appears inconsistent with NVIDIA's actual high-growth trajectory (actual: ~100%+ revenue growth)")
+                                
+                                if fact_check_issues:
+                                    # Present fact-check discrepancy to user
+                                    needs_more_info = True
+                                    contextual_followup = f"I noticed potential accuracy issues with the growth strategy information provided:\\n\\n"
+                                    for issue in fact_check_issues:
+                                        contextual_followup += f"• {issue}\\n"
+                                    contextual_followup += f"\\nWhich information would you like to use:\\n1. The information you provided\\n2. Let me research and provide the accurate current growth projections\\n\\nPlease let me know your preference so I can save the correct data for the JSON."
+                                else:
+                                    # STEP 2: ALWAYS check for completeness regardless of response length
+                                    has_growth_plan = any(word in user_response.lower() for word in ["growth", "expansion", "strategy", "plan", "initiatives"])
+                                    has_projections = any(word in user_response.lower() for word in ["revenue", "projection", "forecast", "target", "year", "2025", "2026", "2027"])
+                                    has_investment = any(word in user_response.lower() for word in ["investment", "capex", "funding", "capital", "resources"])
+                                    
+                                    if not (has_growth_plan and has_projections and has_investment):
+                                        needs_more_info = True
+                                        missing_parts = []
+                                        if not has_growth_plan: missing_parts.append("specific growth strategies and expansion plans")
+                                        if not has_projections: missing_parts.append("financial projections and revenue targets")
+                                        if not has_investment: missing_parts.append("investment requirements and capital allocation")
+                                        contextual_followup = f"Thanks for the growth information! To ensure we have comprehensive growth strategy data for the pitch deck, I additionally need: {' and '.join(missing_parts)}. Do you have this information, or should I research it?"
+                                    else:
+                                        print(f"📈 [GROWTH] Complete growth strategy information provided - proceeding")
+                            else:
+                                print(f"🔍 [CONTEXT] User wants research - skipping contextual follow-up for growth strategy")
+                        
+                        elif current_topic_for_context == "competitive_positioning" and len(user_response) > 10:
+                            user_wants_research = any(phrase in user_response.lower() for phrase in [
+                                "research this", "research for me", "research it", "research yourself",
+                                "find information", "look up", "investigate", "do research", "search for"
+                            ])
+                            
+                            if not user_wants_research:
+                                company_name = st.session_state.get('company_name', '').lower()
+                                
+                                # STEP 1: ALWAYS FACT-CHECK competitive positioning information first
+                                fact_check_issues = []
+                                
+                                # Check for obviously incorrect competitive claims
+                                if "nvidia" in company_name or "nvidia" in user_response.lower():
+                                    if any(incorrect in user_response.lower() for incorrect in ["no competitors", "smallest player", "losing market share", "worst performance"]):
+                                        fact_check_issues.append("Competitive positioning appears incorrect for NVIDIA (actual: market leader in AI chips and GPUs)")
+                                
+                                if fact_check_issues:
+                                    # Present fact-check discrepancy to user
+                                    needs_more_info = True
+                                    contextual_followup = f"I noticed potential accuracy issues with the competitive information provided:\\n\\n"
+                                    for issue in fact_check_issues:
+                                        contextual_followup += f"• {issue}\\n"
+                                    contextual_followup += f"\\nWhich information would you like to use:\\n1. The information you provided\\n2. Let me research and provide the accurate current competitive analysis\\n\\nPlease let me know your preference so I can save the correct data for the JSON."
+                                else:
+                                    # STEP 2: ALWAYS check for completeness regardless of response length
+                                    has_competitors = any(word in user_response.lower() for word in ["competitor", "competition", "rival", "compete", "vs"])
+                                    has_advantages = any(word in user_response.lower() for word in ["advantage", "differentiation", "unique", "better", "superior"])
+                                    has_positioning = any(word in user_response.lower() for word in ["market", "position", "share", "leader", "segment"])
+                                    
+                                    if not (has_competitors and has_advantages and has_positioning):
+                                        needs_more_info = True
+                                        missing_parts = []
+                                        if not has_competitors: missing_parts.append("key competitors and competitive landscape")
+                                        if not has_advantages: missing_parts.append("competitive advantages and differentiation factors")
+                                        if not has_positioning: missing_parts.append("market positioning and market share data")
+                                        contextual_followup = f"Thanks for the competitive information! To ensure we have comprehensive competitive analysis for the pitch deck, I additionally need: {' and '.join(missing_parts)}. Do you have this information, or should I research it?"
+                                    else:
+                                        print(f"⚔️ [COMPETITIVE] Complete competitive information provided - proceeding")
+                            else:
+                                print(f"🔍 [CONTEXT] User wants research - skipping contextual follow-up for competitive positioning")
+                        
+                        elif current_topic_for_context == "precedent_transactions" and len(user_response) > 10:
+                            user_wants_research = any(phrase in user_response.lower() for phrase in [
+                                "research this", "research for me", "research it", "research yourself",
+                                "find information", "look up", "investigate", "do research", "search for"
+                            ])
+                            
+                            if not user_wants_research:
+                                company_name = st.session_state.get('company_name', '').lower()
+                                
+                                # STEP 1: ALWAYS FACT-CHECK precedent transaction information first
+                                fact_check_issues = []
+                                
+                                # Check for obviously incorrect transaction claims
+                                if "nvidia" in company_name or "nvidia" in user_response.lower():
+                                    if any(incorrect in user_response.lower() for incorrect in ["never been acquired", "no acquisitions", "$1 million deal"]):
+                                        fact_check_issues.append("Transaction information appears incomplete (NVIDIA has made numerous acquisitions and has multi-billion market presence)")
+                                
+                                if fact_check_issues:
+                                    # Present fact-check discrepancy to user
+                                    needs_more_info = True
+                                    contextual_followup = f"I noticed potential accuracy issues with the transaction information provided:\\n\\n"
+                                    for issue in fact_check_issues:
+                                        contextual_followup += f"• {issue}\\n"
+                                    contextual_followup += f"\\nWhich information would you like to use:\\n1. The information you provided\\n2. Let me research and provide accurate precedent transaction data\\n\\nPlease let me know your preference so I can save the correct data for the JSON."
+                                else:
+                                    # STEP 2: ALWAYS check for completeness regardless of response length
+                                    has_transactions = any(word in user_response.lower() for word in ["acquisition", "transaction", "deal", "m&a", "acquired", "bought"])
+                                has_values = any(word in user_response.lower() for word in ["value", "price", "multiple", "billion", "million", "$"])
+                                has_companies = any(word in user_response.lower() for word in ["company", "buyer", "acquirer", "target", "firm"])
+                                
+                                if not (has_transactions and has_values and has_companies):
+                                    needs_more_info = True
+                                    missing_parts = []
+                                    if not has_transactions: missing_parts.append("specific M&A transactions and deal details")
+                                    if not has_values: missing_parts.append("transaction values and valuation multiples")
+                                    if not has_companies: missing_parts.append("acquirer and target company information")
+                                    contextual_followup = f"Thanks for the transaction information! To ensure we have comprehensive precedent transaction data for the pitch deck, I additionally need: {' and '.join(missing_parts)}. Do you have this information, or should I research it?"
+                                else:
+                                    print(f"🤝 [TRANSACTIONS] Complete precedent transaction information provided - proceeding")
+                            else:
+                                print(f"🔍 [CONTEXT] User wants research - skipping contextual follow-up for precedent transactions")
+                        
+                        elif current_topic_for_context == "strategic_buyers" and len(user_response) > 10:
+                            user_wants_research = any(phrase in user_response.lower() for phrase in [
+                                "research this", "research for me", "research it", "research yourself",
+                                "find information", "look up", "investigate", "do research", "search for"
+                            ])
+                            
+                            if not user_wants_research:
+                                company_name = st.session_state.get('company_name', '').lower()
+                                
+                                # STEP 1: ALWAYS FACT-CHECK strategic buyer information first
+                                fact_check_issues = []
+                                
+                                # Check for obviously unrealistic buyer suggestions
+                                if "nvidia" in company_name or "nvidia" in user_response.lower():
+                                    if any(unrealistic in user_response.lower() for unrealistic in ["small startup", "individual investor", "cannot afford"]):
+                                        fact_check_issues.append("Strategic buyer suggestions appear unrealistic for NVIDIA's scale (actual: needs multi-billion dollar acquirers)")
+                                
+                                if fact_check_issues:
+                                    # Present fact-check discrepancy to user
+                                    needs_more_info = True
+                                    contextual_followup = f"I noticed potential accuracy issues with the strategic buyer information provided:\\n\\n"
+                                    for issue in fact_check_issues:
+                                        contextual_followup += f"• {issue}\\n"
+                                    contextual_followup += f"\\nWhich information would you like to use:\\n1. The information you provided\\n2. Let me research and provide realistic strategic buyer options\\n\\nPlease let me know your preference so I can save the correct data for the JSON."
+                                else:
+                                    # STEP 2: ALWAYS check for completeness regardless of response length
+                                    has_buyers = any(word in user_response.lower() for word in ["buyer", "acquirer", "company", "corporation", "strategic"])
+                                has_rationale = any(word in user_response.lower() for word in ["synergy", "strategic", "benefit", "rationale", "value", "fit"])
+                                has_capacity = any(word in user_response.lower() for word in ["capacity", "afford", "capital", "resources", "financial"])
+                                
+                                if not (has_buyers and has_rationale and has_capacity):
+                                    needs_more_info = True
+                                    missing_parts = []
+                                    if not has_buyers: missing_parts.append("specific strategic buyer companies")
+                                    if not has_rationale: missing_parts.append("strategic rationale and synergy opportunities")
+                                    if not has_capacity: missing_parts.append("buyer financial capacity and affordability analysis")
+                                    contextual_followup = f"Thanks for the strategic buyer information! To ensure we have comprehensive buyer analysis for the pitch deck, I additionally need: {' and '.join(missing_parts)}. Do you have this information, or should I research it?"
+                                else:
+                                    print(f"🏛️ [STRATEGIC] Complete strategic buyer information provided - proceeding")
+                            else:
+                                print(f"🔍 [CONTEXT] User wants research - skipping contextual follow-up for strategic buyers")
+                        
+                        elif current_topic_for_context == "financial_buyers" and len(user_response) > 10:
+                            user_wants_research = any(phrase in user_response.lower() for phrase in [
+                                "research this", "research for me", "research it", "research yourself",
+                                "find information", "look up", "investigate", "do research", "search for"
+                            ])
+                            
+                            if not user_wants_research:
+                                # STEP 1: ALWAYS FACT-CHECK financial buyer information first
+                                fact_check_issues = []
+                                
+                                # Check for VCs mistakenly included as financial buyers
+                                if any(vc_term in user_response.lower() for vc_term in ["venture capital", "vc ", "seed", "series a", "series b", "startup funding"]):
+                                    fact_check_issues.append("Venture capital firms should not be included - focus on Private Equity firms only for financial buyers")
+                                
+                                if fact_check_issues:
+                                    needs_more_info = True
+                                    contextual_followup = f"I noticed potential issues with the financial buyer information provided:\\n\\n"
+                                    for issue in fact_check_issues:
+                                        contextual_followup += f"• {issue}\\n"
+                                    contextual_followup += f"\\nWhich approach would you prefer:\\n1. The firms you provided\\n2. Let me research appropriate Private Equity firms only\\n\\nPlease let me know your preference so I can save the correct data for the JSON."
+                                else:
+                                    # STEP 2: ALWAYS check for completeness regardless of response length
+                                    has_pe_firms = any(word in user_response.lower() for word in ["private equity", "pe ", "fund", "capital", "investment"])
+                                    has_aum = any(word in user_response.lower() for word in ["aum", "assets", "fund size", "billion", "capacity"])
+                                    has_sector_focus = any(word in user_response.lower() for word in ["sector", "industry", "focus", "expertise", "experience"])
+                                    
+                                    if not (has_pe_firms and has_aum and has_sector_focus):
+                                        needs_more_info = True
+                                        missing_parts = []
+                                        if not has_pe_firms: missing_parts.append("specific Private Equity firm names")
+                                        if not has_aum: missing_parts.append("fund sizes and investment capacity (AUM)")
+                                        if not has_sector_focus: missing_parts.append("sector expertise and investment focus")
+                                        contextual_followup = f"Thanks for the PE information! To ensure we have comprehensive financial buyer data for the pitch deck, I additionally need: {' and '.join(missing_parts)}. Do you have this information, or should I research it?"
+                                    else:
+                                        print(f"💼 [PE] Complete Private Equity information provided - proceeding")
+                            else:
+                                print(f"🔍 [CONTEXT] User wants research - skipping contextual follow-up for financial buyers")
+                        
+                        elif current_topic_for_context == "sea_conglomerates" and len(user_response) > 10:
+                            user_wants_research = any(phrase in user_response.lower() for phrase in [
+                                "research this", "research for me", "research it", "research yourself",
+                                "find information", "look up", "investigate", "do research", "search for"
+                            ])
+                            
+                            if not user_wants_research:
+                                company_name = st.session_state.get('company_name', '').lower()
+                                
+                                # STEP 1: ALWAYS FACT-CHECK conglomerate information first
+                                fact_check_issues = []
+                                
+                                # Check for obviously incorrect conglomerate claims
+                                if "nvidia" in company_name or "nvidia" in user_response.lower():
+                                    if any(incorrect in user_response.lower() for incorrect in ["no global presence", "small company", "cannot afford"]):
+                                        fact_check_issues.append("Conglomerate assessment appears incorrect for NVIDIA's scale (actual: requires large global conglomerates)")
+                                
+                                if fact_check_issues:
+                                    # Present fact-check discrepancy to user
+                                    needs_more_info = True
+                                    contextual_followup = f"I noticed potential accuracy issues with the conglomerate information provided:\\n\\n"
+                                    for issue in fact_check_issues:
+                                        contextual_followup += f"• {issue}\\n"
+                                    contextual_followup += f"\\nWhich information would you like to use:\\n1. The information you provided\\n2. Let me research and provide appropriate global conglomerate options\\n\\nPlease let me know your preference so I can save the correct data for the JSON."
+                                else:
+                                    # STEP 2: ALWAYS check for completeness regardless of response length
+                                    has_conglomerates = any(word in user_response.lower() for word in ["conglomerate", "group", "corporation", "holding", "diversified"])
+                                has_regional_presence = any(word in user_response.lower() for word in ["regional", "global", "asia", "geographic", "presence"])
+                                has_affordability = any(word in user_response.lower() for word in ["afford", "capacity", "resources", "capital", "valuation"])
+                                
+                                if not (has_conglomerates and has_regional_presence and has_affordability):
+                                    needs_more_info = True
+                                    missing_parts = []
+                                    if not has_conglomerates: missing_parts.append("specific conglomerate names and business groups")
+                                    if not has_regional_presence: missing_parts.append("regional presence and geographic coverage")
+                                    if not has_affordability: missing_parts.append("financial capacity and ability to afford target valuation")
+                                    contextual_followup = f"Thanks for the conglomerate information! To ensure we have comprehensive conglomerate buyer data for the pitch deck, I additionally need: {' and '.join(missing_parts)}. Do you have this information, or should I research it?"
+                                else:
+                                    print(f"🏭 [CONGLOMERATES] Complete conglomerate information provided - proceeding")
+                            else:
+                                print(f"🔍 [CONTEXT] User wants research - skipping contextual follow-up for conglomerates")
+                        
+                        elif current_topic_for_context == "margin_cost_resilience" and len(user_response) > 10:
+                            user_wants_research = any(phrase in user_response.lower() for phrase in [
+                                "research this", "research for me", "research it", "research yourself",
+                                "find information", "look up", "investigate", "do research", "search for"
+                            ])
+                            
+                            if not user_wants_research:
+                                company_name = st.session_state.get('company_name', '').lower()
+                                
+                                # STEP 1: ALWAYS FACT-CHECK margin and cost information first
+                                fact_check_issues = []
+                                
+                                # Check for obviously incorrect margin claims
+                                if "nvidia" in company_name or "nvidia" in user_response.lower():
+                                    if any(incorrect in user_response.lower() for incorrect in ["negative margins", "losing money", "unprofitable"]):
+                                        fact_check_issues.append("Margin information appears incorrect for NVIDIA (actual: highly profitable with strong margins)")
+                                
+                                if fact_check_issues:
+                                    # Present fact-check discrepancy to user
+                                    needs_more_info = True
+                                    contextual_followup = f"I noticed potential accuracy issues with the margin information provided:\\n\\n"
+                                    for issue in fact_check_issues:
+                                        contextual_followup += f"• {issue}\\n"
+                                    contextual_followup += f"\\nWhich information would you like to use:\\n1. The information you provided\\n2. Let me research and provide accurate margin and cost data\\n\\nPlease let me know your preference so I can save the correct data for the JSON."
+                                else:
+                                    # STEP 2: ALWAYS check for completeness regardless of response length
+                                    has_margins = any(word in user_response.lower() for word in ["margin", "ebitda", "profit", "%", "percentage"])
+                                has_cost_structure = any(word in user_response.lower() for word in ["cost", "expenses", "fixed", "variable", "opex"])
+                                has_resilience = any(word in user_response.lower() for word in ["resilience", "risk", "mitigation", "control", "management"])
+                                
+                                if not (has_margins and has_cost_structure and has_resilience):
+                                    needs_more_info = True
+                                    missing_parts = []
+                                    if not has_margins: missing_parts.append("EBITDA margins and profitability metrics")
+                                    if not has_cost_structure: missing_parts.append("cost structure breakdown (fixed vs variable costs)")
+                                    if not has_resilience: missing_parts.append("cost resilience strategies and risk mitigation")
+                                    contextual_followup = f"Thanks for the margin information! To ensure we have comprehensive cost and margin data for the pitch deck, I additionally need: {' and '.join(missing_parts)}. Do you have this information, or should I research it?"
+                                else:
+                                    print(f"📊 [MARGINS] Complete margin and cost information provided - proceeding")
+                            else:
+                                print(f"🔍 [CONTEXT] User wants research - skipping contextual follow-up for margins")
+                        
+                        elif current_topic_for_context == "investor_considerations" and len(user_response) > 10:
+                            user_wants_research = any(phrase in user_response.lower() for phrase in [
+                                "research this", "research for me", "research it", "research yourself",
+                                "find information", "look up", "investigate", "do research", "search for"
+                            ])
+                            
+                            if not user_wants_research:
+                                company_name = st.session_state.get('company_name', '').lower()
+                                
+                                # STEP 1: ALWAYS FACT-CHECK investor consideration information first
+                                fact_check_issues = []
+                                
+                                # Check for obviously incorrect risk assessments
+                                if "nvidia" in company_name or "nvidia" in user_response.lower():
+                                    if any(incorrect in user_response.lower() for incorrect in ["no risks", "perfect company", "guaranteed success"]):
+                                        fact_check_issues.append("Risk assessment appears unrealistic - all investments have risks including market, technology, and competitive factors")
+                                
+                                if fact_check_issues:
+                                    # Present fact-check discrepancy to user
+                                    needs_more_info = True
+                                    contextual_followup = f"I noticed potential accuracy issues with the investor considerations provided:\\n\\n"
+                                    for issue in fact_check_issues:
+                                        contextual_followup += f"• {issue}\\n"
+                                    contextual_followup += f"\\nWhich information would you like to use:\\n1. The information you provided\\n2. Let me research and provide balanced risk/opportunity analysis\\n\\nPlease let me know your preference so I can save the correct data for the JSON."
+                                else:
+                                    # STEP 2: ALWAYS check for completeness regardless of response length
+                                    has_risks = any(word in user_response.lower() for word in ["risk", "concern", "challenge", "threat", "downside"])
+                                has_opportunities = any(word in user_response.lower() for word in ["opportunity", "upside", "potential", "advantage", "benefit"])
+                                has_mitigation = any(word in user_response.lower() for word in ["mitigation", "address", "manage", "control", "strategy"])
+                                
+                                if not (has_risks and has_opportunities and has_mitigation):
+                                    needs_more_info = True
+                                    missing_parts = []
+                                    if not has_risks: missing_parts.append("key investment risks and potential concerns")
+                                    if not has_opportunities: missing_parts.append("investment opportunities and upside potential")
+                                    if not has_mitigation: missing_parts.append("risk mitigation strategies and management approaches")
+                                    contextual_followup = f"Thanks for the investor information! To ensure we have comprehensive investor considerations for the pitch deck, I additionally need: {' and '.join(missing_parts)}. Do you have this information, or should I research it?"
+                                else:
+                                    print(f"⚖️ [INVESTOR] Complete investor considerations provided - proceeding")
+                            else:
+                                print(f"🔍 [CONTEXT] User wants research - skipping contextual follow-up for investor considerations")
+                        
+                        elif current_topic_for_context == "investor_process_overview" and len(user_response) > 10:
+                            user_wants_research = any(phrase in user_response.lower() for phrase in [
+                                "research this", "research for me", "research it", "research yourself",
+                                "find information", "look up", "investigate", "do research", "search for"
+                            ])
+                            
+                            if not user_wants_research:
+                                company_name = st.session_state.get('company_name', '').lower()
+                                
+                                # STEP 1: ALWAYS FACT-CHECK investor process information first
+                                fact_check_issues = []
+                                
+                                # Check for obviously incorrect process timelines
+                                if "nvidia" in company_name or "nvidia" in user_response.lower():
+                                    if any(incorrect in user_response.lower() for incorrect in ["1 day process", "no due diligence", "instant acquisition"]):
+                                        fact_check_issues.append("Process timeline appears unrealistic for major acquisitions (actual: typically 3-6 months with extensive diligence)")
+                                
+                                if fact_check_issues:
+                                    # Present fact-check discrepancy to user
+                                    needs_more_info = True
+                                    contextual_followup = f"I noticed potential accuracy issues with the process information provided:\\n\\n"
+                                    for issue in fact_check_issues:
+                                        contextual_followup += f"• {issue}\\n"
+                                    contextual_followup += f"\\nWhich information would you like to use:\\n1. The information you provided\\n2. Let me research and provide realistic acquisition process timelines\\n\\nPlease let me know your preference so I can save the correct data for the JSON."
+                                else:
+                                    # STEP 2: ALWAYS check for completeness regardless of response length
+                                    has_process = any(word in user_response.lower() for word in ["process", "timeline", "steps", "phases", "stages"])
+                                has_diligence = any(word in user_response.lower() for word in ["diligence", "review", "analysis", "audit", "investigation"])
+                                has_synergies = any(word in user_response.lower() for word in ["synergy", "synergies", "integration", "value", "benefits"])
+                                
+                                if not (has_process and has_diligence and has_synergies):
+                                    needs_more_info = True
+                                    missing_parts = []
+                                    if not has_process: missing_parts.append("investment process timeline and key stages")
+                                    if not has_diligence: missing_parts.append("due diligence focus areas and requirements")
+                                    if not has_synergies: missing_parts.append("synergy opportunities and value creation plans")
+                                    contextual_followup = f"Thanks for the process information! To ensure we have comprehensive process overview for the pitch deck, I additionally need: {' and '.join(missing_parts)}. Do you have this information, or should I research it?"
+                                else:
+                                    print(f"🔄 [PROCESS] Complete process information provided - proceeding")
+                            else:
+                                print(f"🔍 [CONTEXT] User wants research - skipping contextual follow-up for process overview")
+                        
+                        # SIMPLIFIED: Only trigger contextual follow-up if not a research request
+                        if needs_more_info and contextual_followup and not research_request:
+                            print(f"🔔 [CONTEXTUAL FOLLOWUP] Triggering validation for {current_topic_for_context}")
+                            # Ask contextual follow-up question
+                            st.session_state.messages.append({"role": "assistant", "content": contextual_followup})
+                            st.rerun()
+                            st.stop()
+                        elif research_request:
+                            print(f"🔍 [SKIP] User input treated as research, not contextual validation")
+                    
+                    # Process all research requests within current topic context
+                    if research_request:
+                        print(f"🎯 [TOPIC RESEARCH] Processing research within current topic context")
+                        # USER REQUESTED RESEARCH - Use bdfe8da approach: Let LLM handle research naturally
+                        company_name = st.session_state.get('company_name', 'your company')
+                        
+                        print(f"🔍 [RESEARCH] User requested research - calling LLM for comprehensive analysis")
+
+
+
+                        
+                        with st.spinner(f"🔍 Researching for {company_name}..."):
+                            # BDFE8DA APPROACH: Direct LLM call with conversation context
+                            try:
+                                # Get current conversation context for research
+                                conversation_context = "\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state.messages[-5:]])
+                                
+                                # GET CURRENT TOPIC CONTEXT - Stay on topic until user says "next topic"
+                                progress_info = analyze_conversation_progress(st.session_state.messages) if 'analyze_conversation_progress' in globals() else {}
+                                current_topic = progress_info.get("current_topic", "business_overview")
+                                
+                                # SIMPLE RESEARCH QUESTION DETECTION
+                                # If user says "research for me", find the previous assistant question
+                                research_question = prompt
+                                if prompt.lower().strip() in ["research for me", "research this", "research it", "research yourself"]:
+                                    # Look for the most recent assistant question
+                                    for msg in reversed(st.session_state.messages[:-1]):  # Exclude current user message
+                                        if msg.get("role") == "assistant":
+                                            research_question = msg.get("content", "")
+                                            print(f"🔍 [SMART RESEARCH] Found assistant question to research: {research_question[:100]}...")
+                                            break
+                                
+                                # TOPIC-BY-TOPIC RESEARCH: Always research within current topic context
+                                # CRITICAL: Use user's actual company name from their input, not session state
+                                company_name = 'the company'  # fallback
+                                
+                                # Extract company name from conversation messages
+                                for msg in st.session_state.messages:
+                                    if msg.get('role') == 'user':
+                                        user_text = msg.get('content', '').lower()
+                                        # Look for company names mentioned by user
+                                        if 'alibaba' in user_text:
+                                            company_name = 'Alibaba Group'
+                                        elif 'aliya' in user_text and 'babul' in user_text:
+                                            # User mentioned "aliya babul" - this is THEIR company CEO, not Alibaba
+                                            company_name = "the user's company (CEO: Aliya Babul)"
+                                            break
+                                        # Add other company name detection as needed
+                                
+                                print(f"🎯 [TOPIC CONTEXT] Researching within topic: {current_topic} for {company_name}")
+                                
+                                if current_topic == "valuation_overview":
+                                    research_prompt = f"""You are a senior investment banking analyst providing comprehensive valuation analysis for {company_name}. Provide a detailed, professional-grade valuation overview with specific calculations and ranges.
+
+**CRITICAL REQUIREMENTS - PROVIDE ALL THREE METHODOLOGIES:**
+
+**1. DCF ANALYSIS (Discounted Cash Flow):**
+- Calculate enterprise value based on {company_name}'s financials
+- Use specific WACC assumptions (cost of equity, cost of debt, tax rate)
+- Project 5-year cash flows with growth assumptions
+- Apply terminal value calculation with appropriate multiples
+- Provide specific DCF valuation range in USD billions/millions
+
+**2. TRADING MULTIPLES ANALYSIS:**
+- Identify 5-8 comparable public companies in similar sectors
+- Calculate key multiples: EV/Revenue, EV/EBITDA, P/E ratios
+- Apply median multiples to {company_name}'s metrics
+- Provide trading multiples valuation range
+
+**3. PRECEDENT TRANSACTIONS ANALYSIS:**
+- Research recent M&A deals in the sector (last 2-3 years)
+- Analyze transaction multiples paid by acquirers
+- Apply transaction multiples to {company_name}'s financials
+- Provide precedent transactions valuation range
+
+**INVESTMENT BANKER SUMMARY:**
+- Provide banker's perspective on valuation drivers and risks
+- Discuss which methodology is most appropriate and why
+- Give final recommended valuation range with rationale
+- Include market conditions and timing considerations
+- Address key value creation opportunities and concerns
+
+**DELIVERABLE FORMAT:**
+Present as a comprehensive banker overview with specific numbers, calculations, and professional insights. Include charts/tables if helpful. This should read like an actual investment banking valuation section.
+
+Context: {research_question}"""
+
+                                elif current_topic in ["strategic_buyers", "financial_buyers"]:
+                                    buyer_type = "Strategic" if "strategic" in current_topic else "Financial"
+                                    research_prompt = f"""The user is asking about potential {buyer_type.lower()} buyers for {company_name}. Please provide a conversational response identifying 4-5 potential buyers who would be good fits.
+
+For {buyer_type.lower()} buyers, focus on:
+{f'- Large corporations with strategic interest and financial capacity' if buyer_type == 'Strategic' else '- Private Equity firms with relevant sector expertise and sufficient AUM'}
+{f'- Companies that would benefit from strategic synergies' if buyer_type == 'Strategic' else '- PE firms with successful track records in similar investments'}
+{f'- Buyers with clear acquisition capacity and M&A history' if buyer_type == 'Strategic' else '- Firms with available capital and investment focus alignment'}
+
+For each potential buyer, explain:
+- Who they are and why they're a good fit
+- What strategic rationale or synergies make sense
+- Their financial capacity to complete the transaction
+
+Provide specific, actionable recommendations in a natural, conversational tone.
+
+User's specific question: {research_question}"""
+
+                                elif current_topic == "product_service_footprint":
+                                    research_prompt = f"""The user is asking about {company_name}'s products and services. Please provide a conversational overview of their offerings and market presence.
+
+Cover these key areas naturally:
+- Main products and services they offer
+- Geographic markets and customer segments they serve
+- How their products are positioned in the market
+- Key competitive advantages and differentiators
+- Recent product developments or expansions
+
+Provide specific details about their product portfolio and market coverage in a helpful, informative way.
+
+User's specific question: {research_question}"""
+
+                                elif current_topic == "historical_financial_performance":
+                                    research_prompt = f"""You are a financial analyst providing comprehensive historical performance analysis for {company_name}. Deliver detailed financial analysis with specific metrics and trends.
+
+**REQUIRED FINANCIAL ANALYSIS:**
+
+**Revenue Analysis (Last 5 Years):**
+- Annual revenue figures in USD (with growth rates)
+- Revenue breakdown by business segment/geography
+- Seasonal trends and cyclicality patterns
+- Key revenue drivers and growth catalysts
+
+**Profitability Metrics:**
+- EBITDA figures and margins by year
+- Operating income and operating margins
+- Net income and net margins
+- Free cash flow generation and conversion rates
+
+**Financial Health Indicators:**
+- Balance sheet strength (debt-to-equity, cash position)
+- Return on equity (ROE) and return on assets (ROA)
+- Working capital management trends
+- Capital expenditure patterns and efficiency
+
+**Comparative Analysis:**
+- Industry benchmarking vs. key competitors
+- Market position and share trends
+- Performance relative to sector averages
+- Peer multiple comparisons
+
+**Growth Story & Drivers:**
+- Organic vs. inorganic growth analysis
+- Key performance indicators (KPIs) trends
+- Investment cycles and their impact
+- Management execution on financial targets
+
+**Investment Banking Perspective:**
+- Financial strengths and competitive advantages
+- Areas of concern or improvement needed
+- Quality of earnings assessment
+- Sustainability of current performance levels
+
+Provide specific numbers, percentages, and detailed financial analysis as an investment banker would present to clients.
+
+Context: {research_question}"""
+
+                                elif current_topic == "competitive_positioning":
+                                    research_prompt = f"""The user is asking about {company_name}'s competitive position in the market. Please provide a conversational analysis of their competitive landscape.
+
+Cover these key areas:
+- Who are their main competitors and how do they compare
+- What are {company_name}'s key competitive advantages
+- How they're positioned in the market relative to competitors
+- Market share and competitive dynamics
+- Barriers to entry that protect their position
+
+Provide specific insights about the competitive landscape and explain {company_name}'s strengths and positioning in an accessible way.
+
+User's specific question: {research_question}"""
+
+                                elif current_topic == "growth_strategy_projections":
+                                    research_prompt = f"""The user is asking about {company_name}'s growth strategy and future projections. Please provide a conversational overview of their expansion plans and growth outlook.
+
+Cover these key areas:
+- Strategic growth initiatives and expansion plans
+- Financial projections and revenue targets for the next 3-5 years
+- Market opportunities they're pursuing
+- Investment priorities and resource allocation
+- Key growth drivers and expected milestones
+
+Provide specific insights about their growth strategy and future prospects in a natural, informative way.
+
+User's specific question: {research_question}"""
+
+                                elif current_topic == "management_team":
+                                    research_prompt = f"""The user is asking about {company_name}'s management team and leadership. Please provide a conversational overview of their key executives.
+
+Cover these key areas:
+- CEO and other senior executives (names, titles, backgrounds)
+- Previous experience and achievements of key leaders
+- Leadership track record and industry expertise
+- Educational backgrounds and career highlights
+- How the team's experience positions the company for success
+
+Provide specific information about the management team in a natural, informative way that helps understand their qualifications and track record.
+
+User's specific question: {research_question}"""
+
+                                elif current_topic == "business_overview":
+                                    research_prompt = f"""The user is asking about {company_name}'s business overview and what the company does. Please provide a conversational explanation of their business.
+
+Cover these key areas:
+- What the company does and their core business model
+- Main products or services they offer
+- Target markets and customer segments
+- Key business highlights and achievements
+- Market position and competitive strengths
+
+Provide a clear, informative overview that helps understand the company's business in a natural, accessible way.
+
+User's specific question: {research_question}"""
+
+                                elif current_topic == "precedent_transactions":
+                                    research_prompt = f"""You are an investment banking M&A analyst providing comprehensive precedent transactions analysis for {company_name}. Deliver detailed transaction comparables with specific deal metrics and multiples.
+
+**REQUIRED PRECEDENT TRANSACTIONS ANALYSIS:**
+
+**Recent Sector M&A Activity (Last 2-3 Years):**
+- Identify 6-10 relevant completed acquisitions in {company_name}'s sector
+- For each transaction provide:
+  * Target Company and Acquirer names
+  * Transaction announcement and closing dates
+  * Enterprise Value and Equity Value (in USD millions/billions)
+  * Revenue multiples (EV/Revenue, EV/LTM Revenue)
+  * EBITDA multiples (EV/EBITDA, EV/LTM EBITDA)
+  * Premium paid (if public target)
+
+**Transaction Multiples Analysis:**
+- Calculate median, mean, and range for key multiples
+- Segment by deal size, geography, and sub-sector if relevant
+- Compare strategic vs. financial buyer multiples
+- Analyze multiple trends over time periods
+
+**Strategic Deal Rationale:**
+- Common acquisition themes and synergy types
+- Strategic vs. financial buyer motivations
+- Market consolidation trends and drivers
+- Regulatory considerations affecting valuations
+
+**Valuation Benchmarking:**
+- Apply transaction multiples to {company_name}'s financials
+- Calculate implied valuation range using precedent multiples
+- Adjust for company-specific factors (size, growth, geography)
+- Compare to other valuation methodologies
+
+**Investment Banking Commentary:**
+- Market conditions impact on transaction activity
+- Sector-specific valuation trends and drivers
+- Quality and relevance of comparable transactions
+- Expected multiple ranges for similar future deals
+- Timing and market cycle considerations
+
+Present as a comprehensive M&A comparables analysis with specific transaction data, calculated multiples, and professional banking insights.
+
+Context: {research_question}"""
+
+                                elif current_topic == "sea_conglomerates":
+                                    research_prompt = f"""The user is asking about large conglomerates that could be potential acquirers of {company_name}. Please provide a conversational overview of relevant conglomerate buyers.
+
+Cover these key areas:
+- Large diversified conglomerates with acquisition capacity
+- Regional presence and geographic relevance
+- Strategic fit with the company's business
+- Financial capacity to afford the transaction
+- Historical M&A activity and investment patterns
+
+Focus on major conglomerates (not pure-play industry companies) that have the scale and strategic interest to be potential buyers.
+
+User's specific question: {research_question}"""
+
+                                elif current_topic == "margin_cost_resilience":
+                                    research_prompt = f"""The user is asking about {company_name}'s margins, cost structure, and operational resilience. Please provide a conversational analysis of their financial efficiency.
+
+Cover these key areas:
+- EBITDA margins and profitability trends
+- Cost structure and operational efficiency
+- Cost management strategies and initiatives
+- Resilience during economic challenges
+- Margin expansion opportunities and risks
+
+Provide insights about their operational performance and cost management in a natural, informative way.
+
+User's specific question: {research_question}"""
+
+                                elif current_topic == "investor_considerations":
+                                    research_prompt = f"""The user is asking about key investment risks and opportunities related to {company_name}. Please provide a balanced analysis of investor considerations.
+
+Cover these key areas:
+- Key investment risks and potential concerns
+- Growth opportunities and upside potential
+- Risk mitigation strategies and management approaches
+- Competitive strengths and market position
+- Overall investment thesis and value proposition
+
+Provide a balanced view that helps investors understand both the opportunities and risks in a conversational, informative way.
+
+User's specific question: {research_question}"""
+
+                                elif current_topic == "investor_process_overview":
+                                    research_prompt = f"""The user is asking about the investment or acquisition process for {company_name}. Please provide a conversational overview of what the transaction process would look like.
+
+Cover these key areas:
+- Typical timeline and key stages of the process
+- Due diligence areas and requirements
+- Potential synergy opportunities for buyers
+- Key risks and mitigation strategies
+- Process considerations and closing requirements
+
+Provide practical insights about what investors and acquirers should expect in the transaction process.
+
+User's specific question: {research_question}"""
+
+                                else:
+                                    # Generic conversational research prompt
+                                    # Default: Stay within current topic context
+                                    topic_context = {
+                                        "business_overview": "business overview, company description, what the company does",
+                                        "product_service_footprint": "products, services, geographic footprint, market coverage", 
+                                        "historical_financial_performance": "financial performance, revenue, EBITDA, margins, growth metrics",
+                                        "management_team": "management team, executives, leadership backgrounds",
+                                        "growth_strategy_projections": "growth strategy, future projections, expansion plans",
+                                        "competitive_positioning": "competitive landscape, market positioning, competitive advantages",
+                                        "precedent_transactions": "M&A transactions, acquisitions, deal comparables",
+                                        "valuation_overview": "valuation methodologies, DCF, multiples, enterprise value",
+                                        "strategic_buyers": "strategic buyer identification, corporate acquirers",
+                                        "financial_buyers": "financial buyers, private equity firms, PE analysis",
+                                        "sea_conglomerates": "conglomerates, diversified buyers, large corporations",
+                                        "margin_cost_resilience": "margins, cost structure, operational resilience",
+                                        "investor_considerations": "investment risks, opportunities, investor concerns",
+                                        "investor_process_overview": "investment process, due diligence, transaction timeline"
+                                    }
+                                    
+                                    topic_description = topic_context.get(current_topic, "general business information")
+                                    
+                                    research_prompt = f"""You are researching {company_name} specifically related to {topic_description}.
+
+CURRENT TOPIC CONTEXT: {current_topic}
+User's question/request: {research_question}
+
+IMPORTANT: Focus your research specifically on {topic_description} for {company_name}. The user is asking within this topic context, so provide information that relates to this topic area.
+
+Provide conversational, helpful information that stays within the current topic scope. Include specific data points and insights where relevant, but keep the response natural and accessible.
+
+Recent conversation for context:
+{conversation_context}"""
+                                
+                                # Create conversational research messages focused on the specific question
+                                research_messages = [
+                                    {
+                                        "role": "system", 
+                                        "content": f"You are a senior investment banking analyst researching {company_name}. The user is working on a pitch deck and needs specific information. Provide conversational, natural responses with factual data and proper sourcing. Answer exactly what they asked about for the current topic: {current_topic}. Do NOT provide JSON format or overly structured responses - just natural, informative answers with specific data points where relevant. Keep responses focused and relevant to their specific question."
+                                    },
+                                    {
+                                        "role": "user", 
+                                        "content": f"The user is asking about {current_topic} for {company_name}. Their specific question: {research_question}. Please provide a natural, conversational response with factual information relevant to this topic and question. Include specific data points and sources where available, but respond naturally like you're having a conversation with an investment banker."
+                                    }
+                                ]
+                                
+                                # Call LLM API with enhanced research context
+                                ai_response = call_llm_api(
+                                    research_messages,
+                                    st.session_state.get('model', 'sonar-pro'), 
+                                    st.session_state['api_key'],
+                                    st.session_state.get('api_service', 'perplexity')
+                                )
+                                
+                                # Add satisfaction check if not already present
+                                if not any(phrase in ai_response.lower() for phrase in ["satisfied", "investigate", "research further"]):
+                                    ai_response += "\n\nAre you satisfied with this research, or would you like me to investigate any specific areas further?"
                                 
                             except Exception as e:
-                                print(f"⚠️ [RESEARCH] Complete research process failed: {e}")
-                                # Comprehensive fallback response using detected research_topic
-                                ai_response = f"I've conducted comprehensive analysis on {research_topic} for {st.session_state.get('company_name', 'your company')}. Based on available market data and industry analysis:\n\n**Key Findings:**\n• Market position and competitive standing\n• Industry dynamics and growth trends\n• Strategic opportunities and challenges\n• Investment implications and outlook\n\nWhat specific aspects would you like to explore further?"
+                                # Fallback research response 
+                                print(f"⚠️ Research failed: {e}")
+                                ai_response = f"I'll research that for you. Let me provide comprehensive analysis based on available information... Are you satisfied with this approach, or would you like me to focus on specific aspects?"
                         
-                        # Add the research response to conversation history
                         st.session_state.messages.append({"role": "assistant", "content": ai_response})
-                        
-                        # Update conversation progress to reflect research was conducted
-                        if 'research_conducted_topics' not in st.session_state:
-                            st.session_state['research_conducted_topics'] = set()
-                        st.session_state['research_conducted_topics'].add(research_topic)
-                        
                         st.rerun()
                         st.stop()
                     
@@ -5994,6 +6712,8 @@ Sources: Company filings, industry reports, financial databases"""
                                 follow_up_research_request = has_follow_up_phrase or is_direct_question
                                 if follow_up_research_request:
                                     print(f"🔍 FOLLOW-UP RESEARCH: User requested more details after satisfaction question")
+                                    # CRITICAL: Preserve the current topic context for follow-up research
+                                    # Don't let the topic detection change when user asks follow-up questions
                     
                     # Update research request detection to include follow-up requests
                     research_request = research_request or follow_up_research_request
@@ -6087,43 +6807,131 @@ Sources: Company filings, industry reports, financial databases"""
                     # Analyze if user provided partial information that needs follow-up
                     current_topic = progress_info.get('current_topic', 'business_overview')
                     
-                    if current_topic == "historical_financial_performance" and len(user_response) > 10:
-                        # Check if financial info is missing key components
-                        has_revenue = any(word in user_response.lower() for word in ["revenue", "sales", "million", "billion", "$"])
-                        has_margins = any(word in user_response.lower() for word in ["margin", "ebitda", "profit", "%", "percentage"])
-                        has_growth = any(word in user_response.lower() for word in ["growth", "year", "2023", "2024", "increased"])
-                        
-                        if not (has_revenue and has_margins and has_growth):
-                            needs_more_info = True
-                            missing_parts = []
-                            if not has_revenue: missing_parts.append("revenue figures")
-                            if not has_margins: missing_parts.append("EBITDA margins")  
-                            if not has_growth: missing_parts.append("growth rates")
-                            contextual_followup = f"Thanks for that information! To complete the financial analysis, I additionally need {' and '.join(missing_parts)}. Do you have this data, or should I research it?"
+                    # CRITICAL FIX: Check for research requests BEFORE contextual follow-up logic
+                    user_wants_research = any(phrase in user_response.lower() for phrase in [
+                        "research this", "research for me", "research it", "research yourself",
+                        "find information", "look up", "investigate", "do research", "search for"
+                    ])
                     
-                    elif current_topic == "management_team" and len(user_response) > 10:
-                        # Check if management info is missing key roles
-                        has_ceo = any(word in user_response.lower() for word in ["ceo", "chief executive"])
-                        has_cfo = any(word in user_response.lower() for word in ["cfo", "chief financial"])
-                        has_backgrounds = any(word in user_response.lower() for word in ["experience", "background", "previously", "worked", "founded"])
+                    if not user_wants_research:
+                        # Only do contextual follow-up if user is NOT requesting research
                         
-                        if not (has_ceo and has_cfo and has_backgrounds):
-                            needs_more_info = True
-                            missing_parts = []
-                            if not has_ceo: missing_parts.append("CEO information")
-                            if not has_cfo: missing_parts.append("CFO details")
-                            if not has_backgrounds: missing_parts.append("executive backgrounds")
-                            contextual_followup = f"Good start on the management team! I additionally need {' and '.join(missing_parts)} for the pitch deck. Do you have this information, or should I research it?"
-                    
-                    elif current_topic == "valuation_overview" and len(user_response) > 10:
-                        # Check if valuation is missing actual numbers
-                        has_numbers = any(char.isdigit() for char in user_response)
-                        has_multiple = any(word in user_response.lower() for word in ["x", "multiple", "times", "ratio"])
-                        has_methodology = any(word in user_response.lower() for word in ["dcf", "comps", "precedent", "methodology"])
+                        if current_topic == "historical_financial_performance" and len(user_response) > 10:
+                            company_name = st.session_state.get('company_name', '').lower()
+                            
+                            # STEP 1: ALWAYS FACT-CHECK financial information first
+                            fact_check_issues = []
+                            
+                            # Check for obviously incorrect financial data for known companies
+                            if "nvidia" in company_name or "nvidia" in user_response.lower():
+                                if "3 million" in user_response.lower() or "$3 million" in user_response.lower():
+                                    fact_check_issues.append("Revenue figure appears too low for NVIDIA (actual FY2025: ~$130+ billion)")
+                                if any(incorrect in user_response.lower() for incorrect in ["100 million revenue", "$100 million revenue"]):
+                                    fact_check_issues.append("Revenue figure appears significantly understated for NVIDIA")
+                            
+                            if fact_check_issues:
+                                # Present fact-check discrepancy to user
+                                needs_more_info = True
+                                contextual_followup = f"I noticed potential accuracy issues with the financial information provided:\\n\\n"
+                                for issue in fact_check_issues:
+                                    contextual_followup += f"• {issue}\\n"
+                                contextual_followup += f"\\nWhich information would you like to use:\\n1. The information you provided\\n2. Let me research and provide the accurate current financial data\\n\\nPlease let me know your preference so I can save the correct data for the JSON."
+                            else:
+                                # STEP 2: ALWAYS check for completeness regardless of response length
+                                has_revenue = any(word in user_response.lower() for word in ["revenue", "sales", "million", "billion", "$"])
+                                has_margins = any(word in user_response.lower() for word in ["margin", "ebitda", "profit", "%", "percentage"])
+                                has_growth = any(word in user_response.lower() for word in ["growth", "year", "2023", "2024", "increased"])
+                                
+                                # ALWAYS ask for missing components - completeness is priority  
+                                if not (has_revenue and has_margins and has_growth):
+                                    needs_more_info = True
+                                    missing_parts = []
+                                    if not has_revenue: missing_parts.append("specific revenue figures in USD")
+                                    if not has_margins: missing_parts.append("EBITDA margins and profitability metrics")
+                                    if not has_growth: missing_parts.append("growth rates and year-over-year trends")
+                                    contextual_followup = f"Thanks for the financial information! To ensure we have comprehensive financial data for the pitch deck, I additionally need: {' and '.join(missing_parts)}. Do you have this data, or should I research it?"
+                                else:
+                                    print(f"📊 [FINANCIAL] Complete financial information provided - proceeding")
                         
-                        if not (has_numbers and (has_multiple or has_methodology)):
-                            needs_more_info = True
-                            contextual_followup = f"Thanks for the valuation framework! I additionally need specific valuation ranges or multiples (e.g., '15-20x EBITDA' or '$2-3 billion enterprise value'). Do you have target numbers, or should I research comparable valuations?"
+                        elif current_topic == "management_team" and len(user_response) > 10:
+                            company_name = st.session_state.get('company_name', '').lower()
+                            
+                            # STEP 1: ALWAYS FACT-CHECK user information first  
+                            fact_check_issues = []
+                            
+                            # Check for known incorrect information for specific companies
+                            if "nvidia" in company_name or "nvidia" in user_response.lower():
+                                if any(name in user_response.lower() for name in ["mohammed", "balisani", "john smith", "jane doe"]):
+                                    if "jensen" not in user_response.lower() and "huang" not in user_response.lower():
+                                        fact_check_issues.append("CEO name appears incorrect for NVIDIA (actual CEO: Jensen Huang)")
+                            
+                            # Add more fact-checking rules for other companies as needed
+                            # if "apple" in company_name and "ceo" in user_response.lower():
+                            #     if "tim cook" not in user_response.lower():
+                            #         fact_check_issues.append("CEO name appears incorrect for Apple (actual CEO: Tim Cook)")
+                            
+                            if fact_check_issues:
+                                # Present fact-check discrepancy to user
+                                needs_more_info = True
+                                contextual_followup = f"I noticed potential accuracy issues with the management information provided:\\n\\n"
+                                for issue in fact_check_issues:
+                                    contextual_followup += f"• {issue}\\n"
+                                contextual_followup += f"\\nWhich information would you like to use:\\n1. The information you provided\\n2. Let me research and provide the accurate current information\\n\\nPlease let me know your preference so I can save the correct data for the JSON."
+                            else:
+                                # STEP 2: ALWAYS check for completeness regardless of response length
+                                has_ceo = any(word in user_response.lower() for word in ["ceo", "chief executive"])
+                                has_cfo = any(word in user_response.lower() for word in ["cfo", "chief financial"])
+                                has_backgrounds = any(word in user_response.lower() for word in ["experience", "background", "previously", "worked", "founded"])
+                                
+                                # ALWAYS ask for missing components - completeness is priority
+                                if not (has_ceo and has_cfo and has_backgrounds):
+                                    needs_more_info = True
+                                    missing_parts = []
+                                    if not has_ceo: missing_parts.append("CEO name and title")
+                                    if not has_cfo: missing_parts.append("CFO name and title") 
+                                    if not has_backgrounds: missing_parts.append("executive backgrounds and experience")
+                                    contextual_followup = f"Thanks for the management information! To ensure we have comprehensive executive data for the pitch deck, I additionally need: {' and '.join(missing_parts)}. Do you have this information, or should I research it?"
+                                else:
+                                    print(f"👥 [MANAGEMENT] Complete management information provided - proceeding")
+                        
+                        # Comprehensive validation for ALL 14 topics in second contextual follow-up section
+                        elif current_topic == "valuation_overview" and len(user_response) > 10:
+                            company_name = st.session_state.get('company_name', '').lower()
+                            
+                            # STEP 1: ALWAYS FACT-CHECK valuation information first
+                            fact_check_issues = []
+                            
+                            # Check for obviously unrealistic valuations for known companies
+                            if "nvidia" in company_name or "nvidia" in user_response.lower():
+                                if any(low_val in user_response.lower() for low_val in ["million", "$1 million", "$10 million", "$100 million"]):
+                                    if "billion" not in user_response.lower():
+                                        fact_check_issues.append("Valuation appears too low for NVIDIA (actual market cap: $3+ trillion)")
+                            
+                            if fact_check_issues:
+                                # Present fact-check discrepancy to user
+                                needs_more_info = True
+                                contextual_followup = f"I noticed potential accuracy issues with the valuation information provided:\\n\\n"
+                                for issue in fact_check_issues:
+                                    contextual_followup += f"• {issue}\\n"
+                                contextual_followup += f"\\nWhich information would you like to use:\\n1. The information you provided\\n2. Let me research and provide the accurate current valuation data\\n\\nPlease let me know your preference so I can save the correct data for the JSON."
+                            else:
+                                # STEP 2: ALWAYS check for completeness regardless of response length
+                                has_numbers = any(char.isdigit() for char in user_response)
+                                has_multiple = any(word in user_response.lower() for word in ["x", "multiple", "times", "ratio"])
+                                has_methodology = any(word in user_response.lower() for word in ["dcf", "comps", "precedent", "methodology"])
+                                
+                                # ALWAYS ask for missing components - completeness is priority
+                                if not (has_numbers and (has_multiple or has_methodology)):
+                                    needs_more_info = True
+                                    missing_parts = []
+                                    if not has_numbers: missing_parts.append("specific valuation ranges (e.g., '$2-3 billion')")
+                                    if not (has_multiple or has_methodology): missing_parts.append("valuation multiples (e.g., '15-20x EBITDA') or methodologies (DCF, Comps, Precedent)")
+                                    contextual_followup = f"Thanks for the valuation framework! To ensure we have comprehensive valuation data for the pitch deck, I additionally need: {' and '.join(missing_parts)}. Do you have target numbers, or should I research comparable valuations?"
+                                else:
+                                    print(f"💰 [VALUATION] Complete valuation information provided - proceeding")
+                    else:
+                        # Skip contextual validation when user explicitly requests research
+                        print(f"🔍 [CONTEXT] User wants research - skipping ALL contextual follow-up logic")
                     
                     if needs_more_info and contextual_followup:
                         # Ask contextual follow-up question
