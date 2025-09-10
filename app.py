@@ -3051,23 +3051,34 @@ def analyze_conversation_progress(messages):
                     
                     # Case 1a: Direct informational response (not research request)
                     if "research" not in user_response and len(user_response) > 2:
-                        # Check if AI provided research response anyway (automatic research)
-                        if (i + 2 < len(messages) and messages[i + 2]["role"] == "assistant" and 
-                            len(messages[i + 2]["content"]) > 200):
-                            # AI provided detailed research response - treat like research completion
-                            if (i + 3 < len(messages) and messages[i + 3]["role"] == "user"):
-                                next_user_response = messages[i + 3]["content"].lower().strip()
-                                if "next topic" in next_user_response or any(resp in next_user_response for resp in satisfaction_responses):
-                                    completed_topics += 1
-                                    print(f"✅ TOPIC {completed_topics} COMPLETED: Auto-research + advancement")
-                                    i += 4
-                                    continue
-                        else:
-                            # Normal direct response without research
-                            completed_topics += 1
-                            print(f"✅ TOPIC {completed_topics} COMPLETED: Direct response")
-                            i += 2
-                            continue
+                        # Check what comes next after user's direct response
+                        if i + 2 < len(messages) and messages[i + 2]["role"] == "assistant":
+                            next_ai_message = messages[i + 2]["content"].lower()
+                            
+                            # Case 1a-i: AI provided research response (automatic research)
+                            if len(messages[i + 2]["content"]) > 200 and not any(pattern in next_ai_message for pattern in official_topic_patterns):
+                                # This is research content, not a new topic question
+                                if (i + 3 < len(messages) and messages[i + 3]["role"] == "user"):
+                                    next_user_response = messages[i + 3]["content"].lower().strip()
+                                    if "next topic" in next_user_response or any(resp in next_user_response for resp in satisfaction_responses):
+                                        completed_topics += 1
+                                        print(f"✅ TOPIC {completed_topics} COMPLETED: Auto-research + advancement")
+                                        i += 4
+                                        continue
+                            
+                            # Case 1a-ii: AI moved to next topic question (normal progression)
+                            elif any(pattern in next_ai_message for pattern in official_topic_patterns):
+                                # AI automatically advanced to next topic - this topic is complete
+                                completed_topics += 1
+                                print(f"✅ TOPIC {completed_topics} COMPLETED: Direct response + auto-advancement")
+                                i += 2
+                                continue
+                        
+                        # Case 1a-iii: Normal direct response without follow-up
+                        completed_topics += 1
+                        print(f"✅ TOPIC {completed_topics} COMPLETED: Direct response")
+                        i += 2
+                        continue
                     
                     # Case 1b: Explicit research request
                     elif "research" in user_response:
