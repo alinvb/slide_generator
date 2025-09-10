@@ -3022,13 +3022,27 @@ def analyze_conversation_progress(messages):
                 user_response = messages[i + 1]["content"].lower()
                 
                 # Case 1a: Direct informational response (not research request)
-                if "research" not in user_response and len(user_response) > 10:
-                    completed_topics += 1
-                    print(f"✅ TOPIC {completed_topics} COMPLETED: Direct response")
-                    i += 2
-                    continue
+                # Changed from len > 10 to len > 2 to handle short but valid responses like company names
+                if "research" not in user_response and len(user_response) > 2:
+                    # Check if AI provided research response anyway (automatic research)
+                    if (i + 2 < len(messages) and messages[i + 2]["role"] == "assistant" and 
+                        len(messages[i + 2]["content"]) > 200):
+                        # AI provided detailed research response - treat like research completion
+                        if (i + 3 < len(messages) and messages[i + 3]["role"] == "user"):
+                            next_user_response = messages[i + 3]["content"].lower().strip()
+                            if "next topic" in next_user_response or any(resp in next_user_response for resp in satisfaction_responses):
+                                completed_topics += 1
+                                print(f"✅ TOPIC {completed_topics} COMPLETED: Auto-research + advancement")
+                                i += 4
+                                continue
+                    else:
+                        # Normal direct response without research
+                        completed_topics += 1
+                        print(f"✅ TOPIC {completed_topics} COMPLETED: Direct response")
+                        i += 2
+                        continue
                 
-                # Case 1b: Research request
+                # Case 1b: Explicit research request
                 elif "research" in user_response:
                     # Look for AI research response + user satisfaction
                     if (i + 2 < len(messages) and messages[i + 2]["role"] == "assistant" and
