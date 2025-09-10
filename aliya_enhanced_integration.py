@@ -79,19 +79,18 @@ def integrate_enhanced_conversation_into_aliya():
                 next_topic = enhanced_manager.advance_to_next_topic(st.session_state)
                 
                 if next_topic:
-                    # Generate bridge message for smooth transition
-                    bridge_message = enhanced_manager.generate_bridge_response(
-                        from_topic, next_topic, st.session_state, call_llm_api_func
-                    )
+                    # USE EXISTING TOPIC PROGRESSION - get proper next question from analyze_conversation_progress
+                    progress_info = analyze_conversation_progress_func(st.session_state.messages)
+                    proper_next_question = progress_info.get('next_question', '')
                     
                     action_decision.update({
                         'action': 'advance_topic',
                         'should_advance': True,
                         'next_topic': next_topic,
-                        'bridge_message': bridge_message
+                        'bridge_message': proper_next_question  # Use existing proven questions
                     })
                     
-                    print(f"🎯 [ENHANCED] Advancing from {from_topic} to {next_topic}")
+                    print(f"🎯 [ENHANCED] Advancing from {from_topic} to {next_topic} using existing topic progression")
                 else:
                     # All topics covered - trigger JSON generation
                     action_decision['action'] = 'trigger_json_generation'
@@ -108,20 +107,19 @@ def integrate_enhanced_conversation_into_aliya():
                 next_topic = enhanced_manager.advance_to_next_topic(st.session_state)
                 
                 if next_topic:
-                    bridge_message = f"Excellent information on {from_topic.replace('_', ' ')}! " + \
-                                   enhanced_manager.generate_bridge_response(
-                                       from_topic, next_topic, st.session_state, call_llm_api_func
-                                   )
+                    # USE EXISTING TOPIC PROGRESSION for auto-advance too
+                    progress_info = analyze_conversation_progress_func(st.session_state.messages)
+                    proper_next_question = progress_info.get('next_question', '')
                     
                     action_decision.update({
                         'action': 'auto_advance_topic',
                         'should_advance': True,
                         'next_topic': next_topic,
-                        'bridge_message': bridge_message,
+                        'bridge_message': proper_next_question,  # Use existing proven questions
                         'reason': 'high_satisfaction'
                     })
                     
-                    print(f"🚀 [ENHANCED] Auto-advancing due to high satisfaction: {satisfaction:.2f}")
+                    print(f"🚀 [ENHANCED] Auto-advancing due to high satisfaction: {satisfaction:.2f} using existing topic progression")
         
         # Check for repetition prevention
         # This will be used by the existing Aliya logic to avoid asking similar questions
