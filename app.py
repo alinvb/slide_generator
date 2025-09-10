@@ -5680,7 +5680,7 @@ Provide comprehensive, investment banking-grade analysis with specific details, 
                             except Exception as e:
                                 print(f"❌ [CONVERSATION ERROR] {str(e)}")
                                 st.error(f"Error processing your message: {str(e)}")
-                                return
+                                st.stop()
                     
                     # All non-"next topic" conversation is now handled by the AI conversation system above
                     # The only thing that should reach here is "next topic" which is handled further down
@@ -5689,7 +5689,9 @@ Provide comprehensive, investment banking-grade analysis with specific details, 
                     
                     # Legacy research_request variable (no longer used but keeping for compatibility)
                     research_request = False
-                        # USER REQUESTED RESEARCH - Use current topic from 14-topic sequence
+                    
+                    # Skip old research logic since it's now handled by AI conversation system above
+                    if False:  # Disabled old research logic - all conversation now handled by AI system above
                         progress_info = analyze_conversation_progress(st.session_state.messages)
                         current_topic = progress_info.get('current_topic', 'business_overview')
                         company_name = st.session_state.get('company_name', 'company')
@@ -5977,6 +5979,7 @@ Sources: Company filings, industry reports, financial databases"""
                         
                         st.rerun()
                         st.stop()
+                    # END of disabled old research logic block
                     
                     # CRITICAL: Check for follow-up research requests after satisfaction questions
                     follow_up_research_request = False
