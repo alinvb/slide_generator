@@ -2930,7 +2930,7 @@ SYSTEM_PROMPT = get_perfect_system_prompt()
 # Helper Functions for Interview Flow and File Generation
 
 def analyze_conversation_progress(messages):
-    """FIXED: Precise sequential interview progress tracking that only counts actual topic questions"""
+    """ENHANCED: Topic persistence with flexible research completion - stays in topic until 'next topic'"""
     
     # The 14 mandatory topics in order
     topics = [
@@ -3024,81 +3024,53 @@ def analyze_conversation_progress(messages):
         "investment/acquisition process"  # Topic 14
     ]
     
-    # FIXED: Count completed topics by analyzing conversation flow with precise topic detection
+    # CORRECTED: Simple topic completion tracking
     completed_topics = 0
-    satisfaction_responses = ["yes", "ok", "okay", "correct", "satisfied", "good", "right", "sure", "proceed", "continue", "next", "go ahead", "sufficient"]
+    topics_asked = []  # Track which topics have been asked (1-indexed)
+    advancement_phrases = ["next topic", "sufficient. next topic", "move on", "proceed to next", "continue to next"]
     
     i = 0
     while i < len(messages):
         msg = messages[i]
         
-        # CRITICAL FIX: Only count official topic questions, not follow-up questions
         if msg["role"] == "assistant":
-            # Check if this is an official topic question by matching patterns
-            is_official_topic_question = False
+            # Check if this is an official topic question
             msg_content_lower = msg["content"].lower()
             
-            for pattern in official_topic_patterns:
+            for idx, pattern in enumerate(official_topic_patterns):
                 if pattern in msg_content_lower:
-                    is_official_topic_question = True
-                    print(f"🎯 OFFICIAL TOPIC QUESTION DETECTED: Pattern '{pattern}' found")
+                    topic_number = idx + 1
+                    if topic_number not in topics_asked:
+                        topics_asked.append(topic_number)
+                        print(f"🎯 OFFICIAL TOPIC {topic_number} QUESTION DETECTED: Pattern '{pattern}' found")
                     break
-            
-            if is_official_topic_question:
-                # Case 1: User provides direct answer
-                if i + 1 < len(messages) and messages[i + 1]["role"] == "user":
-                    user_response = messages[i + 1]["content"].lower()
-                    
-                    # Case 1a: Direct informational response (not research request)
-                    if "research" not in user_response and len(user_response) > 2:
-                        # Check what comes next after user's direct response
-                        if i + 2 < len(messages) and messages[i + 2]["role"] == "assistant":
-                            next_ai_message = messages[i + 2]["content"].lower()
-                            
-                            # Case 1a-i: AI provided research response (automatic research)
-                            if len(messages[i + 2]["content"]) > 200 and not any(pattern in next_ai_message for pattern in official_topic_patterns):
-                                # This is research content, not a new topic question
-                                if (i + 3 < len(messages) and messages[i + 3]["role"] == "user"):
-                                    next_user_response = messages[i + 3]["content"].lower().strip()
-                                    if "next topic" in next_user_response or any(resp in next_user_response for resp in satisfaction_responses):
-                                        completed_topics += 1
-                                        print(f"✅ TOPIC {completed_topics} COMPLETED: Auto-research + advancement")
-                                        i += 4
-                                        continue
-                            
-                            # Case 1a-ii: AI moved to next topic question (normal progression)
-                            elif any(pattern in next_ai_message for pattern in official_topic_patterns):
-                                # AI automatically advanced to next topic - this topic is complete
-                                completed_topics += 1
-                                print(f"✅ TOPIC {completed_topics} COMPLETED: Direct response + auto-advancement")
-                                i += 2
-                                continue
-                        
-                        # Case 1a-iii: Normal direct response without follow-up
-                        completed_topics += 1
-                        print(f"✅ TOPIC {completed_topics} COMPLETED: Direct response")
-                        i += 2
-                        continue
-                    
-                    # Case 1b: Explicit research request
-                    elif "research" in user_response:
-                        # Look for AI research response + user satisfaction
-                        if (i + 2 < len(messages) and messages[i + 2]["role"] == "assistant" and
-                            i + 3 < len(messages) and messages[i + 3]["role"] == "user"):
-                            satisfaction_response = messages[i + 3]["content"].lower().strip()
-                            if any(resp in satisfaction_response for resp in satisfaction_responses):
-                                completed_topics += 1
-                                print(f"✅ TOPIC {completed_topics} COMPLETED: Research + satisfaction")
-                                i += 4
-                                continue
             else:
-                # This is a follow-up question, not an official topic question - skip counting
-                print(f"⏭️  SKIPPING: Follow-up question detected, not official topic: '{msg_content_lower[:50]}...'")
+                # This is a follow-up question - log it but don't count
+                current_topic = topics_asked[-1] if topics_asked else 0
+                print(f"⏭️  FOLLOW-UP QUESTION: Staying in Topic {current_topic} - '{msg_content_lower[:50]}...'")
+        
+        elif msg["role"] == "user":
+            user_content = msg["content"].lower().strip()
+            
+            # Check for explicit topic advancement
+            if any(phrase in user_content for phrase in advancement_phrases):
+                # User wants to advance - complete the current topic (most recent one asked)
+                if topics_asked:
+                    current_topic_being_discussed = topics_asked[-1]  # Most recent topic asked
+                    if current_topic_being_discussed > completed_topics:
+                        completed_topics = current_topic_being_discussed  # Complete up to current topic
+                        print(f"✅ TOPIC {current_topic_being_discussed} COMPLETED: User advancement - '{user_content}'") 
         
         i += 1
     
-    # Current position = completed topics + 1 (next topic to ask)
-    current_position = min(completed_topics + 1, 14)
+    # Determine current position
+    if topics_asked and len(topics_asked) > completed_topics:
+        # We're still working on a topic that was asked but not completed
+        current_position = topics_asked[completed_topics]  # Next uncompleted topic
+    else:
+        # Normal progression: next topic to ask
+        current_position = min(completed_topics + 1, 14)
+    
     is_complete = current_position > 14
     
     # Build result in format expected by existing code
@@ -3116,7 +3088,8 @@ def analyze_conversation_progress(messages):
         "topics_skipped": 0                               # No topics skipped in sequential approach
     }
     
-    print(f"🎯 FIXED PROGRESS: {completed_topics} topics completed, asking topic {current_position} ({result['current_topic']})")
+    print(f"🎯 TOPIC PERSISTENCE: {completed_topics} topics completed, current position {current_position} ({result['current_topic']})")
+    print(f"    Topics asked: {topics_asked}, In progress: {len(topics_asked) > completed_topics}")
     return result
 
 def analyze_conversation_progress_COMPLEX_OLD(messages):
