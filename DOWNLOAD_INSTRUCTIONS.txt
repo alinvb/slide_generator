@@ -1,0 +1,53 @@
+=== ALIYA ENHANCED SYSTEM - DOWNLOAD INSTRUCTIONS ===
+
+Since the HTTP server is having issues, here are your options to get the files:
+
+OPTION 1: Copy files directly from the sandbox
+- Main app file: /home/user/webapp/download_app.py (572KB)
+- Complete system: /home/user/webapp/aliya_enhanced_system.zip (136KB)  
+- Entity fix: /home/user/webapp/entity_drift_fix.py
+- README: /home/user/webapp/README_DOWNLOAD.md
+
+OPTION 2: Use the file contents below for manual creation
+
+OPTION 3: Access via the running Streamlit app with download buttons
+
+=== QUICK ENTITY FIX FOR NVIDIA ISSUE ===
+
+The issue you're seeing where "NVIDIA" becomes "Research" is an entity drift problem.
+Here's the fix to add to your app.py around line 6465:
+
+```python
+def _enhanced_entity_capture(user_text: str):
+    """Enhanced entity capture with better pattern matching"""
+    text = user_text.strip()
+    
+    # Handle direct company name statements
+    if len(text.split()) <= 3:  # Short responses likely to be company names
+        # Known major companies (add more as needed)
+        major_companies = ['nvidia', 'apple', 'microsoft', 'google', 'amazon', 'tesla', 'meta']
+        if text.lower() in major_companies:
+            _set_entity_profile(text.upper(), aliases=[text.lower(), text.title(), text.upper()])
+            st.session_state['company_name'] = text.upper()
+            print(f"🏢 [ENHANCED CAPTURE] Locked entity: {text.upper()}")
+            return True
+    
+    return False
+
+# Add this call right after line 6465 in your chat handler:
+_enhanced_entity_capture(prompt)
+```
+
+=== WHAT'S BEEN FIXED ===
+✅ JSON Generation Bug: Now generates correct number of slides (was only 1)
+✅ Universal Patch: Entity management, loop breakers, auto-research
+✅ Dependencies: All packages included in requirements.txt
+⚠️ Entity Drift: Needs the patch above for NVIDIA recognition
+
+=== FILES READY IN SANDBOX ===
+All files are available at /home/user/webapp/ for direct access:
+- download_app.py (enhanced application)
+- aliya_enhanced_system.zip (complete package)  
+- entity_drift_fix.py (NVIDIA fix)
+- README_DOWNLOAD.md (instructions)
+
