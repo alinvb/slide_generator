@@ -64,9 +64,12 @@ Provide sources with readable titles and links. Be comprehensive but concise."""
             "title": "Product/Service Footprint",
             "prompt": """Research {company}'s product and service portfolio:
 
+CONTEXT FROM PRIOR RESEARCH:
+Use business overview and operational insights from Topic 1 to provide detailed analysis of {company}'s product/service portfolio and geographic footprint.
+
 REQUIRED INFORMATION:
-- Complete list of products/services with descriptions
-- Geographic markets and operational coverage
+- Complete list of products/services with descriptions (building on business overview)
+- Geographic markets and operational coverage (detailed expansion of headquarters/presence)
 - Distribution channels and go-to-market strategy  
 - Customer segments and target demographics
 - Pricing models and revenue streams by product/service
@@ -74,7 +77,7 @@ REQUIRED INFORMATION:
 - International presence and localization strategies
 
 RESEARCH INSTRUCTIONS:
-Document the full scope of offerings, geographic reach, and market penetration. Include specific details about how products/services are delivered to customers across different markets.
+Build upon business overview from Topic 1 to provide comprehensive product/service analysis. Document the full scope of offerings, geographic reach, and market penetration.
 
 Focus on quantifiable metrics where available (number of markets, customer counts, geographic coverage percentages).""",
             "required_fields": ["products_services", "geographic_coverage", "target_customers", "distribution_channels"]
@@ -84,19 +87,22 @@ Focus on quantifiable metrics where available (number of markets, customer count
             "title": "Historical Financial Performance", 
             "prompt": """Research {company}'s financial performance and metrics:
 
+CONTEXT FROM PRIOR RESEARCH:
+Use business overview and product/service insights from Topics 1-2 to analyze financial performance across business segments and geographies.
+
 REQUIRED INFORMATION:
 - Revenue figures for last 3-5 years with growth rates
 - EBITDA, operating margins, and profitability metrics
 - Key financial ratios and performance indicators
-- Revenue breakdown by segment/geography if available
+- Revenue breakdown by segment/geography (from product footprint analysis)
 - Cash flow metrics and working capital trends
 - Debt levels, capital structure, and financing history
 - Key performance drivers and seasonal patterns
 
 RESEARCH INSTRUCTIONS:
-Prioritize verified financial data from annual reports, SEC filings, or credible financial databases. Include specific numbers with dates and sources. Calculate growth rates and highlight trends.
+Build on business model understanding from prior topics. Prioritize verified financial data from annual reports, SEC filings, or credible financial databases. 
 
-For private companies, seek estimates from industry reports or credible financial news sources.""",
+Analyze financial performance in context of product portfolio and geographic presence identified in Topics 1-2.""",
             "required_fields": ["revenue_3_5_years", "ebitda_margins", "growth_rates", "key_metrics"]
         },
 
@@ -104,20 +110,23 @@ For private companies, seek estimates from industry reports or credible financia
             "title": "Management Team & Leadership",
             "prompt": """Research {company}'s executive leadership team:
 
+CONTEXT FROM PRIOR RESEARCH:
+Use business overview, product portfolio, and financial performance insights to assess management team's track record and relevant experience.
+
 REQUIRED INFORMATION:
-- CEO: Full name, title, background, tenure, key achievements
-- CFO: Full name, title, background, tenure, financial expertise  
+- CEO: Full name, title, background, tenure, key achievements (related to business growth)
+- CFO: Full name, title, background, tenure, financial expertise (relevant to performance trends)
 - 4-6 additional senior executives with names, titles, backgrounds
 - Board composition and key independent directors
-- Leadership experience and track record
+- Leadership experience and track record (relevant to business model and geography)
 - Educational backgrounds and professional history
-- Previous companies and relevant experience
+- Previous companies and relevant experience in similar sectors/markets
 - Any leadership changes or succession planning
 
 RESEARCH INSTRUCTIONS:
-Focus on current leadership team with verified names, exact titles, and detailed professional backgrounds. Include specific experience relevant to investment banking evaluation.
+Assess leadership team's qualifications in context of {company}'s business model, geographic presence, and financial performance from prior research.
 
-Prioritize executives directly involved in strategic and financial decision-making.""",
+Focus on experience relevant to identified growth strategies and market challenges.""",
             "required_fields": ["ceo", "cfo", "senior_executives", "leadership_experience"]
         },
 
@@ -125,20 +134,23 @@ Prioritize executives directly involved in strategic and financial decision-maki
             "title": "Growth Strategy & Projections",
             "prompt": """Research {company}'s growth strategy and future outlook:
 
+CONTEXT FROM PRIOR RESEARCH:
+Use insights from business model, product portfolio, financial performance, and management assessment to analyze growth strategy and projections.
+
 REQUIRED INFORMATION:
-- Strategic growth initiatives and expansion plans
-- Market expansion opportunities and geographic growth
+- Strategic growth initiatives and expansion plans (building on product/geographic footprint)
+- Market expansion opportunities and geographic growth (aligned with current presence)
 - Product/service innovation and R&D investments
-- Acquisition strategy and M&A pipeline
+- Acquisition strategy and M&A pipeline (related to business model)
 - Technology investments and digital transformation
-- Revenue growth projections and targets
+- Revenue growth projections and targets (building on historical performance)
 - Market trends driving growth opportunities
-- Capital allocation strategy for growth
+- Capital allocation strategy for growth (informed by financial position)
 
 RESEARCH INSTRUCTIONS:
-Focus on publicly announced strategic initiatives, confirmed expansion plans, and market opportunities. Include specific timelines, investment amounts, and projected outcomes where available.
+Analyze growth strategy in context of current business position, financial capacity, and management capabilities from prior research.
 
-Distinguish between confirmed plans and speculative opportunities.""",
+Focus on growth initiatives that leverage existing geographic presence and product strengths.""",
             "required_fields": ["growth_initiatives", "expansion_plans", "market_opportunities", "projections"]
         },
 
@@ -146,20 +158,23 @@ Distinguish between confirmed plans and speculative opportunities.""",
             "title": "Competitive Positioning",
             "prompt": """Research {company}'s competitive landscape and positioning:
 
+CONTEXT FROM PRIOR RESEARCH:
+Use business model, product portfolio, geographic presence, financial performance, and growth strategy insights to assess competitive position.
+
 REQUIRED INFORMATION:  
-- Top 5-7 direct competitors with names and descriptions
-- Market share analysis and competitive advantages
-- Differentiation factors and unique value propositions
-- Competitive threats and market challenges
-- Industry dynamics and market structure
+- Top 5-7 direct competitors with names and descriptions (in same markets/geographies)
+- Market share analysis and competitive advantages (relative to business model)
+- Differentiation factors and unique value propositions (based on product analysis)
+- Competitive threats and market challenges (relevant to growth strategy)
+- Industry dynamics and market structure (in key geographies)
 - Competitive response strategies
-- Barriers to entry and competitive moats
+- Barriers to entry and competitive moats (based on business strengths)
 - Market leadership position and brand strength
 
 RESEARCH INSTRUCTIONS:
-Identify and analyze direct competitors operating in similar markets with comparable business models. Include specific market share data, competitive advantages, and differentiation factors.
+Assess competitive position using comprehensive business understanding from prior research. Identify competitors operating in similar markets with comparable business models and geographic presence.
 
-Focus on competitors that would be relevant for investment banking evaluation and strategic assessment.""",
+Focus on competitive dynamics most relevant to growth strategy and financial performance.""",
             "required_fields": ["competitors", "market_share", "competitive_advantages", "differentiation"]
         },
 
@@ -167,12 +182,15 @@ Focus on competitors that would be relevant for investment banking evaluation an
             "title": "Precedent Transactions",
             "prompt": """Research relevant M&A transactions for {company} valuation:
 
+CONTEXT FROM PRIOR RESEARCH:
+Use all previous research findings about {company}'s business model, geography, financial performance, and competitive positioning to identify the most relevant precedent transactions.
+
 REQUIRED INFORMATION:
 - 4-6 precedent transactions in same/similar industry
 - Transaction details: target, acquirer, date, enterprise value
 - Revenue/EBITDA multiples and valuation metrics
 - Deal rationale and strategic fit factors
-- Geographic relevance (prioritize SEA/APAC if applicable)
+- Geographic relevance (prioritize transactions in {company}'s target geography)
 - Transaction premiums and control premiums
 - Market conditions at time of transaction
 - Deal structure and consideration type
@@ -184,75 +202,131 @@ Include specific valuation multiples and deal metrics where available.""",
             "required_fields": ["transactions", "valuation_multiples", "deal_metrics", "market_context"]
         },
 
+        "valuation_overview": {
+            "title": "Valuation Analysis",
+            "prompt": """🔍 COMPREHENSIVE VALUATION ANALYSIS for {company}:
+
+CONTEXT FROM PRIOR RESEARCH:
+Use all previous research findings about {company}'s financial performance, growth strategy, competitive positioning, and market dynamics to inform valuation analysis.
+
+You must provide THREE COMPLETE VALUATION METHODOLOGIES with actual calculations:
+
+1. **DCF Analysis** (Provide full calculation):
+   - Extract company's latest revenue from conversation history and prior research
+   - Project 5-year revenue growth using stated/researched growth rates
+   - Apply sector-appropriate EBITDA margins (research industry benchmarks)
+   - Calculate FCF using typical tax rates, capex, and working capital assumptions
+   - Apply terminal growth rate (2-3%) and appropriate WACC (8-12% based on risk profile)
+   - **PROVIDE ENTERPRISE VALUE AND EQUITY VALUE ESTIMATES**
+
+2. **Trading Multiples** (Calculate actual valuation):
+   - Research current EV/Revenue multiples for public company peers in {company}'s sector
+   - Research EV/EBITDA multiples for comparable companies
+   - Apply median, 25th percentile, and 75th percentile multiples to company metrics
+   - **PROVIDE VALUATION RANGE BASED ON MULTIPLE APPROACHES**
+
+3. **Precedent Transactions** (Calculate transaction-based value):
+   - Use precedent transactions researched in Topic 6
+   - Extract transaction multiples (EV/Revenue, EV/EBITDA) from recent deals
+   - Apply transaction multiples to company's financial metrics
+   - **PROVIDE TRANSACTION-BASED VALUATION ESTIMATE**
+
+**REQUIRED OUTPUT**: Three distinct valuation estimates with methodology details, assumptions, and final enterprise/equity values for {company}.
+- Use sector-appropriate WACC (typically 8-12% for established companies, 10-15% for high-growth)
+- Terminal growth: 2-4% (based on company maturity)
+- **Calculate and provide specific enterprise value range**
+
+**FINAL VALUATION RANGE**: Provide specific dollar amounts and methodology summary
+
+RESEARCH INSTRUCTIONS:
+Provide comprehensive valuation analysis using industry-standard methodologies. Include all assumptions, calculations, and final valuation ranges. This valuation will determine buyer affordability in subsequent topics.""",
+            "required_fields": ["dcf_analysis", "trading_multiples", "precedent_multiples", "valuation_range"]
+        },
+
         "strategic_buyers": {
             "title": "Strategic Buyers Analysis",
             "prompt": """Identify strategic buyers who could acquire {company}:
 
+CONTEXT FROM PRIOR RESEARCH:
+Use valuation analysis from Topic 7 to ensure buyers can afford the acquisition. Use geographic and business model insights from all prior research.
+
 REQUIRED INFORMATION:
 - 5-7 potential strategic acquirers with names and descriptions
+- **AFFORDABILITY ANALYSIS**: Verify each buyer can afford {company}'s valuation range from Topic 7
 - Strategic rationale for each buyer (synergies, market access, etc.)
-- Financial capacity analysis (revenue, market cap, cash position)
+- Financial capacity analysis (revenue, market cap, cash position vs. required acquisition cost)
 - Previous acquisition history and M&A strategy
-- Geographic and market overlap with target
+- Geographic and market overlap with target (prioritize buyers in {company}'s geography)
 - Synergy opportunities and value creation potential
 - Competitive positioning and strategic fit
 - Management and board receptiveness to M&A
 
 RESEARCH INSTRUCTIONS:
-Identify corporations with strategic interest, financial capacity (typically 5-10x target company revenue), and logical synergies. Focus on companies with active M&A programs and strategic fit.
+Identify corporations with strategic interest, financial capacity (typically 5-10x target company revenue), and logical synergies. **CRITICAL**: Use the valuation range from Topic 7 to verify each buyer can afford the acquisition.
 
-Prioritize buyers with proven track record of successful acquisitions in relevant sectors.""",
-            "required_fields": ["strategic_buyers", "acquisition_rationale", "financial_capacity", "synergies"]
+Focus on companies with active M&A programs and strategic fit. Prioritize buyers operating in or targeting {company}'s geographic markets.""",
+            "required_fields": ["strategic_buyers", "affordability_analysis", "acquisition_rationale", "financial_capacity", "synergies"]
         },
 
         "financial_buyers": {
             "title": "Financial Buyers Analysis", 
-            "prompt": """Identify private equity firms suitable for {company}:
+            "prompt": """⚠️ IMPORTANT: Identify PRIVATE EQUITY FIRMS suitable for {company}:
+
+CONTEXT FROM PRIOR RESEARCH:
+Use valuation analysis from Topic 7 and all business insights from prior research to identify suitable PE firms.
 
 REQUIRED INFORMATION:
 - 5-7 relevant PE firms with fund details and AUM
+- **AFFORDABILITY ANALYSIS**: Verify each PE firm can afford {company}'s valuation range
 - Investment criteria and sector focus alignment
-- Deal size capabilities and check size ranges
-- Portfolio companies and relevant experience
-- Geographic investment focus and local presence
+- Deal size capabilities and check size ranges matching valuation
+- Portfolio companies and relevant experience in {company}'s sector
+- Geographic investment focus (prioritize firms active in {company}'s geography)
 - Investment strategy (growth, buyout, etc.)
 - Recent transactions and sector activity
 - Fund vintage and investment timeline
 
 RESEARCH INSTRUCTIONS:
-Focus on PE firms with sector expertise, appropriate deal size capabilities, and geographic alignment. Include specific fund details, investment criteria, and recent relevant transactions.
+Focus ONLY on Private Equity firms (NOT venture capital firms). Use valuation range from Topic 7 to ensure firms have appropriate fund size and deal capacity.
 
-Prioritize firms with active investment programs and capital available for deployment.""",
-            "required_fields": ["pe_firms", "investment_criteria", "fund_details", "sector_experience"]
+Focus on PE firms with sector expertise, appropriate deal size capabilities, and geographic alignment with {company}'s markets.""",
+            "required_fields": ["pe_firms", "affordability_analysis", "investment_criteria", "fund_details", "sector_experience"]
         },
 
-        "sea_conglomerates": {
-            "title": "Southeast Asian Conglomerates",
-            "prompt": """Research SEA conglomerates relevant for {company} acquisition:
+        "global_conglomerates": {
+            "title": "Global Conglomerates",
+            "prompt": """Research global conglomerates relevant for {company} acquisition:
+
+CONTEXT FROM PRIOR RESEARCH:
+Use {company}'s geographic presence and business model from prior research to identify relevant conglomerates. Use valuation analysis to verify affordability.
 
 REQUIRED INFORMATION:
-- 5-6 major SEA conglomerates with acquisition capability
+- 5-6 major global conglomerates with acquisition capability
+- **GEOGRAPHIC ALIGNMENT**: Focus on conglomerates operating in {company}'s target geography
 - Business portfolio and strategic interests alignment
-- Financial capacity and acquisition track record
-- Geographic presence and market knowledge
-- Strategic rationale for acquiring target company
+- **AFFORDABILITY ANALYSIS**: Financial capacity vs. {company}'s valuation range
+- Previous acquisition track record in similar sectors
+- Strategic rationale for acquiring {company}
 - Management approach to acquisitions and integration
 - Local market advantages and synergies
 - Regulatory and political considerations
 
 RESEARCH INSTRUCTIONS:
-Focus on large, diversified conglomerates with established presence in Southeast Asia, proven acquisition capabilities, and strategic interest in target's sector.
+Focus on large, diversified conglomerates with presence in {company}'s geographic markets. Prioritize conglomerates from the same region or with strong expansion interests in {company}'s geography.
 
-Prioritize conglomerates with strong financial position and active M&A programs.""",
-            "required_fields": ["conglomerates", "acquisition_capacity", "strategic_fit", "regional_advantages"]
+Use valuation range from Topic 7 to ensure conglomerates have financial capacity for acquisition.""",
+            "required_fields": ["global_conglomerates", "geographic_alignment", "acquisition_capacity", "strategic_fit", "regional_advantages"]
         },
 
         "margin_cost_resilience": {
             "title": "Margin & Cost Resilience",
             "prompt": """Research {company}'s margin structure and cost management:
 
+CONTEXT FROM PRIOR RESEARCH:
+Use financial performance data, competitive positioning, and business model insights from all prior research to analyze margin sustainability.
+
 REQUIRED INFORMATION:
-- EBITDA margin trends and benchmarking vs peers
+- EBITDA margin trends and benchmarking vs peers (from competitive analysis)
 - Cost structure analysis (fixed vs variable costs)
 - Operating leverage and scalability factors  
 - Cost management initiatives and efficiency programs
@@ -262,9 +336,9 @@ REQUIRED INFORMATION:
 - Supply chain efficiency and cost optimization
 
 RESEARCH INSTRUCTIONS:
-Analyze the company's ability to maintain margins during challenging periods and scale efficiently during growth. Include specific margin data, cost breakdowns, and efficiency initiatives.
+Use prior financial performance and competitive analysis to assess margin sustainability. Analyze the company's ability to maintain margins during challenging periods and scale efficiently during growth.
 
-Focus on operational metrics that demonstrate cost discipline and margin sustainability.""",
+Focus on operational metrics that demonstrate cost discipline and margin sustainability relative to competitors.""",
             "required_fields": ["margin_trends", "cost_structure", "efficiency_initiatives", "margin_resilience"]
         },
 
@@ -272,20 +346,23 @@ Focus on operational metrics that demonstrate cost discipline and margin sustain
             "title": "Investment Considerations",
             "prompt": """Research key investment considerations for {company}:
 
+CONTEXT FROM PRIOR RESEARCH:
+Synthesize insights from all prior research topics to identify key investment risks and opportunities based on business model, competitive position, management team, and growth strategy.
+
 REQUIRED INFORMATION:
-- Primary investment risks and mitigation strategies
-- Regulatory and compliance considerations
-- Market and industry risk factors
+- Primary investment risks and mitigation strategies (based on business analysis)
+- Regulatory and compliance considerations (geographic-specific)
+- Market and industry risk factors (from competitive analysis)
 - ESG (Environmental, Social, Governance) factors
-- Technology and disruption risks
-- Key person dependencies and management risks
-- Financial and operational risks
-- Investment opportunities and upside potential
+- Technology and disruption risks (from competitive positioning)
+- Key person dependencies and management risks (from leadership analysis)
+- Financial and operational risks (from performance analysis)
+- Investment opportunities and upside potential (from growth strategy)
 
 RESEARCH INSTRUCTIONS:
-Provide balanced analysis of investment risks and opportunities. Include specific risk factors, likelihood assessments, and mitigation strategies.
+Use all prior research to provide comprehensive risk-opportunity analysis. Include specific risk factors identified in business model, competitive threats, management dependencies, and market position.
 
-Focus on factors most relevant to investment banking evaluation and buyer decision-making.""",
+Focus on factors most relevant to buyers identified in strategic/financial buyer analysis.""",
             "required_fields": ["investment_risks", "opportunities", "esg_factors", "risk_mitigation"]
         },
 
@@ -293,30 +370,34 @@ Focus on factors most relevant to investment banking evaluation and buyer decisi
             "title": "Investment Process Overview", 
             "prompt": """Research investment process considerations for {company}:
 
+CONTEXT FROM PRIOR RESEARCH:
+Use valuation analysis, buyer identification, and risk assessment from all prior research to outline appropriate investment process and due diligence requirements.
+
 REQUIRED INFORMATION:
-- Due diligence requirements and process timeline
-- Key due diligence focus areas and data room contents
-- Regulatory approvals and clearance requirements
+- Due diligence requirements and process timeline (based on business complexity)
+- Key due diligence focus areas and data room contents (tailored to identified risks)
+- Regulatory approvals and clearance requirements (geography-specific)
 - Stakeholder management and approval processes
-- Synergy realization timeline and integration planning
-- Valuation methodology and deal structure considerations
-- Closing conditions and execution risks
-- Post-acquisition integration requirements
+- Synergy realization timeline and integration planning (based on buyer analysis)
+- Valuation methodology and deal structure considerations (from Topic 7)
+- Closing conditions and execution risks (based on risk analysis)
+- Post-acquisition integration requirements (buyer-specific)
 
 RESEARCH INSTRUCTIONS:
-Outline the typical investment process, due diligence requirements, and execution considerations for transactions involving companies like the target.
+Use comprehensive business analysis and buyer profiles from prior research to outline tailored investment process. Consider geographic regulations, business complexity, and buyer-specific requirements.
 
-Include specific timelines, regulatory requirements, and integration planning factors.""",
+Include specific timelines and requirements based on {company}'s sector, geography, and identified buyer profiles.""",
             "required_fields": ["due_diligence", "regulatory_approvals", "process_timeline", "integration_planning"]
         }
     }
 
 def research_all_topics(company_name: str, user_info: str = "") -> Dict[str, Any]:
     """
-    Research all 14 topics comprehensively for the specified company
+    Research all 14 topics comprehensively for the specified company with sequential context building
     """
     research_prompts = get_research_prompts()
     results = {}
+    accumulated_context = ""
     
     st.info(f"🔬 Starting comprehensive research for {company_name}...")
     
@@ -324,16 +405,44 @@ def research_all_topics(company_name: str, user_info: str = "") -> Dict[str, Any
     progress_bar = st.progress(0)
     status_text = st.empty()
     
-    total_topics = len(research_prompts)
+    # Correct topic order (14 topics total)
+    topic_order = [
+        "business_overview",
+        "product_service_footprint", 
+        "historical_financial_performance",
+        "management_team",
+        "growth_strategy_projections",
+        "competitive_positioning",
+        "precedent_transactions",
+        "valuation_overview",  # Topic 7 - CRITICAL for buyer affordability
+        "strategic_buyers",
+        "financial_buyers",
+        "global_conglomerates",  # Changed from sea_conglomerates
+        "margin_cost_resilience",
+        "investor_considerations",
+        "investor_process_overview"
+    ]
     
-    for i, (topic_id, topic_config) in enumerate(research_prompts.items()):
+    total_topics = len(topic_order)
+    
+    for i, topic_id in enumerate(topic_order):
+        if topic_id not in research_prompts:
+            st.error(f"Missing prompt configuration for topic: {topic_id}")
+            continue
+            
+        topic_config = research_prompts[topic_id]
+        
         # Update progress
         progress = (i + 1) / total_topics
         progress_bar.progress(progress)
-        status_text.text(f"Researching {topic_config['title']} ({i+1}/{total_topics})")
+        status_text.text(f"Researching {topic_config['title']} (Topic {i+1}/{total_topics})")
         
         # Format prompt with company name
         formatted_prompt = topic_config['prompt'].format(company=company_name)
+        
+        # Add accumulated context from prior topics (except for Topic 1)
+        if i > 0:
+            formatted_prompt += f"\n\nCONTEXT FROM PRIOR RESEARCH TOPICS:\n{accumulated_context}\n\nUse this context to inform your research for {topic_config['title']}."
         
         # Add user information context if provided
         if user_info and user_info.strip():
@@ -348,8 +457,12 @@ def research_all_topics(company_name: str, user_info: str = "") -> Dict[str, Any
                 'title': topic_config['title'],
                 'content': research_result,
                 'required_fields': topic_config['required_fields'],
-                'status': 'completed'
+                'status': 'completed',
+                'topic_number': i + 1
             }
+            
+            # Add this topic's results to accumulated context for subsequent topics
+            accumulated_context += f"\n\n{topic_config['title']}: {research_result[:500]}..."  # First 500 chars for context
             
             # Brief pause to show progress 
             time.sleep(0.5)
@@ -360,7 +473,8 @@ def research_all_topics(company_name: str, user_info: str = "") -> Dict[str, Any
                 'title': topic_config['title'], 
                 'content': f"Research failed: {str(e)}",
                 'required_fields': topic_config['required_fields'],
-                'status': 'error'
+                'status': 'error',
+                'topic_number': i + 1
             }
     
     progress_bar.progress(1.0)
@@ -529,8 +643,6 @@ def main():
         st.session_state['api_service'] = api_service
         st.session_state['api_key'] = api_key
         st.session_state['model'] = selected_model
-        
-        st.session_state['model'] = model
     
     # Main interface
     if not api_key:
@@ -624,7 +736,7 @@ def main():
                             "precedent_transactions",
                             "strategic_buyers",
                             "financial_buyers", 
-                            "sea_conglomerates",
+                            "global_conglomerates",
                             "margin_cost_resilience",
                             "investor_considerations",
                             "investor_process_overview"
