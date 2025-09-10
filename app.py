@@ -8,6 +8,53 @@ import zipfile
 from datetime import datetime
 import re
 
+# CRITICAL PATCH: Memory and conversation helpers
+def _meaningful_since_last_question(min_tokens: int = 6) -> bool:
+    """Check if user provided substantial content since last assistant question"""
+    import re
+    last_q_idx = None
+    for i in range(len(st.session_state.messages)-1, -1, -1):
+        m = st.session_state.messages[i]
+        if m.get('role') == 'assistant' and ('?' in m.get('content','') or any(k in m.get('content','').lower() for k in ['choose','specify','select'])):
+            last_q_idx = i
+            break
+    if last_q_idx is None:
+        return False
+    user_text = ' '.join(m.get('content','') for m in st.session_state.messages[last_q_idx+1:] if m.get('role')=='user').strip()
+    tokens = [t for t in re.findall(r'[a-z0-9]+', user_text.lower()) if t not in {'ok','okay','sure','yep','yes','no','next','skip'}]
+    return len(tokens) >= min_tokens
+
+def _strip_unresolved_citations(text: str) -> str:
+    """Remove fake bracket citations [1][2][3] when no sources provided"""
+    import re as _re
+    return _re.sub(r"\s*\[\s*\d+\s*\](?=[^\)])", "", text or "")
+
+def _memory_transcript(max_turns: int = 12, max_chars: int = 2400) -> str:
+    """Get conversation transcript for memory grounding"""
+    lines = []
+    try:
+        from langchain.memory import ConversationBufferMemory
+        if isinstance(st.session_state.get('lc_memory'), ConversationBufferMemory):
+            msgs = st.session_state.lc_memory.chat_memory.messages[-(max_turns*2):]
+            for m in msgs:
+                role = getattr(m, "type", None) or getattr(m, "role", "")
+                content = getattr(m, "content", "")
+                role = "user" if role in ("human","user") else ("assistant" if role in ("ai","assistant") else "assistant")
+                lines.append(f"{role}: {content}")
+        else:
+            for m in st.session_state.messages[-(max_turns*2):]:
+                lines.append(f"{m.get('role','assistant')}: {m.get('content','')}")
+    except Exception:
+        for m in st.session_state.messages[-(max_turns*2):]:
+            lines.append(f"{m.get('role','assistant')}: {m.get('content','')}")
+    transcript = "\n".join(lines).strip()
+    if len(transcript) > max_chars:
+        transcript = transcript[-max_chars:]
+        cut = transcript.find("\n")
+        if cut != -1:
+            transcript = transcript[cut+1:]
+    return transcript
+
 # Apply Unicode crash prevention patch
 import streamlit_patch
 
@@ -5557,6 +5604,16 @@ RENDER PLAN JSON:
                 # Initialize research_request based on enhanced decision
                 research_request = (enhanced_decision.get('action') == 'trigger_research')
                 
+                # CRITICAL FIX: Explicit research phrase detection to prevent "next topic" confusion
+                user_lower = prompt.lower().strip()
+                explicit_research_phrases = [
+                    "research this for me", "research this", "research it for me", "research it",
+                    "find information", "look this up", "investigate this", "get more info"
+                ]
+                if any(phrase in user_lower for phrase in explicit_research_phrases):
+                    research_request = True
+                    print(f"🔍 [EXPLICIT RESEARCH] Detected: '{prompt}' - overriding other decisions")
+                
                 # CONSOLIDATED RESEARCH HANDLING - Handle all research requests here
                 if research_request:
                     print(f"🔍 [RESEARCH HANDLER] Processing research request: '{prompt}'")
@@ -5564,7 +5621,30 @@ RENDER PLAN JSON:
                     # Get current topic for research context
                     progress_info = analyze_conversation_progress(st.session_state.messages)
                     current_topic = progress_info.get('current_topic', 'business_overview')
-                    company_name = st.session_state.get('company_name', 'your company')
+                    
+                    # MEMORY FIX: Extract company name from conversation transcript if not in session
+                    stored_company_name = st.session_state.get('company_name', '')
+                    if not stored_company_name:
+                        # Extract from recent conversation
+                        conversation_text = _memory_transcript(max_turns=8, max_chars=1000)
+                        # Look for company mentions in conversation
+                        import re
+                        # Simple pattern to find company names mentioned in conversation
+                        for line in conversation_text.split('\n'):
+                            if 'user:' in line.lower():
+                                user_content = line.split(':', 1)[-1].strip()
+                                # Extract potential company names (capitalized words, avoid common words)
+                                potential_names = re.findall(r'\b[A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]*)*\b', user_content)
+                                for name in potential_names:
+                                    if name.lower() not in ['i', 'the', 'my', 'our', 'company', 'business', 'we', 'they']:
+                                        stored_company_name = name
+                                        st.session_state['company_name'] = name
+                                        print(f"🏢 [MEMORY FIX] Extracted company name from conversation: {name}")
+                                        break
+                                if stored_company_name:
+                                    break
+                    
+                    company_name = stored_company_name or 'your company'
                     
                     # Map current topic to research focus
                     topic_research_mapping = {
@@ -5581,13 +5661,25 @@ RENDER PLAN JSON:
                     print(f"🔍 [RESEARCH] Topic: {current_topic} → Research: {research_topic}")
                     
                     with st.spinner(f"🔍 Researching {research_topic} for {company_name}..."):
-                        # Call LLM for research
+                        # MEMORY-GROUNDED RESEARCH: Include conversation transcript for proper context
+                        conversation_transcript = _memory_transcript(max_turns=10, max_chars=2000)
+                        
                         research_prompt = f"""Research comprehensive information about {company_name} focusing on {research_topic}. 
-                        Provide specific data, numbers, and insights relevant for investment banking analysis.
-                        Include recent developments, financial metrics, and market positioning."""
+
+CRITICAL: Use the conversation transcript below to understand the correct company context.
+
+CONVERSATION TRANSCRIPT:
+{conversation_transcript}
+
+RESEARCH FOCUS: {research_topic}
+COMPANY: {company_name}
+
+Provide specific data, numbers, and insights relevant for investment banking analysis.
+Include recent developments, financial metrics, and market positioning.
+ENSURE you research the correct company mentioned in our conversation."""
                         
                         research_messages = [
-                            {"role": "system", "content": "You are an investment banking research analyst. Provide detailed, factual research."},
+                            {"role": "system", "content": "You are an investment banking research analyst. Use the conversation transcript to understand the correct company context. Provide detailed, factual research."},
                             {"role": "user", "content": research_prompt}
                         ]
                         
@@ -6061,9 +6153,9 @@ Sources: Company filings, industry reports, financial databases"""
                     # Update research request detection to include follow-up requests
                     research_request = research_request or follow_up_research_request
                     
-                    # PRIORITY 1: Handle "next topic" for sequential interview progression
-                    # CRITICAL FIX: "next topic" should ALWAYS be handled, regardless of research_request detection
-                    if "next topic" in user_message_lower:
+                    # PRIORITY 1: Handle "next topic" for sequential interview progression  
+                    # CRITICAL FIX: Only handle "next topic" if it's NOT a research request
+                    if "next topic" in user_message_lower and not research_request:
                         # User wants to advance to next topic in the 14-topic sequence
                         progress_info = analyze_conversation_progress(st.session_state.messages)
                         
