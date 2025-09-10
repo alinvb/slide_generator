@@ -19,9 +19,61 @@ def _normalize_text(s: str) -> str:
     return s
 
 def _is_fact_query(text: str) -> bool:
-    """Detect direct factual questions like 'who is the CEO?'"""
+    """Detect direct factual questions like 'who is the CEO?' OR contradictory statements that need fact-checking"""
     import re
-    return bool(re.search(r'^(who|what|where|when|how many|how much)\b', text.strip().lower()))
+    # Direct questions starting with question words
+    is_question = bool(re.search(r'^(who|what|where|when|how many|how much)\b', text.strip().lower()))
+    
+    # Contradictory statements that need fact-checking (company name + wrong industry)
+    is_contradictory = _is_contradictory_statement(text)
+    
+    return is_question or is_contradictory
+
+def _is_contradictory_statement(text: str) -> bool:
+    """Detect obviously false statements about known companies that need correction"""
+    import re
+    
+    # Get current company context
+    company = _current_company().lower() if _current_company() else ""
+    text_lower = text.lower()
+    
+    print(f"🔍 [CONTRADICTION CHECK] Text: '{text}' | Company: '{company}'")
+    
+    # Pattern: "X is a Y company" where Y is obviously wrong
+    wrong_industries = [
+        'garbage disposal', 'waste management', 'plumbing', 'restaurant', 
+        'fast food', 'clothing', 'retail', 'grocery', 'farming', 'agriculture'
+    ]
+    
+    # ENHANCED: Also check if the text itself contains a company name + contradiction
+    # This handles cases where company context might not be set correctly
+    known_tech_companies = ['nvidia', 'apple', 'google', 'microsoft', 'meta', 'tesla', 'amazon', 'facebook']
+    
+    # Check text directly for "CompanyName is a WrongIndustry"
+    for tech_company in known_tech_companies:
+        if tech_company in text_lower:
+            for industry in wrong_industries:
+                if industry in text_lower and ('is a' in text_lower or 'is an' in text_lower):
+                    print(f"🚨 [CONTRADICTION DETECTED] Direct text: {tech_company} + {industry}")
+                    return True
+    
+    # Check if this looks like a contradictory statement about a known tech company
+    if company in known_tech_companies:
+        for industry in wrong_industries:
+            if industry in text_lower and ('is a' in text_lower or 'is an' in text_lower):
+                print(f"🚨 [CONTRADICTION DETECTED] Context company: {company} + {industry}")
+                return True
+    
+    # Generic pattern: [Company Name] is a [Obviously Wrong Industry]
+    if company and 'is a' in text_lower:
+        # Check if the statement contradicts what we know about the company
+        for industry in wrong_industries:
+            if industry in text_lower:
+                print(f"🚨 [CONTRADICTION DETECTED] Generic: {company} + {industry}")
+                return True
+    
+    print(f"🔍 [CONTRADICTION CHECK] No contradiction detected")
+    return False
 
 def _is_research_request(text: str) -> bool:
     """Detect research requests with better pattern matching"""
@@ -46,6 +98,41 @@ def _current_company() -> str:
     """Get current company context"""
     return st.session_state.get('current_company', st.session_state.get('company_name', ''))
 
+def _user_provided_company_info(text: str) -> bool:
+    """
+    Detect if user provided any information about their company, even if incorrect.
+    This should trigger fact-checking or acceptance, not repetition of the same question.
+    """
+    text_lower = text.lower().strip()
+    
+    # Patterns that indicate user is providing company information
+    company_info_patterns = [
+        "is a ",
+        "is an ", 
+        "we are a",
+        "we are an",
+        "company is",
+        "business is", 
+        "firm is",
+        "my company",
+        "our company",
+        "we do",
+        "we make",
+        "we provide",
+        "we offer"
+    ]
+    
+    for pattern in company_info_patterns:
+        if pattern in text_lower:
+            return True
+    
+    # Also check if text contains company name + description
+    if any(word in text_lower for word in ["company", "business", "firm", "corporation"]):
+        if any(word in text_lower for word in ["is", "does", "makes", "provides", "offers"]):
+            return True
+    
+    return False
+
 def _bias_entity_from_context(text: str):
     """Fix entity drift - map qi+iraq -> Qi Card"""
     t = text.lower()
@@ -54,20 +141,41 @@ def _bias_entity_from_context(text: str):
         st.session_state['company_name'] = 'Qi Card'  # Also set in standard location
 
 def _run_fact_lookup(user_text: str):
-    """Handle direct factual questions immediately"""
+    """Handle direct factual questions OR correct contradictory statements immediately"""
     entity = _current_company()
     hint = f" (Entity: {entity})" if entity else ""
     prompt = user_text + hint
     
-    DIRECT_QA_INSTRUCTIONS = (
-        "You answer direct factual questions briefly (1-2 sentences). "
-        "If unknown, say 'Not publicly disclosed' or 'Unclear from public sources' and offer research. "
-        "When citing, include readable titles with links; avoid bare [1]/[2] brackets."
-    )
+    # Check if this is a contradictory statement that needs correction
+    is_contradiction = _is_contradictory_statement(user_text)
     
-    # Use conversation transcript for context
-    conversation_transcript = _memory_transcript(max_turns=8, max_chars=1500)
-    enhanced_prompt = f"""Based on our conversation about {entity}, please answer this direct question:
+    if is_contradiction:
+        CORRECTION_INSTRUCTIONS = (
+            "You correct false statements about companies politely but firmly. "
+            "Provide the accurate information in 1-2 sentences, then offer to continue with correct information. "
+            "Be professional and helpful, not confrontational."
+        )
+        
+        conversation_transcript = _memory_transcript(max_turns=8, max_chars=1500)
+        enhanced_prompt = f"""The user made an incorrect statement about {entity}. Please correct it professionally:
+
+CONVERSATION CONTEXT:
+{conversation_transcript}
+
+INCORRECT STATEMENT: {user_text}
+
+Correct this politely and offer to continue with accurate information about {entity}."""
+        
+        instructions = CORRECTION_INSTRUCTIONS
+    else:
+        DIRECT_QA_INSTRUCTIONS = (
+            "You answer direct factual questions briefly (1-2 sentences). "
+            "If unknown, say 'Not publicly disclosed' or 'Unclear from public sources' and offer research. "
+            "When citing, include readable titles with links; avoid bare [1]/[2] brackets."
+        )
+        
+        conversation_transcript = _memory_transcript(max_turns=8, max_chars=1500)
+        enhanced_prompt = f"""Based on our conversation about {entity}, please answer this direct question:
 
 CONVERSATION CONTEXT:
 {conversation_transcript}
@@ -75,9 +183,11 @@ CONVERSATION CONTEXT:
 QUESTION: {user_text}
 
 Answer briefly and factually. If you don't know, say so and offer to research."""
+        
+        instructions = DIRECT_QA_INSTRUCTIONS
     
     messages = [
-        {"role": "system", "content": DIRECT_QA_INSTRUCTIONS},
+        {"role": "system", "content": instructions},
         {"role": "user", "content": enhanced_prompt}
     ]
     
@@ -6558,11 +6668,39 @@ RENDER PLAN JSON:
                 
                 print(f"🔄 [ROUTER] Normalized: '{user_norm}' | Company: {_current_company()}")
                 
-                # PRIORITY 1: Direct factual questions - answer immediately
-                if _is_fact_query(user_norm):
+                # PRIORITY 1: Direct factual questions OR contradictions - answer immediately
+                # Check both normalized AND original input for contradiction detection
+                fact_query_result = _is_fact_query(user_norm) or _is_fact_query(prompt)
+                print(f"🔍 [FACT QUERY CHECK] Input: '{user_norm}' | Original: '{prompt}' | Result: {fact_query_result}")
+                
+                if fact_query_result:
                     print(f"❓ [FACT QUERY] Detected: '{user_norm}'")
-                    fact_answer = _run_fact_lookup(user_norm)
+                    # Use original prompt for contradiction detection to preserve casing
+                    fact_answer = _run_fact_lookup(prompt if _is_contradictory_statement(prompt) else user_norm)
                     st.session_state.messages.append({"role": "assistant", "content": fact_answer})
+                    st.rerun()
+                    st.stop()
+                
+                # LOOP BREAKER: If user provided company info but it wasn't caught above, handle it
+                if _user_provided_company_info(prompt) and not fact_query_result:
+                    print(f"🔄 [LOOP BREAKER] User provided company info: '{prompt}'")
+                    
+                    # Check if this is contradictory information 
+                    if _is_contradictory_statement(prompt):
+                        print(f"🚨 [LOOP BREAKER] Contradictory info detected, correcting...")
+                        correction = _run_fact_lookup(prompt)
+                        st.session_state.messages.append({"role": "assistant", "content": correction})
+                    else:
+                        # User provided reasonable company info, acknowledge and continue
+                        print(f"✅ [LOOP BREAKER] Valid company info provided, continuing...")
+                        acknowledgment = "Thanks for that information! Let me continue with the next aspect of our discussion."
+                        st.session_state.messages.append({"role": "assistant", "content": acknowledgment})
+                        
+                        # Get next question
+                        progress_info = analyze_conversation_progress(st.session_state.messages)
+                        if progress_info.get('next_question') and not _recent_assistant_question_duplicate(progress_info['next_question']):
+                            st.session_state.messages.append({"role": "assistant", "content": progress_info['next_question']})
+                    
                     st.rerun()
                     st.stop()
                 
@@ -6622,6 +6760,24 @@ RENDER PLAN JSON:
                     # Use patched research function with sticky company memory
                     summary = _run_research(prompt)
                     st.session_state.messages.append({"role": "assistant", "content": summary})
+                    
+                    # ANTI-LOOP FIX: After research, add a brief pause and then continue conversation naturally
+                    # Check if we should advance the topic after providing research
+                    progress_info = analyze_conversation_progress(st.session_state.messages)
+                    
+                    # If the research was comprehensive, consider the current topic partially satisfied
+                    if len(summary) > 200:  # Substantial research provided
+                        print(f"🔍 [RESEARCH COMPLETED] Substantial research provided ({len(summary)} chars)")
+                        
+                        # Add a transition message to continue the conversation
+                        transition_msg = "\n\nThanks for letting me research that! Let's continue with our discussion."
+                        st.session_state.messages[-1]["content"] += transition_msg
+                        
+                        # Get next logical question but don't repeat the same one
+                        if progress_info.get('next_question') and not _recent_assistant_question_duplicate(progress_info['next_question']):
+                            next_q = progress_info['next_question']
+                            st.session_state.messages.append({"role": "assistant", "content": next_q})
+                    
                     st.rerun()
                     st.stop()
                 
