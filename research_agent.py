@@ -511,7 +511,7 @@ def fact_check_user_info(user_info: str, company_name: str) -> Dict[str, Any]:
         ]
         
         response = call_llm_api(messages, 
-                              st.session_state.get('model', 'llama-3.1-sonar-large-128k-online'),
+                              st.session_state.get('model', 'sonar-pro'),
                               st.session_state.get('api_key'), 
                               st.session_state.get('api_service', 'perplexity'))
         
@@ -611,9 +611,11 @@ def main():
             api_service = "perplexity"
             # Perplexity models with Sonar Pro
             model_options = [
-                "llama-3.1-sonar-large-128k-online",
-                "llama-3.1-sonar-small-128k-online", 
-                "llama-3.1-sonar-huge-128k-online"
+                "sonar-pro",
+                "sonar",
+                "sonar-reasoning-pro",
+                "sonar-reasoning",
+                "sonar-deep-research"
             ]
             selected_model = st.selectbox("Model", model_options, index=0)
             

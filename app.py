@@ -6407,7 +6407,7 @@ if "enhanced_initialized" not in st.session_state:
     st.session_state.enhanced_initialized = True
 
 # Main App Layout
-tab_chat, tab_json, tab_execute, tab_validate = st.tabs(["🤖 AI Copilot", "📄 JSON Editor", "⚙️ Execute", "🔍 JSON Validator & Auto-Fix"])
+tab_chat, tab_extract, tab_json, tab_execute, tab_validate = st.tabs(["🔬 Research Agent", "🎯 Extract & Auto-Populate", "📄 JSON Editor", "⚙️ Execute", "🔍 JSON Validator & Auto-Fix"])
 
 with tab_chat:
     st.subheader("🔬 Research Agent - AI Investment Banking Research")
@@ -6796,7 +6796,7 @@ RENDER PLAN JSON:
         with col2:
             if st.button("💾 Export Chat"):
                 chat_export = {
-                    "model": st.session_state.get('model', 'llama-3.1-sonar-large-128k-online'),
+                    "model": st.session_state.get('model', 'sonar-pro'),
                     "messages": st.session_state.messages[1:],  # Exclude system message
                     "timestamp": str(pd.Timestamp.now())
                 }
@@ -6807,6 +6807,216 @@ RENDER PLAN JSON:
                     file_name=f"pitch_deck_interview_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.json",
                     mime="application/json"
                 )
+
+with tab_extract:
+    st.subheader("🎯 Extract & Auto-Populate JSONs")
+    
+    # Brand extraction section
+    st.markdown("### 🏷️ Brand Extraction")
+    brand_extraction_enabled = st.toggle(
+        "Enable Brand Extraction",
+        value=st.session_state.get('brand_extraction_enabled', False),
+        help="Extract brand and company information from research data"
+    )
+    st.session_state['brand_extraction_enabled'] = brand_extraction_enabled
+    
+    if brand_extraction_enabled:
+        from brand_extractor import BrandExtractor
+        extractor = BrandExtractor()
+        
+        if st.button("🔍 Extract Brand Information"):
+            if st.session_state.get('research_results'):
+                with st.spinner("Extracting brand information..."):
+                    # Extract from research results
+                    research_data = ""
+                    for topic_id, topic_data in st.session_state.research_results.items():
+                        research_data += f"{topic_data['title']}: {topic_data['content']}\n\n"
+                    
+                    try:
+                        brand_info = extractor.extract_brand_info(research_data)
+                        st.success("✅ Brand extraction completed!")
+                        st.json(brand_info)
+                        st.session_state['extracted_brand_info'] = brand_info
+                    except Exception as e:
+                        st.error(f"❌ Brand extraction failed: {e}")
+            else:
+                st.warning("⚠️ Complete research first in the Research Agent tab")
+    
+    # Vector DB section
+    st.markdown("### 🗄️ Vector Database (Optional)")
+    if "vector_db_initialized" not in st.session_state:
+        st.session_state["vector_db_initialized"] = False
+
+    if not st.session_state["vector_db_initialized"]:
+        st.info("💡 **Optional**: Connect to Vector Database for enhanced context")
+        
+        vector_db_id = st.text_input(
+            "Database ID",
+            help="Your vector database ID",
+            key="vector_db_id_input"
+        )
+        
+        vector_db_token = st.text_input(
+            "API Token",
+            type="password",
+            help="Your vector database API token",
+            key="vector_db_token_input"
+        )
+        
+        vector_db_keyspace = st.text_input(
+            "Keyspace",
+            help="Vector database keyspace",
+            key="vector_db_keyspace_input"
+        )
+        
+        vector_db_table = st.text_input(
+            "Table Name",
+            help="Vector database table name",
+            key="vector_db_table_input"
+        )
+        
+        if st.button("🔗 Connect Vector DB") and all([vector_db_id, vector_db_token, vector_db_keyspace, vector_db_table]):
+            try:
+                from vector_db import get_vector_db_manager
+                vector_db = get_vector_db_manager()
+                
+                if vector_db.initialize(vector_db_id, vector_db_token, vector_db_keyspace, vector_db_table):
+                    st.session_state["vector_db_initialized"] = True
+                    st.session_state["vector_db"] = vector_db
+                    st.success("✅ Vector Database connected successfully!")
+                    st.rerun()
+                else:
+                    st.error("❌ Failed to connect to Vector Database")
+            except Exception as e:
+                st.error(f"❌ Vector DB connection error: {e}")
+    else:
+        st.success("✅ Vector Database connected")
+        from vector_db import get_vector_db_manager
+        vector_db = get_vector_db_manager()
+        status = vector_db.get_status()
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Status", status.get('status', 'Unknown'))
+        with col2:
+            st.metric("Records", status.get('record_count', 0))
+        
+        if st.button("🔌 Disconnect Vector DB"):
+            st.session_state["vector_db_initialized"] = False
+            st.rerun()
+    
+    # Auto-populate section
+    st.markdown("### ⚡ Auto-Populate JSONs")
+    
+    if st.session_state.get('research_completed', False):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("🚀 Auto-Populate from Research", type="primary"):
+                with st.spinner("Generating JSONs from research data..."):
+                    try:
+                        # Convert research results to conversation format
+                        conversation_messages = [
+                            {"role": "system", "content": "Investment banking research data"}
+                        ]
+                        
+                        for topic_id, topic_data in st.session_state.research_results.items():
+                            conversation_messages.append({
+                                "role": "assistant",
+                                "content": f"**{topic_data['title']}**: {topic_data['content']}"
+                            })
+                        
+                        # Generate JSONs using bulletproof system
+                        from bulletproof_json_generator import generate_bulletproof_json
+                        
+                        def llm_wrapper(messages, model=None, api_key=None, api_service=None):
+                            return call_llm_api(
+                                messages, 
+                                st.session_state.get('model', 'sonar-pro'),
+                                st.session_state.get('api_key'),
+                                st.session_state.get('api_service', 'perplexity')
+                            )
+                        
+                        required_slides = [
+                            "business_overview", "product_service_footprint", 
+                            "historical_financial_performance", "management_team",
+                            "growth_strategy_projections", "competitive_positioning",
+                            "valuation_overview", "precedent_transactions", "strategic_buyers",
+                            "financial_buyers", "global_conglomerates", "margin_cost_resilience",
+                            "investor_considerations", "investor_process_overview"
+                        ]
+                        
+                        response, content_ir, render_plan = generate_bulletproof_json(
+                            conversation_messages,
+                            required_slides,
+                            llm_wrapper
+                        )
+                        
+                        if content_ir and render_plan:
+                            # Store in session state for editing
+                            st.session_state["generated_content_ir"] = json.dumps(content_ir, indent=2)
+                            st.session_state["generated_render_plan"] = json.dumps(render_plan, indent=2)
+                            st.session_state["content_ir_json"] = content_ir
+                            st.session_state["render_plan_json"] = render_plan
+                            st.session_state["files_ready"] = True
+                            st.session_state["auto_populated"] = True
+                            
+                            st.success("✅ JSONs auto-populated successfully!")
+                            st.info("💡 Switch to JSON Editor tab to review and edit the generated JSONs")
+                            
+                            # Show preview
+                            with st.expander("📋 JSON Preview"):
+                                col1, col2 = st.columns(2)
+                                with col1:
+                                    st.subheader("Content IR")
+                                    st.code(json.dumps(content_ir, indent=2)[:500] + "...", language="json")
+                                with col2:
+                                    st.subheader("Render Plan")
+                                    st.code(json.dumps(render_plan, indent=2)[:500] + "...", language="json")
+                        else:
+                            st.error("❌ Failed to generate JSONs")
+                            
+                    except Exception as e:
+                        st.error(f"❌ Auto-population failed: {e}")
+        
+        with col2:
+            # Auto-improvement toggle
+            auto_improve_enabled = st.toggle(
+                "Enable Auto-Improvement",
+                value=st.session_state.get('auto_improve_enabled', False),
+                help="Automatically improve JSON quality using AI"
+            )
+            st.session_state['auto_improve_enabled'] = auto_improve_enabled
+            
+            if auto_improve_enabled and st.button("🔧 Auto-Improve JSONs"):
+                if st.session_state.get('content_ir_json') and st.session_state.get('render_plan_json'):
+                    with st.spinner("Improving JSON quality..."):
+                        try:
+                            from optimized_auto_improvement_integration import auto_improve_if_enabled_optimized
+                            
+                            improved_content_ir = auto_improve_if_enabled_optimized(
+                                st.session_state['content_ir_json'], "content_ir"
+                            )
+                            improved_render_plan = auto_improve_if_enabled_optimized(
+                                st.session_state['render_plan_json'], "render_plan"
+                            )
+                            
+                            if improved_content_ir and improved_render_plan:
+                                st.session_state["content_ir_json"] = improved_content_ir
+                                st.session_state["render_plan_json"] = improved_render_plan
+                                st.session_state["generated_content_ir"] = json.dumps(improved_content_ir, indent=2)
+                                st.session_state["generated_render_plan"] = json.dumps(improved_render_plan, indent=2)
+                                
+                                st.success("✅ JSONs improved successfully!")
+                            else:
+                                st.info("ℹ️ JSONs already at optimal quality")
+                                
+                        except Exception as e:
+                            st.error(f"❌ Auto-improvement failed: {e}")
+                else:
+                    st.warning("⚠️ Generate JSONs first")
+    else:
+        st.info("💡 Complete research in the Research Agent tab first, then return here to auto-populate JSONs")
 
 with tab_json:
     st.subheader("📄 JSON Editor")
@@ -6953,31 +7163,150 @@ with tab_json:
             )
 
 with tab_execute:
-    st.subheader("⚙️ Generate Pitch Deck")
+    st.subheader("⚙️ Generate PowerPoint Presentation")
     
     # Check if JSONs are available
     content_ir_available = bool(st.session_state.get("content_ir_json") or st.session_state.get("generated_content_ir"))
     render_plan_available = bool(st.session_state.get("render_plan_json") or st.session_state.get("generated_render_plan"))
     
     if not content_ir_available or not render_plan_available:
-        st.warning("⚠️ **Missing JSONs**: Please complete research in the AI Copilot tab and ensure both Content IR and Render Plan JSONs are generated.")
-        st.info("💡 **Next Steps**: Go to AI Copilot → Enter company name → Start Research → Generate JSON Now")
+        st.warning("⚠️ **Missing JSONs**: Please complete research and generate JSONs first.")
+        st.info("💡 **Next Steps**: Research Agent → Extract & Auto-Populate → JSON Editor → Execute")
     else:
         st.success("✅ **Ready to Generate**: Both JSONs are available!")
         
         # Company name for file naming
         company_name = st.session_state.get('company_name', 'company')
         
+        # Generation options
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### 📊 PowerPoint Generation")
+            
+            # Template selection
+            template_options = ["Professional", "Modern", "Corporate", "Investor"]
+            selected_template = st.selectbox(
+                "Select Template:",
+                template_options,
+                help="Choose the PowerPoint template style"
+            )
+            
+            # Additional options
+            include_charts = st.checkbox("Include Charts & Graphs", value=True)
+            include_animations = st.checkbox("Include Animations", value=False)
+            
+        with col2:
+            st.markdown("#### ⚙️ Generation Settings")
+            
+            # Quality settings
+            image_quality = st.select_slider(
+                "Image Quality:",
+                options=["Low", "Medium", "High", "Ultra"],
+                value="High"
+            )
+            
+            # File format
+            output_format = st.radio(
+                "Output Format:",
+                ["PPTX (PowerPoint)", "PDF (Portable)", "Both"],
+                horizontal=True
+            )
+        
         # Generate button
-        if st.button("🚀 Generate Pitch Deck", type="primary"):
-            st.info("🔄 **Generating Pitch Deck...** This will create your PowerPoint presentation.")
-            
-            # Here the existing execute tab functionality would go
-            st.success("✅ **Generation Complete!** Your pitch deck has been created.")
-            
-            # Download section would go here
-            st.markdown("### 📥 Download Your Presentation")
-            st.info("💡 Download functionality integrated with existing system")
+        st.markdown("---")
+        if st.button("🚀 Generate Presentation", type="primary", use_container_width=True):
+            with st.spinner("🎨 Generating your PowerPoint presentation... This may take 2-3 minutes."):
+                try:
+                    # Get JSONs
+                    content_ir = st.session_state.get("content_ir_json")
+                    render_plan = st.session_state.get("render_plan_json")
+                    
+                    if not content_ir:
+                        content_ir = json.loads(st.session_state.get("generated_content_ir", "{}"))
+                    if not render_plan:
+                        render_plan = json.loads(st.session_state.get("generated_render_plan", "{}"))
+                    
+                    # Generate presentation using existing executor
+                    from executor import execute_presentation
+                    
+                    generation_config = {
+                        "template": selected_template.lower(),
+                        "include_charts": include_charts,
+                        "include_animations": include_animations,
+                        "image_quality": image_quality.lower(),
+                        "output_format": output_format
+                    }
+                    
+                    # Execute presentation generation
+                    result = execute_presentation(
+                        content_ir=content_ir,
+                        render_plan=render_plan,
+                        company_name=company_name,
+                        config=generation_config
+                    )
+                    
+                    if result.get('success'):
+                        st.success("✅ **Presentation Generated Successfully!**")
+                        
+                        # Show generation summary
+                        st.markdown("### 📊 Generation Summary")
+                        col1, col2, col3 = st.columns(3)
+                        
+                        with col1:
+                            st.metric("Slides Generated", result.get('slide_count', 0))
+                        with col2:
+                            st.metric("File Size", result.get('file_size', 'N/A'))
+                        with col3:
+                            st.metric("Generation Time", result.get('generation_time', 'N/A'))
+                        
+                        # Download section
+                        st.markdown("### 📥 Download Your Files")
+                        
+                        # Create download buttons
+                        if 'pptx_file' in result:
+                            st.download_button(
+                                "📥 Download PowerPoint (.pptx)",
+                                data=result['pptx_file'],
+                                file_name=f"{company_name}_pitch_deck.pptx",
+                                mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                                use_container_width=True
+                            )
+                        
+                        if 'pdf_file' in result:
+                            st.download_button(
+                                "📥 Download PDF",
+                                data=result['pdf_file'],
+                                file_name=f"{company_name}_pitch_deck.pdf",
+                                mime="application/pdf",
+                                use_container_width=True
+                            )
+                        
+                        # Success message with next steps
+                        st.balloons()
+                        st.success("🎉 **Complete!** Your investment banking pitch deck is ready for download.")
+                        
+                    else:
+                        st.error(f"❌ **Generation Failed**: {result.get('error', 'Unknown error')}")
+                        st.info("💡 **Troubleshooting**: Check that your JSONs are properly formatted in the JSON Editor tab")
+                        
+                except Exception as e:
+                    st.error(f"❌ **Execution Error**: {str(e)}")
+                    st.info("💡 **Debug Info**: Check the JSON Editor tab to ensure JSONs are valid")
+        
+        # Preview section
+        st.markdown("---")
+        with st.expander("👁️ Preview Generation Settings"):
+            st.json({
+                "company_name": company_name,
+                "template": selected_template,
+                "options": {
+                    "charts": include_charts,
+                    "animations": include_animations,
+                    "quality": image_quality,
+                    "format": output_format
+                }
+            })
 
 with tab_validate:
     st.subheader("🔍 JSON Validator & Auto-Fix")
