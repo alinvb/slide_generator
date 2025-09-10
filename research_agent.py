@@ -397,9 +397,9 @@ def fact_check_user_info(user_info: str, company_name: str) -> Dict[str, Any]:
         ]
         
         response = call_llm_api(messages, 
-                              st.session_state.get('model', 'claude-3-5-sonnet-20241022'),
+                              st.session_state.get('model', 'llama-3.1-sonar-large-128k-online'),
                               st.session_state.get('api_key'), 
-                              st.session_state.get('api_service', 'claude'))
+                              st.session_state.get('api_service', 'perplexity'))
         
         return {
             'has_info': True,
@@ -479,45 +479,56 @@ def main():
     st.markdown("**AI-Powered Investment Banking Research System**")
     st.markdown("Enter a company name and let the AI research all 14 investment banking topics comprehensively.")
     
+    # Highlight Sonar Pro capabilities
+    st.info("🌐 **Powered by Perplexity Sonar Pro** - Real-time web research with citations for comprehensive, up-to-date market analysis")
+    
     # Sidebar for API configuration
     with st.sidebar:
         st.header("⚙️ Configuration")
         
-        api_service = st.selectbox(
-            "API Service",
-            ["claude", "openai", "gemini"],
-            index=0
+        # LLM Service Selection - Match main app interface
+        llm_service = st.radio(
+            "LLM Service",
+            ["🔍 Perplexity (Recommended)", "🧠 Claude (Anthropic)"],
+            help="Perplexity includes Sonar Pro for enhanced web research capabilities"
         )
-        st.session_state['api_service'] = api_service
         
-        if api_service == "claude":
+        if llm_service.startswith("🔍"):
+            api_service = "perplexity"
+            # Perplexity models with Sonar Pro
+            model_options = [
+                "llama-3.1-sonar-large-128k-online",
+                "llama-3.1-sonar-small-128k-online", 
+                "llama-3.1-sonar-huge-128k-online"
+            ]
+            selected_model = st.selectbox("Model", model_options, index=0)
+            
+            api_key = st.text_input(
+                "Perplexity API Key",
+                type="password",
+                help="Enter your Perplexity API key (includes Sonar Pro web access)"
+            )
+            
+            st.info("🌐 **Sonar Pro Web Access**: Real-time web research with citations and current data")
+            
+        else:  # Claude
+            api_service = "claude"
+            model_options = [
+                "claude-3-5-sonnet-20241022",
+                "claude-3-sonnet-20240229", 
+                "claude-3-haiku-20240307"
+            ]
+            selected_model = st.selectbox("Model", model_options, index=0)
+            
             api_key = st.text_input(
                 "Claude API Key",
                 type="password",
                 help="Enter your Anthropic Claude API key"
             )
-        elif api_service == "openai":
-            api_key = st.text_input(
-                "OpenAI API Key", 
-                type="password",
-                help="Enter your OpenAI API key"
-            )
-        else:  # gemini
-            api_key = st.text_input(
-                "Gemini API Key",
-                type="password", 
-                help="Enter your Google Gemini API key"
-            )
         
+        st.session_state['api_service'] = api_service
         st.session_state['api_key'] = api_key
-        
-        # Model selection
-        if api_service == "claude":
-            model = st.selectbox("Model", ["claude-3-5-sonnet-20241022", "claude-3-haiku-20240307"], index=0)
-        elif api_service == "openai":
-            model = st.selectbox("Model", ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"], index=0)
-        else:
-            model = st.selectbox("Model", ["gemini-pro", "gemini-pro-vision"], index=0)
+        st.session_state['model'] = selected_model
         
         st.session_state['model'] = model
     
