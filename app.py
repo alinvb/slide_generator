@@ -300,6 +300,167 @@ def _memory_transcript(max_turns: int = 12, max_chars: int = 2400) -> str:
             transcript = transcript[cut+1:]
     return transcript
 
+# ================= STRUCTURED FIELD REQUIREMENTS SYSTEM =================
+
+TOPIC_FIELD_REQUIREMENTS = {
+    "business_overview": {
+        "required_fields": ["name", "business_description", "founding_year", "legal_structure", "core_operations", "target_markets"],
+        "field_descriptions": {
+            "name": "Company name",
+            "business_description": "Detailed description of what the company does",
+            "founding_year": "Year the company was founded",
+            "legal_structure": "Legal entity type (LLC, Corp, Ltd, etc.)",
+            "core_operations": "Primary business operations and activities",
+            "target_markets": "Key target markets and customer segments"
+        }
+    },
+    "management_team": {
+        "required_fields": ["executives_4_to_6"],
+        "field_descriptions": {
+            "executives_4_to_6": "4-6 executives with role_title and 5 experience_bullets each"
+        },
+        "detailed_requirements": "For each executive: role_title + 5 specific experience bullets"
+    },
+    "precedent_transactions": {
+        "required_fields": ["transactions_4_to_5"],
+        "field_descriptions": {
+            "transactions_4_to_5": "4-5 precedent transactions with specific data"
+        },
+        "detailed_requirements": {
+            "transaction_structure": ["target", "acquirer", "date", "country", "enterprise_value", "revenue", "ev_revenue_multiple"],
+            "prioritization": "Same geography → Same region → Similar industries",
+            "search_methodology": "Private company acquisitions in same industry, closest geography first"
+        }
+    },
+    "sea_conglomerates": {
+        "required_fields": ["conglomerates_5_to_6"],
+        "field_descriptions": {
+            "conglomerates_5_to_6": "5-6 conglomerates that can afford the acquisition"
+        },
+        "detailed_requirements": {
+            "affordability_criteria": "Conglomerate revenue > target company valuation",
+            "prioritization": "Same geography → Regional expansion interest → Recent acquisition activity",
+            "validation": "Based on recent news articles and expansion patterns"
+        }
+    },
+    "margin_cost_resilience": {
+        "required_fields": ["cost_structure_breakdown", "margin_stability_factors", "competitive_moats"],
+        "field_descriptions": {
+            "cost_structure_breakdown": "Detailed breakdown of cost components",
+            "margin_stability_factors": "Factors that maintain margin stability",
+            "competitive_moats": "Competitive advantages and defensive characteristics"
+        }
+    },
+    "investor_considerations": {
+        "required_fields": ["key_risks_3_to_4", "key_opportunities_3_to_4", "mitigation_strategies"],
+        "field_descriptions": {
+            "key_risks_3_to_4": "3-4 key investment risks",
+            "key_opportunities_3_to_4": "3-4 key investment opportunities", 
+            "mitigation_strategies": "Strategies to mitigate identified risks"
+        }
+    },
+    "investor_process_overview": {
+        "required_fields": ["diligence_topics", "transaction_timeline"],
+        "field_descriptions": {
+            "diligence_topics": "Key due diligence areas and focus points",
+            "transaction_timeline": "Expected time to complete the transaction"
+        }
+    }
+}
+
+def _get_topic_requirements(topic_id: str) -> dict:
+    """Get structured field requirements for a specific topic"""
+    return TOPIC_FIELD_REQUIREMENTS.get(topic_id, {})
+
+def _check_missing_fields(topic_id: str, provided_data: str) -> list:
+    """Check which required fields are missing from provided data"""
+    requirements = _get_topic_requirements(topic_id)
+    required_fields = requirements.get("required_fields", [])
+    field_descriptions = requirements.get("field_descriptions", {})
+    
+    missing_fields = []
+    data_lower = provided_data.lower()
+    
+    for field in required_fields:
+        description = field_descriptions.get(field, field)
+        
+        # Simple keyword matching for field detection
+        field_keywords = {
+            "name": ["company name", "name of", "called"],
+            "business_description": ["business", "company does", "operates", "services", "products"],
+            "founding_year": ["founded", "established", "started", "began", "year"],
+            "legal_structure": ["legal", "structure", "llc", "corp", "ltd", "inc", "entity"],
+            "core_operations": ["operations", "activities", "business model", "how it works"],
+            "target_markets": ["target", "market", "customers", "segments", "clients"],
+            "executives_4_to_6": ["executives", "management", "ceo", "cfo", "team", "leadership"],
+            "transactions_4_to_5": ["transaction", "acquisition", "deal", "bought", "acquired"],
+            "conglomerates_5_to_6": ["conglomerate", "buyer", "acquirer", "group", "corporation"],
+            "cost_structure_breakdown": ["cost", "expenses", "structure", "breakdown"],
+            "margin_stability_factors": ["margin", "stability", "factors", "profitability"],
+            "competitive_moats": ["competitive", "advantage", "moat", "differentiation"],
+            "key_risks_3_to_4": ["risk", "risks", "challenges", "concerns"],
+            "key_opportunities_3_to_4": ["opportunity", "opportunities", "potential", "upside"],
+            "mitigation_strategies": ["mitigation", "strategy", "address", "manage"],
+            "diligence_topics": ["due diligence", "diligence", "review", "audit"],
+            "transaction_timeline": ["timeline", "time", "duration", "schedule"]
+        }
+        
+        keywords = field_keywords.get(field, [field.replace("_", " ")])
+        if not any(keyword in data_lower for keyword in keywords):
+            missing_fields.append({"field": field, "description": description})
+    
+    return missing_fields
+
+def _create_targeted_followup(topic_id: str, missing_fields: list, company_name: str) -> str:
+    """Create targeted follow-up questions for missing required fields"""
+    if not missing_fields:
+        return ""
+    
+    requirements = _get_topic_requirements(topic_id)
+    detailed_reqs = requirements.get("detailed_requirements", {})
+    
+    # Create specific follow-up based on topic
+    if topic_id == "business_overview":
+        missing_list = [f["description"] for f in missing_fields]
+        return f"I have some information about {company_name}, but I still need: {', '.join(missing_list)}. Can you provide these details?"
+    
+    elif topic_id == "management_team":
+        return f"For the management team section, I need 4-6 executives with their role titles and 5 experience bullets for each executive. Can you provide the executive team details?"
+    
+    elif topic_id == "precedent_transactions":
+        return f"I need to find 4-5 precedent transactions of companies similar to {company_name}. I don't have enough transaction data yet. Should I research recent acquisitions in your industry and geography?"
+    
+    elif topic_id == "sea_conglomerates":
+        return f"I need to identify 5-6 conglomerates that could afford to acquire {company_name}. I need your company's estimated valuation to find suitable buyers. What's the estimated valuation range?"
+    
+    elif topic_id == "margin_cost_resilience":
+        missing_list = [f["description"] for f in missing_fields] 
+        return f"For the margin analysis, I still need: {', '.join(missing_list)}. Can you provide this financial information?"
+    
+    elif topic_id == "investor_considerations":
+        missing_list = [f["description"] for f in missing_fields]
+        return f"For investor considerations, I need: {', '.join(missing_list)}. Can you help identify these?"
+    
+    elif topic_id == "investor_process_overview":
+        missing_list = [f["description"] for f in missing_fields]
+        return f"For the process overview, I need: {', '.join(missing_list)}. Can you provide these details?"
+    
+    else:
+        missing_list = [f["description"] for f in missing_fields]
+        return f"I need additional information: {', '.join(missing_list)}. Can you provide these details?"
+
+def _handle_dont_know_response(user_text: str, topic_id: str, company_name: str) -> str:
+    """Handle 'I don't know' responses with research offer"""
+    dont_know_indicators = [
+        "i don't know", "don't know", "not sure", "no idea", "unclear", "unknown", 
+        "i'm not certain", "not certain", "can't remember", "not available"
+    ]
+    
+    if any(indicator in user_text.lower() for indicator in dont_know_indicators):
+        return f"I can search for that information. Let me look it up for you regarding {company_name}. Should I research this topic and show you what I find?"
+    
+    return ""
+
 # ================= DATA BACKING & RESEARCH VALIDATION SYSTEM =================
 
 def _validate_data_sources(text: str) -> tuple[str, list]:
@@ -6387,7 +6548,15 @@ Provide specific financial metrics for each buyer to demonstrate affordability."
                                     elif "business" in research_topic.lower() or "overview" in research_topic.lower():
                                         research_instruction = f"""You are conducting comprehensive business overview analysis for {company_name}.
 
-MANDATORY BUSINESS OVERVIEW ANALYSIS:
+MANDATORY BUSINESS OVERVIEW ANALYSIS WITH SPECIFIC REQUIRED FIELDS:
+
+**REQUIRED STRUCTURED OUTPUT:**
+- Company Name: [Exact legal name]
+- Business Description: [Detailed 2-3 sentence description of what the company does]
+- Founding Year: [Year established]
+- Legal Structure: [LLC, Corp, Ltd, Inc, etc.]
+- Core Operations: [Primary business activities and operations]
+- Target Markets: [Key customer segments and markets served]
 
 **1. COMPANY FOUNDATION:**
 - Business model and core value proposition
@@ -6413,12 +6582,27 @@ MANDATORY BUSINESS OVERVIEW ANALYSIS:
 - Market share and relative scale
 - Barriers to entry and competitive moats
 
-Provide specific data on company scale, market size, and competitive positioning with professional analysis."""
+CRITICAL: Include all required fields at the top, then provide detailed analysis below."""
 
                                     elif "management" in research_topic.lower() or "team" in research_topic.lower():
                                         research_instruction = f"""You are conducting comprehensive management team analysis for {company_name}.
 
-MANDATORY MANAGEMENT TEAM ANALYSIS:
+MANDATORY MANAGEMENT TEAM ANALYSIS WITH SPECIFIC REQUIRED FORMAT:
+
+**REQUIRED STRUCTURED OUTPUT - 4-6 EXECUTIVES:**
+
+Executive 1:
+- Role Title: [Exact title]
+- Experience Bullet 1: [Specific achievement/experience]
+- Experience Bullet 2: [Specific achievement/experience]  
+- Experience Bullet 3: [Specific achievement/experience]
+- Experience Bullet 4: [Specific achievement/experience]
+- Experience Bullet 5: [Specific achievement/experience]
+
+Executive 2: [Same format]
+Executive 3: [Same format]
+Executive 4: [Same format]
+[Continue for 4-6 executives total]
 
 **1. EXECUTIVE LEADERSHIP:**
 - CEO background, experience, and track record
@@ -6444,12 +6628,32 @@ MANDATORY MANAGEMENT TEAM ANALYSIS:
 - Change management and execution capabilities
 - Talent retention and recruitment effectiveness
 
-Provide specific information on executive backgrounds, tenure, and track record with professional analysis."""
+CRITICAL: Provide the structured executive format first, then detailed analysis below."""
 
                                     elif "transaction" in research_topic.lower() or "precedent" in research_topic.lower():
                                         research_instruction = f"""You are conducting comprehensive precedent transaction analysis for {company_name}.
 
-MANDATORY PRECEDENT TRANSACTION ANALYSIS:
+MANDATORY PRECEDENT TRANSACTION ANALYSIS WITH SPECIFIC REQUIRED FORMAT:
+
+**REQUIRED STRUCTURED OUTPUT - 4-5 TRANSACTIONS:**
+
+Transaction 1:
+- Target: [Company name acquired]
+- Acquirer: [Acquiring company name]
+- Date: [Transaction date/year]
+- Country: [Geographic location]
+- Enterprise Value: [Deal value in USD]
+- Revenue: [Target's revenue at time of acquisition]
+- EV/Revenue Multiple: [Calculated multiple]
+
+[Continue for 4-5 transactions total]
+
+**GEOGRAPHIC PRIORITIZATION METHODOLOGY:**
+1. FIRST PRIORITY: Same geography as {company_name}
+2. SECOND PRIORITY: Same region (e.g., Southeast Asia if target is in Hong Kong)
+3. THIRD PRIORITY: Similar geographies with comparable market characteristics
+4. INDUSTRY FOCUS: Private company acquisitions in same industry type
+5. BACKUP: Similar companies or same industry in target geography if exact matches unavailable
 
 **1. COMPARABLE TRANSACTIONS:**
 - Recent M&A deals in same industry (last 2-3 years)
@@ -6475,15 +6679,37 @@ MANDATORY PRECEDENT TRANSACTION ANALYSIS:
 - Financing structures and market conditions
 - Strategic buyer appetite and capacity
 
-Provide specific transaction examples, multiples, and strategic insights with professional analysis."""
+CRITICAL: Follow geographic prioritization and provide structured transaction format first."""
 
                                     elif "conglomerate" in research_topic.lower() or "sea" in research_topic.lower():
                                         research_instruction = f"""You are conducting comprehensive SEA conglomerate buyer analysis for {company_name}.
 
-MANDATORY SEA CONGLOMERATE ANALYSIS:
+MANDATORY SEA CONGLOMERATE ANALYSIS WITH AFFORDABILITY REQUIREMENTS:
+
+**AFFORDABILITY CRITERIA (MANDATORY):**
+- Conglomerate annual revenue MUST be larger than {company_name} estimated valuation
+- Focus on conglomerates with proven acquisition capacity and financial strength
+- Prioritize those with recent acquisition activity or expansion announcements
+
+**GEOGRAPHIC PRIORITIZATION:**
+1. FIRST PRIORITY: Conglomerates in same geography as {company_name}
+2. SECOND PRIORITY: Conglomerates seeking expansion into {company_name}'s geography
+3. VALIDATION: Recent news articles showing acquisition activity or expansion plans in the region
+
+**REQUIRED STRUCTURED OUTPUT - 5-6 CONGLOMERATES:**
+
+Conglomerate 1:
+- Name: [Conglomerate name]
+- Country: [Headquarters location]  
+- Annual Revenue: [USD amount - must be > target valuation]
+- Recent Acquisitions: [Recent deals in geography/industry]
+- Expansion Interest: [Evidence of geographic expansion]
+- Strategic Fit: [Why they would acquire target]
+
+[Continue for 5-6 conglomerates total]
 
 **1. MAJOR SEA CONGLOMERATES:**
-- Identify 4-5 leading regional conglomerates with acquisition capacity
+- Identify 5-6 leading regional conglomerates with acquisition capacity
 - Assessment of financial strength and acquisition appetite
 - Portfolio diversity and strategic fit with {company_name}
 - Geographic presence and market understanding
@@ -6506,12 +6732,32 @@ MANDATORY SEA CONGLOMERATE ANALYSIS:
 - Management retention and operational continuity
 - Valuation expectations and negotiation dynamics
 
-Provide specific conglomerate profiles, financial metrics, and strategic assessment with professional analysis."""
+CRITICAL: Validate affordability (revenue > valuation) and provide evidence of expansion interest."""
 
                                     elif "margin" in research_topic.lower() or "cost" in research_topic.lower() or "resilience" in research_topic.lower():
                                         research_instruction = f"""You are conducting comprehensive margin and cost resilience analysis for {company_name}.
 
-MANDATORY MARGIN & COST RESILIENCE ANALYSIS:
+MANDATORY MARGIN & COST RESILIENCE ANALYSIS WITH REQUIRED FIELDS:
+
+**REQUIRED STRUCTURED OUTPUT:**
+
+Cost Structure Breakdown:
+- Fixed Costs: [Percentage and key components]
+- Variable Costs: [Percentage and key components]
+- Labor Costs: [Percentage of total costs]
+- Material/Input Costs: [Percentage and key suppliers]
+- Overhead Costs: [Percentage and main categories]
+
+Margin Stability Factors:
+- Factor 1: [Specific stability driver]
+- Factor 2: [Specific stability driver]
+- Factor 3: [Specific stability driver]
+- Factor 4: [Specific stability driver]
+
+Competitive Moats:
+- Moat 1: [Specific competitive advantage]
+- Moat 2: [Specific competitive advantage]
+- Moat 3: [Specific competitive advantage]
 
 **1. COST STRUCTURE ANALYSIS:**
 - Fixed vs. variable cost breakdown
@@ -6537,12 +6783,31 @@ MANDATORY MARGIN & COST RESILIENCE ANALYSIS:
 - Competitive cost position vs. peers
 - Contingency planning and cost flexibility
 
-Provide specific margin metrics, cost structure data, and resilience assessment with professional analysis."""
+CRITICAL: Provide structured cost breakdown, stability factors, and competitive moats first."""
 
                                     elif "investor" in research_topic.lower() and "consideration" in research_topic.lower():
                                         research_instruction = f"""You are conducting comprehensive investor considerations analysis for {company_name}.
 
-MANDATORY INVESTOR CONSIDERATIONS ANALYSIS:
+MANDATORY INVESTOR CONSIDERATIONS ANALYSIS WITH REQUIRED FIELDS:
+
+**REQUIRED STRUCTURED OUTPUT:**
+
+Key Risks (3-4):
+- Risk 1: [Specific risk with description]
+- Risk 2: [Specific risk with description]
+- Risk 3: [Specific risk with description]
+- Risk 4: [Specific risk with description]
+
+Key Opportunities (3-4):
+- Opportunity 1: [Specific opportunity with potential impact]
+- Opportunity 2: [Specific opportunity with potential impact]
+- Opportunity 3: [Specific opportunity with potential impact]
+- Opportunity 4: [Specific opportunity with potential impact]
+
+Mitigation Strategies:
+- Strategy 1: [How to address identified risks]
+- Strategy 2: [How to address identified risks]
+- Strategy 3: [How to address identified risks]
 
 **1. INVESTMENT RISKS:**
 - Market and competitive risks
@@ -6568,12 +6833,29 @@ MANDATORY INVESTOR CONSIDERATIONS ANALYSIS:
 - Market positioning and competitive advantages
 - Financial returns and shareholder value creation
 
-Provide specific risk factors, ESG metrics, and investment thesis validation with professional analysis."""
+CRITICAL: Provide structured risks, opportunities, and mitigation strategies first."""
 
                                     elif "process" in research_topic.lower() or "due diligence" in research_topic.lower():
                                         research_instruction = f"""You are conducting comprehensive investment process analysis for {company_name}.
 
-MANDATORY INVESTMENT PROCESS ANALYSIS:
+MANDATORY INVESTMENT PROCESS ANALYSIS WITH REQUIRED FIELDS:
+
+**REQUIRED STRUCTURED OUTPUT:**
+
+Due Diligence Topics:
+- Commercial DD: [Market analysis, competitive positioning, customer validation]
+- Financial DD: [Quality of earnings, working capital, projections]
+- Operational DD: [Management assessment, systems, processes]
+- Legal DD: [Corporate structure, contracts, compliance]
+- Technical DD: [Technology, IP, operational capabilities]
+- ESG DD: [Environmental, social, governance factors]
+
+Transaction Timeline:
+- Phase 1 (Weeks 1-2): [Initial evaluation and LOI]
+- Phase 2 (Weeks 3-6): [Due diligence execution]
+- Phase 3 (Weeks 7-8): [Final negotiations and documentation]
+- Phase 4 (Weeks 9-12): [Approvals and closing]
+- Total Estimated Time: [X weeks/months]
 
 **1. DUE DILIGENCE FRAMEWORK:**
 - Commercial due diligence scope and key questions
@@ -6599,7 +6881,7 @@ MANDATORY INVESTMENT PROCESS ANALYSIS:
 - Integration planning and value realization
 - Risk management and contingency planning
 
-Provide specific process steps, timeline expectations, and execution guidance with professional analysis."""
+CRITICAL: Provide structured DD topics and timeline first with specific week-by-week breakdown."""
 
                                     else:
                                         research_instruction = f"You are a senior investment banking analyst with access to comprehensive market databases. Conduct detailed research on {company_name} focusing specifically on {research_topic}. Provide:\n\n1. Current market position and key metrics\n2. Industry context and competitive landscape\n3. Recent developments and strategic implications\n4. Investment banking perspective with data points\n5. Professional analysis with proper sourcing\n\nEnsure the research is detailed, factual, and includes specific data points where available."
@@ -7342,8 +7624,33 @@ Sources: Company filings, industry reports, financial databases"""
                             if not has_requirements: missing_parts.append("documentation requirements")
                             contextual_followup = f"Thanks for the process overview! I need {' and '.join(missing_parts)} to complete the investor process section. Do you have these details, or should I research typical investment processes?"
                     
+                    # ENHANCED FIELD VALIDATION SYSTEM - Check for missing required fields
+                    if not needs_more_info:  # Only if we haven't already identified missing info above
+                        progress_info = analyze_conversation_progress(st.session_state.messages)
+                        current_topic_id = progress_info.get('current_topic', 'business_overview')
+                        company_name = st.session_state.get('company_name', 'your company')
+                        
+                        # Check for "I don't know" responses first
+                        dont_know_response = _handle_dont_know_response(prompt, current_topic_id, company_name)
+                        if dont_know_response:
+                            st.session_state.messages.append({"role": "assistant", "content": dont_know_response})
+                            st.rerun()
+                            st.stop()
+                        
+                        # Check for missing required fields using structured system
+                        missing_fields = _check_missing_fields(current_topic_id, prompt)
+                        if missing_fields:
+                            targeted_followup = _create_targeted_followup(current_topic_id, missing_fields, company_name)
+                            if targeted_followup:
+                                targeted_followup = _sanitize_output(targeted_followup)
+                                st.session_state.messages.append({"role": "assistant", "content": targeted_followup})
+                                print(f"🎯 [FIELD VALIDATION] Missing fields for {current_topic_id}: {[f['field'] for f in missing_fields]}")
+                                st.rerun()
+                                st.stop()
+                    
                     if needs_more_info and contextual_followup:
                         # Ask contextual follow-up question
+                        contextual_followup = _sanitize_output(contextual_followup)
                         st.session_state.messages.append({"role": "assistant", "content": contextual_followup})
                         st.rerun()
                         st.stop()
