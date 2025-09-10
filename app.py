@@ -2930,7 +2930,7 @@ SYSTEM_PROMPT = get_perfect_system_prompt()
 # Helper Functions for Interview Flow and File Generation
 
 def analyze_conversation_progress(messages):
-    """SIMPLIFIED: Clean sequential interview progress tracking"""
+    """FIXED: Precise sequential interview progress tracking that only counts actual topic questions"""
     
     # The 14 mandatory topics in order
     topics = [
@@ -3006,53 +3006,84 @@ def analyze_conversation_progress(messages):
         }
     ]
     
-    # SIMPLIFIED: Count completed topics by analyzing conversation flow
+    # CRITICAL FIX: Create list of official topic question patterns to avoid counting follow-up questions
+    official_topic_patterns = [
+        "what is your company name",  # Topic 1
+        "product/service footprint",  # Topic 2  
+        "historical financial performance",  # Topic 3
+        "management team",  # Topic 4
+        "growth strategy and projections",  # Topic 5
+        "positioned competitively",  # Topic 6
+        "precedent transactions",  # Topic 7
+        "valuation methodologies",  # Topic 8
+        "strategic buyers",  # Topic 9
+        "private equity firms", # Topic 10
+        "conglomerates",  # Topic 11
+        "margin and cost data",  # Topic 12
+        "investor considerations",  # Topic 13
+        "investment/acquisition process"  # Topic 14
+    ]
+    
+    # FIXED: Count completed topics by analyzing conversation flow with precise topic detection
     completed_topics = 0
-    satisfaction_responses = ["yes", "ok", "okay", "correct", "satisfied", "good", "right", "sure", "proceed", "continue", "next", "go ahead"]
+    satisfaction_responses = ["yes", "ok", "okay", "correct", "satisfied", "good", "right", "sure", "proceed", "continue", "next", "go ahead", "sufficient"]
     
     i = 0
     while i < len(messages):
         msg = messages[i]
         
-        # Look for AI asking a topic question
-        if msg["role"] == "assistant" and ("?" in msg["content"] or "let's" in msg["content"].lower()):
+        # CRITICAL FIX: Only count official topic questions, not follow-up questions
+        if msg["role"] == "assistant":
+            # Check if this is an official topic question by matching patterns
+            is_official_topic_question = False
+            msg_content_lower = msg["content"].lower()
             
-            # Case 1: User provides direct answer
-            if i + 1 < len(messages) and messages[i + 1]["role"] == "user":
-                user_response = messages[i + 1]["content"].lower()
-                
-                # Case 1a: Direct informational response (not research request)
-                # Changed from len > 10 to len > 2 to handle short but valid responses like company names
-                if "research" not in user_response and len(user_response) > 2:
-                    # Check if AI provided research response anyway (automatic research)
-                    if (i + 2 < len(messages) and messages[i + 2]["role"] == "assistant" and 
-                        len(messages[i + 2]["content"]) > 200):
-                        # AI provided detailed research response - treat like research completion
-                        if (i + 3 < len(messages) and messages[i + 3]["role"] == "user"):
-                            next_user_response = messages[i + 3]["content"].lower().strip()
-                            if "next topic" in next_user_response or any(resp in next_user_response for resp in satisfaction_responses):
+            for pattern in official_topic_patterns:
+                if pattern in msg_content_lower:
+                    is_official_topic_question = True
+                    print(f"🎯 OFFICIAL TOPIC QUESTION DETECTED: Pattern '{pattern}' found")
+                    break
+            
+            if is_official_topic_question:
+                # Case 1: User provides direct answer
+                if i + 1 < len(messages) and messages[i + 1]["role"] == "user":
+                    user_response = messages[i + 1]["content"].lower()
+                    
+                    # Case 1a: Direct informational response (not research request)
+                    if "research" not in user_response and len(user_response) > 2:
+                        # Check if AI provided research response anyway (automatic research)
+                        if (i + 2 < len(messages) and messages[i + 2]["role"] == "assistant" and 
+                            len(messages[i + 2]["content"]) > 200):
+                            # AI provided detailed research response - treat like research completion
+                            if (i + 3 < len(messages) and messages[i + 3]["role"] == "user"):
+                                next_user_response = messages[i + 3]["content"].lower().strip()
+                                if "next topic" in next_user_response or any(resp in next_user_response for resp in satisfaction_responses):
+                                    completed_topics += 1
+                                    print(f"✅ TOPIC {completed_topics} COMPLETED: Auto-research + advancement")
+                                    i += 4
+                                    continue
+                        else:
+                            # Normal direct response without research
+                            completed_topics += 1
+                            print(f"✅ TOPIC {completed_topics} COMPLETED: Direct response")
+                            i += 2
+                            continue
+                    
+                    # Case 1b: Explicit research request
+                    elif "research" in user_response:
+                        # Look for AI research response + user satisfaction
+                        if (i + 2 < len(messages) and messages[i + 2]["role"] == "assistant" and
+                            i + 3 < len(messages) and messages[i + 3]["role"] == "user"):
+                            satisfaction_response = messages[i + 3]["content"].lower().strip()
+                            if any(resp in satisfaction_response for resp in satisfaction_responses):
                                 completed_topics += 1
-                                print(f"✅ TOPIC {completed_topics} COMPLETED: Auto-research + advancement")
+                                print(f"✅ TOPIC {completed_topics} COMPLETED: Research + satisfaction")
                                 i += 4
                                 continue
-                    else:
-                        # Normal direct response without research
-                        completed_topics += 1
-                        print(f"✅ TOPIC {completed_topics} COMPLETED: Direct response")
-                        i += 2
-                        continue
-                
-                # Case 1b: Explicit research request
-                elif "research" in user_response:
-                    # Look for AI research response + user satisfaction
-                    if (i + 2 < len(messages) and messages[i + 2]["role"] == "assistant" and
-                        i + 3 < len(messages) and messages[i + 3]["role"] == "user"):
-                        satisfaction_response = messages[i + 3]["content"].lower().strip()
-                        if any(resp in satisfaction_response for resp in satisfaction_responses):
-                            completed_topics += 1
-                            print(f"✅ TOPIC {completed_topics} COMPLETED: Research + satisfaction")
-                            i += 4
-                            continue
+            else:
+                # This is a follow-up question, not an official topic question - skip counting
+                print(f"⏭️  SKIPPING: Follow-up question detected, not official topic: '{msg_content_lower[:50]}...'")
+        
         i += 1
     
     # Current position = completed topics + 1 (next topic to ask)
@@ -3074,7 +3105,7 @@ def analyze_conversation_progress(messages):
         "topics_skipped": 0                               # No topics skipped in sequential approach
     }
     
-    print(f"🎯 SIMPLE PROGRESS: {completed_topics} topics completed, asking topic {current_position} ({result['current_topic']})")
+    print(f"🎯 FIXED PROGRESS: {completed_topics} topics completed, asking topic {current_position} ({result['current_topic']})")
     return result
 
 def analyze_conversation_progress_COMPLEX_OLD(messages):
