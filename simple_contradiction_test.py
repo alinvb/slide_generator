@@ -18,10 +18,10 @@ def _is_contradictory_statement_test(text: str, company: str) -> bool:
         'fast food', 'clothing', 'retail', 'grocery', 'farming', 'agriculture'
     ]
     
-    # Check if this looks like a contradictory statement about a known tech company
-    if company_lower in ['nvidia', 'apple', 'google', 'microsoft', 'meta', 'tesla']:
+    # Check for contradictory statements about ANY company (not just hardcoded ones)
+    if company_lower and ('is a' in text_lower or 'is an' in text_lower):
         for industry in wrong_industries:
-            if industry in text_lower and ('is a' in text_lower or 'is an' in text_lower):
+            if industry in text_lower:
                 print(f"🚨 [CONTRADICTION DETECTED] {company} + {industry}")
                 return True
     

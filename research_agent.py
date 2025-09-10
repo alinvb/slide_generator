@@ -100,7 +100,7 @@ REQUIRED INFORMATION:
 - Key performance drivers and seasonal patterns
 
 RESEARCH INSTRUCTIONS:
-Build on business model understanding from prior topics. Prioritize verified financial data from annual reports, SEC filings, or credible financial databases. 
+Build on business model understanding from prior topics. Prioritize verified financial data from annual reports, regulatory filings (SEC, SEDAR, FCA, etc.), or credible financial databases. 
 
 Analyze financial performance in context of product portfolio and geographic presence identified in Topics 1-2.""",
             "required_fields": ["revenue_3_5_years", "ebitda_margins", "growth_rates", "key_metrics"]
@@ -236,7 +236,7 @@ You must provide THREE COMPLETE VALUATION METHODOLOGIES with actual calculations
 - Terminal growth: 2-4% (based on company maturity)
 - **Calculate and provide specific enterprise value range**
 
-**FINAL VALUATION RANGE**: Provide specific dollar amounts and methodology summary
+**FINAL VALUATION RANGE**: Provide specific monetary amounts (in company's reporting currency) and methodology summary
 
 RESEARCH INSTRUCTIONS:
 Provide comprehensive valuation analysis using industry-standard methodologies. Include all assumptions, calculations, and final valuation ranges. This valuation will determine buyer affordability in subsequent topics.""",

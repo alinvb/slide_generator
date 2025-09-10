@@ -8,12 +8,23 @@ def _enhanced_entity_capture(user_text: str):
     
     # Handle direct company name statements
     if len(text.split()) <= 3:  # Short responses likely to be company names
-        # Known major companies (add more as needed)
-        major_companies = ['nvidia', 'apple', 'microsoft', 'google', 'amazon', 'tesla', 'meta']
-        if text.lower() in major_companies:
-            _set_entity_profile(text.upper(), aliases=[text.lower(), text.title(), text.upper()])
-            st.session_state['company_name'] = text.upper()
-            print(f"🏢 [ENHANCED CAPTURE] Locked entity: {text.upper()}")
+        # Generic company detection - works for ANY company worldwide
+        import re
+        
+        # Check for company-like patterns (proper noun, common suffixes, etc.)
+        is_company_like = (
+            text[0].isupper() or  # Starts with capital (proper noun)
+            any(suffix in text.lower() for suffix in ['inc', 'corp', 'ltd', 'llc', 'ag', 'sa', 'gmbh', 'co']) or
+            re.match(r'^[A-Z]{2,}$', text) or  # All caps (like NVIDIA, IBM)
+            len(text) >= 2 and text.isalpha()  # Basic alphabetic company name
+        )
+        
+        if is_company_like:
+            # Use appropriate capitalization
+            entity_name = text.upper() if len(text) <= 5 and text.isalpha() else text.title()
+            _set_entity_profile(entity_name, aliases=[text.lower(), text.title(), text.upper()])
+            st.session_state['company_name'] = entity_name
+            print(f"🏢 [ENHANCED CAPTURE] Locked entity: {entity_name}")
             return True
     
     # Handle "My company is X" or "The company is X" patterns

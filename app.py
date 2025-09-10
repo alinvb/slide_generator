@@ -30,7 +30,7 @@ def _is_fact_query(text: str) -> bool:
     return is_question or is_contradictory
 
 def _is_contradictory_statement(text: str) -> bool:
-    """Detect obviously false statements about known companies that need correction"""
+    """Detect obviously false statements about companies that need correction"""
     import re
     
     # Get current company context
@@ -45,32 +45,28 @@ def _is_contradictory_statement(text: str) -> bool:
         'fast food', 'clothing', 'retail', 'grocery', 'farming', 'agriculture'
     ]
     
-    # ENHANCED: Also check if the text itself contains a company name + contradiction
-    # This handles cases where company context might not be set correctly
-    known_tech_companies = ['nvidia', 'apple', 'google', 'microsoft', 'meta', 'tesla', 'amazon', 'facebook']
-    
-    # Check text directly for "CompanyName is a WrongIndustry"
-    for tech_company in known_tech_companies:
-        if tech_company in text_lower:
-            for industry in wrong_industries:
-                if industry in text_lower and ('is a' in text_lower or 'is an' in text_lower):
-                    print(f"🚨 [CONTRADICTION DETECTED] Direct text: {tech_company} + {industry}")
-                    return True
-    
-    # Check if this looks like a contradictory statement about a known tech company
-    if company in known_tech_companies:
-        for industry in wrong_industries:
-            if industry in text_lower and ('is a' in text_lower or 'is an' in text_lower):
-                print(f"🚨 [CONTRADICTION DETECTED] Context company: {company} + {industry}")
-                return True
-    
     # Generic pattern: [Company Name] is a [Obviously Wrong Industry]
+    # This works for ANY company, not just hardcoded ones
     if company and 'is a' in text_lower:
         # Check if the statement contradicts what we know about the company
         for industry in wrong_industries:
             if industry in text_lower:
                 print(f"🚨 [CONTRADICTION DETECTED] Generic: {company} + {industry}")
                 return True
+    
+    # Also check for direct contradictions in text (any company name + wrong industry)
+    # This catches "[CompanyName] is a [WrongIndustry]" patterns regardless of company
+    if ('is a' in text_lower or 'is an' in text_lower):
+        for industry in wrong_industries:
+            if industry in text_lower:
+                # Extract potential company name from the text
+                words = text_lower.split()
+                for i, word in enumerate(words):
+                    if word == 'is' and i > 0:
+                        potential_company = words[i-1]
+                        if len(potential_company) > 2:  # Basic filter for company names
+                            print(f"🚨 [CONTRADICTION DETECTED] Text-based: {potential_company} + {industry}")
+                            return True
     
     print(f"🔍 [CONTRADICTION CHECK] No contradiction detected")
     return False
@@ -1123,13 +1119,28 @@ def _remember_company_from_user(user_text: str):
     """STICKY COMPANY MEMORY: Remember company mentioned by user and anchor all research to it"""
     text = user_text.strip()
     
-    # Short responses likely to be company names (like "NVIDIA", "Apple", etc.)
+    # Short responses likely to be company names (any company worldwide)
     if len(text.split()) <= 3:
-        # Known major companies
-        major_companies = ['nvidia', 'apple', 'microsoft', 'google', 'alphabet', 'amazon', 'tesla', 'meta', 'facebook', 'netflix', 'uber', 'airbnb', 'shopify', 'zoom', 'slack', 'salesforce', 'oracle', 'ibm', 'intel', 'amd', 'qualcomm']
-        if text.lower() in major_companies:
-            # Use uppercase for major tech companies
-            entity_name = text.upper() if text.lower() in ['nvidia', 'amd', 'ibm', 'intel'] else text.title()
+        # Generic company detection - works for ANY company worldwide
+        # Simple heuristics: proper nouns, contains common company suffixes, or looks like a brand
+        import re
+        
+        # Check for company-like patterns (proper noun, common suffixes, etc.)
+        is_company_like = (
+            text[0].isupper() or  # Starts with capital (proper noun)
+            any(suffix in text.lower() for suffix in ['inc', 'corp', 'ltd', 'llc', 'ag', 'sa', 'gmbh', 'co']) or
+            re.match(r'^[A-Z]{2,}$', text) or  # All caps (like NVIDIA, IBM)
+            len(text) >= 2 and text.isalpha()  # Basic alphabetic company name
+        )
+        
+        if is_company_like:
+            # Use appropriate capitalization for any company
+            # All caps for short names (2-5 letters), Title case for others
+            if len(text) <= 5 and text.isalpha():
+                entity_name = text.upper()  # Short names like IBM, AMD, etc.
+            else:
+                entity_name = text.title()  # Longer names like Apple, Microsoft
+            
             # Set sticky memory in both places
             st.session_state['current_company'] = entity_name
             st.session_state['company_name'] = entity_name
