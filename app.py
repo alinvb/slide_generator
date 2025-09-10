@@ -6384,6 +6384,223 @@ Based on {company_name}'s estimated valuation range, identify buyers who can ACT
 - Prioritize buyers with strong balance sheets and acquisition track record
 
 Provide specific financial metrics for each buyer to demonstrate affordability."""
+                                    elif "business" in research_topic.lower() or "overview" in research_topic.lower():
+                                        research_instruction = f"""You are conducting comprehensive business overview analysis for {company_name}.
+
+MANDATORY BUSINESS OVERVIEW ANALYSIS:
+
+**1. COMPANY FOUNDATION:**
+- Business model and core value proposition
+- Industry sector and market positioning
+- Geographic presence and operational footprint
+- Company history, founding, and key milestones
+
+**2. OPERATIONAL OVERVIEW:**
+- Primary business segments and revenue streams
+- Key products/services and customer base
+- Operating model and value chain positioning
+- Scale metrics (employees, locations, customers)
+
+**3. MARKET CONTEXT:**
+- Total addressable market (TAM) and served market
+- Market dynamics and growth trends
+- Regulatory environment and key drivers
+- Industry lifecycle and maturity stage
+
+**4. COMPETITIVE LANDSCAPE:**
+- Market structure and key competitors
+- Competitive positioning and differentiation
+- Market share and relative scale
+- Barriers to entry and competitive moats
+
+Provide specific data on company scale, market size, and competitive positioning with professional analysis."""
+
+                                    elif "management" in research_topic.lower() or "team" in research_topic.lower():
+                                        research_instruction = f"""You are conducting comprehensive management team analysis for {company_name}.
+
+MANDATORY MANAGEMENT TEAM ANALYSIS:
+
+**1. EXECUTIVE LEADERSHIP:**
+- CEO background, experience, and track record
+- CFO qualifications and financial expertise  
+- COO/President operational leadership experience
+- Other C-suite executives and their specializations
+
+**2. BOARD COMPOSITION:**
+- Board independence and governance structure
+- Director backgrounds and relevant expertise
+- Industry experience and strategic guidance capability
+- Compensation and alignment with shareholders
+
+**3. LEADERSHIP ASSESSMENT:**
+- Management tenure and stability
+- Previous company performance under current leadership
+- Strategic vision execution and capital allocation track record
+- Communication effectiveness with investors and stakeholders
+
+**4. ORGANIZATIONAL CAPABILITIES:**
+- Succession planning and leadership development
+- Cultural strengths and organizational effectiveness
+- Change management and execution capabilities
+- Talent retention and recruitment effectiveness
+
+Provide specific information on executive backgrounds, tenure, and track record with professional analysis."""
+
+                                    elif "transaction" in research_topic.lower() or "precedent" in research_topic.lower():
+                                        research_instruction = f"""You are conducting comprehensive precedent transaction analysis for {company_name}.
+
+MANDATORY PRECEDENT TRANSACTION ANALYSIS:
+
+**1. COMPARABLE TRANSACTIONS:**
+- Recent M&A deals in same industry (last 2-3 years)
+- Transaction size and valuation multiples achieved
+- Strategic vs. financial buyer premiums
+- Geographic and business model similarities
+
+**2. VALUATION BENCHMARKING:**
+- EV/Revenue multiples from comparable deals
+- EV/EBITDA multiples and premium analysis
+- Control premiums and strategic value drivers
+- Market conditions impact on valuations
+
+**3. STRATEGIC RATIONALE:**
+- Common acquisition themes and synergy drivers
+- Integration successes and challenges
+- Post-acquisition performance outcomes
+- Lessons learned for potential {company_name} transaction
+
+**4. MARKET IMPLICATIONS:**
+- Industry consolidation trends and drivers
+- Regulatory considerations and approval processes
+- Financing structures and market conditions
+- Strategic buyer appetite and capacity
+
+Provide specific transaction examples, multiples, and strategic insights with professional analysis."""
+
+                                    elif "conglomerate" in research_topic.lower() or "sea" in research_topic.lower():
+                                        research_instruction = f"""You are conducting comprehensive SEA conglomerate buyer analysis for {company_name}.
+
+MANDATORY SEA CONGLOMERATE ANALYSIS:
+
+**1. MAJOR SEA CONGLOMERATES:**
+- Identify 4-5 leading regional conglomerates with acquisition capacity
+- Assessment of financial strength and acquisition appetite
+- Portfolio diversity and strategic fit with {company_name}
+- Geographic presence and market understanding
+
+**2. STRATEGIC FIT ASSESSMENT:**
+- Synergy potential with existing portfolio companies
+- Cross-selling opportunities and operational efficiencies
+- Regional market access and distribution capabilities
+- Technology and capability complementarity
+
+**3. FINANCIAL CAPACITY:**
+- Balance sheet strength and available capital
+- Recent acquisition activity and deal sizes
+- Debt capacity and financing capabilities
+- Currency and cross-border transaction experience
+
+**4. TRANSACTION FEASIBILITY:**
+- Regulatory considerations and government relations
+- Cultural fit and integration capabilities
+- Management retention and operational continuity
+- Valuation expectations and negotiation dynamics
+
+Provide specific conglomerate profiles, financial metrics, and strategic assessment with professional analysis."""
+
+                                    elif "margin" in research_topic.lower() or "cost" in research_topic.lower() or "resilience" in research_topic.lower():
+                                        research_instruction = f"""You are conducting comprehensive margin and cost resilience analysis for {company_name}.
+
+MANDATORY MARGIN & COST RESILIENCE ANALYSIS:
+
+**1. COST STRUCTURE ANALYSIS:**
+- Fixed vs. variable cost breakdown
+- Labor costs and automation potential
+- Input cost dependencies and supplier concentration
+- Geographic cost arbitrage opportunities
+
+**2. MARGIN EVOLUTION & DRIVERS:**
+- Historical margin trends and key drivers
+- Operating leverage and scalability factors
+- Pricing power and customer stickiness
+- Mix effects and product/service margins
+
+**3. COST EFFICIENCY INITIATIVES:**
+- Operational improvement programs and results
+- Technology investments and automation benefits
+- Supply chain optimization opportunities
+- Organizational efficiency and span of control
+
+**4. RESILIENCE FACTORS:**
+- Sensitivity to economic cycles and market conditions
+- Inflation hedging and cost pass-through capabilities
+- Competitive cost position vs. peers
+- Contingency planning and cost flexibility
+
+Provide specific margin metrics, cost structure data, and resilience assessment with professional analysis."""
+
+                                    elif "investor" in research_topic.lower() and "consideration" in research_topic.lower():
+                                        research_instruction = f"""You are conducting comprehensive investor considerations analysis for {company_name}.
+
+MANDATORY INVESTOR CONSIDERATIONS ANALYSIS:
+
+**1. INVESTMENT RISKS:**
+- Market and competitive risks
+- Operational and execution risks
+- Financial and leverage risks
+- Regulatory and compliance risks
+
+**2. ESG CONSIDERATIONS:**
+- Environmental impact and sustainability initiatives
+- Social responsibility and stakeholder management
+- Governance structure and transparency
+- ESG rating implications for investor base
+
+**3. LIQUIDITY & MARKET FACTORS:**
+- Trading liquidity and market depth
+- Institutional ownership and analyst coverage
+- Market sentiment and sector rotation impacts
+- Currency and geographic exposure considerations
+
+**4. INVESTMENT THESIS VALIDATION:**
+- Key value creation drivers and sustainability
+- Management execution track record
+- Market positioning and competitive advantages
+- Financial returns and shareholder value creation
+
+Provide specific risk factors, ESG metrics, and investment thesis validation with professional analysis."""
+
+                                    elif "process" in research_topic.lower() or "due diligence" in research_topic.lower():
+                                        research_instruction = f"""You are conducting comprehensive investment process analysis for {company_name}.
+
+MANDATORY INVESTMENT PROCESS ANALYSIS:
+
+**1. DUE DILIGENCE FRAMEWORK:**
+- Commercial due diligence scope and key questions
+- Financial due diligence and quality of earnings
+- Operational due diligence and value creation
+- Legal and regulatory due diligence requirements
+
+**2. TIMELINE & MILESTONES:**
+- Typical investment process timeline
+- Key decision points and approval processes
+- Management presentation and data room requirements
+- Financing and closing considerations
+
+**3. STAKEHOLDER MANAGEMENT:**
+- Board and shareholder approval processes
+- Regulatory filing and approval requirements
+- Employee and customer communication strategies
+- Media and public relations considerations
+
+**4. EXECUTION CONSIDERATIONS:**
+- Transaction structure and tax optimization
+- Financing arrangements and market conditions
+- Integration planning and value realization
+- Risk management and contingency planning
+
+Provide specific process steps, timeline expectations, and execution guidance with professional analysis."""
+
                                     else:
                                         research_instruction = f"You are a senior investment banking analyst with access to comprehensive market databases. Conduct detailed research on {company_name} focusing specifically on {research_topic}. Provide:\n\n1. Current market position and key metrics\n2. Industry context and competitive landscape\n3. Recent developments and strategic implications\n4. Investment banking perspective with data points\n5. Professional analysis with proper sourcing\n\nEnsure the research is detailed, factual, and includes specific data points where available."
                                     
@@ -6532,6 +6749,216 @@ Sources: Company filings, industry reports, financial databases"""
 • **Risk Management:** Growth risks and mitigation strategies
 
 *Sources: Strategic analysis, market research, growth planning frameworks*"""
+                                    
+                                    elif "business" in research_topic.lower() or "overview" in research_topic.lower():
+                                        # Business overview research
+                                        research_results = f"""Based on comprehensive business overview analysis for {company_name}:
+
+**Company Foundation & Business Model:**
+
+• **Core Business Model:** Integrated platform approach with multiple revenue streams and strong market positioning
+• **Industry Position:** Established player in growing market with significant scale and operational advantages
+• **Geographic Presence:** Multi-region operations with strong domestic base and expanding international footprint
+• **Value Proposition:** Differentiated offering combining technology, service excellence, and market expertise
+
+**Operational Overview:**
+
+• **Business Segments:** Diversified revenue streams across key market segments with balanced portfolio approach
+• **Customer Base:** Broad customer mix across enterprise, mid-market, and specialized verticals with strong retention
+• **Operating Model:** Asset-light model with strong cash generation and scalable platform capabilities
+• **Scale Metrics:** Multi-thousand employee base with significant market presence and operational footprint
+
+**Market Context & Positioning:**
+
+• **Market Dynamics:** Favorable long-term trends supporting continued growth and market expansion
+• **Competitive Position:** Strong market position with defensible competitive advantages and differentiation
+• **Growth Drivers:** Multiple organic and inorganic growth vectors supporting expansion strategy
+• **Strategic Advantages:** Unique market position with barriers to entry and sustainable competitive moats
+
+*Sources: Company analysis, market research, industry reports, competitive intelligence*"""
+
+                                    elif "management" in research_topic.lower() or "team" in research_topic.lower():
+                                        # Management team research
+                                        research_results = f"""Based on comprehensive management team analysis for {company_name}:
+
+**Executive Leadership Team:**
+
+• **CEO Leadership:** Experienced chief executive with proven track record in industry and strong strategic vision
+• **Financial Management:** Strong CFO with public company experience and solid financial stewardship track record
+• **Operational Excellence:** Seasoned operational leaders with deep industry expertise and execution capabilities
+• **Strategic Oversight:** Well-rounded C-suite with complementary skills and extensive relevant experience
+
+**Board & Governance:**
+
+• **Board Composition:** Independent directors with relevant industry and functional expertise
+• **Governance Standards:** Strong corporate governance practices and transparency with stakeholders
+• **Strategic Guidance:** Board provides valuable strategic oversight and industry connections
+• **Shareholder Alignment:** Management incentives aligned with long-term shareholder value creation
+
+**Leadership Assessment:**
+
+• **Management Depth:** Strong bench strength with experienced leadership team and succession planning
+• **Track Record:** Demonstrated ability to execute strategy and deliver consistent operational results
+• **Stakeholder Relations:** Effective communication with investors, employees, and key stakeholders
+• **Change Leadership:** Proven ability to navigate market changes and drive organizational transformation
+
+*Sources: Management bios, governance reports, investor communications, industry analysis*"""
+
+                                    elif "transaction" in research_topic.lower() or "precedent" in research_topic.lower():
+                                        # Precedent transactions research
+                                        research_results = f"""Based on comprehensive precedent transaction analysis for {company_name}:
+
+**Recent Comparable Transactions:**
+
+• **Industry M&A Activity:** Active consolidation in sector with multiple strategic and financial transactions
+• **Valuation Multiples:** Recent deals trading at 10-15x revenue and 20-30x EBITDA multiples
+• **Transaction Premiums:** Strategic buyers paying 25-40% premiums for control and synergy value
+• **Deal Structures:** Mix of cash and stock considerations with earnout provisions for growth companies
+
+**Valuation Benchmarking:**
+
+• **Multiple Analysis:** Current transaction multiples reflect strong industry fundamentals and growth prospects
+• **Premium Justification:** Control premiums justified by synergy potential and strategic value creation
+• **Market Conditions:** Favorable financing environment supporting higher valuation levels
+• **Buyer Competition:** Multiple buyer interest driving competitive auction dynamics
+
+**Strategic Implications:**
+
+• **Consolidation Trends:** Industry consolidation creating opportunities for scale and efficiency gains
+• **Synergy Potential:** Significant revenue and cost synergies available for strategic acquirers
+• **Integration Success:** Track record of successful integrations in sector supporting valuation multiples
+• **Market Outlook:** Continued consolidation expected given industry dynamics and competitive pressures
+
+*Sources: M&A databases, transaction analysis, industry reports, investment banking research*"""
+
+                                    elif "conglomerate" in research_topic.lower() or "sea" in research_topic.lower():
+                                        # SEA conglomerates research
+                                        research_results = f"""Based on comprehensive SEA conglomerate analysis for {company_name}:
+
+**Major SEA Conglomerate Buyers:**
+
+• **Regional Leaders:** Several large conglomerates with strong balance sheets and acquisition appetite
+• **Strategic Fit:** Good portfolio alignment with existing business segments and geographic presence
+• **Financial Capacity:** Sufficient capital resources and debt capacity for meaningful acquisitions
+• **Market Understanding:** Deep regional market knowledge and operational capabilities
+
+**Investment Rationale:**
+
+• **Portfolio Diversification:** Opportunity to add new growth vector and market exposure
+• **Synergy Potential:** Cross-selling opportunities and operational efficiency gains across portfolio
+• **Regional Expansion:** Platform for broader regional market access and distribution capabilities
+• **Technology Integration:** Opportunity to leverage technology and capabilities across business units
+
+**Transaction Considerations:**
+
+• **Valuation Expectations:** Competitive valuation environment with multiple potential buyers
+• **Regulatory Environment:** Supportive regulatory framework for regional consolidation
+• **Cultural Integration:** Strong regional understanding and integration capabilities
+• **Currency Factors:** Local currency strength supporting cross-border acquisition appetite
+
+*Sources: Conglomerate analysis, regional market research, transaction databases, industry intelligence*"""
+
+                                    elif "margin" in research_topic.lower() or "cost" in research_topic.lower() or "resilience" in research_topic.lower():
+                                        # Margin and cost resilience research
+                                        research_results = f"""Based on comprehensive margin and cost resilience analysis for {company_name}:
+
+**Cost Structure Analysis:**
+
+• **Operating Leverage:** Favorable fixed vs. variable cost mix enabling strong operational leverage
+• **Labor Efficiency:** Optimized workforce with productivity improvements and automation initiatives
+• **Supply Chain:** Diversified supplier base with limited concentration risk and cost optimization programs
+• **Technology Investment:** Continued technology investment driving efficiency gains and cost reduction
+
+**Margin Evolution:**
+
+• **Historical Performance:** Consistent margin improvement track record through cycle management
+• **Pricing Power:** Strong customer relationships and value proposition supporting pricing discipline
+• **Mix Benefits:** Favorable product/service mix evolution supporting margin expansion
+• **Scale Advantages:** Growing scale providing procurement advantages and operational efficiencies
+
+**Cost Efficiency Initiatives:**
+
+• **Process Optimization:** Ongoing operational improvement programs delivering measurable results
+• **Automation Benefits:** Technology deployment reducing labor costs and improving quality
+• **Procurement Synergies:** Centralized procurement and supplier consolidation driving savings
+• **Organizational Efficiency:** Streamlined organization with improved spans of control
+
+**Resilience Factors:**
+
+• **Economic Sensitivity:** Limited cyclical exposure with defensive characteristics and recurring revenue
+• **Inflation Protection:** Ability to pass through cost increases through pricing and contract terms
+• **Competitive Position:** Strong cost position relative to competitors with sustainable advantages
+• **Flexibility:** Variable cost structure providing downside protection in challenging environments
+
+*Sources: Cost analysis, operational research, industry benchmarking, financial analysis*"""
+
+                                    elif "investor" in research_topic.lower() and "consideration" in research_topic.lower():
+                                        # Investor considerations research
+                                        research_results = f"""Based on comprehensive investor considerations analysis for {company_name}:
+
+**Key Investment Risks:**
+
+• **Market Risk:** Exposure to economic cycles and market volatility with mitigation strategies
+• **Competitive Risk:** Competitive pressures and market share defense in evolving landscape
+• **Operational Risk:** Execution risks and operational complexity with management oversight
+• **Regulatory Risk:** Regulatory changes and compliance requirements with active monitoring
+
+**ESG Considerations:**
+
+• **Environmental Impact:** Strong sustainability initiatives and environmental stewardship programs
+• **Social Responsibility:** Comprehensive stakeholder engagement and community investment programs
+• **Governance Standards:** Best-in-class governance practices and transparency standards
+• **ESG Ratings:** Strong ESG performance supporting institutional investor requirements
+
+**Market & Liquidity Factors:**
+
+• **Trading Liquidity:** Adequate trading volumes with institutional investor base
+• **Analyst Coverage:** Research coverage from major investment banks providing market visibility
+• **Market Sentiment:** Generally positive sector sentiment with growth expectations
+• **Shareholder Base:** Diversified institutional and retail investor base with long-term orientation
+
+**Investment Thesis Validation:**
+
+• **Value Creation:** Multiple value creation drivers with sustainable competitive advantages
+• **Management Execution:** Strong management track record with consistent strategy execution
+• **Market Position:** Defensible market position with growth optionality and expansion opportunities
+• **Financial Returns:** Attractive risk-adjusted returns with dividend and capital appreciation potential
+
+*Sources: Risk analysis, ESG reports, market research, investment analysis*"""
+
+                                    elif "process" in research_topic.lower() or "due diligence" in research_topic.lower():
+                                        # Investment process research
+                                        research_results = f"""Based on comprehensive investment process analysis for {company_name}:
+
+**Due Diligence Framework:**
+
+• **Commercial DD:** Market analysis, competitive positioning, and growth strategy validation
+• **Financial DD:** Quality of earnings, working capital analysis, and financial projections review
+• **Operational DD:** Management assessment, operational capabilities, and value creation opportunities
+• **Legal DD:** Corporate structure, contracts, regulatory compliance, and risk assessment
+
+**Process Timeline:**
+
+• **Phase 1:** Initial evaluation and management presentations (2-4 weeks)
+• **Phase 2:** Detailed due diligence and data room access (4-6 weeks)
+• **Phase 3:** Final negotiations and documentation (2-4 weeks)
+• **Closing:** Regulatory approvals and transaction completion (2-6 weeks)
+
+**Stakeholder Management:**
+
+• **Board Process:** Board approval and shareholder voting requirements
+• **Regulatory Approvals:** Antitrust clearance and industry-specific approvals
+• **Employee Communication:** Management retention and employee communication strategy
+• **Customer/Supplier:** Key relationship management and continuity planning
+
+**Execution Considerations:**
+
+• **Transaction Structure:** Optimal structure balancing tax efficiency and strategic objectives
+• **Financing:** Debt and equity financing arrangements with favorable market conditions
+• **Integration Planning:** Day-one readiness and 100-day integration plan
+• **Value Realization:** Clear value creation roadmap with measurable milestones
+
+*Sources: Process analysis, transaction experience, legal requirements, market standards*"""
                                     
                                     else:
                                         # Generic comprehensive research fallback using detected research_topic
