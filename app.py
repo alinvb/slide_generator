@@ -5372,33 +5372,32 @@ RENDER PLAN JSON:
                                 # BULLETPROOF POST-PROCESSING: Ensure perfect format for auto-improvement
                                 print(f"🔍 [HYBRID] Checking LLM response format...")
                                 
-                                # If LLM didn't use perfect format, convert it using bulletproof system
-                                if not ("CONTENT IR JSON:" in ai_response and "RENDER PLAN JSON:" in ai_response):
-                                    print("🔧 [HYBRID] LLM response needs bulletproof conversion...")
-                                    
-                                    # Import bulletproof generator only when needed
-                                    from bulletproof_json_generator import generate_bulletproof_json
-                                    
-                                    def bulletproof_llm_call(messages):
-                                        return call_llm_api(messages, selected_model, api_key, api_service)
-                                    
-                                    # Generate bulletproof JSONs while preserving conversation context
-                                    bulletproof_response, content_ir_direct, render_plan_direct = generate_bulletproof_json(
-                                        st.session_state.messages, 
-                                        slide_list,
-                                        bulletproof_llm_call
-                                    )
-                                    
-                                    # Use bulletproof JSONs but keep conversational tone
-                                    ai_response = f"""Based on our comprehensive conversation, I've generated the investment banking materials for PRYPCO:
+                                # ALWAYS use bulletproof system for conversation extraction and research
+                                print("🔧 [MANDATORY] Using bulletproof system with conversation extraction and research...")
+                                
+                                # Import bulletproof generator 
+                                from bulletproof_json_generator import generate_bulletproof_json
+                                
+                                def bulletproof_llm_call(messages):
+                                    return call_llm_api(messages, selected_model, api_key, api_service)
+                                
+                                # Generate bulletproof JSONs with conversation extraction and research
+                                bulletproof_response, content_ir_direct, render_plan_direct = generate_bulletproof_json(
+                                    st.session_state.messages, 
+                                    slide_list,
+                                    bulletproof_llm_call
+                                )
+                                
+                                # Use bulletproof JSONs with conversation data and research
+                                ai_response = f"""Based on our comprehensive conversation, I've generated investment banking materials with full data extraction and research:
 
 {bulletproof_response}
 
-All slides have been populated with data from our discussion and additional market research to ensure complete, professional presentation materials."""
-                                    
-                                    print(f"✅ [HYBRID] Converted to bulletproof format successfully")
-                                else:
-                                    print(f"✅ [HYBRID] LLM already used correct format")
+✅ All slides populated with conversation data + market research
+✅ Missing information researched and filled automatically 
+✅ Complete, professional presentation materials ready"""
+                                
+                                print(f"✅ [BULLETPROOF] Complete system used - conversation extraction + research + generation")
                                 
                             except Exception as e:
                                 st.error(f"❌ Generation failed: {str(e)}")
@@ -5471,61 +5470,23 @@ RENDER PLAN JSON:
                                 if content_ir and 'entities' in content_ir and 'company' in content_ir['entities']:
                                     company_name_extracted = content_ir['entities']['company'].get('name', 'Unknown_Company')
                                 
-                                # 🔧 AUTO-IMPROVEMENT INTEGRATION
-                                # Apply auto-improvement if enabled
-                                if st.session_state.get('auto_improve_enabled', False) and st.session_state.get('api_key'):
-                                    with st.spinner("🔧 Auto-improving JSON quality..."):
+                                # 🔧 MANDATORY AUTO-IMPROVEMENT INTEGRATION
+                                # Always apply auto-improvement for JSON generation (not optional)
+                                if st.session_state.get('api_key'):
+                                    with st.spinner("🔧 Auto-improving JSON quality with conversation data..."):
                                         try:
-                                            from enhanced_auto_improvement_system import auto_improve_json_with_api_calls
+                                            # Use OPTIMIZED auto-improvement system for better performance
+                                            improved_content_ir = auto_improve_if_enabled_optimized(content_ir, "content_ir")
+                                            improved_render_plan = auto_improve_if_enabled_optimized(render_plan, "render_plan")
                                             
-                                            # Improve Content IR
-                                            improved_content_ir, is_perfect_content, content_report = auto_improve_json_with_api_calls(
-                                                content_ir, "content_ir", 
-                                                st.session_state['api_key'],
-                                                st.session_state.get('selected_model', st.session_state.get('model', 'claude-3-5-sonnet-20241022')),
-                                                st.session_state.get('api_service', 'claude')
-                                            )
                                             
-                                            # Improve Render Plan
-                                            improved_render_plan, is_perfect_render, render_report = auto_improve_json_with_api_calls(
-                                                render_plan, "render_plan",
-                                                st.session_state['api_key'], 
-                                                st.session_state.get('selected_model', st.session_state.get('model', 'claude-3-5-sonnet-20241022')),
-                                                st.session_state.get('api_service', 'claude')
-                                            )
-                                            
-                                            # Update with improved JSONs
-                                            content_ir = improved_content_ir
-                                            render_plan = improved_render_plan
-                                            
-                                            # Show improvement results
-                                            if is_perfect_content and is_perfect_render:
-                                                st.success("✅ JSONs auto-improved to target quality!")
+                                            # Check if optimized improvement was successful
+                                            if improved_content_ir and improved_render_plan:
+                                                content_ir = improved_content_ir
+                                                render_plan = improved_render_plan
+                                                st.success("✅ JSONs auto-improved with conversation data using optimized system!")
                                             else:
-                                                st.info("ℹ️ JSONs partially improved via auto-improvement")
-                                            
-                                            # Update API usage stats
-                                            usage_stats = st.session_state.get('auto_improve_api_usage', {
-                                                "total_calls": 0, "successful_calls": 0, "total_tokens": 0, "total_time": 0.0
-                                            })
-                                            
-                                            # Simple parsing of improvement reports for statistics
-                                            for report in [content_report, render_report]:
-                                                if "API Calls Made:" in report:
-                                                    try:
-                                                        lines = report.split('\n')
-                                                        for line in lines:
-                                                            if "API Calls Made:" in line:
-                                                                calls = int(line.split(':')[1].strip())
-                                                                usage_stats["total_calls"] += calls
-                                                            elif "Successful Calls:" in line:
-                                                                success_part = line.split(':')[1].strip()
-                                                                successful = int(success_part.split('/')[0])
-                                                                usage_stats["successful_calls"] += successful
-                                                    except:
-                                                        pass
-                                            
-                                            st.session_state['auto_improve_api_usage'] = usage_stats
+                                                st.info("ℹ️ Using original JSONs - optimized auto-improvement unavailable")
                                             
                                         except Exception as e:
                                             st.warning(f"⚠️ Auto-improvement failed: {str(e)} - Using original JSONs")
