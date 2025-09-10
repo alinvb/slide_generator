@@ -5633,9 +5633,9 @@ RENDER PLAN JSON:
                                 company_name=company_name, 
                                 user_message=prompt,
                                 call_llm_api=call_llm_api,
-                                api_key=selected_api_key,
-                                api_service=selected_api_service,
-                                selected_model=selected_model
+                                api_key=st.session_state['api_key'],
+                                api_service=st.session_state.get('api_service', 'claude'),
+                                selected_model=st.session_state.get('model', 'claude-3-5-sonnet-20241022')
                             )
                         
                         # Handle enhanced conversation results
@@ -6104,7 +6104,36 @@ Sources: Company filings, industry reports, financial databases"""
                     # Analyze if user provided partial information that needs follow-up
                     current_topic = progress_info.get('current_topic', 'business_overview')
                     
-                    if current_topic == "historical_financial_performance" and len(user_response) > 10:
+                    # COMPREHENSIVE CONTEXTUAL FOLLOW-UP LOGIC FOR ALL 14 TOPICS
+                    if current_topic == "business_overview" and len(user_response) > 10:
+                        # Check business overview components
+                        has_industry = any(word in user_response.lower() for word in ["industry", "sector", "market", "business"])
+                        has_model = any(word in user_response.lower() for word in ["model", "revenue", "customers", "b2b", "b2c", "saas"])
+                        has_scale = any(word in user_response.lower() for word in ["employees", "offices", "locations", "size", "founded"])
+                        
+                        if not (has_industry and has_model and has_scale):
+                            needs_more_info = True
+                            missing_parts = []
+                            if not has_industry: missing_parts.append("industry/sector details")
+                            if not has_model: missing_parts.append("business model description")  
+                            if not has_scale: missing_parts.append("company scale (employees, locations)")
+                            contextual_followup = f"Good overview of the business! For a complete picture, I need {' and '.join(missing_parts)}. Can you provide these details, or should I research this information?"
+                    
+                    elif current_topic == "product_service_footprint" and len(user_response) > 10:
+                        # Check product/service components
+                        has_products = any(word in user_response.lower() for word in ["product", "service", "offering", "solution"])
+                        has_customers = any(word in user_response.lower() for word in ["customer", "client", "user", "segment"])
+                        has_differentiation = any(word in user_response.lower() for word in ["unique", "competitive", "advantage", "different", "proprietary"])
+                        
+                        if not (has_products and has_customers and has_differentiation):
+                            needs_more_info = True
+                            missing_parts = []
+                            if not has_products: missing_parts.append("core products/services")
+                            if not has_customers: missing_parts.append("target customer segments")
+                            if not has_differentiation: missing_parts.append("competitive differentiation")
+                            contextual_followup = f"Thanks for the product information! I also need {' and '.join(missing_parts)} to complete the footprint analysis. Do you have this information, or should I research it?"
+                    
+                    elif current_topic == "historical_financial_performance" and len(user_response) > 10:
                         # Check if financial info is missing key components
                         has_revenue = any(word in user_response.lower() for word in ["revenue", "sales", "million", "billion", "$"])
                         has_margins = any(word in user_response.lower() for word in ["margin", "ebitda", "profit", "%", "percentage"])
@@ -6132,6 +6161,48 @@ Sources: Company filings, industry reports, financial databases"""
                             if not has_backgrounds: missing_parts.append("executive backgrounds")
                             contextual_followup = f"Good start on the management team! I additionally need {' and '.join(missing_parts)} for the pitch deck. Do you have this information, or should I research it?"
                     
+                    elif current_topic == "growth_strategy_projections" and len(user_response) > 10:
+                        # Check growth strategy components
+                        has_strategy = any(word in user_response.lower() for word in ["strategy", "plan", "expansion", "growth", "roadmap"])
+                        has_projections = any(word in user_response.lower() for word in ["projection", "forecast", "target", "goal", "2025", "2026"])
+                        has_drivers = any(word in user_response.lower() for word in ["market", "product", "acquisition", "organic", "investment"])
+                        
+                        if not (has_strategy and has_projections and has_drivers):
+                            needs_more_info = True
+                            missing_parts = []
+                            if not has_strategy: missing_parts.append("growth strategy details")
+                            if not has_projections: missing_parts.append("financial projections")
+                            if not has_drivers: missing_parts.append("key growth drivers")
+                            contextual_followup = f"Great insight on growth plans! I need {' and '.join(missing_parts)} to complete the strategy analysis. Can you provide these details, or should I research this?"
+                    
+                    elif current_topic == "competitive_positioning" and len(user_response) > 10:
+                        # Check competitive analysis components
+                        has_competitors = any(word in user_response.lower() for word in ["competitor", "rival", "competition", "player"])
+                        has_advantages = any(word in user_response.lower() for word in ["advantage", "strength", "differentiation", "moat", "unique"])
+                        has_market_position = any(word in user_response.lower() for word in ["market", "share", "leader", "position", "ranking"])
+                        
+                        if not (has_competitors and has_advantages and has_market_position):
+                            needs_more_info = True
+                            missing_parts = []
+                            if not has_competitors: missing_parts.append("key competitors")
+                            if not has_advantages: missing_parts.append("competitive advantages")
+                            if not has_market_position: missing_parts.append("market position/share")
+                            contextual_followup = f"Good competitive overview! I also need {' and '.join(missing_parts)} for the positioning analysis. Do you have this information, or should I research it?"
+                    
+                    elif current_topic == "precedent_transactions" and len(user_response) > 10:
+                        # Check transaction analysis components
+                        has_transactions = any(word in user_response.lower() for word in ["transaction", "acquisition", "merger", "deal", "bought"])
+                        has_valuations = any(word in user_response.lower() for word in ["valuation", "price", "multiple", "$", "million", "billion"])
+                        has_rationale = any(word in user_response.lower() for word in ["rationale", "synergy", "strategic", "reason", "value"])
+                        
+                        if not (has_transactions and has_valuations and has_rationale):
+                            needs_more_info = True
+                            missing_parts = []
+                            if not has_transactions: missing_parts.append("recent M&A transactions")
+                            if not has_valuations: missing_parts.append("transaction valuations/multiples")
+                            if not has_rationale: missing_parts.append("strategic rationale")
+                            contextual_followup = f"Thanks for the transaction context! I need {' and '.join(missing_parts)} for the precedent analysis. Can you provide these details, or should I research comparable deals?"
+                    
                     elif current_topic == "valuation_overview" and len(user_response) > 10:
                         # Check if valuation is missing actual numbers
                         has_numbers = any(char.isdigit() for char in user_response)
@@ -6141,6 +6212,90 @@ Sources: Company filings, industry reports, financial databases"""
                         if not (has_numbers and (has_multiple or has_methodology)):
                             needs_more_info = True
                             contextual_followup = f"Thanks for the valuation framework! I additionally need specific valuation ranges or multiples (e.g., '15-20x EBITDA' or '$2-3 billion enterprise value'). Do you have target numbers, or should I research comparable valuations?"
+                    
+                    elif current_topic == "strategic_buyers" and len(user_response) > 10:
+                        # Check strategic buyer analysis components
+                        has_buyers = any(word in user_response.lower() for word in ["buyer", "acquirer", "company", "corporation"])
+                        has_rationale = any(word in user_response.lower() for word in ["synergy", "strategic", "fit", "rationale", "value"])
+                        has_capacity = any(word in user_response.lower() for word in ["capacity", "afford", "cash", "financing", "capability"])
+                        
+                        if not (has_buyers and has_rationale and has_capacity):
+                            needs_more_info = True
+                            missing_parts = []
+                            if not has_buyers: missing_parts.append("specific strategic buyers")
+                            if not has_rationale: missing_parts.append("strategic rationale/synergies")
+                            if not has_capacity: missing_parts.append("financial capacity assessment")
+                            contextual_followup = f"Good strategic buyer insights! I need {' and '.join(missing_parts)} for the buyer analysis. Do you have this information, or should I research potential acquirers?"
+                    
+                    elif current_topic == "financial_buyers" and len(user_response) > 10:
+                        # Check financial buyer components
+                        has_pe_firms = any(word in user_response.lower() for word in ["private", "equity", "pe", "fund", "investor"])
+                        has_criteria = any(word in user_response.lower() for word in ["criteria", "focus", "size", "sector", "investment"])
+                        has_fit = any(word in user_response.lower() for word in ["fit", "profile", "match", "suitable", "target"])
+                        
+                        if not (has_pe_firms and has_criteria and has_fit):
+                            needs_more_info = True
+                            missing_parts = []
+                            if not has_pe_firms: missing_parts.append("specific PE firms/investors")
+                            if not has_criteria: missing_parts.append("investment criteria/focus")
+                            if not has_fit: missing_parts.append("investment fit assessment")
+                            contextual_followup = f"Thanks for the financial buyer overview! I need {' and '.join(missing_parts)} for the PE analysis. Do you have this information, or should I research relevant funds?"
+                    
+                    elif current_topic == "sea_conglomerates" and len(user_response) > 10:
+                        # Check regional conglomerate components
+                        has_conglomerates = any(word in user_response.lower() for word in ["conglomerate", "group", "company", "corporation"])
+                        has_regional = any(word in user_response.lower() for word in ["asia", "sea", "singapore", "malaysia", "thailand", "regional"])
+                        has_strategic_fit = any(word in user_response.lower() for word in ["fit", "synergy", "portfolio", "complementary", "strategic"])
+                        
+                        if not (has_conglomerates and has_regional and has_strategic_fit):
+                            needs_more_info = True
+                            missing_parts = []
+                            if not has_conglomerates: missing_parts.append("specific conglomerates")
+                            if not has_regional: missing_parts.append("regional presence/focus")
+                            if not has_strategic_fit: missing_parts.append("strategic fit assessment")
+                            contextual_followup = f"Good regional insights! I need {' and '.join(missing_parts)} for the conglomerate analysis. Do you have this information, or should I research SEA conglomerates?"
+                    
+                    elif current_topic == "margin_cost_resilience" and len(user_response) > 10:
+                        # Check margin and cost structure components
+                        has_margins = any(word in user_response.lower() for word in ["margin", "profitability", "ebitda", "gross", "%"])
+                        has_costs = any(word in user_response.lower() for word in ["cost", "expense", "structure", "variable", "fixed"])
+                        has_resilience = any(word in user_response.lower() for word in ["resilience", "scalable", "efficiency", "leverage", "downturn"])
+                        
+                        if not (has_margins and has_costs and has_resilience):
+                            needs_more_info = True
+                            missing_parts = []
+                            if not has_margins: missing_parts.append("margin structure analysis")
+                            if not has_costs: missing_parts.append("cost breakdown details")
+                            if not has_resilience: missing_parts.append("resilience factors")
+                            contextual_followup = f"Thanks for the financial structure insights! I need {' and '.join(missing_parts)} for the margin analysis. Do you have this information, or should I research the cost dynamics?"
+                    
+                    elif current_topic == "investor_considerations" and len(user_response) > 10:
+                        # Check investment considerations components
+                        has_risks = any(word in user_response.lower() for word in ["risk", "challenge", "concern", "issue", "threat"])
+                        has_opportunities = any(word in user_response.lower() for word in ["opportunity", "upside", "potential", "growth", "benefit"])
+                        has_mitigations = any(word in user_response.lower() for word in ["mitigation", "plan", "strategy", "address", "manage"])
+                        
+                        if not (has_risks and has_opportunities and has_mitigations):
+                            needs_more_info = True
+                            missing_parts = []
+                            if not has_risks: missing_parts.append("key investment risks")
+                            if not has_opportunities: missing_parts.append("upside opportunities")
+                            if not has_mitigations: missing_parts.append("risk mitigation strategies")
+                            contextual_followup = f"Good investment perspective! I need {' and '.join(missing_parts)} for the consideration analysis. Do you have these details, or should I research the investment landscape?"
+                    
+                    elif current_topic == "investor_process_overview" and len(user_response) > 10:
+                        # Check investment process components
+                        has_timeline = any(word in user_response.lower() for word in ["timeline", "schedule", "month", "quarter", "when"])
+                        has_process = any(word in user_response.lower() for word in ["process", "steps", "diligence", "review", "approval"])
+                        has_requirements = any(word in user_response.lower() for word in ["requirement", "document", "information", "data", "material"])
+                        
+                        if not (has_timeline and has_process and has_requirements):
+                            needs_more_info = True
+                            missing_parts = []
+                            if not has_timeline: missing_parts.append("investment timeline")
+                            if not has_process: missing_parts.append("due diligence process")
+                            if not has_requirements: missing_parts.append("documentation requirements")
+                            contextual_followup = f"Thanks for the process overview! I need {' and '.join(missing_parts)} to complete the investor process section. Do you have these details, or should I research typical investment processes?"
                     
                     if needs_more_info and contextual_followup:
                         # Ask contextual follow-up question
