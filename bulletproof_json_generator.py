@@ -1788,6 +1788,7 @@ def generate_bulletproof_json(messages: List[Dict], required_slides: List[str], 
                 research_data = generator.research_missing_data(extracted_data, required_slides, llm_api_call, conversation_text)
             else:
                 print(f"🚀 [ULTRA-BYPASS] Research skipped - using extracted data only")
+                research_data = {}  # Set empty research data when skipping
             print(f"🚨 [DEBUG] research_missing_data RETURNED successfully")
             print(f"📚 [DEBUG] Research data type: {type(research_data)}")
             
