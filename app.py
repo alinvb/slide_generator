@@ -1207,7 +1207,7 @@ def _is_research_request_universal(user_text: str) -> bool:
     return t in {"research this","research this for me","research"} or t.startswith("research ") or bool(__import__("re").search(r'\b(research( this)?|look it up|find sources?|check (the )?web)\b', user_text, __import__("re").I))
 
 # Apply Unicode crash prevention patch
-import streamlit_patch
+# import streamlit_patch  # Removed - not needed
 
 # Local libs
 from executor import execute_plan
