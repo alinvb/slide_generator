@@ -103,9 +103,13 @@ Extract and return a JSON with these fields, using ONLY information mentioned in
     "value_drivers": ["Key business drivers that create or destroy value as discussed"],
     "catalysts": ["Events or developments that could drive value creation mentioned"],
     
-    // VALUATION & DEAL TERMS  
+    // VALUATION & DEAL TERMS (ALL THREE METHODS REQUIRED)
     "valuation_estimates_mentioned": ["Specific valuation multiples, ranges, or estimates discussed"],
-    "valuation_methodologies": ["DCF, comparable company, precedent transaction methods discussed"],
+    "dcf_valuation_mentioned": ["DCF assumptions, discount rates, terminal values, or DCF results discussed"],
+    "comparable_company_valuation": ["Trading multiples, peer company valuations, or comparable company analysis mentioned"],
+    "precedent_transaction_valuation": ["Transaction multiples from comparable deals, precedent valuations mentioned"],
+    "valuation_methodologies": ["All valuation approaches mentioned: DCF, comps, precedents"],
+    "valuation_ranges_by_method": ["Specific valuation ranges for each method if discussed"],
     "deal_structure_details": ["Transaction structure, terms, or deal specifics discussed"],
     "pricing_expectations": ["Expected purchase price, multiples, or valuation ranges"],
     
@@ -265,20 +269,24 @@ Return only valid JSON:"""
         """MANDATORY LLM gap-filling - PRIORITIZE conversation context, then fill gaps intelligently"""
         print("🤖 [CLEAN] Starting CONVERSATION-PRIORITIZED comprehensive gap-filling...")
         
-        # Show what conversation context we have
+        # Show what conversation context we have (ENHANCED FIELDS)
         conversation_facts = [
             extracted_data.get('company_name'),
-            extracted_data.get('business_description'), 
+            extracted_data.get('business_description_detailed'), 
             extracted_data.get('industry'),
-            extracted_data.get('key_executives', []),
-            extracted_data.get('products_services', []),
+            extracted_data.get('management_team_detailed', []),
+            extracted_data.get('products_services_detailed', []),
             extracted_data.get('competitors_mentioned', []),
+            extracted_data.get('strategic_buyers_mentioned', []),
+            extracted_data.get('financial_buyers_mentioned', []),
+            extracted_data.get('valuation_estimates_mentioned', []),
+            extracted_data.get('precedent_transactions', []),
             extracted_data.get('financial_details', []),
-            extracted_data.get('growth_details', [])
+            extracted_data.get('growth_strategy_details', [])
         ]
         non_empty_facts = [f for f in conversation_facts if f and (isinstance(f, list) and len(f) > 0) or (not isinstance(f, list) and f != 'null')]
         
-        print(f"🔍 [CLEAN] Conversation context strength: {len(non_empty_facts)}/8 key areas have details")
+        print(f"🔍 [CLEAN] Conversation context strength: {len(non_empty_facts)}/12 key areas have details")
         print(f"📊 [CLEAN] Company: {extracted_data.get('company_name', 'Unknown')}")
         print(f"🏭 [CLEAN] Industry: {extracted_data.get('industry', 'Unknown')}")
         
@@ -472,8 +480,8 @@ TEMPLATE TO FOLLOW: {llamaindex_template}
 DETAILED REQUIREMENTS:
 1. Use the EXACT same field names and structure as the template
 2. Extract REAL company details from conversation context first, then estimate missing fields
-3. Generate 4+ management_team_profiles - use actual names from conversation if mentioned, otherwise realistic industry names
-4. Generate 4+ strategic_buyers and 4+ financial_buyers appropriate to the ACTUAL industry mentioned in conversation
+3. Generate 4+ management_team_profiles - use actual names/backgrounds from conversation if mentioned, otherwise realistic industry names
+4. Generate strategic_buyers and financial_buyers - PRIORITIZE any buyers specifically mentioned in conversation with their exact names and rationale
 5. Create realistic competitive_analysis based on ACTUAL competitors mentioned in conversation context
 6. Generate 5+ precedent_transactions relevant to the SPECIFIC industry and business model from conversation
 7. Include comprehensive valuation_data appropriate to the ACTUAL company size and business model discussed
@@ -485,6 +493,12 @@ DETAILED REQUIREMENTS:
 1) CONVERSATION FACTS (highest priority - use exact details mentioned)
 2) INDUSTRY-SPECIFIC REALISTIC DATA (for the actual industry discussed)  
 3) PROFESSIONAL ESTIMATES (only for fields not covered by conversation context)
+
+🏢 STRATEGIC/FINANCIAL BUYERS PRIORITY:
+- If conversation mentions specific strategic buyers (Microsoft, Salesforce, etc.) - use those EXACT names and rationale
+- If conversation mentions specific financial buyers (Vista Equity, Thoma Bravo, etc.) - use those EXACT names and investment thesis
+- If conversation discusses specific valuations or multiples - incorporate those into the buyer analysis
+- Only add generic buyers if conversation doesn't mention any specific buyers
 
 ⚠️ NEVER use generic placeholder data when conversation context provides specific information!
 
