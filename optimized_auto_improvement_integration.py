@@ -33,7 +33,7 @@ class OptimizedAutoImprovementIntegrator:
     def initialize_session_state(self):
         """Initialize optimized session state"""
         if f"{self.session_key_prefix}enabled" not in st.session_state:
-            st.session_state[f"{self.session_key_prefix}enabled"] = False
+            st.session_state[f"{self.session_key_prefix}enabled"] = True  # Enable by default for better UX
         
         if f"{self.session_key_prefix}history" not in st.session_state:
             st.session_state[f"{self.session_key_prefix}history"] = []
