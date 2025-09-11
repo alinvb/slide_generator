@@ -1714,20 +1714,24 @@ def generate_bulletproof_json(messages: List[Dict], required_slides: List[str], 
             print(f"📚 [DEBUG] Research data type: {type(research_data)}")
             print(f"🚨 [DEBUG] About to access research_data.keys()...")
             
-            # Safely access keys to avoid potential infinite loop
+            # Bypass all key access - just validate research_data exists
             try:
                 if research_data is None:
                     print(f"📚 [DEBUG] Research data is None")
                 elif isinstance(research_data, dict):
-                    keys_list = list(research_data.keys())
-                    print(f"📚 [DEBUG] Research data keys count: {len(keys_list)}")
-                    print(f"🚨 [DEBUG] Skipping keys list printing to avoid hang - {len(keys_list)} keys available")
-                    print(f"🚨 [DEBUG] Keys list validation complete!")
+                    # Don't access .keys() at all - just count length
+                    data_len = len(research_data) if research_data else 0
+                    print(f"📚 [DEBUG] Research data length: {data_len}")
+                    print(f"🚨 [DEBUG] Research data validation complete - bypassing all key operations")
                 else:
-                    print(f"📚 [DEBUG] Research data is not a dict: {research_data}")
+                    print(f"📚 [DEBUG] Research data is not a dict: {type(research_data)}")
+                    
+                print(f"🚨 [DEBUG] Successfully completed research data validation!")
+                    
             except Exception as keys_error:
-                print(f"❌ [DEBUG] ERROR accessing research_data.keys(): {keys_error}")
-                print(f"❌ [DEBUG] Research data repr: {repr(research_data)}")
+                print(f"❌ [DEBUG] ERROR in research_data validation: {keys_error}")
+                import traceback
+                print(f"❌ [DEBUG] Validation traceback: {traceback.format_exc()}")
         except Exception as e:
             print(f"❌ [DEBUG] CRITICAL ERROR in research_missing_data: {e}")
             import traceback
