@@ -6610,11 +6610,16 @@ RENDER PLAN JSON:
                                     print(f"🔍 [API_KEY_DEBUG] Using model: {working_model}")
                                     print(f"🔍 [API_KEY_DEBUG] Using service: {working_service}")
                                     
-                                    # If no API key, show helpful message but still use fallback data
+                                    # CRITICAL: If no API key, show clear error and return meaningful fallback
                                     if not working_api_key:
+                                        print("🚨 [CRITICAL] NO API KEY - THIS IS WHY JSON IS EMPTY!")
                                         print("💡 [INFO] No API key configured in session state or environment.")
                                         print("📊 [INFO] Using comprehensive fallback data for demonstration purposes.")
-                                        st.warning("⚠️ **No API Key Configured** - Using comprehensive demo data. Add your API key in the sidebar for real research.")
+                                        st.error("🚨 **CRITICAL: No API Key Found!** This is why your strategic buyers and other sections are empty.")
+                                        st.warning("⚠️ **Add your Perplexity API key in the sidebar for real research.**")
+                                        
+                                        # Return structured fallback instead of trying API call
+                                        return """{"strategic_buyers": [{"buyer_name": "Microsoft Corporation", "strategic_rationale": "Demo data - add API key for real research"}], "financial_buyers": [{"buyer_name": "Vista Equity Partners", "strategic_rationale": "Demo data - add API key for real research"}]}"""
                                     
                                     # Detect if this is a comprehensive gap-filling call that needs extended timeout
                                     is_gap_filling = False
@@ -6633,19 +6638,42 @@ RENDER PLAN JSON:
                                                 is_gap_filling = True
                                                 break
                                     
-                                    # Use extended timeout for gap-filling calls
-                                    if is_gap_filling:
-                                        print(f"⏱️ [TIMEOUT] Using extended timeout (180s) for comprehensive gap-filling with {working_service}")
-                                        return shared_call_llm_api(messages, working_model, working_api_key, working_service, 0, 180)
-                                    else:
-                                        return shared_call_llm_api(messages, working_model, working_api_key, working_service)
+                                    # Use extended timeout for gap-filling calls with proper error handling
+                                    try:
+                                        print(f"🔍 [API_DEBUG] Making API call with {len(messages)} messages...")
+                                        if is_gap_filling:
+                                            print(f"⏱️ [TIMEOUT] Using extended timeout (180s) for comprehensive gap-filling with {working_service}")
+                                            response = shared_call_llm_api(messages, working_model, working_api_key, working_service, 0, 180)
+                                        else:
+                                            response = shared_call_llm_api(messages, working_model, working_api_key, working_service)
+                                        
+                                        print(f"🔍 [API_DEBUG] API response length: {len(response) if response else 0}")
+                                        
+                                        if not response or len(response) < 10:
+                                            print("🚨 [API_DEBUG] API RESPONSE TOO SHORT - LIKELY FAILED!")
+                                            st.error(f"🚨 **API Response Failed:** Got {len(response) if response else 0} characters")
+                                            return """{"strategic_buyers": [{"buyer_name": "API_FAILED", "strategic_rationale": "API call returned empty response"}]}"""
+                                        
+                                        return response
+                                        
+                                    except Exception as e:
+                                        print(f"🚨 [API_DEBUG] API CALL FAILED: {str(e)}")
+                                        st.error(f"🚨 **API Call Failed:** {str(e)}")
+                                        return """{"strategic_buyers": [{"buyer_name": "API_ERROR", "strategic_rationale": f"API call error: {str(e)}"}]}"""
                                 
                                 # 🚨 ENHANCED: Show progress tracking before calling bulletproof generator
                                 st.info("🔄 **Starting Bulletproof JSON Generation** - Progress tracking will show below")
                                 st.markdown("---")
                                 
                                 print(f"🚨 [GENERATE_JSON_NOW] About to call generate_bulletproof_json with {len(slide_list)} slides")
+                                print(f"🚨 [GENERATE_JSON_NOW] Slide list: {slide_list}")
                                 print(f"🚨 [GENERATE_JSON_NOW] Messages count: {len(st.session_state.messages)}")
+                                
+                                # DEBUG: Check why only 5 slides if that's the case
+                                if len(slide_list) < 10:
+                                    print(f"🚨 [DEBUG] ONLY {len(slide_list)} SLIDES - INVESTIGATING...")
+                                    st.error(f"🚨 **Only {len(slide_list)} slides generated** - Should be 14 for full investment banking analysis")
+                                    st.write("Slides being generated:", slide_list)
                                 
                                 # Generate bulletproof JSONs with CLEAN rewritten system (no hangs)
                                 bulletproof_response, content_ir_direct, render_plan_direct = generate_clean_bulletproof_json(
