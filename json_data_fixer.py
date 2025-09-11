@@ -685,6 +685,22 @@ def fix_growth_strategy_data(data: Dict[str, Any]) -> Dict[str, Any]:
 def fix_render_plan(render_plan: Dict[str, Any]) -> Dict[str, Any]:
     """Fix entire render plan by fixing each slide's data"""
     
+    # CRITICAL: Skip fixing for bulletproof-generated data to preserve comprehensive content
+    if isinstance(render_plan, dict) and render_plan.get("_bulletproof_generated", False):
+        print(f"🛡️ [FIX] PROTECTED: Skipping render_plan fixing for bulletproof-generated data")
+        print(f"🛡️ [FIX] Data sources: {render_plan.get('_data_sources', 'unknown')}")
+        print(f"🛡️ [FIX] Generation method: {render_plan.get('_generation_method', 'unknown')}")
+        
+        # Remove bulletproof markers and return clean data without fixing
+        clean_data = render_plan.copy()
+        clean_data.pop("_bulletproof_generated", None)
+        clean_data.pop("_generation_timestamp", None) 
+        clean_data.pop("_data_sources", None)
+        clean_data.pop("_slides_generated", None)
+        clean_data.pop("_generation_method", None)
+        
+        return clean_data
+    
     # Validate input structure
     if not validate_data_structure(render_plan, dict, "fix_render_plan"):
         return {"slides": []}
@@ -726,6 +742,22 @@ def fix_render_plan(render_plan: Dict[str, Any]) -> Dict[str, Any]:
 
 def fix_content_ir(content_ir: Dict[str, Any]) -> Dict[str, Any]:
     """Fix content IR data structure issues"""
+    
+    # CRITICAL: Skip fixing for bulletproof-generated data to preserve comprehensive content
+    if isinstance(content_ir, dict) and content_ir.get("_bulletproof_generated", False):
+        print(f"🛡️ [FIX] PROTECTED: Skipping content_ir fixing for bulletproof-generated data")
+        print(f"🛡️ [FIX] Data sources: {content_ir.get('_data_sources', 'unknown')}")
+        print(f"🛡️ [FIX] Generation method: {content_ir.get('_generation_method', 'unknown')}")
+        
+        # Remove bulletproof markers and return clean data without fixing
+        clean_data = content_ir.copy()
+        clean_data.pop("_bulletproof_generated", None)
+        clean_data.pop("_generation_timestamp", None) 
+        clean_data.pop("_data_sources", None)
+        clean_data.pop("_slides_generated", None)
+        clean_data.pop("_generation_method", None)
+        
+        return clean_data
     
     print(f"[FIX] Fixing content IR with sections: {list(content_ir.keys())}")
     
@@ -778,6 +810,25 @@ def fix_content_ir(content_ir: Dict[str, Any]) -> Dict[str, Any]:
 
 def comprehensive_json_fix(slides_json: Dict[str, Any], content_ir_json: Dict[str, Any]) -> tuple[Dict[str, Any], Dict[str, Any]]:
     """Apply comprehensive fixes to both slides and content IR"""
+    
+    # CRITICAL: Skip ALL fixing for bulletproof-generated data to preserve comprehensive content
+    if (isinstance(content_ir_json, dict) and content_ir_json.get("_bulletproof_generated", False)) or \
+       (isinstance(slides_json, dict) and slides_json.get("_bulletproof_generated", False)):
+        print("🛡️ [COMPREHENSIVE-FIX] PROTECTED: Skipping ALL fixing for bulletproof-generated data")
+        
+        # Clean bulletproof markers from both objects
+        clean_content_ir = content_ir_json.copy() if isinstance(content_ir_json, dict) else {}
+        clean_slides = slides_json.copy() if isinstance(slides_json, dict) else {}
+        
+        for clean_data in [clean_content_ir, clean_slides]:
+            if isinstance(clean_data, dict):
+                clean_data.pop("_bulletproof_generated", None)
+                clean_data.pop("_generation_timestamp", None) 
+                clean_data.pop("_data_sources", None)
+                clean_data.pop("_slides_generated", None)
+                clean_data.pop("_generation_method", None)
+        
+        return clean_slides, clean_content_ir
     
     print("=" * 60)
     print("COMPREHENSIVE JSON FIXING")
