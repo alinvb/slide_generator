@@ -5938,6 +5938,12 @@ with st.sidebar:
     st.session_state['model'] = selected_model
     st.session_state['api_service'] = api_service
     
+    # DEBUG: Show what we just stored
+    print(f"🔍 [SIDEBAR_DEBUG] Just stored API key in session state: {len(api_key) if api_key else 0} chars")
+    print(f"🔍 [SIDEBAR_DEBUG] Session state api_key after store: {st.session_state.get('api_key', 'MISSING')[:10] if st.session_state.get('api_key') else 'EMPTY'}")
+    if api_key:
+        st.success(f"✅ API Key stored: {len(api_key)} characters")
+    
     if not api_key:
         service_name = "Perplexity" if api_service == "perplexity" else "Claude"
         st.warning(f"⚠️ Please enter your {service_name} API key to use the AI copilot")
@@ -6455,68 +6461,34 @@ with tab_chat:
                             print(f"📝 [FAKE_DATA] Loaded {len(fake_research_messages)} research messages")
                             st.rerun()  # Refresh page to show updated data and allow user to click button again
                         
-                        # FORCE BULLETPROOF SYSTEM FOR TESTING - Always use comprehensive research approach
-                        if True:  # st.session_state.get( 'research_completed', False):
-                            # Research Agent: Generate ALL 14 slides
-                            slide_list = [
-                                "business_overview", "product_service_footprint", 
-                                "historical_financial_performance", "management_team",
-                                "growth_strategy_projections", "competitive_positioning",
-                                "precedent_transactions", "valuation_overview",
-                                "strategic_buyers", "financial_buyers", "global_conglomerates",
-                                "margin_cost_resilience", "investor_considerations", "investor_process_overview"
-                            ]
-                            # Create analysis report for Research Agent
-                            analysis_report = {
-                                'generation_type': 'research_agent_comprehensive',
-                                'quality_summary': 'Comprehensive research completed for all 14 topics',
-                                'topics_covered': 14,
-                                'total_topics': 14
-                            }
-                            print(f"🔬 RESEARCH AGENT: Generating ALL {len(slide_list)} slides from comprehensive research")
-                        else:
-                            # Chat-based: Generate slides for covered topics only  
-                            slide_list = []
-                            adaptive_render_plan = {}
-                            analysis_report = {
-                                'generation_type': 'chat_based_default',
-                                'quality_summary': 'Chat-based analysis initialized',
-                                'topics_covered': 0,
-                                'total_topics': 14
-                            }
-                            
-                            try:
-                                result = generate_topic_based_presentation(st.session_state.messages)
-                                print(f"🔍 DEBUG: generate_topic_based_presentation returned type: {type(result)}")
-                                
-                                if isinstance(result, tuple) and len(result) == 3:
-                                    temp_slide_list, temp_adaptive_render_plan, temp_analysis_report = result
-                                    print(f"🔍 DEBUG: temp_analysis_report type: {type(temp_analysis_report)}")
-                                    
-                                    # Only use results if they're valid types
-                                    if isinstance(temp_slide_list, list):
-                                        slide_list = temp_slide_list
-                                    if isinstance(temp_adaptive_render_plan, dict):
-                                        adaptive_render_plan = temp_adaptive_render_plan
-                                    if isinstance(temp_analysis_report, dict):
-                                        analysis_report = temp_analysis_report
-                                    else:
-                                        print(f"⚠️ WARNING: temp_analysis_report is {type(temp_analysis_report)}, using fallback")
-                                        analysis_report = {
-                                            'generation_type': 'type_correction_fallback',
-                                            'quality_summary': f'Type correction applied - was {type(temp_analysis_report)}',
-                                            'topics_covered': len(slide_list),
-                                            'total_topics': 14
-                                        }
-                                else:
-                                    print(f"⚠️ WARNING: Unexpected result type or length from generate_topic_based_presentation: {type(result)}, len: {len(result) if hasattr(result, '__len__') else 'N/A'}")
-                                    
-                            except Exception as e:
-                                print(f"❌ Error in generate_topic_based_presentation: {str(e)}")
-                                # Keep the default values set above
-                                
-                            print(f"💬 CHAT-BASED: Generating {len(slide_list)} slides for covered topics")
-                            print(f"💬 FINAL analysis_report type: {type(analysis_report)}")
+                        # FORCE 14 SLIDES ALWAYS - Remove all slide selection logic
+                        print("🚀 [FORCED] Always generating ALL 14 investment banking slides")
+                        
+                        # Generate ALL 14 slides - NO CONDITIONS, NO EXCEPTIONS
+                        slide_list = [
+                            "business_overview", "product_service_footprint", 
+                            "historical_financial_performance", "management_team",
+                            "growth_strategy_projections", "competitive_positioning",
+                            "precedent_transactions", "valuation_overview",
+                            "strategic_buyers", "financial_buyers", "global_conglomerates",
+                            "margin_cost_resilience", "investor_considerations", "investor_process_overview"
+                        ]
+                        
+                        # Create comprehensive analysis report
+                        analysis_report = {
+                            'generation_type': 'forced_comprehensive_14_slides',
+                            'quality_summary': 'Forced comprehensive 14-slide generation - no slide selection allowed',
+                            'topics_covered': 14,
+                            'total_topics': 14
+                        }
+                        
+                        print(f"✅ [FORCED] Generating ALL {len(slide_list)} slides - NO EXCEPTIONS")
+                        print(f"📋 [SLIDES] {', '.join(slide_list)}")
+                        
+                        # Initialize empty render plan (bulletproof generator will fill it)
+                        adaptive_render_plan = {}
+                        
+                        # REMOVED ENTIRE ELSE BLOCK - NO MORE SLIDE SELECTION
                         
                         completion_prompt = f"""Based on our comprehensive research, generate JSON structures for these {len(slide_list)} investment banking slides:
 
@@ -6605,10 +6577,13 @@ RENDER PLAN JSON:
                                     working_model = st.session_state.get('model', 'sonar-pro')  
                                     working_service = st.session_state.get('api_service', 'perplexity')
                                     
-                                    # Debug logging for API key configuration
+                                    # ENHANCED Debug logging for API key configuration
                                     print(f"🔍 [API_KEY_DEBUG] Session state api_key: {'*' * len(working_api_key) if working_api_key else 'None'}")
+                                    print(f"🔍 [API_KEY_DEBUG] Session state raw check: {st.session_state.get('api_key', 'NOT_FOUND')[:10] if st.session_state.get('api_key') else 'EMPTY_OR_MISSING'}")
+                                    print(f"🔍 [API_KEY_DEBUG] Environment api_key: {os.getenv('PERPLEXITY_API_KEY', 'NOT_FOUND')[:10] if os.getenv('PERPLEXITY_API_KEY') else 'EMPTY_OR_MISSING'}")
                                     print(f"🔍 [API_KEY_DEBUG] Using model: {working_model}")
                                     print(f"🔍 [API_KEY_DEBUG] Using service: {working_service}")
+                                    print(f"🔍 [API_KEY_DEBUG] Session state keys: {list(st.session_state.keys())}")
                                     
                                     # CRITICAL: If no API key, show clear error and return meaningful fallback
                                     if not working_api_key:
