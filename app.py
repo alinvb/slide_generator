@@ -3,9 +3,9 @@ def safe_get(obj, key, default=None):
     """Bulletproof get function that handles any object type"""
     try:
         if hasattr(obj, 'get') and callable(getattr(obj, 'get')):
-            return obj.get(key, default)
+            return safe_get(obj, key, default)
         elif isinstance(obj, dict):
-            return obj.get(key, default)
+            return safe_get(obj, key, default)
         else:
             print(f"🚨 SAFE_GET: Object is {type(obj)}, not dict - returning default: {default}")
             return default
@@ -110,7 +110,7 @@ def _maybe_set_company(text: str):
 
 def _current_company() -> str:
     """Get current company context"""
-    return st.session_state.get('current_company', st.session_state.get('company_name', ''))
+    return st.safe_get(session_state, 'current_company', st.session_state.get('company_name', ''))
 
 def _user_provided_company_info(text: str) -> bool:
     """
@@ -178,8 +178,8 @@ Only include fields that are clearly mentioned in the research. Return just the 
             {"role": "user", "content": extraction_prompt}
         ]
         
-        response = shared_call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
-                              st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
+        response = shared_call_llm_api(messages, st.safe_get(session_state, 'model', 'claude-3-5-sonnet-20241022'), 
+                              st.safe_get(session_state, 'api_key'), st.safe_get(session_state, 'api_service', 'claude'))
         
         if response:
             import json
@@ -210,17 +210,17 @@ def _get_context_aware_next_question(entity: str, progress_info: dict) -> str:
     Generate next question that acknowledges the research context about the entity.
     """
     # Check if we have extracted data about this entity
-    extracted_data = st.session_state.get('extracted_entity_data', {}).get(entity, {})
+    extracted_data = st.safe_get(session_state, 'extracted_entity_data', {}).get(entity, {})
     
     if extracted_data:
         # We have research context, ask more targeted questions
-        if extracted_data.get('business_description'):
+        if safe_get(extracted_data, 'business_description'):
             return f"Based on the research about {entity}'s business ({extracted_data['business_description'][:100]}...), let's dive into the financial performance metrics. What are the key revenue streams and recent financial highlights?"
         else:
             return f"Now that I have context about {entity}, let's discuss the financial performance and key metrics. What are the main revenue streams and recent financial highlights?"
     
     # Fallback to regular next question
-    return progress_info.get('next_question', '')
+    return safe_get(progress_info, 'next_question', '')
 
 def _bias_entity_from_context(text: str):
     """Fix entity drift - map qi+iraq -> Qi Card"""
@@ -281,8 +281,8 @@ Answer briefly and factually. If you don't know, say so and offer to research.""
     ]
     
     try:
-        response = shared_call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
-                              st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
+        response = shared_call_llm_api(messages, st.safe_get(session_state, 'model', 'claude-3-5-sonnet-20241022'), 
+                              st.safe_get(session_state, 'api_key'), st.safe_get(session_state, 'api_service', 'claude'))
         return _strip_unresolved_citations(response or "I'm not sure about that. Would you like me to research it?")
     except Exception as e:
         return f"I'm not sure about that. Would you like me to research {entity} for more details?"
@@ -316,8 +316,8 @@ Use the context to extract known metrics and provide LOW/BASE/HIGH scenarios wit
     ]
     
     try:
-        response = shared_call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
-                              st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
+        response = shared_call_llm_api(messages, st.safe_get(session_state, 'model', 'claude-3-5-sonnet-20241022'), 
+                              st.safe_get(session_state, 'api_key'), st.safe_get(session_state, 'api_service', 'claude'))
         return _strip_unresolved_citations(response or "I'll need more financial data to provide a reliable revenue estimate.")
     except Exception as e:
         return f"I'll need more financial data to estimate {entity} revenue. What metrics do you have available?"
@@ -386,7 +386,7 @@ def _topic_index_by_id(topic_id: str):
             {"id": "investor_process_overview"}
         ]
         for i, t in enumerate(topics):
-            if t.get("id") == topic_id:
+            if safe_get(t, "id") == topic_id:
                 return i
     except Exception:
         pass
@@ -413,8 +413,8 @@ def _recent_assistant_question_duplicate(new_q: str, window: int = 6) -> bool:
     count = 0
     
     for m in st.session_state.messages[-window:]:
-        if m.get("role") == "assistant":
-            content = m.get("content", "")
+        if safe_get(m, "role") == "assistant":
+            content = safe_get(m, "content", "")
             # Check for repetitive valuation questions specifically
             if "recommend" in content.lower() and "valuation" in nq:
                 count += 1
@@ -448,7 +448,7 @@ def _next_uncovered_prompt():
     """Get next uncovered topic question"""
     try:
         progress_info = analyze_conversation_progress(st.session_state.messages)
-        return progress_info.get('next_question', '')
+        return safe_get(progress_info, 'next_question', '')
     except Exception:
         return "Let's continue with the next topic in our investment banking interview."
 
@@ -459,12 +459,12 @@ def _meaningful_since_last_question(min_tokens: int = 6) -> bool:
     last_q_idx = None
     for i in range(len(st.session_state.messages)-1, -1, -1):
         m = st.session_state.messages[i]
-        if m.get('role') == 'assistant' and ('?' in m.get('content','') or any(k in m.get('content','').lower() for k in ['choose','specify','select'])):
+        if safe_get(m, 'role') == 'assistant' and ('?' in safe_get(m, 'content','') or any(k in safe_get(m, 'content','').lower() for k in ['choose','specify','select'])):
             last_q_idx = i
             break
     if last_q_idx is None:
         return False
-    user_text = ' '.join(m.get('content','') for m in st.session_state.messages[last_q_idx+1:] if m.get('role')=='user').strip()
+    user_text = ' '.join(safe_get(m, 'content','') for m in st.session_state.messages[last_q_idx+1:] if safe_get(m, 'role')=='user').strip()
     tokens = [t for t in re.findall(r'[a-z0-9]+', user_text.lower()) if t not in {'ok','okay','sure','yep','yes','no','next','skip'}]
     return len(tokens) >= min_tokens
 
@@ -478,7 +478,7 @@ def _memory_transcript(max_turns: int = 12, max_chars: int = 2400) -> str:
     lines = []
     try:
         from langchain.memory import ConversationBufferMemory
-        if isinstance(st.session_state.get('lc_memory'), ConversationBufferMemory):
+        if isinstance(st.safe_get(session_state, 'lc_memory'), ConversationBufferMemory):
             msgs = st.session_state.lc_memory.chat_memory.messages[-(max_turns*2):]
             for m in msgs:
                 role = getattr(m, "type", None) or getattr(m, "role", "")
@@ -487,10 +487,10 @@ def _memory_transcript(max_turns: int = 12, max_chars: int = 2400) -> str:
                 lines.append(f"{role}: {content}")
         else:
             for m in st.session_state.messages[-(max_turns*2):]:
-                lines.append(f"{m.get('role','assistant')}: {m.get('content','')}")
+                lines.append(f"{safe_get(m, 'role','assistant')}: {safe_get(m, 'content','')}")
     except Exception:
         for m in st.session_state.messages[-(max_turns*2):]:
-            lines.append(f"{m.get('role','assistant')}: {m.get('content','')}")
+            lines.append(f"{safe_get(m, 'role','assistant')}: {safe_get(m, 'content','')}")
     transcript = "\n".join(lines).strip()
     if len(transcript) > max_chars:
         transcript = transcript[-max_chars:]
@@ -569,19 +569,19 @@ TOPIC_FIELD_REQUIREMENTS = {
 
 def _get_topic_requirements(topic_id: str) -> dict:
     """Get structured field requirements for a specific topic"""
-    return TOPIC_FIELD_REQUIREMENTS.get(topic_id, {})
+    return safe_get(TOPIC_FIELD_REQUIREMENTS, topic_id, {})
 
 def _check_missing_fields(topic_id: str, provided_data: str) -> list:
     """Check which required fields are missing from provided data"""
     requirements = _get_topic_requirements(topic_id)
-    required_fields = requirements.get("required_fields", [])
-    field_descriptions = requirements.get("field_descriptions", {})
+    required_fields = safe_get(requirements, "required_fields", [])
+    field_descriptions = safe_get(requirements, "field_descriptions", {})
     
     missing_fields = []
     data_lower = provided_data.lower()
     
     for field in required_fields:
-        description = field_descriptions.get(field, field)
+        description = safe_get(field_descriptions, field, field)
         
         # Simple keyword matching for field detection
         field_keywords = {
@@ -604,7 +604,7 @@ def _check_missing_fields(topic_id: str, provided_data: str) -> list:
             "transaction_timeline": ["timeline", "time", "duration", "schedule"]
         }
         
-        keywords = field_keywords.get(field, [field.replace("_", " ")])
+        keywords = safe_get(field_keywords, field, [field.replace("_", " ")])
         if not any(keyword in data_lower for keyword in keywords):
             missing_fields.append({"field": field, "description": description})
     
@@ -616,7 +616,7 @@ def _create_targeted_followup(topic_id: str, missing_fields: list, company_name:
         return ""
     
     requirements = _get_topic_requirements(topic_id)
-    detailed_reqs = requirements.get("detailed_requirements", {})
+    detailed_reqs = safe_get(requirements, "detailed_requirements", {})
     
     # Create specific follow-up based on topic
     if topic_id == "business_overview":
@@ -833,11 +833,11 @@ def _set_entity_profile(name: str, *, aliases=None, confusions=None, home_countr
 
 def _get_entity_name() -> str:
     # Try universal entity profile first, then fallback to existing system
-    ep = st.session_state.get("entity_profile", {})
-    if ep.get("name"):
+    ep = st.safe_get(session_state, "entity_profile", {})
+    if safe_get(ep, "name"):
         return ep["name"]
     # Fallback to existing company name system
-    return st.session_state.get('company_name', st.session_state.get('current_company', ''))
+    return st.safe_get(session_state, 'company_name', st.session_state.get('current_company', ''))
 
 def _maybe_lock_entity_from_text(text: str):
     t = (text or "").strip()
@@ -860,15 +860,15 @@ def _maybe_lock_entity_from_text(text: str):
 
 def _entity_conflict_detect(text: str) -> bool:
     # Generic cross-entity drift detector using 'confusions' set and currency/country clues.
-    ep = st.session_state.get("entity_profile", {})
+    ep = st.safe_get(session_state, "entity_profile", {})
     if not ep or not text: return False
     s = text.lower()
     # direct confusion terms
-    for bad in ep.get("confusions", []):
+    for bad in safe_get(ep, "confusions", []):
         if bad.lower() in s:
             return True
     # crude currency/country mismatch heuristic
-    hc = ep.get("home_country","").lower()
+    hc = safe_get(ep, "home_country","").lower()
     if hc:
         currency_flags = {
             "united states":"¥| jpy| yen| eur ",
@@ -903,8 +903,8 @@ def _run_research_universal(user_text: str):
             {"role": "system", "content": "You are a research assistant. Use readable titles + links."},
             {"role": "user", "content": guarded}
         ]
-        out = shared_call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
-                          st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
+        out = shared_call_llm_api(messages, st.safe_get(session_state, 'model', 'claude-3-5-sonnet-20241022'), 
+                          st.safe_get(session_state, 'api_key'), st.safe_get(session_state, 'api_service', 'claude'))
     except Exception as e:
         print(f"Research error: {e}")
         out = f"Research on {entity or 'target company'} regarding {user_text}."
@@ -915,8 +915,8 @@ def _run_research_universal(user_text: str):
         refine = f"{prefix}{user_text} (exclude confusable entities; adhere strictly to the specified entity profile)"
         try:
             messages[1]["content"] = refine
-            out2 = shared_call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
-                               st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
+            out2 = shared_call_llm_api(messages, st.safe_get(session_state, 'model', 'claude-3-5-sonnet-20241022'), 
+                               st.safe_get(session_state, 'api_key'), st.safe_get(session_state, 'api_service', 'claude'))
             out2 = _sanitize_output(out2 or "")
             if len(out2) > len(out) * 0.5:
                 out = out2
@@ -937,8 +937,8 @@ def _run_fact_lookup_universal(user_text: str):
             {"role": "system", "content": "You answer direct factual questions briefly."},
             {"role": "user", "content": prompt}
         ]
-        out = shared_call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
-                          st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
+        out = shared_call_llm_api(messages, st.safe_get(session_state, 'model', 'claude-3-5-sonnet-20241022'), 
+                          st.safe_get(session_state, 'api_key'), st.safe_get(session_state, 'api_service', 'claude'))
         return _sanitize_output(out or "I'm not sure about that. Would you like me to research it?")
     except Exception:
         return f"I'm not sure about that. Would you like me to research {entity} for more details?"
@@ -963,9 +963,9 @@ def _recent_assistant_question_duplicate(new_q: str, window: int = 6) -> bool:
     nq = normalize(new_q)
     count = 0
     
-    for m in st.session_state.get("messages", [])[-window:]:
-        if m.get("role") == "assistant":
-            content = m.get("content", "")
+    for m in st.safe_get(session_state, "messages", [])[-window:]:
+        if safe_get(m, "role") == "assistant":
+            content = safe_get(m, "content", "")
             # Check for repetitive valuation questions specifically
             if "recommend" in content.lower() and "valuation" in nq:
                 count += 1
@@ -1031,7 +1031,7 @@ def _known_metrics_for_estimation() -> dict:
         transcript = _memory_transcript(max_turns=18, max_chars=6000)
     except Exception: 
         transcript = ""
-    sess = " ".join(m.get("content","") for m in st.session_state.get("messages", [])[-10:])
+    sess = " ".join(safe_get(m, "content","") for m in st.safe_get(session_state, "messages", [])[-10:])
     km = _parse_metrics_from_text(transcript + "\n" + sess)
     if "derived_metrics" in st.session_state: 
         km = _merge_metrics(km, st.session_state["derived_metrics"])
@@ -1046,8 +1046,8 @@ def _run_research_for_estimation(entity_hint: str, user_text: str) -> tuple[str,
             {"role": "system", "content": "You are a research assistant. Find recent, reputable sources for the target entity/sector. Return a concise bullet list with TITLE and LINK for each source (no naked [1]/[2]). Then add a short 'Metrics' section with any numeric signals: active users/cardholders, ARPU ($/user), TPV/GMV (USD), take-rate (%), POS count."},
             {"role": "user", "content": query}
         ]
-        txt = shared_call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
-                          st.session_state.get('api_key'), st.session_state.get('api_service', 'claude')) or ""
+        txt = shared_call_llm_api(messages, st.safe_get(session_state, 'model', 'claude-3-5-sonnet-20241022'), 
+                          st.safe_get(session_state, 'api_key'), st.safe_get(session_state, 'api_service', 'claude')) or ""
     except Exception:
         txt = f"Research on {entity_hint} for estimation purposes."
     
@@ -1082,8 +1082,8 @@ def _estimate_from_metrics(metrics: dict) -> str:
             {"role": "system", "content": instructions},
             {"role": "user", "content": primer}
         ]
-        res = shared_call_llm_api(messages, st.session_state.get('model', 'claude-3-5-sonnet-20241022'), 
-                          st.session_state.get('api_key'), st.session_state.get('api_service', 'claude'))
+        res = shared_call_llm_api(messages, st.safe_get(session_state, 'model', 'claude-3-5-sonnet-20241022'), 
+                          st.safe_get(session_state, 'api_key'), st.safe_get(session_state, 'api_service', 'claude'))
         return _sanitize_output(res or "")
     except Exception:
         return "I'll need more financial data to provide a reliable revenue estimate."
@@ -1196,7 +1196,7 @@ def _remember_company_from_user(user_text: str):
 def _run_research(user_text: str):
     """PATCHED RESEARCH: Uses sticky entity + guardrails"""
     # Get sticky company from memory
-    entity = st.session_state.get('current_company') or st.session_state.get('company_name', '')
+    entity = st.safe_get(session_state, 'current_company') or st.safe_get(session_state, 'company_name', '')
     
     if entity:
         # Use universal research with entity guardrails
@@ -1281,7 +1281,7 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
     # Don't force slides with no content - respect the adaptive generation decision
     current_slides = []
     if 'slides' in fixed_render_plan:
-        current_slides = [slide.get('template', '') for slide in fixed_render_plan['slides']]
+        current_slides = [safe_get(slide, 'template', '') for slide in fixed_render_plan['slides']]
     
     print(f"🔧 ADAPTIVE: Current slides from generation: {current_slides}")
     print(f"🔧 ADAPTIVE: Will enhance these {len(current_slides)} slides instead of forcing 14")
@@ -1334,9 +1334,9 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
                 "id": "chart_hist_perf",
                 "type": "combo",
                 "title": "Revenue & EBITDA Growth",
-                "categories": fixed_content_ir.get('facts', {}).get('years', ['2020', '2021', '2022', '2023', '2024E']),
-                "revenue": fixed_content_ir.get('facts', {}).get('revenue_usd_m', [120, 145, 180, 210, 240]),
-                "ebitda": fixed_content_ir.get('facts', {}).get('ebitda_usd_m', [18, 24, 31, 40, 47]),
+                "categories": safe_get(fixed_content_ir, 'facts', {}).get('years', ['2020', '2021', '2022', '2023', '2024E']),
+                "revenue": safe_get(fixed_content_ir, 'facts', {}).get('revenue_usd_m', [120, 145, 180, 210, 240]),
+                "ebitda": safe_get(fixed_content_ir, 'facts', {}).get('ebitda_usd_m', [18, 24, 31, 40, 47]),
                 "unit": "US$m"
             }
         ]
@@ -1369,8 +1369,8 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
     if 'margin_cost_data' not in fixed_content_ir:
         fixed_content_ir['margin_cost_data'] = {
             "chart_data": {
-                "categories": fixed_content_ir.get('facts', {}).get('years', ['2020', '2021', '2022', '2023', '2024E']),
-                "values": fixed_content_ir.get('facts', {}).get('ebitda_margins', [15.0, 16.6, 17.2, 19.0, 19.6])
+                "categories": safe_get(fixed_content_ir, 'facts', {}).get('years', ['2020', '2021', '2022', '2023', '2024E']),
+                "values": safe_get(fixed_content_ir, 'facts', {}).get('ebitda_margins', [15.0, 16.6, 17.2, 19.0, 19.6])
             },
             "cost_management": {
                 "title": "Strategic Cost Management Initiatives",
@@ -1390,15 +1390,15 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
     if 'precedent_transactions' in fixed_content_ir:
         for transaction in fixed_content_ir['precedent_transactions']:
             if 'enterprise_value' not in transaction or 'revenue' not in transaction:
-                transaction['enterprise_value'] = transaction.get('enterprise_value', transaction.get('revenue', 100) * 3.0)
-                transaction['revenue'] = transaction.get('revenue', transaction.get('enterprise_value', 300) / 3.0)
+                transaction['enterprise_value'] = safe_get(transaction, 'enterprise_value', transaction.get('revenue', 100) * 3.0)
+                transaction['revenue'] = safe_get(transaction, 'revenue', transaction.get('enterprise_value', 300) / 3.0)
             if 'ev_revenue_multiple' not in transaction:
                 transaction['ev_revenue_multiple'] = transaction['enterprise_value'] / transaction['revenue']
     
     # Use the already fixed render plan from comprehensive_json_fix 
     # Additional legacy compatibility checks for slide order
     print("🔧 MANDATORY: Checking Render Plan slide order...")
-    current_slides = [slide['template'] for slide in fixed_render_plan.get('slides', [])]
+    current_slides = [slide['template'] for slide in safe_get(fixed_render_plan, 'slides', [])]
     print(f"❌ CURRENT ORDER: {current_slides}")
     print(f"✅ REQUIRED ORDER: {required_slide_order}")
     
@@ -1412,7 +1412,7 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
     existing_slides = {}
     buyer_slides = []
     
-    for slide in render_plan.get('slides', []):
+    for slide in safe_get(render_plan, 'slides', []):
         template = slide['template']
         if template == 'buyer_profiles':
             buyer_slides.append(slide)
@@ -1429,7 +1429,7 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
                 # Look for existing strategic buyer slide
                 strategic_slide = None
                 for slide in buyer_slides:
-                    if slide.get('content_ir_key') == 'strategic_buyers':
+                    if safe_get(slide, 'content_ir_key') == 'strategic_buyers':
                         strategic_slide = slide
                         break
                 
@@ -1444,7 +1444,7 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
                         "data": {
                             "title": "Strategic Buyer Profiles",
                             "table_headers": ["Buyer Name", "Strategic Rationale", "Fit"],
-                            "table_rows": fixed_content_ir.get('strategic_buyers', [])
+                            "table_rows": safe_get(fixed_content_ir, 'strategic_buyers', [])
                         }
                     })
                     print(f"🔧 MANDATORY: Created new strategic buyers slide")
@@ -1453,7 +1453,7 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
                 # Look for existing financial buyer slide
                 financial_slide = None
                 for slide in buyer_slides:
-                    if slide.get('content_ir_key') == 'financial_buyers':
+                    if safe_get(slide, 'content_ir_key') == 'financial_buyers':
                         financial_slide = slide
                         break
                 
@@ -1468,7 +1468,7 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
                         "data": {
                             "title": "Financial Buyer Profiles",
                             "table_headers": ["Buyer Name", "Strategic Rationale", "Fit"],
-                            "table_rows": fixed_content_ir.get('financial_buyers', [])
+                            "table_rows": safe_get(fixed_content_ir, 'financial_buyers', [])
                         }
                     })
                     print(f"🔧 MANDATORY: Created new financial buyers slide")
@@ -1507,11 +1507,11 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
                     "template": "investor_process_overview",
                     "data": {
                         "title": "Comprehensive Investor Process Overview",
-                        "diligence_topics": fixed_content_ir.get('investor_process_data', {}).get('diligence_topics', []),
-                        "synergy_opportunities": fixed_content_ir.get('investor_process_data', {}).get('synergy_opportunities', []),
-                        "risk_factors": fixed_content_ir.get('investor_process_data', {}).get('risk_factors', []),
-                        "mitigants": fixed_content_ir.get('investor_process_data', {}).get('mitigants', []),
-                        "timeline": fixed_content_ir.get('investor_process_data', {}).get('timeline', [])
+                        "diligence_topics": safe_get(fixed_content_ir, 'investor_process_data', {}).get('diligence_topics', []),
+                        "synergy_opportunities": safe_get(fixed_content_ir, 'investor_process_data', {}).get('synergy_opportunities', []),
+                        "risk_factors": safe_get(fixed_content_ir, 'investor_process_data', {}).get('risk_factors', []),
+                        "mitigants": safe_get(fixed_content_ir, 'investor_process_data', {}).get('mitigants', []),
+                        "timeline": safe_get(fixed_content_ir, 'investor_process_data', {}).get('timeline', [])
                     }
                 })
             else:
@@ -1548,7 +1548,7 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
                         headers = list(slide['data']['coverage_table'][0].keys())
                         table_data = [headers]
                         for row in slide['data']['coverage_table']:
-                            table_data.append([str(row.get(key, '')) for key in headers])
+                            table_data.append([str(safe_get(row, key, '')) for key in headers])
                         slide['data']['coverage_table'] = table_data
         
         # Fix sea_conglomerates structure - CRITICAL FIX
@@ -1591,7 +1591,7 @@ def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
                     "Buyer Name", "Description", "Strategic Rationale", 
                     "Key Synergies", "Fit", "Financial Capacity"
                 ]
-                slide['data']['table_rows'] = fixed_content_ir.get(slide.get('content_ir_key', 'strategic_buyers'), [])
+                slide['data']['table_rows'] = safe_get(fixed_content_ir, slide.get('content_ir_key', 'strategic_buyers'), [])
     
     # MANDATORY: Final validation
     print("🔧 MANDATORY: Final validation...")
@@ -1743,7 +1743,7 @@ def extract_jsons_from_response(response_text):
                 print(f"[JSON EXTRACTION] 🚨 ATTEMPTING Render Plan parsing...")
                 render_plan = json.loads(render_plan_json_str)
                 print(f"[JSON EXTRACTION] ✅ Render Plan parsed successfully")
-                slides_count = len(render_plan.get('slides', []))
+                slides_count = len(safe_get(render_plan, 'slides', []))
                 print(f"[JSON EXTRACTION] Slides count: {slides_count}")
             except json.JSONDecodeError as e:
                 print(f"[JSON EXTRACTION] ❌ Render Plan parse failed: {e}")
@@ -1888,7 +1888,7 @@ def debug_json_extraction(response_text, content_ir, render_plan):
         print(f"   - Type: {type(content_ir)}")
         print(f"   - Keys: {list(content_ir.keys()) if isinstance(content_ir, dict) else 'N/A'}")
         if isinstance(content_ir, dict) and 'entities' in content_ir:
-            company_name = content_ir.get('entities', {}).get('company', {}).get('name', 'Unknown')
+            company_name = safe_get(content_ir, 'entities', {}).get('company', {}).get('name', 'Unknown')
             print(f"   - Company: {company_name}")
     else:
         print("❌ Content IR NOT extracted")
@@ -1899,7 +1899,7 @@ def debug_json_extraction(response_text, content_ir, render_plan):
         print(f"   - Keys: {list(render_plan.keys()) if isinstance(render_plan, dict) else 'N/A'}")
         if isinstance(render_plan, dict) and 'slides' in render_plan:
             print(f"   - Slides: {len(render_plan['slides'])}")
-            slide_types = [slide.get('template', 'unknown') for slide in render_plan['slides']]
+            slide_types = [safe_get(slide, 'template', 'unknown') for slide in render_plan['slides']]
             print(f"   - Slide Types: {slide_types[:5]}{'...' if len(slide_types) > 5 else ''}")
     else:
         print("❌ Render Plan NOT extracted")
@@ -2024,7 +2024,7 @@ def normalize_content_ir_structure(content_ir):
             
             if normalized_mgmt:
                 normalized['management_team'] = normalized_mgmt
-                print(f"[NORMALIZATION] Created management_team structure with {len(normalized_mgmt.get('left_column_profiles', [])) + len(normalized_mgmt.get('right_column_profiles', []))} profiles")
+                print(f"[NORMALIZATION] Created management_team structure with {len(safe_get(normalized_mgmt, 'left_column_profiles', [])) + len(safe_get(normalized_mgmt, 'right_column_profiles', []))} profiles")
     
     # Copy remaining fields
     for key, value in content_ir.items():
@@ -2115,17 +2115,17 @@ def normalize_slide_structure(slide, slide_index):
             normalized_slide['data'] = slide['data']
         elif isinstance(slide['data'], list):
             normalized_slide['data'] = {
-                'title': slide.get('template', 'Slide').replace('_', ' ').title(),
+                'title': safe_get(slide, 'template', 'Slide').replace('_', ' ').title(),
                 'content': slide['data']
             }
         else:
             normalized_slide['data'] = {
-                'title': slide.get('template', 'Slide').replace('_', ' ').title(),
+                'title': safe_get(slide, 'template', 'Slide').replace('_', ' ').title(),
                 'content': slide['data']
             }
     
     # Handle content_ir_key for buyer_profiles
-    if normalized_slide.get('template') == 'buyer_profiles' and 'content_ir_key' not in slide:
+    if safe_get(normalized_slide, 'template') == 'buyer_profiles' and 'content_ir_key' not in slide:
         # Try to infer content_ir_key from data
         if 'data' in normalized_slide and isinstance(normalized_slide['data'], dict):
             data = normalized_slide['data']
@@ -2161,8 +2161,8 @@ def validate_json_structure_against_examples(content_ir, render_plan):
         
         # 1. Timeline format validation (dict with date/description)
         timeline_sources = [
-            content_ir.get('business_overview_data', {}).get('timeline', []),
-            content_ir.get('investor_process_data', {}).get('timeline', [])
+            safe_get(content_ir, 'business_overview_data', {}).get('timeline', []),
+            safe_get(content_ir, 'investor_process_data', {}).get('timeline', [])
         ]
         
         for timeline_data in timeline_sources:
@@ -2177,7 +2177,7 @@ def validate_json_structure_against_examples(content_ir, render_plan):
         
         # 2. Buyer descriptions validation (no N/A allowed, sections must exist)
         for buyer_type in ['strategic_buyers', 'financial_buyers']:
-            buyers = content_ir.get(buyer_type, [])
+            buyers = safe_get(content_ir, buyer_type, [])
             
             # Check if buyer section exists and has sufficient content
             if not buyers:
@@ -2192,7 +2192,7 @@ def validate_json_structure_against_examples(content_ir, render_plan):
             # Check individual buyer entries
             for i, buyer in enumerate(buyers):
                 if isinstance(buyer, dict):
-                    description = buyer.get('description', '')
+                    description = safe_get(buyer, 'description', '')
                     if not description or description in ['N/A', 'n/a', '']:
                         validation_results['recent_fixes_validation']['buyer_descriptions'] = False
                         validation_results['structure_issues'].append(f'{buyer_type}[{i}] missing proper description (has: {description})')
@@ -2201,24 +2201,24 @@ def validate_json_structure_against_examples(content_ir, render_plan):
                     # Check for required fields
                     required_fields = ['buyer_name', 'description', 'strategic_rationale', 'key_synergies', 'fit']
                     for field in required_fields:
-                        if not buyer.get(field):
+                        if not safe_get(buyer, field):
                             validation_results['recent_fixes_validation']['buyer_descriptions'] = False
                             validation_results['structure_issues'].append(f'{buyer_type}[{i}] missing required field: {field}')
                             print(f"[ENHANCED VALIDATION] ❌ {buyer_type}[{i}] missing field: {field}")
         
         # 3. Financial formatting validation (use compact notation)
-        transactions = content_ir.get('precedent_transactions', [])
+        transactions = safe_get(content_ir, 'precedent_transactions', [])
         for i, transaction in enumerate(transactions):
             if isinstance(transaction, dict):
                 for field in ['enterprise_value', 'revenue']:
-                    value = transaction.get(field, '')
+                    value = safe_get(transaction, field, '')
                     if isinstance(value, (int, float)) and value > 1000:
                         validation_results['recent_fixes_validation']['financial_formatting'] = False
                         validation_results['structure_issues'].append(f'precedent_transactions[{i}].{field} should use compact notation ($2.1B not {value})')
                         print(f"[ENHANCED VALIDATION] ❌ Financial value not in compact format: {field}={value}")
         
         # 4. Competitive data validation (generic - ensure competitors exist)
-        competitors = content_ir.get('competitive_analysis', {}).get('competitors', [])
+        competitors = safe_get(content_ir, 'competitive_analysis', {}).get('competitors', [])
         
         if not competitors:
             validation_results['recent_fixes_validation']['competitive_structure'] = False
@@ -2228,7 +2228,7 @@ def validate_json_structure_against_examples(content_ir, render_plan):
             # Just validate that competitors have proper structure (name and revenue)
             for i, comp in enumerate(competitors):
                 if isinstance(comp, dict):
-                    if not comp.get('name') or comp.get('revenue') is None:
+                    if not safe_get(comp, 'name') or safe_get(comp, 'revenue') is None:
                         validation_results['recent_fixes_validation']['competitive_structure'] = False
                         validation_results['structure_issues'].append(f'Competitor {i} missing required name or revenue field')
                         print(f"[ENHANCED VALIDATION] ❌ Competitor {i} has invalid structure: {comp}")
@@ -2301,7 +2301,7 @@ def validate_json_structure_against_examples(content_ir, render_plan):
                         slide_issues.append(f"Slide {i+1} missing 'data' field")
                     
                     # Check for content_ir_key in buyer_profiles slides
-                    if slide.get('template') == 'buyer_profiles' and 'content_ir_key' not in slide:
+                    if safe_get(slide, 'template') == 'buyer_profiles' and 'content_ir_key' not in slide:
                         slide_issues.append(f"Slide {i+1} (buyer_profiles) missing 'content_ir_key'")
             
             if slide_issues:
@@ -2383,7 +2383,7 @@ def validate_individual_slides(content_ir, render_plan):
     # Validate each slide
     for i, slide in enumerate(slides):
         slide_num = i + 1
-        template = slide.get('template', 'unknown')
+        template = safe_get(slide, 'template', 'unknown')
         
         slide_validation = {
             'slide_number': slide_num,
@@ -2396,7 +2396,7 @@ def validate_individual_slides(content_ir, render_plan):
         }
         
         # Basic slide structure validation
-        if not slide.get('data'):
+        if not safe_get(slide, 'data'):
             slide_validation['issues'].append("Missing 'data' section")
             slide_validation['valid'] = False
         
@@ -2405,12 +2405,12 @@ def validate_individual_slides(content_ir, render_plan):
             template_validator = template_validators[template]
             template_validation = template_validator(slide, content_ir)
             
-            slide_validation['issues'].extend(template_validation.get('issues', []))
-            slide_validation['warnings'].extend(template_validation.get('warnings', []))
-            slide_validation['missing_fields'].extend(template_validation.get('missing_fields', []))
-            slide_validation['empty_fields'].extend(template_validation.get('empty_fields', []))
+            slide_validation['issues'].extend(safe_get(template_validation, 'issues', []))
+            slide_validation['warnings'].extend(safe_get(template_validation, 'warnings', []))
+            slide_validation['missing_fields'].extend(safe_get(template_validation, 'missing_fields', []))
+            slide_validation['empty_fields'].extend(safe_get(template_validation, 'empty_fields', []))
             
-            if template_validation.get('issues') or template_validation.get('missing_fields') or template_validation.get('empty_fields'):
+            if safe_get(template_validation, 'issues') or safe_get(template_validation, 'missing_fields') or safe_get(template_validation, 'empty_fields'):
                 slide_validation['valid'] = False
         else:
             slide_validation['warnings'].append(f"Unknown template type: {template}")
@@ -2434,7 +2434,7 @@ def validate_business_overview_slide(slide, content_ir):
     """Validate business overview slide for completeness"""
     validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
     
-    data = slide.get('data', {})
+    data = safe_get(slide, 'data', {})
     
     # Required fields for business overview
     required_fields = {
@@ -2475,7 +2475,7 @@ def validate_product_service_footprint_slide(slide, content_ir):
     """Validate product service footprint slide - the one with empty boxes"""
     validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
     
-    data = slide.get('data', {})
+    data = safe_get(slide, 'data', {})
     
     # Required fields
     if 'title' not in data or not data['title']:
@@ -2548,7 +2548,7 @@ def validate_buyer_profiles_slide(slide, content_ir):
     """Validate buyer profiles slide - FIXED to handle both approaches correctly"""
     validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
     
-    data = slide.get('data', {})
+    data = safe_get(slide, 'data', {})
     
     # Check for content_ir_key (preferred) or table_rows (fallback)
     has_content_ir_key = 'content_ir_key' in slide
@@ -2621,7 +2621,7 @@ def validate_buyer_profiles_slide(slide, content_ir):
         # Validate table_rows content - FIXED to handle your data structure
         validation['warnings'].append("Using hardcoded table_rows - content_ir_key preferred for dynamic data")
         
-        table_rows = data.get('table_rows', [])
+        table_rows = safe_get(data, 'table_rows', [])
         if not table_rows or len(table_rows) == 0:
             validation['empty_fields'].append("Empty table_rows array")
         else:
@@ -2708,15 +2708,15 @@ def validate_management_team_slide(slide, content_ir):
         mgmt_data = content_ir[content_key]
     else:
         # Check data section
-        data = slide.get('data', {})
+        data = safe_get(slide, 'data', {})
         if 'management_team' not in content_ir:
             validation['issues'].append("No management_team data in Content IR")
             return validation
         mgmt_data = content_ir['management_team']
     
     # CRITICAL FIX: Check total profile count first (max 6 profiles)
-    left_profiles = mgmt_data.get('left_column_profiles', [])
-    right_profiles = mgmt_data.get('right_column_profiles', [])
+    left_profiles = safe_get(mgmt_data, 'left_column_profiles', [])
+    right_profiles = safe_get(mgmt_data, 'right_column_profiles', [])
     total_profiles = len(left_profiles) + len(right_profiles)
     
     if total_profiles > 6:
@@ -2759,7 +2759,7 @@ def validate_historical_financial_performance_slide(slide, content_ir):
     """Validate historical financial performance slide"""
     validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
     
-    data = slide.get('data', {})
+    data = safe_get(slide, 'data', {})
     
     # Required fields for historical financial performance
     required_fields = {
@@ -2827,7 +2827,7 @@ def validate_growth_strategy_slide(slide, content_ir):
     """Validate growth strategy slide"""
     validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
     
-    data = slide.get('data', {})
+    data = safe_get(slide, 'data', {})
     
     # Get actual data structure - check for slide_data wrapper
     if 'slide_data' in data:
@@ -2863,7 +2863,7 @@ def validate_competitive_positioning_slide(slide, content_ir):
     """ENHANCED: Validate competitive positioning slide - iCar Asia format requirements"""
     validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
     
-    data = slide.get('data', {})
+    data = safe_get(slide, 'data', {})
     
     # ENHANCED: Check for iCar Asia format requirements
     required_fields = {
@@ -2960,7 +2960,7 @@ def validate_competitive_positioning_slide(slide, content_ir):
         if section in data and isinstance(data[section], list):
             for i, item in enumerate(data[section]):
                 if isinstance(item, dict):
-                    if not item.get('title') or not item.get('desc'):
+                    if not safe_get(item, 'title') or not safe_get(item, 'desc'):
                         validation['empty_fields'].append(f"{section.title()} #{i+1} missing title or description")
     
     return validation
@@ -2969,7 +2969,7 @@ def validate_valuation_overview_slide(slide, content_ir):
     """Validate valuation overview slide - FIXED for correct field names"""
     validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
     
-    data = slide.get('data', {})
+    data = safe_get(slide, 'data', {})
     
     # FIXED: Use the correct field names from your data structure
     required_fields = {
@@ -3024,7 +3024,7 @@ def validate_trading_comparables_slide(slide, content_ir):
     """Validate trading comparables slide"""
     validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
     
-    data = slide.get('data', {})
+    data = safe_get(slide, 'data', {})
     
     # Required fields
     required_fields = {
@@ -3059,7 +3059,7 @@ def validate_precedent_transactions_slide(slide, content_ir):
     """Validate precedent transactions slide"""
     validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
     
-    data = slide.get('data', {})
+    data = safe_get(slide, 'data', {})
     
     # Required fields
     required_fields = {
@@ -3093,7 +3093,7 @@ def validate_margin_cost_resilience_slide(slide, content_ir):
     """Validate margin/cost resilience slide - FIXED for correct field names"""
     validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
     
-    data = slide.get('data', {})
+    data = safe_get(slide, 'data', {})
     
     # FIXED: Use the correct field names from your data structure
     required_fields = {
@@ -3119,7 +3119,7 @@ def validate_margin_cost_resilience_slide(slide, content_ir):
                 for i, item in enumerate(items):
                     if not isinstance(item, dict):
                         validation['empty_fields'].append(f"Cost management item #{i+1} is not properly structured")
-                    elif not item.get('title') or not item.get('description'):
+                    elif not safe_get(item, 'title') or not safe_get(item, 'description'):
                         validation['empty_fields'].append(f"Cost management item #{i+1} missing title or description")
     
     # Validate risk mitigation
@@ -3135,7 +3135,7 @@ def validate_investor_considerations_slide(slide, content_ir):
     """Validate investor considerations slide"""
     validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
     
-    data = slide.get('data', {})
+    data = safe_get(slide, 'data', {})
     
     required_fields = {
         'title': 'Slide title',
@@ -3155,7 +3155,7 @@ def validate_financial_summary_slide(slide, content_ir):
     """Validate financial summary slide"""
     validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
     
-    data = slide.get('data', {})
+    data = safe_get(slide, 'data', {})
     
     required_fields = {
         'title': 'Slide title',
@@ -3175,7 +3175,7 @@ def validate_transaction_overview_slide(slide, content_ir):
     """Validate transaction overview slide"""
     validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
     
-    data = slide.get('data', {})
+    data = safe_get(slide, 'data', {})
     
     required_fields = {
         'title': 'Slide title',
@@ -3196,7 +3196,7 @@ def validate_product_service_overview_slide(slide, content_ir):
     """Validate product/service overview slide"""
     validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
     
-    data = slide.get('data', {})
+    data = safe_get(slide, 'data', {})
     
     # Required fields
     required_fields = {
@@ -3217,7 +3217,7 @@ def validate_appendix_slide(slide, content_ir):
     """Validate appendix slide"""
     validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
     
-    data = slide.get('data', {})
+    data = safe_get(slide, 'data', {})
     
     if 'title' not in data or not data['title']:
         validation['missing_fields'].append("Missing appendix title")
@@ -3259,7 +3259,7 @@ def validate_sea_conglomerates_slide(slide, content_ir):
                         validation['empty_fields'].append(f"Conglomerate #{cong_num} has placeholder {field}")
                 
                 # Check for obvious placeholder patterns in contact field (not legitimate user data)
-                contact_field = conglomerate.get('contact', '')
+                contact_field = safe_get(conglomerate, 'contact', '')
                 placeholder_patterns = ['[placeholder]', '[contact]', '[team]', 'TODO:', 'TBD', 'PLACEHOLDER']
                 if contact_field and any(pattern.lower() in contact_field.lower() for pattern in placeholder_patterns):
                     validation['empty_fields'].append(f"Conglomerate #{cong_num} has placeholder text in contact field")
@@ -3270,7 +3270,7 @@ def validate_investor_process_overview_slide(slide, content_ir):
     """Validate investor process overview slide"""
     validation = {'issues': [], 'warnings': [], 'missing_fields': [], 'empty_fields': []}
     
-    data = slide.get('data', {})
+    data = safe_get(slide, 'data', {})
     
     # Required fields for investor process overview
     required_fields = {
@@ -3296,7 +3296,7 @@ def validate_investor_process_overview_slide(slide, content_ir):
                 if isinstance(item, dict):
                     # Check for required fields in each item
                     if 'title' in item and 'description' in item:
-                        if not item.get('title') or not item.get('description'):
+                        if not safe_get(item, 'title') or not safe_get(item, 'description'):
                             validation['empty_fields'].append(f"{description} #{item_num} missing title or description")
                     elif not item or str(item).strip() == '':
                         validation['empty_fields'].append(f"{description} #{item_num} is empty")
@@ -3461,7 +3461,7 @@ Ensure ZERO placeholder content, proper data types, and complete information."""
         # Extract and validate corrected JSONs
         corrected_content_ir, corrected_render_plan, corrected_validation = extract_and_validate_jsons(corrected_response)
         
-        if corrected_validation and corrected_validation.get('overall_valid', False):
+        if corrected_validation and safe_get(corrected_validation, 'overall_valid', False):
             print(f"\n✅ VALIDATION SUCCESS: Auto-correction successful!")
             return corrected_content_ir, corrected_render_plan, corrected_response
         else:
@@ -3797,9 +3797,9 @@ def enhanced_json_validation_with_fixes(content_ir, render_plan):
         for buyer_type in ['strategic_buyers', 'financial_buyers']:
             if buyer_type in content_ir:
                 for buyer in content_ir[buyer_type]:
-                    if 'description' not in buyer or not buyer.get('description'):
+                    if 'description' not in buyer or not safe_get(buyer, 'description'):
                         # Generate description from buyer_name
-                        buyer_name = buyer.get('buyer_name', 'Unknown')
+                        buyer_name = safe_get(buyer, 'buyer_name', 'Unknown')
                         if 'NVIDIA' in buyer_name:
                             buyer['description'] = "World's largest AI chipmaker and GPU/cloud infrastructure leader."
                         elif 'Microsoft' in buyer_name:
@@ -3829,7 +3829,7 @@ def enhanced_json_validation_with_fixes(content_ir, render_plan):
     if render_plan and 'slides' in render_plan:
         for i, slide in enumerate(render_plan['slides']):
             if 'data' in slide and isinstance(slide['data'], dict) and 'title' not in slide['data']:
-                template = slide.get('template', 'unknown')
+                template = safe_get(slide, 'template', 'unknown')
                 slide['data']['title'] = template.replace('_', ' ').title()
                 fixes_applied.append(f"Added title to slide {i+1} ({template})")
     
@@ -3837,13 +3837,13 @@ def enhanced_json_validation_with_fixes(content_ir, render_plan):
     if content_ir and 'precedent_transactions' in content_ir:
         for transaction in content_ir['precedent_transactions']:
             # Ensure compact financial notation
-            ev = transaction.get('enterprise_value', '')
+            ev = safe_get(transaction, 'enterprise_value', '')
             if isinstance(ev, (int, float)):
                 if ev >= 1000:
                     transaction['enterprise_value'] = f"${ev/1000:.1f}B"
                 else:
                     transaction['enterprise_value'] = f"${ev}M"
-                fixes_applied.append(f"Fixed financial formatting for {transaction.get('target', 'unknown')}")
+                fixes_applied.append(f"Fixed financial formatting for {safe_get(transaction, 'target', 'unknown')}")
     
     if fixes_applied:
         print(f"✅ AUTO-FIXES APPLIED: {len(fixes_applied)} issues resolved")
@@ -4025,7 +4025,7 @@ def validate_against_examples(content_ir, render_plan, examples):
         # Check management team structure
         if 'management_team' in content_ir:
             mgmt = content_ir['management_team']
-            example_mgmt = example_content_ir.get('management_team', {})
+            example_mgmt = safe_get(example_content_ir, 'management_team', {})
             
             for column in ['left_column_profiles', 'right_column_profiles']:
                 if column in example_mgmt and column not in mgmt:
@@ -4052,7 +4052,7 @@ def validate_against_examples(content_ir, render_plan, examples):
         example_slides = examples['render_plan']['slides']
         
         # Check for buyer_profiles slides using content_ir_key
-        buyer_slides = [s for s in render_plan['slides'] if s.get('template') == 'buyer_profiles']
+        buyer_slides = [s for s in render_plan['slides'] if safe_get(s, 'template') == 'buyer_profiles']
         
         for slide in buyer_slides:
             if 'content_ir_key' not in slide:
@@ -4598,7 +4598,7 @@ def analyze_conversation_progress_COMPLEX_OLD(messages):
             # Ultimate fallback: Use conversation progression logic
             sorted_topics_for_fallback = sorted(topics_checklist.items(), key=lambda x: x[1]["position"])
             for topic_name, topic_info in sorted_topics_for_fallback:
-                if not topic_info.get("covered", False) and not topic_info.get("skipped", False):
+                if not safe_get(topic_info, "covered", False) and not safe_get(topic_info, "skipped", False):
                     current_topic_being_discussed = topic_name
                     print(f"🔄 FALLBACK CURRENT TOPIC: {topic_name} (first uncovered topic)")
                     break
@@ -4642,7 +4642,7 @@ def analyze_conversation_progress_COMPLEX_OLD(messages):
                 # Business overview: company name + some business detail
                 # Extract company name dynamically from conversation
                 company_context = extract_company_context_from_messages(messages)
-                company_name = company_context.get("name", "").lower()
+                company_name = safe_get(company_context, "name", "").lower()
                 
                 focused_coverage = (
                     (company_name in recent_messages.lower() or "company" in recent_messages) and
@@ -4719,7 +4719,7 @@ def analyze_conversation_progress_COMPLEX_OLD(messages):
             elif user_requested_research and not current_topic_being_discussed:
                 # Fallback: if no current topic detected, allow for first uncovered topic
                 sorted_topics_for_research = sorted(topics_checklist.items(), key=lambda x: x[1]["position"])
-                first_uncovered = next((name for name, info in sorted_topics_for_research if not info.get("covered", False)), None)
+                first_uncovered = next((name for name, info in sorted_topics_for_research if not safe_get(info, "covered", False)), None)
                 if topic_name == first_uncovered:
                     research_request_coverage = True
                     print(f"🔍 RESEARCH REQUEST COVERAGE: {topic_name} - user requested research (fallback to first uncovered)")
@@ -4953,7 +4953,7 @@ def get_enhanced_interview_response(messages, user_message, model, api_key, serv
                 print(f"🔍 RESEARCH REQUEST: User requested research - performing actual research now")
                 
                 # Determine current topic for research context
-                current_topic = progress_info.get("current_topic", "business_overview")
+                current_topic = safe_get(progress_info, "current_topic", "business_overview")
                 
                 # Create enhanced messages with research instruction
                 enhanced_messages = messages.copy()
@@ -4961,8 +4961,8 @@ def get_enhanced_interview_response(messages, user_message, model, api_key, serv
                 # Add research instruction to guide the LLM
                 # Extract company context for dynamic research
                 company_context = extract_company_context_from_messages(messages)
-                company_name = company_context.get("name", "the company")
-                company_sector = company_context.get("sector", "technology")
+                company_name = safe_get(company_context, "name", "the company")
+                company_sector = safe_get(company_context, "sector", "technology")
                 
                 # Enhanced research instruction based on topic - DYNAMIC for any company
                 if current_topic == "valuation_overview":
@@ -5140,12 +5140,12 @@ def convert_buyer_profiles_to_sea_conglomerates(slide: dict) -> dict:
     If buyer_profiles contains financial fields (dict rows or finance headers),
     convert to sea_conglomerates template with concise description lines.
     """
-    if slide.get("template") != "buyer_profiles" or not AUTO_USE_SEA_CONGLOMERATES:
+    if safe_get(slide, "template") != "buyer_profiles" or not AUTO_USE_SEA_CONGLOMERATES:
         return slide
 
-    data = slide.get("data", {})
-    rows = data.get("table_rows", [])
-    headers = data.get("table_headers", [])
+    data = safe_get(slide, "data", {})
+    rows = safe_get(data, "table_rows", [])
+    headers = safe_get(data, "table_headers", [])
 
     finance_mode = False
     dict_rows = []
@@ -5161,22 +5161,22 @@ def convert_buyer_profiles_to_sea_conglomerates(slide: dict) -> dict:
     items = []
     if dict_rows:
         for r in dict_rows:
-            name = r.get("buyer_name") or r.get("name","")
-            country = r.get("country") or _extract_country_from_name(name)
+            name = safe_get(r, "buyer_name") or safe_get(r, "name","")
+            country = safe_get(r, "country") or _extract_country_from_name(name)
             parts = []
 
             # Financials first if present
             for k in ("revenue","ebitda","market_cap","net_income","margin","enterprise_value","valuation","ownership","ticker"):
-                v = r.get(k)
+                v = safe_get(r, k)
                 if v not in (None, ""):
                     label = k.replace("_"," ").title()
                     parts.append(f"{label}: {v}")
 
             # Then rationale/synergies for context
-            if r.get("strategic_rationale"):
-                parts.append(f"Rationale: {r.get('strategic_rationale')}")
-            if r.get("key_synergies"):
-                parts.append(f"Synergies: {r.get('key_synergies')}")
+            if safe_get(r, "strategic_rationale"):
+                parts.append(f"Rationale: {safe_get(r, 'strategic_rationale')}")
+            if safe_get(r, "key_synergies"):
+                parts.append(f"Synergies: {safe_get(r, 'key_synergies')}")
 
             desc = " • ".join(parts) if parts else "—"
             items.append({"name": name, "country": country, "description": desc})
@@ -5185,7 +5185,7 @@ def convert_buyer_profiles_to_sea_conglomerates(slide: dict) -> dict:
         # Build index mapping from headers
         idx = {h.strip().lower(): i for i, h in enumerate(headers) if isinstance(h, str)}
         for r in rows:
-            name = r[idx.get("buyer name", 0)] if isinstance(r, list) and len(r)>0 else ""
+            name = r[safe_get(idx, "buyer name", 0)] if isinstance(r, list) and len(r)>0 else ""
             country = _extract_country_from_name(name)
             parts = []
             for hint in list(_FINANCE_HINTS):
@@ -5222,18 +5222,18 @@ def convert_buyer_profiles_to_sea_conglomerates(slide: dict) -> dict:
 # --- END: Auto-convert ---
 # --- BEGIN: Normalizers to prevent blank cells and schema drift ---
 def normalize_buyer_profiles_slide(slide: dict) -> dict:
-    if slide.get("template") != "buyer_profiles":
+    if safe_get(slide, "template") != "buyer_profiles":
         return slide
     d = slide.setdefault("data", {})
 
-    headers = d.get("table_headers") or ["Buyer Name", "Description", "Strategic Rationale", "Key Synergies", "Fit"]
+    headers = safe_get(d, "table_headers") or ["Buyer Name", "Description", "Strategic Rationale", "Key Synergies", "Fit"]
     if len(headers) == 4:
         # Keep as 4 columns - likely missing description column
         headers = [headers[0], "Description", headers[1], headers[2], headers[3]]
     d["table_headers"] = headers[:5]
 
     fixed_rows = []
-    for r in d.get("table_rows", []):
+    for r in safe_get(d, "table_rows", []):
         if isinstance(r, list):
             r = {
                 "buyer_name":          (r[0] if len(r) > 0 else ""),
@@ -5244,44 +5244,44 @@ def normalize_buyer_profiles_slide(slide: dict) -> dict:
             }
         else:
             r = dict(r)
-            r["buyer_name"]          = r.get("buyer_name") or r.get("name", "")
-            r["strategic_rationale"] = r.get("strategic_rationale") or r.get("rationale", "")
-            r["key_synergies"]       = r.get("key_synergies") or r.get("synergies", "")
-            r["fit"]                = r.get("fit") or r.get("concerns", "")
-            r["fit"]                = r.get("fit") or r.get("fit_score", "")
+            r["buyer_name"]          = safe_get(r, "buyer_name") or safe_get(r, "name", "")
+            r["strategic_rationale"] = safe_get(r, "strategic_rationale") or safe_get(r, "rationale", "")
+            r["key_synergies"]       = safe_get(r, "key_synergies") or safe_get(r, "synergies", "")
+            r["fit"]                = safe_get(r, "fit") or safe_get(r, "concerns", "")
+            r["fit"]                = safe_get(r, "fit") or safe_get(r, "fit_score", "")
         fixed_rows.append(r)
     d["table_rows"] = fixed_rows
 
-    d.setdefault("subtitle", d.get("subtitle", ""))
-    d.setdefault("company", slide.get("company") or "")
+    d.setdefault("subtitle", safe_get(d, "subtitle", ""))
+    d.setdefault("company", safe_get(slide, "company") or "")
     return slide
 
 
 def normalize_valuation_overview_slide(slide: dict) -> dict:
-    if slide.get("template") != "valuation_overview":
+    if safe_get(slide, "template") != "valuation_overview":
         return slide
     d = slide.setdefault("data", {})
-    rows = d.get("valuation_data", [])
+    rows = safe_get(d, "valuation_data", [])
 
     any_22a = False
     any_23e = False
     any_metric = False
 
     for r in rows:
-        meth = (r.get("methodology") or "").lower()
-        if not r.get("metric"):
+        meth = (safe_get(r, "methodology") or "").lower()
+        if not safe_get(r, "metric"):
             if "precedent" in meth or "trading" in meth:
                 r["metric"] = "EV/Revenue"
             elif "dcf" in meth or "discounted" in meth:
                 r["metric"] = "DCF"
-        any_metric = any_metric or bool(r.get("metric"))
+        any_metric = any_metric or bool(safe_get(r, "metric"))
 
         if "22a_multiple" not in r:
-            r["22a_multiple"] = r.get("22A_multiple") or r.get("FY22_multiple") or "-"
+            r["22a_multiple"] = safe_get(r, "22A_multiple") or safe_get(r, "FY22_multiple") or "-"
         if "23e_multiple" not in r:
-            r["23e_multiple"] = r.get("23E_multiple") or r.get("FY23E_multiple") or "-"
+            r["23e_multiple"] = safe_get(r, "23E_multiple") or safe_get(r, "FY23E_multiple") or "-"
 
-        if not r.get("methodology_type"):
+        if not safe_get(r, "methodology_type"):
             if "precedent" in meth:
                 r["methodology_type"] = "precedent_transactions"
             elif "trading" in meth:
@@ -5289,8 +5289,8 @@ def normalize_valuation_overview_slide(slide: dict) -> dict:
             elif "dcf" in meth or "discounted" in meth:
                 r["methodology_type"] = "dcf"
 
-        any_22a = any_22a or (r.get("22a_multiple") not in ("", None))
-        any_23e = any_23e or (r.get("23e_multiple") not in ("", None))
+        any_22a = any_22a or (safe_get(r, "22a_multiple") not in ("", None))
+        any_23e = any_23e or (safe_get(r, "23e_multiple") not in ("", None))
 
     d["__hide_metric_col"]  = not any_metric
     d["__hide_22a_col"]     = not any_22a
@@ -5300,7 +5300,7 @@ def normalize_valuation_overview_slide(slide: dict) -> dict:
 
 def normalize_plan(plan: dict) -> dict:
     try:
-        slides_in = plan.get("slides", [])
+        slides_in = safe_get(plan, "slides", [])
     except Exception:
         return plan
     slides_out = []
@@ -5424,7 +5424,7 @@ def extract_and_validate_jsons(response_text):
     print(f"   render_plan: {render_plan is not None} (type: {type(render_plan)})")
     print(f"   validation_results: {validation_results is not None}")
     if validation_results:
-        print(f"   validation overall_valid: {validation_results.get('overall_valid', 'N/A')}")
+        print(f"   validation overall_valid: {safe_get(validation_results, 'overall_valid', 'N/A')}")
     
     return content_ir, render_plan, validation_results
 
@@ -5437,13 +5437,13 @@ def auto_enhance_management_team(content_ir, conversation_messages=None):
     # Extract company name
     company_name = "Unknown Company"
     if isinstance(content_ir, dict) and 'entities' in content_ir:
-        company_name = content_ir.get('entities', {}).get('company', {}).get('name', 'Unknown Company')
+        company_name = safe_get(content_ir, 'entities', {}).get('company', {}).get('name', 'Unknown Company')
     
     # Look for any research data in conversation messages about the company
     research_text = None
     if conversation_messages:
         # Combine all conversation messages to look for executive information
-        conversation_text = " ".join([msg.get("content", "") for msg in conversation_messages if isinstance(msg, dict)])
+        conversation_text = " ".join([safe_get(msg, "content", "") for msg in conversation_messages if isinstance(msg, dict)])
         
         # Check if there's detailed executive information in the conversation
         executive_keywords = ["CEO", "CFO", "COO", "Chief Executive", "Chief Financial", "Chief Operating", 
@@ -5455,9 +5455,9 @@ def auto_enhance_management_team(content_ir, conversation_messages=None):
             print(f"🔍 Found executive information in conversation ({len(research_text)} characters)")
     
     # Check if management_team already exists and has good data
-    existing_mgmt = content_ir.get('management_team', {})
-    left_profiles = existing_mgmt.get('left_column_profiles', [])
-    right_profiles = existing_mgmt.get('right_column_profiles', [])
+    existing_mgmt = safe_get(content_ir, 'management_team', {})
+    left_profiles = safe_get(existing_mgmt, 'left_column_profiles', [])
+    right_profiles = safe_get(existing_mgmt, 'right_column_profiles', [])
     
     total_profiles = len(left_profiles) + len(right_profiles)
     
@@ -5469,7 +5469,7 @@ def auto_enhance_management_team(content_ir, conversation_messages=None):
     else:
         # Check if existing profiles are just templates/basic
         for profile in left_profiles + right_profiles:
-            bullets = profile.get('experience_bullets', [])
+            bullets = safe_get(profile, 'experience_bullets', [])
             if not bullets or len(bullets) < 3:
                 needs_enhancement = True
                 break
@@ -5492,7 +5492,7 @@ def auto_enhance_management_team(content_ir, conversation_messages=None):
         
         content_ir['management_team'].update(enhanced_mgmt_data)
         
-        new_total = len(enhanced_mgmt_data.get('left_column_profiles', [])) + len(enhanced_mgmt_data.get('right_column_profiles', []))
+        new_total = len(safe_get(enhanced_mgmt_data, 'left_column_profiles', [])) + len(safe_get(enhanced_mgmt_data, 'right_column_profiles', []))
         print(f"✅ Enhanced management team: {total_profiles} → {new_total} profiles")
         
         return content_ir, True  # Return modified content_ir and enhancement flag
@@ -5701,7 +5701,7 @@ def call_llm_api(messages, model_name, api_key, service="perplexity"):
     """Call LLM API (Perplexity or Claude) with the conversation - Enhanced with Vector DB"""
     try:
         # Check if Vector DB is available and enhance the last user message
-        if st.session_state.get("vector_db_initialized", False):
+        if st.safe_get(session_state, "vector_db_initialized", False):
             try:
                 from enhanced_ai_analysis import get_enhanced_ai_analysis
                 enhanced_ai = get_enhanced_ai_analysis()
@@ -5727,8 +5727,8 @@ def call_llm_api(messages, model_name, api_key, service="perplexity"):
                     last_user_message["content"] = enhanced_content
                     
                     # Show enhancement notification with context info
-                    if company_context.get("name"):
-                        st.info(f"🔍 Enhanced with Vector DB data for {company_context['name']} ({company_context.get('sector', 'general sector')})")
+                    if safe_get(company_context, "name"):
+                        st.info(f"🔍 Enhanced with Vector DB data for {company_context['name']} ({safe_get(company_context, 'sector', 'general sector')})")
                     else:
                         st.info("🔍 Enhanced with Vector DB data for more accurate analysis")
                     
@@ -5771,11 +5771,11 @@ def call_perplexity_api(messages, model_name, api_key):
         for msg in conversation_messages:
             if cleaned_messages and cleaned_messages[-1]["role"] == msg["role"]:
                 # Combine consecutive messages of same role
-                cleaned_messages[-1]["content"] = cleaned_messages[-1]["content"].rstrip() + "\n\n" + str(msg.get("content", "")).strip()
+                cleaned_messages[-1]["content"] = cleaned_messages[-1]["content"].rstrip() + "\n\n" + str(safe_get(msg, "content", "")).strip()
             else:
                 cleaned_messages.append({
                     "role": msg["role"],
-                    "content": str(msg.get("content", "")).strip()
+                    "content": str(safe_get(msg, "content", "")).strip()
                 })
         
         # Build final message array for Perplexity
@@ -5789,7 +5789,7 @@ def call_perplexity_api(messages, model_name, api_key):
         final_messages.extend(cleaned_messages)
         
         # Ensure we don't have empty messages
-        final_messages = [msg for msg in final_messages if msg.get("content", "").strip()]
+        final_messages = [msg for msg in final_messages if safe_get(msg, "content", "").strip()]
         
         payload = {
             "model": model_name,
@@ -5811,7 +5811,7 @@ def call_perplexity_api(messages, model_name, api_key):
         
         if response.status_code == 200:
             result = response.json()
-            return result.get('choices', [{}])[0].get('message', {}).get('content', 'No response')
+            return safe_get(result, 'choices', [{}])[0].get('message', {}).get('content', 'No response')
         else:
             return f"Perplexity API Error: {response.status_code} - {response.text}"
     
@@ -5859,7 +5859,7 @@ def call_claude_api(messages, model_name, api_key):
         
         if response.status_code == 200:
             result = response.json()
-            return result.get('content', [{}])[0].get('text', 'No response')
+            return safe_get(result, 'content', [{}])[0].get('text', 'No response')
         else:
             return f"Claude API Error: {response.status_code} - {response.text}"
     
@@ -5956,7 +5956,7 @@ with st.sidebar:
         
         auto_improve_enabled = st.toggle(
             "Enable Auto-Improvement",
-            value=st.session_state.get('auto_improve_enabled', True),
+            value=st.safe_get(session_state, 'auto_improve_enabled', True),
             help="Automatically improve JSON quality using API calls after generation",
             key="sidebar_auto_improve_toggle"
         )
@@ -5973,8 +5973,8 @@ with st.sidebar:
             print(f"[IMPROVE_BUTTON] generated_render_plan exists: {'generated_render_plan' in st.session_state}")
             
             # Check both storage formats for JSONs
-            content_ir_json = st.session_state.get('content_ir_json')
-            render_plan_json = st.session_state.get('render_plan_json')
+            content_ir_json = st.safe_get(session_state, 'content_ir_json')
+            render_plan_json = st.safe_get(session_state, 'render_plan_json')
             
             print(f"[IMPROVE_BUTTON] Direct content_ir_json: {type(content_ir_json)} - {content_ir_json is not None}")
             print(f"[IMPROVE_BUTTON] Direct render_plan_json: {type(render_plan_json)} - {render_plan_json is not None}")
@@ -5982,7 +5982,7 @@ with st.sidebar:
             # Fallback: try to parse from string representations
             if not content_ir_json:
                 try:
-                    content_ir_str = st.session_state.get("generated_content_ir", "")
+                    content_ir_str = st.safe_get(session_state, "generated_content_ir", "")
                     print(f"[IMPROVE_BUTTON] Content IR string length: {len(content_ir_str)}")
                     if content_ir_str and len(content_ir_str.strip()) > 10:
                         content_ir_json = json.loads(content_ir_str)
@@ -5992,7 +5992,7 @@ with st.sidebar:
             
             if not render_plan_json:
                 try:
-                    render_plan_str = st.session_state.get("generated_render_plan", "")
+                    render_plan_str = st.safe_get(session_state, "generated_render_plan", "")
                     print(f"[IMPROVE_BUTTON] Render Plan string length: {len(render_plan_str)}")
                     if render_plan_str and len(render_plan_str.strip()) > 10:
                         render_plan_json = json.loads(render_plan_str)
@@ -6011,16 +6011,16 @@ with st.sidebar:
                         improved_content_ir, is_perfect_content, content_report = auto_improve_json_with_api_calls(
                             content_ir_json, "content_ir", 
                             st.session_state['api_key'],
-                            st.session_state.get('selected_model', st.session_state.get('model', 'claude-3-5-sonnet-20241022')),
-                            st.session_state.get('api_service', 'claude')
+                            st.safe_get(session_state, 'selected_model', st.session_state.get('model', 'claude-3-5-sonnet-20241022')),
+                            st.safe_get(session_state, 'api_service', 'claude')
                         )
                         
                         # Improve Render Plan
                         improved_render_plan, is_perfect_render, render_plan_report = auto_improve_json_with_api_calls(
                             render_plan_json, "render_plan",
                             st.session_state['api_key'], 
-                            st.session_state.get('selected_model', st.session_state.get('model', 'claude-3-5-sonnet-20241022')),
-                            st.session_state.get('api_service', 'claude')
+                            st.safe_get(session_state, 'selected_model', st.session_state.get('model', 'claude-3-5-sonnet-20241022')),
+                            st.safe_get(session_state, 'api_service', 'claude')
                         )
                         
                         # Update session state with improved JSONs - BOTH FORMATS
@@ -6033,7 +6033,7 @@ with st.sidebar:
                             st.session_state["generated_render_plan"] = json.dumps(improved_render_plan, indent=2)
                         
                         # Update files_data if it exists
-                        if st.session_state.get("files_data"):
+                        if st.safe_get(session_state, "files_data"):
                             files_data = st.session_state["files_data"]
                             if improved_content_ir:
                                 files_data['content_ir_json'] = json.dumps(improved_content_ir, indent=2)
@@ -6051,7 +6051,7 @@ with st.sidebar:
                             st.info("ℹ️ JSONs were already at good quality")
                         
                         # Update API usage stats
-                        usage_stats = st.session_state.get('auto_improve_api_usage', {
+                        usage_stats = st.safe_get(session_state, 'auto_improve_api_usage', {
                             "total_calls": 0, "successful_calls": 0, "total_tokens": 0, "total_time": 0.0
                         })
                         
@@ -6076,17 +6076,17 @@ with st.sidebar:
                     missing_parts.append("Render Plan")
                 st.warning(f"⚠️ Missing: {', '.join(missing_parts)}. Generate JSONs first before improvement.")
         
-        if st.session_state.get('auto_improve_enabled', False) and not api_key:
+        if st.safe_get(session_state, 'auto_improve_enabled', False) and not api_key:
             st.warning("⚠️ Auto-improvement requires API key")
     
     # 🚨 CRITICAL DEBUG: Show current session state status
-    if st.session_state.get('auto_improve_enabled', False):
+    if st.safe_get(session_state, 'auto_improve_enabled', False):
         st.markdown("#### 🔍 Debug: Session State Status")
         
-        content_ir_exists = bool(st.session_state.get('content_ir_json'))
-        render_plan_exists = bool(st.session_state.get('render_plan_json'))
-        generated_content_ir_exists = bool(st.session_state.get('generated_content_ir'))
-        generated_render_plan_exists = bool(st.session_state.get('generated_render_plan'))
+        content_ir_exists = bool(st.safe_get(session_state, 'content_ir_json'))
+        render_plan_exists = bool(st.safe_get(session_state, 'render_plan_json'))
+        generated_content_ir_exists = bool(st.safe_get(session_state, 'generated_content_ir'))
+        generated_render_plan_exists = bool(st.safe_get(session_state, 'generated_render_plan'))
         
         col1, col2 = st.columns(2)
         with col1:
@@ -6099,8 +6099,8 @@ with st.sidebar:
             st.write(f"generated_content_ir: {'✅' if generated_content_ir_exists else '❌'}")
             st.write(f"generated_render_plan: {'✅' if generated_render_plan_exists else '❌'}")
         
-        files_ready = st.session_state.get("files_ready", False)
-        auto_populated = st.session_state.get("auto_populated", False)
+        files_ready = st.safe_get(session_state, "files_ready", False)
+        auto_populated = st.safe_get(session_state, "auto_populated", False)
         
         st.write(f"**Status:** files_ready: {'✅' if files_ready else '❌'}, auto_populated: {'✅' if auto_populated else '❌'}")
     
@@ -6109,11 +6109,11 @@ with st.sidebar:
     # File Status Section
     st.subheader("📁 Generated Files Status")
     
-    if st.session_state.get("files_ready", False):
+    if st.safe_get(session_state, "files_ready", False):
         st.success("✅ Files Ready!")
-        files_data = st.session_state.get("files_data", {})
-        st.write(f"**Company:** {files_data.get('company_name', 'N/A')}")
-        st.write(f"**Generated:** {files_data.get('timestamp', 'N/A')}")
+        files_data = st.safe_get(session_state, "files_data", {})
+        st.write(f"**Company:** {safe_get(files_data, 'company_name', 'N/A')}")
+        st.write(f"**Generated:** {safe_get(files_data, 'timestamp', 'N/A')}")
         
         if st.button("🔄 Regenerate Files"):
             st.session_state["files_ready"] = False
@@ -6128,13 +6128,13 @@ with st.sidebar:
     st.subheader("📊 System Status")
     
     # Show research status
-    if st.session_state.get('research_completed', False):
+    if st.safe_get(session_state, 'research_completed', False):
         st.success("✅ Research completed")
     else:
         st.info("📋 Use Research Agent to start")
     
     # Show JSON status
-    if st.session_state.get('content_ir_json') and st.session_state.get('render_plan_json'):
+    if st.safe_get(session_state, 'content_ir_json') and st.safe_get(session_state, 'render_plan_json'):
         st.success("✅ JSONs generated")
     else:
         st.info("⚙️ Generate JSONs needed")
@@ -6223,7 +6223,7 @@ with tab_chat:
                 with st.spinner("Fact-checking provided information..."):
                     fact_check_results = fact_check_user_info(user_info, company_name)
                 
-                if fact_check_results.get('has_info'):
+                if safe_get(fact_check_results, 'has_info'):
                     st.markdown("**Fact-Check Results:**")
                     st.markdown(fact_check_results['fact_check'])
                     st.markdown("---")
@@ -6238,7 +6238,7 @@ with tab_chat:
             st.rerun()
     
     # Display results if research is completed
-    if st.session_state.get('research_completed', False) and st.session_state.get('research_results'):
+    if st.safe_get(session_state, 'research_completed', False) and st.safe_get(session_state, 'research_results'):
         st.markdown("## 📊 Research Results")
         
         # Create tabs for each topic
@@ -6294,7 +6294,7 @@ with tab_chat:
                 st.rerun()
 
     # Edit mode interface
-    if st.session_state.get('edit_mode', False) and st.session_state.get('research_results'):
+    if st.safe_get(session_state, 'edit_mode', False) and st.safe_get(session_state, 'research_results'):
         st.markdown("---")
         st.markdown("## ✏️ Review & Edit Results")
         st.markdown("Review the research results below. You can edit any section before generating the final JSON.")
@@ -6347,7 +6347,7 @@ with tab_chat:
                 st.rerun()
 
     # Manual JSON Generation Trigger Button - Always show if research completed
-    if st.session_state.get('research_completed', False) or len(st.session_state.get('messages', [])) > 4:
+    if st.safe_get(session_state, 'research_completed', False) or len(st.safe_get(session_state, 'messages', [])) > 4:
                 col1, col2 = st.columns([3, 1])
                 with col2:
                     # 🚨 TEST: Simple test button first
@@ -6363,7 +6363,7 @@ with tab_chat:
                         from topic_based_slide_generator import generate_topic_based_presentation
                         
                         # Check if using Research Agent data (all 14 topics researched)
-                        if st.session_state.get('research_completed', False):
+                        if st.safe_get(session_state, 'research_completed', False):
                             # Research Agent: Generate ALL 14 slides
                             slide_list = [
                                 "business_overview", "product_service_footprint", 
@@ -6530,7 +6530,7 @@ RENDER PLAN JSON:
                                 st.error(f"❌ Generation failed: {str(e)}")
                                 print(f"❌ [HYBRID] Error: {str(e)}")
                                 # Fallback to bulletproof system
-                                company_name = st.session_state.get('company_name', 'Company')
+                                company_name = st.safe_get(session_state, 'company_name', 'Company')
                                 ai_response = f"""CONTENT IR JSON:
 {{
   "entities": {{"company": {{"name": "{company_name}"}}}},
@@ -6577,7 +6577,7 @@ RENDER PLAN JSON:
                                 
                                 # 🔧 MANDATORY AUTO-IMPROVEMENT INTEGRATION
                                 # Always apply auto-improvement for JSON generation (not optional)
-                                if st.session_state.get('api_key'):
+                                if st.safe_get(session_state, 'api_key'):
                                     with st.spinner("🔧 Auto-improving JSON quality with conversation data..."):
                                         try:
                                             # Use OPTIMIZED auto-improvement system for better performance
@@ -6684,12 +6684,12 @@ RENDER PLAN JSON:
                         st.rerun()
     
     # Research Agent Interface Complete - No chat input needed
-    if not st.session_state.get('research_completed', False):
+    if not st.safe_get(session_state, 'research_completed', False):
         st.markdown("---")
         st.info("💡 **How to use**: Enter a company name above and click 'Start Comprehensive Research' to automatically generate all 14 investment banking research topics, then use 'Generate JSON Now' button to create your presentation files.")
     
     # Export chat history for compatibility
-    if st.session_state.get("messages") and len(st.session_state.messages) > 1:
+    if st.safe_get(session_state, "messages") and len(st.session_state.messages) > 1:
         # Research data export interface
         st.markdown("---")
         col1, col2, col3 = st.columns([1, 1, 2])
@@ -6707,7 +6707,7 @@ RENDER PLAN JSON:
         with col2:
             if st.button("💾 Export Chat"):
                 chat_export = {
-                    "model": st.session_state.get('model', 'sonar-pro'),
+                    "model": st.safe_get(session_state, 'model', 'sonar-pro'),
                     "messages": st.session_state.messages[1:],  # Exclude system message
                     "timestamp": str(pd.Timestamp.now())
                 }
@@ -6727,7 +6727,7 @@ with tab_extract:
     # Company name for deck footer/branding
     company_display_name = st.text_input(
         "Company Name for Presentation",
-        value=st.session_state.get('company_name', ''),
+        value=st.safe_get(session_state, 'company_name', ''),
         placeholder="e.g., Moelis & Company, Goldman Sachs, JP Morgan",
         help="This company name will appear in the bottom right corner of your PowerPoint slides",
         key="brand_company_name"
@@ -6750,7 +6750,7 @@ with tab_extract:
     with col1:
         vector_db_id = st.text_input(
             "Vector Database ID",
-            value=st.session_state.get('vector_db_id', ''),
+            value=st.safe_get(session_state, 'vector_db_id', ''),
             placeholder="e.g., your-database-id",
             help="Cassandra Vector Database ID for precedent transactions",
             key="vector_db_id_input"
@@ -6759,7 +6759,7 @@ with tab_extract:
     with col2:
         vector_db_token = st.text_input(
             "Vector Database Token",
-            value=st.session_state.get('vector_db_token', ''),
+            value=st.safe_get(session_state, 'vector_db_token', ''),
             placeholder="Enter your database token",
             type="password",
             help="Authentication token for vector database access",
@@ -6804,8 +6804,8 @@ with tab_extract:
     st.markdown("### 📊 Current Branding Status")
     
     # Company name status
-    presentation_name = st.session_state.get('presentation_company_name')
-    research_name = st.session_state.get('company_name')
+    presentation_name = st.safe_get(session_state, 'presentation_company_name')
+    research_name = st.safe_get(session_state, 'company_name')
     
     if presentation_name:
         st.success(f"🏢 **Presentation Company:** {presentation_name}")
@@ -6816,7 +6816,7 @@ with tab_extract:
         st.warning("⚠️ No company name set for branding")
     
     # Brand deck status
-    if st.session_state.get('uploaded_brand_file'):
+    if st.safe_get(session_state, 'uploaded_brand_file'):
         st.success("🎨 **Brand Deck:** Uploaded and ready")
     else:
         st.info("📁 **Brand Deck:** Using default styling")
@@ -6832,23 +6832,23 @@ with tab_json:
     st.subheader("📄 JSON Editor")
     
     # Check if JSONs were auto-populated from AI Copilot
-    auto_populated = st.session_state.get("auto_populated", False)
-    files_ready = st.session_state.get("files_ready", False)
+    auto_populated = st.safe_get(session_state, "auto_populated", False)
+    files_ready = st.safe_get(session_state, "files_ready", False)
     
     # 🔧 AUTO-IMPROVEMENT VALIDATION STATUS
-    if st.session_state.get('auto_improve_enabled', False) and st.session_state.get('api_key'):
+    if st.safe_get(session_state, 'auto_improve_enabled', False) and st.safe_get(session_state, 'api_key'):
         st.markdown("### 🔧 JSON Quality Status")
         
         # Quick validation for both JSONs - check multiple possible storage locations
         content_ir_sources = [
-            st.session_state.get("content_ir_json"),
-            st.session_state.get("generated_content_ir_parsed"), 
-            st.session_state.get("files_data", {}).get("content_ir_json_parsed")
+            st.safe_get(session_state, "content_ir_json"),
+            st.safe_get(session_state, "generated_content_ir_parsed"), 
+            st.safe_get(session_state, "files_data", {}).get("content_ir_json_parsed")
         ]
         render_plan_sources = [
-            st.session_state.get("render_plan_json"),
-            st.session_state.get("generated_render_plan_parsed"),
-            st.session_state.get("files_data", {}).get("render_plan_json_parsed") 
+            st.safe_get(session_state, "render_plan_json"),
+            st.safe_get(session_state, "generated_render_plan_parsed"),
+            st.safe_get(session_state, "files_data", {}).get("render_plan_json_parsed") 
         ]
         
         content_ir_json = next((src for src in content_ir_sources if src), None)
@@ -6880,13 +6880,13 @@ with tab_json:
         
         # Show file status if files are ready but not auto-populated
         if files_ready and not auto_populated:
-            files_data = st.session_state.get("files_data", {})
-            st.success(f"🎉 Using generated files for {files_data.get('company_name', 'your company')}")
+            files_data = st.safe_get(session_state, "files_data", {})
+            st.success(f"🎉 Using generated files for {safe_get(files_data, 'company_name', 'your company')}")
             
             with st.expander("📋 Generated Files Summary"):
-                st.write(f"**Content IR:** {files_data.get('content_ir_filename', 'N/A')}")
-                st.write(f"**Render Plan:** {files_data.get('render_plan_filename', 'N/A')}")
-                st.write(f"**Timestamp:** {files_data.get('timestamp', 'N/A')}")
+                st.write(f"**Content IR:** {safe_get(files_data, 'content_ir_filename', 'N/A')}")
+                st.write(f"**Render Plan:** {safe_get(files_data, 'render_plan_filename', 'N/A')}")
+                st.write(f"**Timestamp:** {safe_get(files_data, 'timestamp', 'N/A')}")
     
     # JSON Editor Columns
     col1, col2 = st.columns(2)
@@ -6896,9 +6896,9 @@ with tab_json:
         
         # Get Content IR from various possible sources
         content_ir_text = ""
-        if auto_populated and st.session_state.get("generated_content_ir"):
+        if auto_populated and st.safe_get(session_state, "generated_content_ir"):
             content_ir_text = st.session_state["generated_content_ir"]
-        elif st.session_state.get("files_data", {}).get("content_ir_json"):
+        elif st.safe_get(session_state, "files_data", {}).get("content_ir_json"):
             content_ir_text = st.session_state["files_data"]["content_ir_json"]
         
         content_ir_input = st.text_area(
@@ -6924,9 +6924,9 @@ with tab_json:
         
         # Get Render Plan from various possible sources  
         render_plan_text = ""
-        if auto_populated and st.session_state.get("generated_render_plan"):
+        if auto_populated and st.safe_get(session_state, "generated_render_plan"):
             render_plan_text = st.session_state["generated_render_plan"]
-        elif st.session_state.get("files_data", {}).get("render_plan_json"):
+        elif st.safe_get(session_state, "files_data", {}).get("render_plan_json"):
             render_plan_text = st.session_state["files_data"]["render_plan_json"]
         
         render_plan_input = st.text_area(
@@ -6954,7 +6954,7 @@ with tab_json:
     col1, col2 = st.columns(2)
     
     if content_ir_input and render_plan_input:
-        company_name = st.session_state.get('company_name', 'company')
+        company_name = st.safe_get(session_state, 'company_name', 'company')
         
         with col1:
             st.download_button(
@@ -6976,8 +6976,8 @@ with tab_execute:
     st.subheader("⚙️ Generate PowerPoint Presentation")
     
     # Check if JSONs are available
-    content_ir_available = bool(st.session_state.get("content_ir_json") or st.session_state.get("generated_content_ir"))
-    render_plan_available = bool(st.session_state.get("render_plan_json") or st.session_state.get("generated_render_plan"))
+    content_ir_available = bool(st.safe_get(session_state, "content_ir_json") or st.safe_get(session_state, "generated_content_ir"))
+    render_plan_available = bool(st.safe_get(session_state, "render_plan_json") or st.safe_get(session_state, "generated_render_plan"))
     
     if not content_ir_available or not render_plan_available:
         st.warning("⚠️ **Missing JSONs**: Please complete research and generate JSONs first.")
@@ -6987,7 +6987,7 @@ with tab_execute:
         
         # Company name for file naming and presentation branding
         # Use the branding company name from Brand tab, fallback to research company name
-        company_name = st.session_state.get('presentation_company_name') or st.session_state.get('company_name', 'company')
+        company_name = st.safe_get(session_state, 'presentation_company_name') or st.safe_get(session_state, 'company_name', 'company')
         
         # Generation options
         col1, col2 = st.columns(2)
@@ -7031,13 +7031,13 @@ with tab_execute:
             with st.spinner("🎨 Generating your PowerPoint presentation... This may take 2-3 minutes."):
                 try:
                     # Get JSONs
-                    content_ir = st.session_state.get("content_ir_json")
-                    render_plan = st.session_state.get("render_plan_json")
+                    content_ir = st.safe_get(session_state, "content_ir_json")
+                    render_plan = st.safe_get(session_state, "render_plan_json")
                     
                     if not content_ir:
-                        content_ir = json.loads(st.session_state.get("generated_content_ir", "{}"))
+                        content_ir = json.loads(st.safe_get(session_state, "generated_content_ir", "{}"))
                     if not render_plan:
-                        render_plan = json.loads(st.session_state.get("generated_render_plan", "{}"))
+                        render_plan = json.loads(st.safe_get(session_state, "generated_render_plan", "{}"))
                     
                     # Generate presentation using existing executor
                     from executor import execute_plan
@@ -7058,7 +7058,7 @@ with tab_execute:
                         config=generation_config
                     )
                     
-                    if result.get('success'):
+                    if safe_get(result, 'success'):
                         st.success("✅ **Presentation Generated Successfully!**")
                         
                         # Show generation summary
@@ -7066,11 +7066,11 @@ with tab_execute:
                         col1, col2, col3 = st.columns(3)
                         
                         with col1:
-                            st.metric("Slides Generated", result.get('slide_count', 0))
+                            st.metric("Slides Generated", safe_get(result, 'slide_count', 0))
                         with col2:
-                            st.metric("File Size", result.get('file_size', 'N/A'))
+                            st.metric("File Size", safe_get(result, 'file_size', 'N/A'))
                         with col3:
-                            st.metric("Generation Time", result.get('generation_time', 'N/A'))
+                            st.metric("Generation Time", safe_get(result, 'generation_time', 'N/A'))
                         
                         # Download section
                         st.markdown("### 📥 Download Your Files")
@@ -7099,7 +7099,7 @@ with tab_execute:
                         st.success("🎉 **Complete!** Your investment banking pitch deck is ready for download.")
                         
                     else:
-                        st.error(f"❌ **Generation Failed**: {result.get('error', 'Unknown error')}")
+                        st.error(f"❌ **Generation Failed**: {safe_get(result, 'error', 'Unknown error')}")
                         st.info("💡 **Troubleshooting**: Check that your JSONs are properly formatted in the JSON Editor tab")
                         
                 except Exception as e:
@@ -7124,8 +7124,8 @@ with tab_validate:
     st.subheader("🔍 JSON Validator & Auto-Fix")
     
     # Check if JSONs are available for validation
-    content_ir_json = st.session_state.get("content_ir_json")
-    render_plan_json = st.session_state.get("render_plan_json")
+    content_ir_json = st.safe_get(session_state, "content_ir_json")
+    render_plan_json = st.safe_get(session_state, "render_plan_json")
     
     if not content_ir_json or not render_plan_json:
         st.warning("⚠️ **No JSONs to validate**: Please complete research and JSON generation first.")

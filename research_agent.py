@@ -5,6 +5,7 @@ Replaces the complicated chatbot with a straightforward research approach.
 """
 
 import streamlit as st
+from shared_functions import safe_get
 import json
 import time
 from typing import Dict, List, Tuple, Any
@@ -448,7 +449,7 @@ def research_all_topics(company_name: str, user_info: str = "") -> Dict[str, Any
                 vector_db = VectorDBManager()
                 
                 # Check if vector DB credentials are available
-                if st.session_state.get('vector_db_id') and st.session_state.get('vector_db_token'):
+                if st.safe_get(session_state, 'vector_db_id') and st.safe_get(session_state, 'vector_db_token'):
                     vector_db.initialize(
                         database_id=st.session_state['vector_db_id'],
                         token=st.session_state['vector_db_token']
@@ -568,9 +569,9 @@ def fact_check_user_info(user_info: str, company_name: str) -> Dict[str, Any]:
         ]
         
         response = call_llm_api(messages, 
-                              st.session_state.get('model', 'sonar-pro'),
-                              st.session_state.get('api_key'), 
-                              st.session_state.get('api_service', 'perplexity'))
+                              st.safe_get(session_state, 'model', 'sonar-pro'),
+                              st.safe_get(session_state, 'api_key'), 
+                              st.safe_get(session_state, 'api_service', 'perplexity'))
         
         return {
             'has_info': True,
@@ -741,7 +742,7 @@ def main():
                 fact_check_results = fact_check_user_info(user_info, company_name)
                 st.session_state.fact_check_results = fact_check_results
             
-            if fact_check_results.get('has_info'):
+            if safe_get(fact_check_results, 'has_info'):
                 st.markdown("**Fact-Check Results:**")
                 st.markdown(fact_check_results['fact_check'])
                 st.markdown("---")
@@ -805,9 +806,9 @@ def main():
                         def llm_wrapper(messages, model=None, api_key=None, api_service=None):
                             return call_llm_api(
                                 messages, 
-                                st.session_state.get('model'),
-                                st.session_state.get('api_key'),
-                                st.session_state.get('api_service')
+                                st.safe_get(session_state, 'model'),
+                                st.safe_get(session_state, 'api_key'),
+                                st.safe_get(session_state, 'api_service')
                             )
                         
                         response, content_ir, render_plan = generate_bulletproof_json(
@@ -825,7 +826,7 @@ def main():
                             st.session_state['files_ready'] = True
                             
                             # Show summary
-                            st.info(f"Generated {len(render_plan.get('slides', []))} slides with comprehensive content")
+                            st.info(f"Generated {len(safe_get(render_plan, 'slides', []))} slides with comprehensive content")
                             
                             # Download buttons
                             st.download_button(
@@ -851,8 +852,8 @@ def main():
                                         st.write(f"• {key}")
                                 with col2:
                                     st.subheader("Render Plan Slides")
-                                    for slide in render_plan.get('slides', []):
-                                        st.write(f"• {slide.get('template', 'unknown')}")
+                                    for slide in safe_get(render_plan, 'slides', []):
+                                        st.write(f"• {safe_get(slide, 'template', 'unknown')}")
                         else:
                             st.error("JSON Generation failed - no valid content returned")
                             
@@ -866,7 +867,7 @@ def main():
                 st.rerun()
     
     # Edit mode
-    if st.session_state.get('edit_mode', False) and st.session_state.research_results:
+    if st.safe_get(session_state, 'edit_mode', False) and st.session_state.research_results:
         st.markdown("---")
         edited_results = create_edit_interface(st.session_state.research_results)
         
