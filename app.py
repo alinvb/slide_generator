@@ -6255,9 +6255,30 @@ with tab_chat:
                 else:
                     st.error("❌ Research failed")
                 
-                # Show content
+                # Show content with edit capability
                 st.markdown("**Research Results:**")
-                st.markdown(topic_data['content'])
+                
+                # Allow user to edit research content
+                edited_content = st.text_area(
+                    f"Edit {topic_data['title']} Content",
+                    value=topic_data['content'],
+                    height=200,
+                    help="You can edit this research content. Your edits will be used in JSON generation.",
+                    key=f"research_edit_{topic_id}"
+                )
+                
+                # Update research results with user edits
+                if edited_content != topic_data['content']:
+                    st.session_state.research_results[topic_id]['content'] = edited_content
+                    st.info(f"✏️ Content edited for {topic_data['title']}")
+                
+                # Show original vs edited content
+                if edited_content != topic_data.get('original_content', topic_data['content']):
+                    with st.expander("🔍 View Changes"):
+                        st.markdown("**Original:**")
+                        st.text(topic_data.get('original_content', topic_data['content'])[:500] + "...")
+                        st.markdown("**Edited:**")
+                        st.text(edited_content[:500] + "...")
                 
                 # Show required fields that should be covered
                 with st.expander(f"📋 Required fields for {topic_data['title']}"):
@@ -6268,12 +6289,14 @@ with tab_chat:
         if 'messages' not in st.session_state:
             st.session_state.messages = []
         
-        # Clear existing messages and populate with research data
+        # Clear existing messages and populate with research data (including user edits)
         st.session_state.messages = [
-            {"role": "system", "content": "Investment banking research data"}
+            {"role": "system", "content": "Investment banking research data with user edits"}
         ]
         
-        for topic_id, topic_data in research_results.items():
+        # Use current (potentially edited) research results
+        current_research = st.session_state.research_results
+        for topic_id, topic_data in current_research.items():
             st.session_state.messages.append({
                 "role": "assistant",
                 "content": f"**{topic_data['title']}**: {topic_data['content']}"
