@@ -1,18 +1,18 @@
 module.exports = {
   apps: [{
     name: 'investment-banking-app',
-    script: 'python',
-    args: '-m streamlit run app.py --server.port=8504 --server.address=0.0.0.0 --server.headless=true --server.fileWatcherType=none',
+    script: 'streamlit',
+    args: 'run app.py --server.port 8504 --server.address 0.0.0.0',
     cwd: '/home/user/webapp',
     env: {
-      'PYTHONPATH': '/home/user/webapp',
-      'STREAMLIT_SERVER_PORT': '8504',
-      'STREAMLIT_SERVER_ADDRESS': '0.0.0.0'
+      NODE_ENV: 'production'
     },
-    max_memory_restart: '1G',
-    log_date_format: 'YYYY-MM-DD HH:mm:ss',
-    merge_logs: true,
+    error_file: './logs/streamlit-error.log',
     out_file: './logs/streamlit-out.log',
-    error_file: './logs/streamlit-error.log'
+    log_file: './logs/streamlit.log',
+    time: true,
+    autorestart: true,
+    max_restarts: 10,
+    min_uptime: '10s'
   }]
 };
