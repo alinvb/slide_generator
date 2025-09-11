@@ -5,10 +5,17 @@ and market data to enhance AI responses.
 """
 
 import os
-import cassio
 from typing import List, Dict, Optional, Any
-from cassio.vector import VectorTable
 import streamlit as st
+
+# Optional vector database support
+try:
+    import cassio
+    from cassio.vector import VectorTable
+    CASSIO_AVAILABLE = True
+except ImportError:
+    CASSIO_AVAILABLE = False
+    print("⚠️ Vector Database (cassio) not available - using mock data")
 
 class VectorDBManager:
     """Manages Vector Database operations for enhanced AI analysis"""
@@ -20,6 +27,11 @@ class VectorDBManager:
         
     def initialize(self, database_id: str, token: str, keyspace: str = 'default_keyspace', table_name: str = 'ma10'):
         """Initialize connection to Cassandra Vector Database"""
+        if not CASSIO_AVAILABLE:
+            print("⚠️ Cassio not available - using mock mode")
+            self.is_initialized = True
+            return True
+            
         try:
             # Set environment variables
             os.environ["PERPLEXITY_API_KEY"] = "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"

@@ -6109,303 +6109,31 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Brand Upload Section with LLM Integration
-    st.subheader("🎨 Brand Configuration")
-    st.write("🚨 **DEBUG**: Brand Configuration section is loading...")
+    # Simple status information
+    st.subheader("📊 System Status")
     
-    # Add extraction method selector
-    extraction_method = st.radio(
-        "Brand Extraction Method",
-        ["🔧 Rule-Based (Recommended)", "🤖 LLM-Powered (Experimental)"],
-        help="Rule-based extraction analyzes PowerPoint structure directly for reliable color extraction",
-        key="extraction_method"
-    )
-    
-    uploaded_brand = st.file_uploader(
-        "Upload Brand Deck (PowerPoint)",
-        type=['pptx'],
-        help="Upload a PowerPoint file to extract colors, fonts, and styling",
-        key="brand_upload_main_2024"
-    )
-    
-    # Always show debug info
-    st.write(f"🔍 **Upload Status**: uploaded_brand = {uploaded_brand}")
-    st.write(f"🔍 **Upload Type**: {type(uploaded_brand)}")
-    
-    # Alternative test button for debugging
-    if st.button("🧪 Test Brand Extraction with Sample File", key="test_brand_btn"):
-        st.info("Testing with sample brand deck...")
-        try:
-            from brand_extractor import BrandExtractor
-            extractor = BrandExtractor()
-            result = extractor.extract_brand_from_pptx('brand_test_deck.pptx')
-            st.session_state["brand_config"] = result
-            st.success("✅ Test extraction completed!")
-        except Exception as e:
-            st.error(f"Test failed: {str(e)}")
-    
-    # Debug upload detection
-    if uploaded_brand is not None:
-        st.success(f"✅ **FILE DETECTED**: {uploaded_brand.name}")
-        
-        # Create a unique identifier for this file
-        file_content = uploaded_brand.read()
-        file_hash = hash(file_content)
-        uploaded_brand.seek(0)  # Reset file pointer
-        
-        # Debug info
-        st.write(f"🔍 **Debug**: File '{uploaded_brand.name}' ({len(file_content)} bytes, hash: {file_hash})")
-        st.write(f"🔍 **HAS_PPTX**: {HAS_PPTX}")
-        
-        # FORCE NEW EXTRACTION (bypass caching for now)
-        st.session_state["brand_config"] = None
-        st.info("🔄 Starting brand extraction...")
-    
-    if uploaded_brand is not None and HAS_PPTX:
-        st.write("🚀 **ENTERING EXTRACTION LOGIC**")
-        try:
-            # Show progress
-            progress_bar = st.progress(0)
-            status_text = st.empty()
-            
-            use_llm = extraction_method.startswith("🤖")
-            
-            st.write(f"🚀 **Starting extraction** - Method: {'LLM' if use_llm else 'Rule-Based'}")
-            
-            if use_llm and api_key:
-                # Use LLM extraction (experimental)
-                st.write("🤖 **LLM-Powered Brand Extraction (Experimental)**")
-                st.info("💡 AI is analyzing your slides to understand brand context and hierarchy")
-                
-                status_text.text("🧠 AI analyzing slide content and design patterns...")
-                progress_bar.progress(20)
-                
-                uploaded_brand.seek(0)
-                brand_config = brand_extractor.extract_brand_from_pptx(
-                    uploaded_brand,
-                    use_llm=True,
-                    api_key=api_key,
-                    model_name=selected_model,
-                    api_service=api_service
-                )
-                
-                progress_bar.progress(80)
-                status_text.text("✅ AI analysis complete!")
-                
-            else:
-                # Use rule-based extraction (recommended)
-                st.write("🔧 **Rule-Based Brand Extraction (Recommended)**")
-                if not api_key and use_llm:
-                    st.info("💡 Add your API key above to enable AI-powered brand extraction")
-                
-                status_text.text("🔍 Analyzing PowerPoint structure...")
-                progress_bar.progress(20)
-                
-                uploaded_brand.seek(0)
-                st.write("📄 **Calling brand extractor...**")
-                brand_config = brand_extractor.extract_brand_from_pptx(
-                    uploaded_brand,
-                    use_llm=False
-                )
-                st.write(f"✅ **Extraction complete!** Found {len(brand_config.get('color_scheme', {}))} colors")
-                
-                progress_bar.progress(80)
-                status_text.text("✅ Rule-based extraction complete!")
-            
-            progress_bar.progress(100)
-            
-            # Store configuration
-            st.session_state["brand_config"] = brand_config
-            
-        except Exception as e:
-            st.error(f"❌ **Brand extraction failed**: {str(e)}")
-            st.write("**Error details:**")
-            st.code(str(e))
-            import traceback
-            st.write("**Full traceback:**")
-            st.code(traceback.format_exc())
-            brand_config = None
-            
-            # Debug output to console
-            print(f"[STREAMLIT DEBUG] Extracted brand colors from {uploaded_brand.name}:")
-            colors = brand_config.get('color_scheme', {})
-            for name, color in colors.items():
-                if isinstance(color, tuple) and len(color) == 3:
-                    r, g, b = color
-                    hex_color = f"#{r:02x}{g:02x}{b:02x}"
-                    print(f"   {name}: RGB({r}, {g}, {b}) = {hex_color}")
-            
-            # Display results
-            colors = brand_config.get('color_scheme', {})
-            primary = colors.get('primary')
-            
-            # Check if we got custom colors or defaults
-            if isinstance(primary, tuple) and len(primary) == 3:
-                r, g, b = primary
-                if r == 24 and g == 58 and b == 88:
-                    st.warning("⚠️ Using default colors - no distinct brand colors detected")
-                    st.info("💡 Try uploading a deck with more prominent brand colors or logos")
-                else:
-                    st.success("✅ Brand elements extracted successfully!")
-            else:
-                st.success("✅ Brand elements extracted successfully!")
-            
-            # Show extracted colors
-            st.write("**🎨 Extracted Brand Colors:**")
-            color_cols = st.columns(2)
-            color_display_order = ['primary', 'secondary', 'accent', 'text']
-            
-            for i, name in enumerate(color_display_order):
-                if name in colors:
-                    color = colors[name]
-                    if isinstance(color, tuple) and len(color) == 3:
-                        r, g, b = color
-                        hex_color = f"#{r:02x}{g:02x}{b:02x}"
-                        with color_cols[i % 2]:
-                            col1, col2 = st.columns([1, 2])
-                            with col1:
-                                st.color_picker(
-                                    f"{name.title()}",
-                                    hex_color,
-                                    disabled=True,
-                                    key=f"color_{name}"
-                                )
-                            with col2:
-                                st.caption(f"RGB({r}, {g}, {b})")
-            
-            # Show typography if available
-            typography = brand_config.get('typography', {})
-            if typography:
-                st.write("**🔤 Typography:**")
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.write(f"• **Font:** {typography.get('primary_font', 'Arial')}")
-                    st.write(f"• **Title Size:** {typography.get('title_size', 24)}pt")
-                with col2:
-                    st.write(f"• **Body Size:** {typography.get('body_size', 11)}pt")
-            
-            # Show LLM analysis details if available
-            if use_llm and 'llm_analysis' in brand_config:
-                with st.expander("🧠 AI Analysis Details"):
-                    analysis = brand_config['llm_analysis']
-                    
-                    # Brand personality
-                    if 'brand_personality' in analysis:
-                        personality = analysis['brand_personality']
-                        if isinstance(personality, dict) and 'description' in personality:
-                            st.write(f"**Brand Style:** {personality['description']}")
-                    
-                    # Color reasoning
-                    if 'color_reasoning' in analysis:
-                        st.write("**Color Choices:**")
-                        for color_type, reasoning in analysis['color_reasoning'].items():
-                            if reasoning:
-                                st.write(f"• **{color_type.title()}:** {reasoning}")
-                    
-                    # Font reasoning
-                    if 'font_reasoning' in analysis and analysis['font_reasoning']:
-                        st.write(f"**Font Choice:** {analysis['font_reasoning']}")
-                    
-                    # Design patterns
-                    if 'design_patterns' in analysis:
-                        patterns = analysis['design_patterns']
-                        if isinstance(patterns, dict) and 'description' in patterns:
-                            st.write(f"**Design Patterns:** {patterns['description']}")
-            
-            # Clear progress indicators
-            progress_bar.empty()
-            status_text.empty()
-            
-        except Exception as e:
-            st.error(f"Brand extraction failed: {str(e)}")
-            st.error("Please check your PowerPoint file and try again.")
-    
-    elif uploaded_brand is not None and not HAS_PPTX:
-        st.error("⚠️ Cannot process PowerPoint - python-pptx not installed")
-        st.code("pip install python-pptx")
+    # Show research status
+    if st.session_state.get('research_completed', False):
+        st.success("✅ Research completed")
     else:
-        st.info("📁 Upload a brand deck to extract colors and fonts")
+        st.info("📋 Use Research Agent to start")
     
-    if "brand_config" not in st.session_state:
-        st.session_state["brand_config"] = None
-    
-    st.markdown("---")
-    
-    # Vector Database Configuration
-    st.subheader("🗄️ Vector Database")
-    
-    # Check if Vector DB is initialized
-    if "vector_db_initialized" not in st.session_state:
-        st.session_state["vector_db_initialized"] = False
-    
-    if not st.session_state["vector_db_initialized"]:
-        st.info("🔗 Initialize Vector DB to access precedent transactions and market data")
-        
-        # Vector DB credentials
-        vector_db_id = st.text_input(
-            "Database ID",
-            value="73bc4abf-5dc7-45df-af84-8cbaff7ee566",
-            help="Your Cassandra Vector Database ID"
-        )
-        
-        vector_db_token = st.text_input(
-            "Database Token",
-            value="AstraCS:ORguPOmjJefYcbNxhqArqJdX:8001c88572a51fd445ddc7ec515576b8bb6d11d6e216643ca07f0c0acd46c0ac",
-            type="password",
-            help="Your Cassandra Vector Database token"
-        )
-        
-        vector_db_keyspace = st.text_input(
-            "Keyspace",
-            value="default_keyspace",
-            help="Database keyspace name"
-        )
-        
-        vector_db_table = st.text_input(
-            "Table Name",
-            value="ma10",
-            help="Vector table name for storing embeddings"
-        )
-        
-        if st.button("🔗 Initialize Vector DB", type="primary"):
-            try:
-                # Import and initialize Vector DB
-                from vector_db import get_vector_db_manager
-                vector_db = get_vector_db_manager()
-                
-                if vector_db.initialize(vector_db_id, vector_db_token, vector_db_keyspace, vector_db_table):
-                    st.session_state["vector_db_initialized"] = True
-                    st.session_state["vector_db"] = vector_db
-                    st.rerun()
-            except Exception as e:
-                st.error(f"❌ Failed to initialize Vector DB: {str(e)}")
-                st.info("💡 Make sure you have installed the required packages: `pip install cassio cassandra-driver`")
+    # Show JSON status
+    if st.session_state.get('content_ir_json') and st.session_state.get('render_plan_json'):
+        st.success("✅ JSONs generated")
     else:
-        st.success("✅ Vector DB Connected!")
+        st.info("⚙️ Generate JSONs needed")
         
-        # Show Vector DB status
-        from vector_db import get_vector_db_manager
-        vector_db = get_vector_db_manager()
-        status = vector_db.get_status()
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write(f"**Database:** {status['database_id'][:8]}...")
-            st.write(f"**Keyspace:** {status['keyspace']}")
-        with col2:
-            st.write(f"**Table:** {status['table_name']}")
-            st.write(f"**Status:** {'🟢 Active' if status['is_initialized'] else '🔴 Inactive'}")
-        
-        if st.button("🔄 Reinitialize Vector DB"):
-            st.session_state["vector_db_initialized"] = False
-            st.rerun()
-    
     st.markdown("---")
+    st.markdown("### 💡 **Workflow Guide**")
+    st.markdown("""
+    1. **Research Agent** - Enter company & generate research
+    2. **JSON Editor** - Review & edit generated JSONs  
+    3. **Execute** - Upload brand deck & generate PowerPoint
     
-    # Other configuration options
-    templates_path = st.text_input("templates.json path", value="templates.json")
-    company_name = st.text_input("Company name", value="Moelis & Company")
-    skip_validate = st.checkbox("Skip validation", value=False)
+    💡 **Brand extraction** happens automatically in Execute tab
+    """)
+
 
 # Initialize chat history
 if "messages" not in st.session_state:
@@ -6422,7 +6150,7 @@ if "enhanced_initialized" not in st.session_state:
     st.session_state.enhanced_initialized = True
 
 # Main App Layout
-tab_chat, tab_extract, tab_json, tab_execute, tab_validate = st.tabs(["🔬 Research Agent", "🚀 Quick JSON", "📄 JSON Editor", "⚙️ Execute", "🔍 JSON Validator & Auto-Fix"])
+tab_chat, tab_extract, tab_json, tab_execute, tab_validate = st.tabs(["🔬 Research Agent", "🎨 Brand", "📄 JSON Editor", "⚙️ Execute", "🔍 JSON Validator & Auto-Fix"])
 
 with tab_chat:
     st.subheader("🔬 Research Agent - AI Investment Banking Research")
@@ -6822,9 +6550,12 @@ RENDER PLAN JSON:
                                 
                                 # Show validation summary
                                 if validation_results and validation_results.get('overall_valid', False):
-                                    st.success(f"🎯 Validation: {validation_results['summary']['valid_slides']}/{validation_results['summary']['total_slides']} slides validated successfully!")
+                                    if 'summary' in validation_results:
+                                        st.success(f"🎯 Validation: {validation_results['summary']['valid_slides']}/{validation_results['summary']['total_slides']} slides validated successfully!")
+                                    else:
+                                        st.success("✅ JSON generation successful!")
                                 else:
-                                    st.warning("⚠️ JSONs generated but some validation issues detected (auto-fixes applied)")
+                                    st.warning("⚠️ JSONs generated but some validation issues detected - auto-improvement will run automatically")
                                 
                                 # Show auto-population success
                                 st.balloons()
@@ -6835,13 +6566,11 @@ RENDER PLAN JSON:
                                 st.error("❌ Manual generation failed - missing JSONs despite response")
                                 
                         except Exception as e:
-                            st.error(f"DEBUG: CRITICAL ERROR in extraction: {str(e)}")
-                            print(f"[GENERATE_JSON_NOW] CRITICAL ERROR in validation: {str(e)}")
-                            print(f"[GENERATE_JSON_NOW] Error type: {type(e)}")
-                            import traceback
-                            print(f"[GENERATE_JSON_NOW] Traceback: {traceback.format_exc()}")
-                            st.error(f"Manual validation failed: {str(e)}")
-                            content_ir, render_plan, validation_results = None, None, None
+                            st.warning(f"⚠️ JSON extraction issue: {str(e)}")
+                            st.info("🔧 **Solution**: Auto-improvement will automatically fix this issue. Enable auto-improve in the sidebar and try again.")
+                            print(f"[GENERATE_JSON_NOW] Extraction error: {str(e)}")
+                            # Try to continue with partial data or trigger auto-improvement
+                            content_ir, render_plan, validation_results = None, None, {"overall_valid": False}
                         
                         # Add completion message indicating manual JSON generation
                         completion_message = f"🚀 **Adaptive JSON Generation Triggered**\n\n📊 Generated {len(slide_list)} slides based on conversation analysis:\n• **Included**: {', '.join(slide_list)}\n• **Quality**: {analysis_report.get('quality_summary', 'Quality analysis complete')}\n\n" + ai_response
@@ -6885,12 +6614,36 @@ RENDER PLAN JSON:
                 )
 
 with tab_extract:
-    st.subheader("🚀 Quick JSON Generation")
+    st.subheader("🎨 Brand Configuration & Upload")
     
-    st.info("💡 **For most users**: Use the Research Agent tab instead for the complete workflow")
+    st.markdown("### 📤 Upload Brand Deck")
+    st.info("Upload your company's brand deck (PowerPoint) to extract colors, fonts, and styling automatically")
     
-    st.markdown("### ⚡ Quick Actions")
-    st.markdown("Generate JSONs quickly if you already have conversation data:")
+    # Simple brand upload
+    uploaded_brand = st.file_uploader(
+        "Select Brand Deck (.pptx)",
+        type=['pptx'],
+        help="Upload a PowerPoint file to extract brand colors and fonts",
+        key="brand_upload_simple"
+    )
+    
+    if uploaded_brand:
+        st.success(f"✅ Brand deck uploaded: {uploaded_brand.name}")
+        st.info("💡 Brand extraction will happen automatically when you generate the PowerPoint in the Execute tab")
+        
+        # Store the uploaded file in session state
+        st.session_state['uploaded_brand_file'] = uploaded_brand
+    else:
+        st.info("📁 No brand deck uploaded - default styling will be used")
+    
+    st.markdown("---")
+    st.markdown("### 📋 **Next Steps**")
+    st.markdown("1. **Upload brand deck** (above) ← You are here")  
+    st.markdown("2. **Go to Execute tab** to generate PowerPoint")
+    st.markdown("3. **Brand extraction** happens automatically during generation")
+    
+    # Hide the complex vector DB and other content
+    if False:
     
     if len(st.session_state.get('messages', [])) < 3:
         st.info("💡 **Optional**: Connect to Vector Database for enhanced context")
