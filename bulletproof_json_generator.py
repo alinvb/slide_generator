@@ -143,10 +143,10 @@ RESPOND WITH ONLY THE JSON - NO OTHER TEXT.
         missing_data = {}
         
         for slide in required_slides:
-            if slide not in self.slide_templates:
+            if slide not in self.research_field_mapping:
                 continue
                 
-            template = self.slide_templates[slide]
+            template = self.research_field_mapping[slide]
             missing_fields = []
             
             # Check what's missing
@@ -795,6 +795,95 @@ RESPOND WITH ONLY THE JSON - NO OTHER TEXT.
                                 "key_drivers": ["Platform scalability", "Operational efficiency"]
                             }
                         })
+                    }
+                })
+            
+            elif slide_type == "competitive_positioning":
+                slides.append({
+                    "template": "competitive_positioning",
+                    "data": {
+                        "title": "Competitive Positioning",
+                        "competitive_analysis": complete_data.get("competitive_analysis", {
+                            "market_position": f"{company_name} competitive position",
+                            "key_competitors": ["Competitor 1", "Competitor 2", "Competitor 3"],
+                            "competitive_advantages": ["Technology platform", "Market expertise", "Strategic partnerships"]
+                        })
+                    }
+                })
+            
+            elif slide_type == "strategic_buyers":
+                slides.append({
+                    "template": "buyer_profiles", 
+                    "data": {
+                        "title": "Strategic Buyers",
+                        "buyers": complete_data.get("strategic_buyers", [{
+                            "buyer_name": "Strategic Buyer 1",
+                            "rationale": "Strategic synergies",
+                            "probability": "High"
+                        }])
+                    }
+                })
+            
+            elif slide_type == "financial_buyers":
+                slides.append({
+                    "template": "buyer_profiles",
+                    "data": {
+                        "title": "Financial Buyers", 
+                        "buyers": complete_data.get("financial_buyers", [{
+                            "buyer_name": "PE Fund 1",
+                            "rationale": "Growth capital investment",
+                            "probability": "Medium"
+                        }])
+                    }
+                })
+            
+            elif slide_type == "sea_conglomerates":
+                slides.append({
+                    "template": "sea_conglomerates",
+                    "data": {
+                        "title": "Global Conglomerates",
+                        "sea_conglomerates": complete_data.get("sea_conglomerates", {
+                            "conglomerates": ["Global Corp 1", "Global Corp 2"],
+                            "rationale": "International expansion opportunities"
+                        })
+                    }
+                })
+            
+            elif slide_type == "investor_considerations":
+                slides.append({
+                    "template": "investor_considerations",
+                    "data": {
+                        "title": "Investment Considerations",
+                        "investor_considerations": complete_data.get("investor_considerations", {
+                            "investment_highlights": ["Strong market position", "Growth potential"],
+                            "risk_factors": ["Market competition", "Regulatory changes"],
+                            "mitigating_factors": ["Experienced team", "Proven technology"]
+                        })
+                    }
+                })
+            
+            elif slide_type == "investor_process_overview":
+                slides.append({
+                    "template": "investor_process_overview",
+                    "data": {
+                        "title": "Investment Process Overview",
+                        "diligence_topics": complete_data.get("investor_process_data", {}).get("diligence_topics", [
+                            {"title": "Financial Review", "description": "Financial analysis and projections"},
+                            {"title": "Market Analysis", "description": "Market size and competitive landscape"}
+                        ]),
+                        "synergy_opportunities": complete_data.get("investor_process_data", {}).get("synergy_opportunities", [
+                            {"title": "Revenue Synergies", "description": "Cross-selling opportunities"}
+                        ]),
+                        "risk_factors": complete_data.get("investor_process_data", {}).get("risk_factors", [
+                            "Market volatility", "Competitive pressure"
+                        ]),
+                        "mitigants": complete_data.get("investor_process_data", {}).get("mitigants", [
+                            "Diversified portfolio", "Strong market position"
+                        ]),
+                        "timeline": complete_data.get("investor_process_data", {}).get("timeline", [
+                            {"date": "Week 1-2", "description": "Initial due diligence"},
+                            {"date": "Week 3-4", "description": "Management presentations"}
+                        ])
                     }
                 })
         

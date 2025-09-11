@@ -106,7 +106,14 @@ def get_brand_styling(brand_config=None, color_scheme=None, typography=None, tem
     
     # Get template-specific defaults first
     template_config = get_template_styling(template_name)
-    print(f"[DEBUG] Using template '{template_name}' with primary color: RGB({template_config['color_scheme']['primary'].r},{template_config['color_scheme']['primary'].g},{template_config['color_scheme']['primary'].b})")
+    try:
+        primary_color = template_config['color_scheme']['primary']
+        if hasattr(primary_color, 'r') and hasattr(primary_color, 'g') and hasattr(primary_color, 'b'):
+            print(f"[DEBUG] Using template '{template_name}' with primary color: RGB({primary_color.r},{primary_color.g},{primary_color.b})")
+        else:
+            print(f"[DEBUG] Using template '{template_name}' with primary color: {primary_color}")
+    except Exception as e:
+        print(f"[DEBUG] Color debug error: {e}, using template '{template_name}'")
     
     if brand_config:
         print(f"[DEBUG] Brand config keys: {list(brand_config.keys())}")
