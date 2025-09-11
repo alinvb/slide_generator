@@ -543,8 +543,14 @@ RESPOND WITH ONLY THE JSON - NO OTHER TEXT.
     def generate_perfect_jsons(self, extracted_data: Dict, research_data: Dict, required_slides: List[str]):
         """Generate perfect Content IR and Render Plan JSONs"""
         
+        print(f"📊 [DEBUG] generate_perfect_jsons called with:")
+        print(f"📊 [DEBUG] - extracted_data type: {type(extracted_data)}, keys: {list(extracted_data.keys()) if extracted_data else 'None'}")
+        print(f"📊 [DEBUG] - research_data type: {type(research_data)}, keys: {list(research_data.keys()) if research_data else 'None'}")
+        print(f"📊 [DEBUG] - required_slides: {required_slides}")
+        
         # Merge extracted and research data
         complete_data = {**extracted_data, **research_data}
+        print(f"📊 [DEBUG] complete_data keys: {list(complete_data.keys())}")
         
         # SMART FILTERING: Only include slides that have sufficient data from conversation
         covered_slides = self.filter_slides_by_conversation_coverage(complete_data, required_slides)
@@ -794,6 +800,13 @@ RESPOND WITH ONLY THE JSON - NO OTHER TEXT.
         
         render_plan = {"slides": slides}
         
+        print(f"🎯 [DEBUG] Final objects before return:")
+        print(f"🎯 [DEBUG] - content_ir type: {type(content_ir)}, is_dict: {isinstance(content_ir, dict)}")
+        print(f"🎯 [DEBUG] - render_plan type: {type(render_plan)}, is_dict: {isinstance(render_plan, dict)}")
+        print(f"🎯 [DEBUG] - slides count: {len(slides)}")
+        print(f"🎯 [DEBUG] - content_ir keys: {list(content_ir.keys()) if isinstance(content_ir, dict) else 'Not a dict'}")
+        print(f"🎯 [DEBUG] - render_plan structure: {render_plan}")
+        
         # Format with perfect markers
         perfect_response = f"""Based on our conversation, I've generated {len(covered_slides)} relevant slides that have sufficient data:
 
@@ -806,26 +819,54 @@ RENDER PLAN JSON:
 ✅ Generated {len(covered_slides)} slides based on conversation coverage: {', '.join(covered_slides)}
 ✅ Perfect format guaranteed for auto-improvement detection."""
         
+        print(f"🎯 [DEBUG] Returning: response (str), content_ir (dict), render_plan (dict)")
         return perfect_response, content_ir, render_plan
 
 # Usage function
 def generate_bulletproof_json(messages: List[Dict], required_slides: List[str], llm_api_call):
     """Main function to generate bulletproof JSONs"""
     
-    generator = BulletproofJSONGenerator()
+    print("🚀 [DEBUG] Starting bulletproof JSON generation...")
+    print(f"🚀 [DEBUG] Messages count: {len(messages)}")
+    print(f"🚀 [DEBUG] Required slides: {required_slides}")
     
-    # Step 1: Extract data from conversation
-    print("🔍 Extracting data from conversation...")
-    extracted_data = generator.extract_conversation_data(messages, llm_api_call)
-    
-    # Step 2: Research missing data
-    print("📚 Researching missing data...")
-    research_data = generator.research_missing_data(extracted_data, required_slides, llm_api_call)
-    
-    # Step 3: Generate perfect JSONs
-    print("⚡ Generating perfect JSONs...")
-    response, content_ir, render_plan = generator.generate_perfect_jsons(
-        extracted_data, research_data, required_slides
-    )
-    
-    return response, content_ir, render_plan
+    try:
+        generator = BulletproofJSONGenerator()
+        
+        # Step 1: Extract data from conversation
+        print("🔍 [DEBUG] Extracting data from conversation...")
+        extracted_data = generator.extract_conversation_data(messages, llm_api_call)
+        print(f"🔍 [DEBUG] Extracted data keys: {list(extracted_data.keys()) if extracted_data else 'None'}")
+        print(f"🔍 [DEBUG] Company name extracted: {extracted_data.get('company_name', 'None') if extracted_data else 'None'}")
+        
+        # Step 2: Research missing data
+        print("📚 [DEBUG] Researching missing data...")
+        research_data = generator.research_missing_data(extracted_data, required_slides, llm_api_call)
+        print(f"📚 [DEBUG] Research data keys: {list(research_data.keys()) if research_data else 'None'}")
+        
+        # Step 3: Generate perfect JSONs
+        print("⚡ [DEBUG] Generating perfect JSONs...")
+        response, content_ir, render_plan = generator.generate_perfect_jsons(
+            extracted_data, research_data, required_slides
+        )
+        
+        print(f"⚡ [DEBUG] Response type: {type(response)}")
+        print(f"⚡ [DEBUG] Content IR type: {type(content_ir)}")
+        print(f"⚡ [DEBUG] Render Plan type: {type(render_plan)}")
+        
+        if isinstance(content_ir, dict) and isinstance(render_plan, dict):
+            print(f"⚡ [DEBUG] Content IR keys: {list(content_ir.keys())}")
+            print(f"⚡ [DEBUG] Render Plan keys: {list(render_plan.keys())}")
+            print(f"⚡ [DEBUG] Slides count: {len(render_plan.get('slides', []))}")
+            print("✅ [DEBUG] Bulletproof generation completed successfully!")
+        else:
+            print(f"❌ [DEBUG] ERROR: Expected dict objects but got content_ir={type(content_ir)}, render_plan={type(render_plan)}")
+        
+        return response, content_ir, render_plan
+        
+    except Exception as e:
+        print(f"❌ [DEBUG] CRITICAL ERROR in bulletproof generation: {str(e)}")
+        print(f"❌ [DEBUG] Error type: {type(e)}")
+        import traceback
+        print(f"❌ [DEBUG] Traceback: {traceback.format_exc()}")
+        raise

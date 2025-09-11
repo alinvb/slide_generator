@@ -6527,19 +6527,39 @@ RENDER PLAN JSON:
                                 print(f"✅ [BULLETPROOF] Complete system used - conversation extraction + research + generation")
                                 
                                 # 🚨 CRITICAL: Store bulletproof JSONs in session state
+                                print(f"🔍 [DEBUG] Bulletproof results received:")
+                                print(f"🔍 [DEBUG] - bulletproof_response type: {type(bulletproof_response)}")
+                                print(f"🔍 [DEBUG] - content_ir_direct type: {type(content_ir_direct)}")
+                                print(f"🔍 [DEBUG] - render_plan_direct type: {type(render_plan_direct)}")
+                                
                                 if content_ir_direct and render_plan_direct:
-                                    st.session_state['content_ir_json'] = content_ir_direct
-                                    st.session_state['render_plan_json'] = render_plan_direct
+                                    print(f"🔍 [DEBUG] Storing in session state...")
+                                    print(f"🔍 [DEBUG] - content_ir_direct is dict: {isinstance(content_ir_direct, dict)}")
+                                    print(f"🔍 [DEBUG] - render_plan_direct is dict: {isinstance(render_plan_direct, dict)}")
                                     
-                                    # Also store string versions for compatibility
-                                    st.session_state["generated_content_ir"] = json.dumps(content_ir_direct, indent=2)
-                                    st.session_state["generated_render_plan"] = json.dumps(render_plan_direct, indent=2)
-                                    
-                                    # Set success flags
-                                    st.session_state["files_ready"] = True
-                                    st.session_state["auto_populated"] = True
-                                    
-                                    print(f"✅ [BULLETPROOF] Session state updated with rich JSONs")
+                                    if isinstance(content_ir_direct, dict) and isinstance(render_plan_direct, dict):
+                                        st.session_state['content_ir_json'] = content_ir_direct
+                                        st.session_state['render_plan_json'] = render_plan_direct
+                                        
+                                        # Also store string versions for compatibility
+                                        st.session_state["generated_content_ir"] = json.dumps(content_ir_direct, indent=2)
+                                        st.session_state["generated_render_plan"] = json.dumps(render_plan_direct, indent=2)
+                                        
+                                        # Set success flags
+                                        st.session_state["files_ready"] = True
+                                        st.session_state["auto_populated"] = True
+                                        
+                                        print(f"✅ [BULLETPROOF] Session state updated with rich JSONs")
+                                        print(f"✅ [DEBUG] Content IR keys: {list(content_ir_direct.keys())}")
+                                        print(f"✅ [DEBUG] Render plan slides: {len(render_plan_direct.get('slides', []))}")
+                                    else:
+                                        print(f"❌ [DEBUG] ERROR: Expected dict objects for session state storage")
+                                        print(f"❌ [DEBUG] content_ir_direct: {content_ir_direct}")
+                                        print(f"❌ [DEBUG] render_plan_direct: {render_plan_direct}")
+                                else:
+                                    print(f"❌ [DEBUG] ERROR: Bulletproof results are None or empty")
+                                    print(f"❌ [DEBUG] content_ir_direct: {content_ir_direct}")
+                                    print(f"❌ [DEBUG] render_plan_direct: {render_plan_direct}")
                                 
                             except Exception as e:
                                 st.error(f"❌ Generation failed: {str(e)}")
