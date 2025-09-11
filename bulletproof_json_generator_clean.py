@@ -28,9 +28,88 @@ class CleanBulletproofJSONGenerator:
             print(f"❌ [CLEAN] Extraction failed: {e}")
             return {}
     
-    def augment_extracted_data(self, extracted_data: Dict) -> Dict:
-        """Safely augment extracted data with intelligent defaults (no LLM calls)"""
-        print("🔧 [CLEAN] Augmenting extracted data with intelligent defaults...")
+    def comprehensive_llm_gap_filling(self, extracted_data: Dict, llm_api_call) -> Dict:
+        """Use LLM to fill ALL missing fields with professional, rich content"""
+        print("🤖 [CLEAN] Starting comprehensive LLM gap-filling...")
+        
+        company_name = extracted_data.get('company_name', 'TechCorp Solutions')
+        industry = extracted_data.get('industry', 'Technology')
+        
+        # Identify what fields are missing or insufficient
+        gap_filling_prompt = f"""Based on the extracted data for {company_name}, a {industry} company, please provide comprehensive professional content for any missing fields in investment banking presentation materials.
+
+EXTRACTED DATA: {json.dumps(extracted_data, indent=2)}
+
+Please provide a JSON response with rich, detailed content for ALL investment banking slide requirements. Fill in missing or insufficient data with professional, realistic information appropriate for the company profile.
+
+Required fields to populate (provide rich detail for each):
+
+1. **Management Team Profiles**: 
+   - Executive names, titles, backgrounds, experience
+   - At least 4-6 key executives with detailed profiles
+
+2. **Strategic Buyers Analysis**:
+   - 5-8 potential strategic acquirers with rationale
+   - Industry players who would value synergies
+   
+3. **Financial Buyers Analysis**:
+   - 5-8 relevant PE/VC firms with investment thesis
+   - Firms that match company stage and size
+
+4. **Competitive Positioning**:
+   - Key competitors, competitive advantages, market differentiation
+   - Detailed competitive landscape analysis
+
+5. **Growth Strategy Details**:
+   - Specific growth initiatives, market expansion plans
+   - Revenue growth drivers and strategic priorities
+
+6. **Investment Highlights**:
+   - Compelling investment themes and value propositions
+   - Key reasons to invest
+
+7. **Precedent Transactions**:
+   - Relevant M&A transactions in the industry
+   - Valuation benchmarks and multiples
+
+8. **Risk Factors & Mitigants**:
+   - Key business risks and mitigation strategies
+   - Due diligence considerations
+
+Return ONLY a JSON object with complete, professional data for all missing fields. Make the content specific, detailed, and appropriate for investment banking materials.
+
+JSON Response:"""
+
+        try:
+            print("🤖 [CLEAN] Making LLM call for comprehensive gap-filling...")
+            gap_fill_response = llm_api_call([{"role": "user", "content": gap_filling_prompt}])
+            
+            print(f"🤖 [CLEAN] Gap-fill response length: {len(gap_fill_response)} characters")
+            
+            # Extract JSON from response
+            json_match = re.search(r'\{.*\}', gap_fill_response, re.DOTALL)
+            if json_match:
+                gap_fill_json = json.loads(json_match.group())
+                print(f"✅ [CLEAN] Successfully parsed gap-fill JSON with {len(gap_fill_json)} fields")
+                
+                # Merge gap-filled data with extracted data (extracted data takes precedence)
+                comprehensive_data = {**gap_fill_json, **extracted_data}
+                
+                print(f"✅ [CLEAN] Comprehensive data assembled: {len(comprehensive_data)} fields total")
+                return comprehensive_data
+                
+            else:
+                print("⚠️ [CLEAN] No JSON found in gap-fill response, using extracted data only")
+                return extracted_data
+                
+        except Exception as e:
+            print(f"❌ [CLEAN] Gap-filling failed: {e}")
+            print("⚠️ [CLEAN] Falling back to basic augmentation")
+            return self.basic_augment_extracted_data(extracted_data)
+    
+    def basic_augment_extracted_data(self, extracted_data: Dict) -> Dict:
+        """Basic augmentation fallback (original logic)"""
+        print("🔧 [CLEAN] Applying basic data augmentation...")
         
         # Create enhanced data with smart defaults based on extracted information
         enhanced_data = extracted_data.copy()
@@ -68,15 +147,18 @@ class CleanBulletproofJSONGenerator:
             
             enhanced_data['investment_highlights'] = highlights or ["Attractive investment opportunity"]
         
-        print(f"✅ [CLEAN] Data augmentation complete - enhanced with intelligent defaults")
+        print(f"✅ [CLEAN] Basic augmentation complete")
         return enhanced_data
 
-    def build_content_ir(self, extracted_data: Dict, required_slides: List[str]) -> Dict:
-        """Build comprehensive Content IR from extracted data"""
+    def build_content_ir(self, extracted_data: Dict, required_slides: List[str], llm_api_call=None) -> Dict:
+        """Build comprehensive Content IR from extracted data with LLM gap-filling"""
         print("🔧 [CLEAN] Building Content IR...")
         
-        # First augment the data safely
-        enhanced_data = self.augment_extracted_data(extracted_data)
+        # Use comprehensive LLM gap-filling if available, otherwise basic augmentation
+        if llm_api_call:
+            enhanced_data = self.comprehensive_llm_gap_filling(extracted_data, llm_api_call)
+        else:
+            enhanced_data = self.basic_augment_extracted_data(extracted_data)
         
         company_name = enhanced_data.get('company_name', 'Unknown Company')
         
@@ -154,24 +236,58 @@ class CleanBulletproofJSONGenerator:
             # Leadership Team Slide Data
             "leadership_team": {
                 "title": "Management Team",
-                "team_members": enhanced_data.get('team_members', []),
-                "key_executives": len(enhanced_data.get('team_members', [])),
-                "leadership_experience": "Strong leadership team with consulting, technology, and finance expertise",
-                "team_structure": "Executive team with complementary skills and proven track record",
-                "left_column_profiles": enhanced_data.get('team_members', [])[:3] if enhanced_data.get('team_members') else [
-                    {"name": "CEO & Founder", "title": "Chief Executive Officer", "background": "Technology leadership"},
-                    {"name": "CTO", "title": "Chief Technology Officer", "background": "AI/ML expertise"},
-                    {"name": "CFO", "title": "Chief Financial Officer", "background": "Finance & strategy"}
-                ],
-                "right_column_profiles": enhanced_data.get('team_members', [])[3:] if len(enhanced_data.get('team_members', [])) > 3 else [
-                    {"name": "VP Operations", "title": "VP of Operations", "background": "Operational excellence"},
-                    {"name": "VP Sales", "title": "VP of Sales", "background": "Revenue growth"}
-                ],
-                "team_highlights": [
+                "team_members": enhanced_data.get('management_team_profiles', enhanced_data.get('team_members', [])),
+                "key_executives": len(enhanced_data.get('management_team_profiles', enhanced_data.get('team_members', []))),
+                "leadership_experience": enhanced_data.get('leadership_experience', "Strong leadership team with consulting, technology, and finance expertise"),
+                "team_structure": enhanced_data.get('team_structure', "Executive team with complementary skills and proven track record"),
+                "left_column_profiles": enhanced_data.get('left_column_profiles', 
+                    enhanced_data.get('management_team_profiles', enhanced_data.get('team_members', []))[:3] if enhanced_data.get('management_team_profiles') and len(enhanced_data.get('management_team_profiles', [])) >= 3 else [
+                        {
+                            "name": f"{company_name} CEO",
+                            "title": "Chief Executive Officer & Founder", 
+                            "background": f"15+ years technology leadership, former McKinsey consultant, scaled {company_name} from startup to ${latest_revenue}M revenue",
+                            "experience": "Technology entrepreneur with deep industry expertise"
+                        },
+                        {
+                            "name": f"{company_name} CTO", 
+                            "title": "Chief Technology Officer",
+                            "background": f"PhD Computer Science, 12+ years AI/ML experience, architected {company_name}'s core technology platform", 
+                            "experience": "AI/ML expert with proven product development track record"
+                        },
+                        {
+                            "name": f"{company_name} CFO",
+                            "title": "Chief Financial Officer", 
+                            "background": f"Former investment banker, 10+ years finance experience, led {company_name} through ${latest_revenue}M revenue growth",
+                            "experience": "Finance leader with M&A and scaling expertise"
+                        }
+                    ]),
+                "right_column_profiles": enhanced_data.get('right_column_profiles',
+                    enhanced_data.get('management_team_profiles', enhanced_data.get('team_members', []))[2:] if enhanced_data.get('management_team_profiles') and len(enhanced_data.get('management_team_profiles', [])) > 2 else [
+                        {
+                            "name": f"{company_name} VP Operations",
+                            "title": "VP of Operations", 
+                            "background": f"Former consulting background, 8+ years operations experience, scaled {company_name} operations across regions",
+                            "experience": "Operational excellence and process optimization expert"
+                        },
+                        {
+                            "name": f"{company_name} VP Sales",
+                            "title": "VP of Sales & Business Development",
+                            "background": f"15+ years enterprise sales, built {company_name} sales organization, delivered consistent growth",
+                            "experience": "Revenue growth and client relationship management leader"
+                        },
+                        {
+                            "name": f"{company_name} VP Product",
+                            "title": "VP of Product",
+                            "background": f"Product management expert, 10+ years tech experience, drives {company_name} product strategy",
+                            "experience": "Product strategy and market positioning specialist" 
+                        }
+                    ]),
+                "team_highlights": enhanced_data.get('team_highlights', [
                     "Experienced leadership across key functions",
-                    "Proven track record in scaling technology companies",
-                    "Strong industry expertise and relationships"
-                ]
+                    "Proven track record in scaling technology companies", 
+                    "Strong industry expertise and relationships",
+                    "Deep domain knowledge and technical capabilities"
+                ])
             },
             
             # Market & Competition Slide Data
@@ -208,31 +324,41 @@ class CleanBulletproofJSONGenerator:
             # Investment Opportunity Slide Data
             "investment_opportunity": {
                 "title": "Investment Opportunity",
-                "strategic_buyers": enhanced_data.get('strategic_buyers_identified', []),
-                "financial_buyers": enhanced_data.get('financial_buyers_identified', []),
-                "investment_highlights": [
-                    f"Strong financial performance: ${latest_revenue}M revenue",
-                    "Experienced leadership team",
-                    "Growing market opportunity", 
-                    "Clear competitive advantages"
-                ],
+                "strategic_buyers": enhanced_data.get('strategic_buyers_analysis', enhanced_data.get('strategic_buyers_identified', [])),
+                "financial_buyers": enhanced_data.get('financial_buyers_analysis', enhanced_data.get('financial_buyers_identified', [])),
+                "investment_highlights": enhanced_data.get('investment_highlights_detailed', [
+                    f"Strong financial performance: ${latest_revenue}M revenue with ${latest_ebitda}M EBITDA",
+                    "Experienced leadership team with proven track record",
+                    "Growing market opportunity in AI/technology sector", 
+                    "Clear competitive advantages and market differentiation",
+                    "Scalable business model with expansion potential"
+                ]),
                 "valuation_ready": True,
-                "transaction_readiness": "Company ready for institutional investment",
-                "key_investment_themes": [
-                    "Market-leading AI technology platform",
-                    "Strong financial growth trajectory", 
-                    "Experienced management team",
-                    "Attractive market opportunity"
-                ],
+                "transaction_readiness": enhanced_data.get('transaction_readiness', "Company ready for institutional investment"),
+                "key_investment_themes": enhanced_data.get('key_investment_themes', [
+                    "Market-leading technology platform with competitive moat",
+                    "Strong financial growth trajectory and profitability", 
+                    "Experienced management team with industry expertise",
+                    "Attractive market opportunity with expansion potential",
+                    "Proven business model with scalable operations"
+                ]),
                 "transaction_highlights": {
-                    "process_type": "Competitive auction process",
-                    "timeline": "Q2 2024 transaction close",
-                    "expected_interest": "Strategic and financial buyers",
-                    "value_drivers": ["Technology", "Market position", "Growth potential"]
+                    "process_type": enhanced_data.get('process_type', "Competitive auction process"),
+                    "timeline": enhanced_data.get('transaction_timeline', "Q2 2024 transaction close"),
+                    "expected_interest": enhanced_data.get('expected_interest', "Strong interest from strategic and financial buyers"),
+                    "value_drivers": enhanced_data.get('value_drivers', ["Technology differentiation", "Market position", "Growth potential", "Financial performance"])
                 },
                 "buyer_profiles": {
-                    "strategic": enhanced_data.get('strategic_acquirers', ["Technology companies", "Regional conglomerates"]),
-                    "financial": enhanced_data.get('pe_firms', ["Growth equity firms", "Private equity funds"])
+                    "strategic": enhanced_data.get('strategic_buyer_profiles', enhanced_data.get('strategic_acquirers', [
+                        {"name": "Large Technology Companies", "rationale": "Technology synergies and market expansion", "type": "Strategic"},
+                        {"name": "Industry Leaders", "rationale": "Competitive positioning and capabilities", "type": "Strategic"},
+                        {"name": "Regional Conglomerates", "rationale": "Geographic expansion and diversification", "type": "Strategic"}
+                    ])),
+                    "financial": enhanced_data.get('financial_buyer_profiles', enhanced_data.get('pe_firms', [
+                        {"name": "Growth Equity Firms", "rationale": "Growth capital for expansion", "type": "Financial"},
+                        {"name": "Technology-focused PE Funds", "rationale": "Sector expertise and value creation", "type": "Financial"},
+                        {"name": "Mid-market Private Equity", "rationale": "Operational improvements and scaling", "type": "Financial"}
+                    ]))
                 }
             },
             
@@ -403,9 +529,9 @@ def generate_clean_bulletproof_json(messages: List[Dict], required_slides: List[
         print(f"✅ [CLEAN-REWRITE] Step 1 Complete: {field_count} fields extracted")
         print(f"📈 [CLEAN-REWRITE] Company: {company_name}")
         
-        # Step 2: Build comprehensive Content IR 
-        print("🔧 [CLEAN-REWRITE] Step 2: Building Content IR...")
-        content_ir = generator.build_content_ir(extracted_data, required_slides)
+        # Step 2: Build comprehensive Content IR with LLM gap-filling
+        print("🔧 [CLEAN-REWRITE] Step 2: Building Content IR with comprehensive gap-filling...")
+        content_ir = generator.build_content_ir(extracted_data, required_slides, llm_api_call)
         
         print(f"✅ [CLEAN-REWRITE] Step 2 Complete: Content IR with {len(content_ir)} sections")
         
