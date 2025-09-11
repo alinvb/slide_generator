@@ -28,16 +28,62 @@ class CleanBulletproofJSONGenerator:
             print(f"❌ [CLEAN] Extraction failed: {e}")
             return {}
     
+    def augment_extracted_data(self, extracted_data: Dict) -> Dict:
+        """Safely augment extracted data with intelligent defaults (no LLM calls)"""
+        print("🔧 [CLEAN] Augmenting extracted data with intelligent defaults...")
+        
+        # Create enhanced data with smart defaults based on extracted information
+        enhanced_data = extracted_data.copy()
+        
+        # Add missing business overview elements
+        if not enhanced_data.get('description') and enhanced_data.get('business_description'):
+            enhanced_data['description'] = enhanced_data['business_description']
+        
+        # Add intelligent defaults for missing slide data
+        company_name = enhanced_data.get('company_name', 'Unknown Company')
+        
+        # Strategic buyers defaults based on extracted data if missing
+        if not enhanced_data.get('strategic_acquirers') and enhanced_data.get('strategic_buyers_identified'):
+            strategic_buyers = enhanced_data.get('strategic_buyers_identified', [])
+            enhanced_data['strategic_acquirers'] = [buyer.get('name', 'Strategic Buyer') for buyer in strategic_buyers if isinstance(buyer, dict)]
+        
+        # Financial buyers defaults  
+        if not enhanced_data.get('pe_firms') and enhanced_data.get('financial_buyers_identified'):
+            financial_buyers = enhanced_data.get('financial_buyers_identified', [])
+            enhanced_data['pe_firms'] = [buyer.get('name', 'PE Firm') for buyer in financial_buyers if isinstance(buyer, dict)]
+        
+        # Add investment highlights based on financial data
+        if not enhanced_data.get('investment_highlights'):
+            highlights = []
+            if enhanced_data.get('annual_revenue_usd_m'):
+                latest_revenue = enhanced_data['annual_revenue_usd_m'][-1] if enhanced_data['annual_revenue_usd_m'] else 0
+                highlights.append(f"Strong revenue performance: ${latest_revenue}M")
+            
+            if enhanced_data.get('ebitda_usd_m'):
+                latest_ebitda = enhanced_data['ebitda_usd_m'][-1] if enhanced_data['ebitda_usd_m'] else 0
+                highlights.append(f"Profitable operations: ${latest_ebitda}M EBITDA")
+            
+            if enhanced_data.get('growth_rates'):
+                highlights.append("Strong growth trajectory")
+            
+            enhanced_data['investment_highlights'] = highlights or ["Attractive investment opportunity"]
+        
+        print(f"✅ [CLEAN] Data augmentation complete - enhanced with intelligent defaults")
+        return enhanced_data
+
     def build_content_ir(self, extracted_data: Dict, required_slides: List[str]) -> Dict:
         """Build comprehensive Content IR from extracted data"""
         print("🔧 [CLEAN] Building Content IR...")
         
-        company_name = extracted_data.get('company_name', 'Unknown Company')
+        # First augment the data safely
+        enhanced_data = self.augment_extracted_data(extracted_data)
         
-        # Extract financial data safely
-        revenue_data = extracted_data.get('annual_revenue_usd_m', [2.5, 4.2, 7.1, 12])
-        ebitda_data = extracted_data.get('ebitda_usd_m', [0.4, 0.85, 1.6, 3.2])
-        years = extracted_data.get('financial_years', ['2021', '2022', '2023', '2024'])
+        company_name = enhanced_data.get('company_name', 'Unknown Company')
+        
+        # Extract financial data safely from enhanced data
+        revenue_data = enhanced_data.get('annual_revenue_usd_m', [2.5, 4.2, 7.1, 12])
+        ebitda_data = enhanced_data.get('ebitda_usd_m', [0.4, 0.85, 1.6, 3.2])
+        years = enhanced_data.get('financial_years', ['2021', '2022', '2023', '2024'])
         
         latest_revenue = revenue_data[-1] if revenue_data else 0
         latest_ebitda = ebitda_data[-1] if ebitda_data else 0
@@ -55,16 +101,16 @@ class CleanBulletproofJSONGenerator:
             # Business Overview Slide Data
             "business_overview": {
                 "company_name": company_name,
-                "description": extracted_data.get('business_description', 'Innovative technology company providing AI-powered solutions'),
-                "founded_year": extracted_data.get('founded_year', 2021),
-                "headquarters": extracted_data.get('headquarters_location', 'Middle East'),
+                "description": enhanced_data.get('description') or enhanced_data.get('business_description', 'Innovative technology company providing AI-powered solutions'),
+                "founded_year": enhanced_data.get('founded_year', 2021),
+                "headquarters": enhanced_data.get('headquarters_location', 'Middle East'),
                 "highlights": [
                     f"Founded in {extracted_data.get('founded_year', 2021)}",
                     f"Latest revenue: ${latest_revenue}M",
                     f"Latest EBITDA: ${latest_ebitda}M",
                     f"Strong growth trajectory"
                 ],
-                "services": extracted_data.get('products_services_list', ['AI-powered business automation solutions']),
+                "services": enhanced_data.get('products_services_list', ['AI-powered business automation solutions']),
                 "positioning": "Market leader in AI-driven business solutions"
             },
             
@@ -161,17 +207,26 @@ class CleanBulletproofJSONGenerator:
             }
         }
         
-        # Build individual slide definitions
+        # Build individual slide definitions using ACTUAL template function names
         slide_templates = {
-            "business_overview": "Business Overview Template",
-            "financial_performance": "Financial Performance Template", 
-            "leadership_team": "Leadership Team Template",
-            "market_analysis": "Market Analysis Template",
-            "precedent_transactions": "Precedent Transactions Template",
-            "valuation_overview": "Valuation Overview Template",
-            "strategic_buyers": "Strategic Buyers Template",
-            "financial_buyers": "Financial Buyers Template",
-            "investment_considerations": "Investment Considerations Template"
+            "business_overview": "render_business_overview_slide",
+            "financial_performance": "render_historical_financial_performance_slide",
+            "historical_financial_performance": "render_historical_financial_performance_slide", 
+            "leadership_team": "render_management_team_slide",
+            "management_team": "render_management_team_slide",
+            "market_analysis": "render_competitive_positioning_slide",
+            "competitive_positioning": "render_competitive_positioning_slide",
+            "precedent_transactions": "render_precedent_transactions_slide",
+            "valuation_overview": "render_valuation_overview_slide",
+            "strategic_buyers": "render_buyer_profiles_slide",
+            "financial_buyers": "render_buyer_profiles_slide",
+            "investment_considerations": "render_investor_considerations_slide",
+            "investor_considerations": "render_investor_considerations_slide",
+            "investor_process_overview": "render_investor_process_overview_slide",
+            "margin_cost_resilience": "render_margin_cost_resilience_slide",
+            "growth_strategy": "render_growth_strategy_slide",
+            "growth_strategy_projections": "render_growth_strategy_projections_slide",
+            "product_service_footprint": "render_product_service_footprint_slide"
         }
         
         for i, slide_type in enumerate(required_slides):
@@ -179,7 +234,8 @@ class CleanBulletproofJSONGenerator:
                 "slide_number": i + 1,
                 "slide_type": slide_type,
                 "slide_title": slide_type.replace('_', ' ').title(),
-                "template": slide_templates.get(slide_type, "Generic Template"),
+                "template": slide_templates.get(slide_type, "render_business_overview_slide"),  # Use actual renderer function as fallback
+                "renderer_function": slide_templates.get(slide_type, "render_business_overview_slide"),  # Add explicit renderer
                 "data_source": f"content_ir.{slide_type}" if slide_type in content_ir else "content_ir.business_overview",
                 "content_available": True,
                 "generation_ready": True
