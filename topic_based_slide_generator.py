@@ -80,11 +80,11 @@ class TopicBasedSlideGenerator:
                 "content_ir_key": "financial_buyers",
                 "table_headers": ["Buyer Name", "Description", "Investment Rationale", "Key Synergies", "Fit"]
             },
-            "sea_conglomerates": {
-                "slide_name": "sea_conglomerates",
+            "global_conglomerates": {
+                "slide_name": "global_conglomerates",
                 "template": "buyer_profiles", 
                 "title": "Global Conglomerates",
-                "content_ir_key": "sea_conglomerates",
+                "content_ir_key": "global_conglomerates",
                 "table_headers": ["Company", "Country", "Description", "Key Financials"]
             },
             "margin_cost_resilience": {
@@ -146,7 +146,7 @@ class TopicBasedSlideGenerator:
             "financial_buyers": [
                 "private equity firms", "pe firms", "financial buyers", "afford your valuation"
             ],
-            "sea_conglomerates": [
+            "global_conglomerates": [
                 "large conglomerates", "geographic region", "conglomerates that operate"
             ],
             "margin_cost_resilience": [
@@ -259,7 +259,7 @@ class TopicBasedSlideGenerator:
             "valuation_overview": 8,  # CRITICAL: Valuation BEFORE buyers
             "strategic_buyers": 9,    # After valuation to determine affordability
             "financial_buyers": 10,   # PE firms only, not VCs
-            "sea_conglomerates": 11,  # Geography-aware conglomerates
+            "global_conglomerates": 11,  # Geography-aware conglomerates
             "margin_cost_resilience": 12,
             "investor_considerations": 13,
             "investor_process_overview": 14

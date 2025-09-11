@@ -6621,12 +6621,24 @@ with tab_chat:
                         from perfect_json_prompter import get_interview_completion_prompt
                         from topic_based_slide_generator import generate_topic_based_presentation
                         
-                        # Generate slides ONLY for covered interview topics (1 question = 1 slide)
-                        slide_list, adaptive_render_plan, analysis_report = generate_topic_based_presentation(st.session_state.messages)
+                        # Check if using Research Agent data (all 14 topics researched)
+                        if st.session_state.get('research_completed', False):
+                            # Research Agent: Generate ALL 14 slides
+                            slide_list = [
+                                "business_overview", "product_service_footprint", 
+                                "historical_financial_performance", "management_team",
+                                "growth_strategy_projections", "competitive_positioning",
+                                "precedent_transactions", "valuation_overview",
+                                "strategic_buyers", "financial_buyers", "global_conglomerates",
+                                "margin_cost_resilience", "investor_considerations", "investor_process_overview"
+                            ]
+                            print(f"🔬 RESEARCH AGENT: Generating ALL {len(slide_list)} slides from comprehensive research")
+                        else:
+                            # Chat-based: Generate slides for covered topics only  
+                            slide_list, adaptive_render_plan, analysis_report = generate_topic_based_presentation(st.session_state.messages)
+                            print(f"💬 CHAT-BASED: Generating {len(slide_list)} slides for covered topics")
                         
-                        # Generate comprehensive presentation with all relevant slides
-                        
-                        completion_prompt = f"""Based on our conversation, generate JSON structures for ONLY these {len(slide_list)} relevant slides:
+                        completion_prompt = f"""Based on our comprehensive research, generate JSON structures for these {len(slide_list)} investment banking slides:
 
 🎯 SLIDES TO GENERATE:
 {chr(10).join([f"• {slide}" for slide in slide_list])}
