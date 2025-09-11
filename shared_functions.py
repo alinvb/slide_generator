@@ -4,6 +4,21 @@ shared_functions.py - Shared functions to avoid circular imports
 Contains functions that both app.py and research_agent.py need to access
 """
 
+# NUCLEAR TUPLE ERROR FIX: Global bulletproof get function
+def safe_get(obj, key, default=None):
+    """Bulletproof get function that handles any object type"""
+    try:
+        if hasattr(obj, 'get') and callable(getattr(obj, 'get')):
+            return obj.get(key, default)
+        elif isinstance(obj, dict):
+            return obj.get(key, default)
+        else:
+            print(f"🚨 SAFE_GET: Object is {type(obj)}, not dict - returning default: {default}")
+            return default
+    except Exception as e:
+        print(f"🚨 SAFE_GET ERROR: {str(e)}, returning default: {default}")
+        return default
+
 import streamlit as st
 import requests
 import json

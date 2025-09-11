@@ -2,11 +2,11 @@ module.exports = {
   apps: [{
     name: 'investment-banking-app',
     script: 'python',
-    args: '-m streamlit run app.py --server.port=8501 --server.address=0.0.0.0 --server.headless=true --server.fileWatcherType=none',
+    args: '-m streamlit run app.py --server.port=8504 --server.address=0.0.0.0 --server.headless=true --server.fileWatcherType=none',
     cwd: '/home/user/webapp',
     env: {
       'PYTHONPATH': '/home/user/webapp',
-      'STREAMLIT_SERVER_PORT': '8501',
+      'STREAMLIT_SERVER_PORT': '8504',
       'STREAMLIT_SERVER_ADDRESS': '0.0.0.0'
     },
     max_memory_restart: '1G',
