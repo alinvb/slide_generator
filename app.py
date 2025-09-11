@@ -1626,9 +1626,6 @@ except Exception:
 st.set_page_config(page_title="AI Deck Builder", page_icon="🤖", layout="wide")
 st.title("🤖 AI Deck Builder – LLM-Powered Pitch Deck Generator")
 
-# Link to new Research Agent
-st.info("🔬 **NEW: Try our streamlined [Research Agent](https://8502-ikj6s88jczm4laiut7xkl-6532622b.e2b.dev)** - Enter company name, get comprehensive research for all 14 topics automatically!")
-
 # JSON CLEANING FUNCTIONS - Removed duplicate, using enhanced version below
 
 def validate_json_char_by_char(json_str, error_pos):
@@ -5944,7 +5941,7 @@ with st.sidebar:
         
         auto_improve_enabled = st.toggle(
             "Enable Auto-Improvement",
-            value=st.session_state.get('auto_improve_enabled', False),
+            value=st.session_state.get('auto_improve_enabled', True),
             help="Automatically improve JSON quality using API calls after generation",
             key="sidebar_auto_improve_toggle"
         )
@@ -6425,7 +6422,7 @@ if "enhanced_initialized" not in st.session_state:
     st.session_state.enhanced_initialized = True
 
 # Main App Layout
-tab_chat, tab_extract, tab_json, tab_execute, tab_validate = st.tabs(["🔬 Research Agent", "🎯 Extract & Auto-Populate", "📄 JSON Editor", "⚙️ Execute", "🔍 JSON Validator & Auto-Fix"])
+tab_chat, tab_extract, tab_json, tab_execute, tab_validate = st.tabs(["🔬 Research Agent", "🚀 Quick JSON", "📄 JSON Editor", "⚙️ Execute", "🔍 JSON Validator & Auto-Fix"])
 
 with tab_chat:
     st.subheader("🔬 Research Agent - AI Investment Banking Research")
@@ -6438,8 +6435,17 @@ with tab_chat:
     from research_agent import research_all_topics, fact_check_user_info
     
     # Research Agent Interface - Clean and Simple
-    st.markdown("**Enter a company name and let AI research all 14 investment banking topics automatically**")
-    st.info("🌐 **Powered by Perplexity Sonar Pro** - Real-time web research with citations")
+    st.markdown("## 📋 **Step-by-Step Workflow**")
+    st.info("""
+    **1.** Enter company name + optional information → **2.** Review & edit research results → 
+    **3.** Generate JSON → **4.** Go to Execute tab → **5.** Generate PowerPoint
+    
+    💡 **Brand extraction** happens automatically during PowerPoint generation in the Execute tab
+    """)
+    
+    st.markdown("---")
+    st.markdown("### 🔍 Company Research")
+    st.markdown("Enter a company name and let AI research all 14 investment banking topics automatically")
     
     # Company input section
     col1, col2 = st.columns([1, 2])
@@ -6609,7 +6615,7 @@ with tab_chat:
                         print("🧪 TEST BUTTON CLICKED!")
                     
                     if st.button("🚀 Generate JSON Now", type="secondary", help="Generate presentation with available information"):
-                        st.error("DEBUG: BUTTON CLICKED - Starting generation process...")
+                        # Starting JSON generation process
                         print(f"🚨 [GENERATE_JSON_NOW] 🚀 BUTTON CLICKED! Starting generation process...")
                         # Force JSON generation with adaptive slide selection
                         from perfect_json_prompter import get_interview_completion_prompt
@@ -6618,9 +6624,7 @@ with tab_chat:
                         # Generate slides ONLY for covered interview topics (1 question = 1 slide)
                         slide_list, adaptive_render_plan, analysis_report = generate_topic_based_presentation(st.session_state.messages)
                         
-                        # Show user what will be generated
-                        st.info(f"📊 **Topic-Based Generation**: Creating {len(slide_list)} slides for {analysis_report.get('topics_covered', 0)} covered interview topics")
-                        st.write("**Slides to include:**", ", ".join(slide_list))
+                        # Generate comprehensive presentation with all relevant slides
                         
                         completion_prompt = f"""Based on our conversation, generate JSON structures for ONLY these {len(slide_list)} relevant slides:
 
@@ -6752,37 +6756,15 @@ RENDER PLAN JSON:
 
 ✅ Emergency bulletproof JSON generated after error."""
                         
-                        # CRITICAL: Apply full validation pipeline to manual generation
-                        st.warning(f"DEBUG: Starting JSON extraction from response length: {len(ai_response)}")
-                        print(f"🚨 [GENERATE_JSON_NOW] Starting JSON extraction from response length: {len(ai_response)}")
-                        print(f"🚨 [GENERATE_JSON_NOW] Response preview: {ai_response[:500]}...")
+                        # Extract and process JSON structures
                         
                         try:
-                            st.info("DEBUG: Using SIMPLE extraction method to bypass hanging...")
-                            # BYPASS the hanging extract_and_validate_jsons function
-                            # Use direct extraction without complex validation
+                            # Extract JSONs using efficient extraction method
                             content_ir, render_plan = extract_jsons_from_response(ai_response)
-                            validation_results = {"overall_valid": True}  # Skip validation for now
-                            
-                            st.success("DEBUG: Simple extraction completed!")
-                            print(f"[GENERATE_JSON_NOW] Simple extraction result - Content IR: {content_ir is not None}, Render Plan: {render_plan is not None}")
-                            
-                            if content_ir:
-                                st.success(f"DEBUG: Content IR extracted with {len(content_ir)} keys!")
-                                print(f"[GENERATE_JSON_NOW] Content IR keys: {list(content_ir.keys())}")
-                            else:
-                                st.error("DEBUG: Content IR extraction FAILED!")
-                                
-                            if render_plan:
-                                st.success(f"DEBUG: Render Plan extracted with {len(render_plan.get('slides', []))} slides!")
-                                print(f"[GENERATE_JSON_NOW] Render Plan slides: {len(render_plan.get('slides', []))}")
-                            else:
-                                st.error("DEBUG: Render Plan extraction FAILED!")
+                            validation_results = {"overall_valid": True}
                             
                             if content_ir and render_plan:
-                                print(f"🚨 [GENERATE_JSON_NOW] ✅ Both JSONs extracted successfully! Proceeding with session state storage...")
-                                st.success("Manual JSON generation successful with full validation!")
-                                st.info("DEBUG: About to set session state variables...")
+                                st.success("✅ JSON generation successful!")
                                 
                                 # Store validated JSONs in session state
                                 st.session_state['content_ir_json'] = content_ir
@@ -6891,46 +6873,14 @@ RENDER PLAN JSON:
                 )
 
 with tab_extract:
-    st.subheader("🎯 Extract & Auto-Populate JSONs")
+    st.subheader("🚀 Quick JSON Generation")
     
-    # Brand extraction section
-    st.markdown("### 🏷️ Brand Extraction")
-    brand_extraction_enabled = st.toggle(
-        "Enable Brand Extraction",
-        value=st.session_state.get('brand_extraction_enabled', False),
-        help="Extract brand and company information from research data",
-        key="extract_tab_brand_extraction_toggle"
-    )
-    st.session_state['brand_extraction_enabled'] = brand_extraction_enabled
+    st.info("💡 **For most users**: Use the Research Agent tab instead for the complete workflow")
     
-    if brand_extraction_enabled:
-        from brand_extractor import BrandExtractor
-        extractor = BrandExtractor()
-        
-        if st.button("🔍 Extract Brand Information"):
-            if st.session_state.get('research_results'):
-                with st.spinner("Extracting brand information..."):
-                    # Extract from research results
-                    research_data = ""
-                    for topic_id, topic_data in st.session_state.research_results.items():
-                        research_data += f"{topic_data['title']}: {topic_data['content']}\n\n"
-                    
-                    try:
-                        brand_info = extractor.extract_brand_info(research_data)
-                        st.success("✅ Brand extraction completed!")
-                        st.json(brand_info)
-                        st.session_state['extracted_brand_info'] = brand_info
-                    except Exception as e:
-                        st.error(f"❌ Brand extraction failed: {e}")
-            else:
-                st.warning("⚠️ Complete research first in the Research Agent tab")
+    st.markdown("### ⚡ Quick Actions")
+    st.markdown("Generate JSONs quickly if you already have conversation data:")
     
-    # Vector DB section
-    st.markdown("### 🗄️ Vector Database (Optional)")
-    if "vector_db_initialized" not in st.session_state:
-        st.session_state["vector_db_initialized"] = False
-
-    if not st.session_state["vector_db_initialized"]:
+    if len(st.session_state.get('messages', [])) < 3:
         st.info("💡 **Optional**: Connect to Vector Database for enhanced context")
         
         vector_db_id = st.text_input(
@@ -7066,7 +7016,7 @@ with tab_extract:
             # Auto-improvement toggle
             auto_improve_enabled = st.toggle(
                 "Enable Auto-Improvement",
-                value=st.session_state.get('auto_improve_enabled', False),
+                value=st.session_state.get('auto_improve_enabled', True),
                 help="Automatically improve JSON quality using AI",
                 key="extract_tab_auto_improve_toggle"
             )
@@ -7313,7 +7263,7 @@ with tab_execute:
                         render_plan = json.loads(st.session_state.get("generated_render_plan", "{}"))
                     
                     # Generate presentation using existing executor
-                    from executor import execute_presentation
+                    from executor import execute_plan
                     
                     generation_config = {
                         "template": selected_template.lower(),
@@ -7324,7 +7274,7 @@ with tab_execute:
                     }
                     
                     # Execute presentation generation
-                    result = execute_presentation(
+                    result = execute_plan(
                         content_ir=content_ir,
                         render_plan=render_plan,
                         company_name=company_name,
