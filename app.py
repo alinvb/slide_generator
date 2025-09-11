@@ -1224,7 +1224,7 @@ from optimized_auto_improvement_integration import (
 # Old auto-improvement fallback removed - using optimized system only
 
 # ENHANCED CONVERSATION FEATURES: Advanced conversation management
-from aliya_enhanced_integration import integrate_enhanced_conversation_into_aliya, show_enhanced_progress_sidebar
+# from aliya_enhanced_integration import integrate_enhanced_conversation_into_aliya, show_enhanced_progress_sidebar  # Removed during cleanup
 
 def validate_and_fix_json(content_ir, render_plan, _already_fixed=False):
     """
@@ -6144,10 +6144,8 @@ if "messages" not in st.session_state:
 if "chat_started" not in st.session_state:
     st.session_state.chat_started = False
 
-# ENHANCED CONVERSATION SYSTEM: Initialize enhanced conversation management
-if "enhanced_initialized" not in st.session_state:
-    st.session_state.enhanced_funcs = integrate_enhanced_conversation_into_aliya()
-    st.session_state.enhanced_initialized = True
+# ENHANCED CONVERSATION SYSTEM: Removed during cleanup - functionality integrated into main app
+# Enhanced conversation management is now built into the Research Agent system
 
 # Main App Layout
 tab_chat, tab_extract, tab_json, tab_execute, tab_validate = st.tabs(["🔬 Research Agent", "🎨 Brand", "📄 JSON Editor", "⚙️ Execute", "🔍 JSON Validator & Auto-Fix"])
