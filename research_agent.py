@@ -38,23 +38,45 @@ def get_research_prompts() -> Dict[str, Dict[str, str]]:
     return {
         "business_overview": {
             "title": "Business Overview & Strategy", 
-            "prompt": """Research comprehensive business overview for {company}:
-            
-REQUIRED INFORMATION:
-- Company name and legal structure (Inc, Corp, LLC, etc.)
-- Detailed business description and core operations  
-- Industry classification and market positioning
-- Founding year and key milestones
-- Headquarters location and geographic presence
-- Employee count and organizational structure
-- Primary business model and revenue streams
-- Strategic positioning and competitive advantages
+            "prompt": """🏢 COMPREHENSIVE BUSINESS ANALYSIS for {company}:
+
+🚨 MANDATORY REQUIREMENTS - PROVIDE SPECIFIC DETAILS:
+Research and provide DETAILED factual information:
+
+**COMPANY FUNDAMENTALS**:
+✅ **Legal Company Name**: Full registered name and legal structure
+✅ **Incorporation Details**: State/country of incorporation, year founded
+✅ **Headquarters**: Specific city, state/country address
+✅ **Employee Count**: Current headcount (approximate if exact not available)
+✅ **Public/Private Status**: Public (ticker) or private ownership structure
+
+**BUSINESS OPERATIONS**:
+✅ **Core Business Description**: Detailed 2-3 paragraph business description
+✅ **Primary Industry**: Specific industry classification (NAICS/SIC codes if available)
+✅ **Revenue Model**: How the company generates revenue (subscriptions, transactions, etc.)
+✅ **Key Business Segments**: Primary business lines with revenue contribution %
+✅ **Geographic Footprint**: Countries/regions of operation with market focus
+
+**STRATEGIC POSITIONING**:
+✅ **Market Position**: Market share and competitive ranking in primary markets
+✅ **Competitive Advantages**: 3-4 specific differentiators from competitors
+✅ **Value Proposition**: Unique value delivered to customers
+✅ **Target Customer Base**: Specific customer segments and demographics
+
+**KEY MILESTONES & ACHIEVEMENTS**:
+✅ **Founding Story**: Key founders and founding circumstances
+✅ **Major Milestones**: 5-8 key company milestones with dates
+✅ **Recent Achievements**: Notable accomplishments from last 2 years
+✅ **Awards/Recognition**: Industry awards or recognition received
+
+**OPERATIONAL SCALE**:
+✅ **Business Metrics**: Key operational metrics (users, transactions, etc.)
+✅ **Technology Platform**: Core technology infrastructure and capabilities
+✅ **Regulatory Environment**: Key regulations and compliance requirements
 
 RESEARCH INSTRUCTIONS:
-Focus on factual, verifiable information about the company's core business operations, organizational structure, and strategic market position. Include specific details about business model, geographic footprint, and operational scale.
-
-Provide sources with readable titles and links. Be comprehensive but concise.""",
-            "required_fields": ["name", "business_description", "founding_year", "legal_structure", "core_operations", "target_markets"]
+Provide investment banking-grade business overview with specific, verifiable details. Include exact figures, dates, and factual information suitable for due diligence.""",
+            "required_fields": ["legal_name", "incorporation_details", "headquarters", "employee_count", "detailed_business_description", "industry_classification", "revenue_model", "geographic_footprint", "competitive_advantages", "key_milestones", "operational_metrics"]
         },
         
         "product_service_footprint": {
@@ -82,49 +104,100 @@ Focus on quantifiable metrics where available (number of markets, customer count
         
         "historical_financial_performance": {
             "title": "Historical Financial Performance", 
-            "prompt": """Research {company}'s financial performance and metrics:
+            "prompt": """📊 DETAILED FINANCIAL PERFORMANCE ANALYSIS for {company}:
 
 CONTEXT FROM PRIOR RESEARCH:
-Use business overview and product/service insights from Topics 1-2 to analyze financial performance across business segments and geographies.
+Use business model and operational insights from Topics 1-2 to analyze financial trends across segments and geographies.
 
-REQUIRED INFORMATION:
-- Revenue figures for last 3-5 years with growth rates
-- EBITDA, operating margins, and profitability metrics
-- Key financial ratios and performance indicators
-- Revenue breakdown by segment/geography (from product footprint analysis)
-- Cash flow metrics and working capital trends
-- Debt levels, capital structure, and financing history
-- Key performance drivers and seasonal patterns
+🚨 MANDATORY REQUIREMENTS - PROVIDE ACTUAL FINANCIAL DATA:
+Research and provide SPECIFIC financial metrics:
+
+**REVENUE ANALYSIS (3-5 Years)**:
+✅ **Annual Revenue**: Exact revenue figures for last 3-5 years (in millions USD)
+✅ **Revenue Growth**: Year-over-year growth rates for each period
+✅ **Revenue Breakdown**: By business segment, geography, or product line (%)
+✅ **Revenue Mix**: Recurring vs. one-time revenue breakdown
+✅ **Key Revenue Drivers**: Specific factors driving revenue growth
+
+**PROFITABILITY METRICS**:
+✅ **Gross Profit/Margin**: Gross profit dollars and margins by year
+✅ **EBITDA**: Actual EBITDA figures and margins for each year
+✅ **Operating Income**: Operating profit and operating margins
+✅ **Net Income**: Net profit figures and net margins
+✅ **Margin Trends**: Analysis of margin expansion/compression
+
+**CASH FLOW & BALANCE SHEET**:
+✅ **Operating Cash Flow**: Cash from operations for each year
+✅ **Free Cash Flow**: FCF calculation and conversion rates
+✅ **Working Capital**: Working capital trends and efficiency
+✅ **Debt Levels**: Total debt, debt-to-equity ratios
+✅ **Cash Position**: Cash and equivalents on balance sheet
+
+**KEY PERFORMANCE INDICATORS**:
+✅ **Unit Economics**: Customer acquisition cost, lifetime value, etc.
+✅ **Operational Metrics**: Key business metrics specific to industry
+✅ **Financial Ratios**: ROE, ROA, asset turnover, etc.
+✅ **Benchmarking**: Performance vs. industry averages
+
+**CAPITAL STRUCTURE & FINANCING**:
+✅ **Funding History**: Funding rounds, amounts, dates, investors
+✅ **Capital Efficiency**: Revenue per employee, capital intensity
+✅ **Seasonal Patterns**: Quarterly trends and seasonality factors
 
 RESEARCH INSTRUCTIONS:
-Build on business model understanding from prior topics. Prioritize verified financial data from annual reports, regulatory filings (SEC, SEDAR, FCA, etc.), or credible financial databases. 
-
-Analyze financial performance in context of product portfolio and geographic presence identified in Topics 1-2.""",
-            "required_fields": ["revenue_3_5_years", "ebitda_margins", "growth_rates", "key_metrics"]
+Provide investment banking-grade financial analysis with specific numbers, ratios, and trends. Focus on verified data from regulatory filings, audited statements, or credible databases.""",
+            "required_fields": ["annual_revenue_usd_m", "revenue_growth_rates", "ebitda_figures", "operating_margins", "cash_flow_metrics", "debt_levels", "key_financial_ratios", "funding_history", "unit_economics"]
         },
 
         "management_team": {
             "title": "Management Team & Leadership",
-            "prompt": """Research {company}'s executive leadership team:
+            "prompt": """👥 COMPREHENSIVE LEADERSHIP TEAM ANALYSIS for {company}:
 
 CONTEXT FROM PRIOR RESEARCH:
-Use business overview, product portfolio, and financial performance insights to assess management team's track record and relevant experience.
+Use business model, financial performance, and growth strategy insights to assess management capabilities.
 
-REQUIRED INFORMATION:
-- CEO: Full name, title, background, tenure, key achievements (related to business growth)
-- CFO: Full name, title, background, tenure, financial expertise (relevant to performance trends)
-- 4-6 additional senior executives with names, titles, backgrounds
-- Board composition and key independent directors
-- Leadership experience and track record (relevant to business model and geography)
-- Educational backgrounds and professional history
-- Previous companies and relevant experience in similar sectors/markets
-- Any leadership changes or succession planning
+🚨 MANDATORY REQUIREMENTS - PROVIDE SPECIFIC EXECUTIVE DETAILS:
+Research and provide DETAILED leadership profiles:
+
+**CEO PROFILE**:
+✅ **Full Name & Title**: Complete name and exact title
+✅ **Tenure**: Start date with {company} and years of service
+✅ **Background**: Previous roles, companies, and industries (5+ years)
+✅ **Education**: Degrees, institutions, and certifications
+✅ **Key Achievements**: Specific accomplishments at {company} and prior roles
+✅ **Leadership Style**: Management approach and strategic vision
+✅ **Industry Recognition**: Awards, board positions, industry involvement
+
+**CFO PROFILE**:
+✅ **Full Name & Title**: Complete name and exact title
+✅ **Financial Expertise**: CPA, MBA, previous finance roles
+✅ **Previous Experience**: Finance roles at other companies (10+ years)
+✅ **Key Accomplishments**: Specific financial achievements and improvements
+✅ **Capital Markets Experience**: IPO, M&A, fundraising experience
+
+**SENIOR EXECUTIVE TEAM (6-8 Executives)**:
+For each executive provide:
+✅ **Name & Title**: Full name and specific role
+✅ **Department**: Functional area (Operations, Sales, Technology, etc.)
+✅ **Experience**: Years of experience and previous roles
+✅ **Key Contributions**: Specific achievements at {company}
+✅ **Industry Background**: Relevant sector experience
+
+**BOARD OF DIRECTORS**:
+✅ **Board Composition**: Number of directors, independent vs. inside directors
+✅ **Key Independent Directors**: Names, backgrounds, and expertise
+✅ **Board Experience**: Relevant public/private company board experience
+✅ **Industry Expertise**: Sector knowledge relevant to {company}
+
+**LEADERSHIP ASSESSMENT**:
+✅ **Team Tenure**: Average tenure and stability of leadership team
+✅ **Succession Planning**: Leadership development and succession readiness
+✅ **Compensation**: Executive compensation philosophy and equity ownership
+✅ **Cultural Fit**: Leadership alignment with company values and strategy
 
 RESEARCH INSTRUCTIONS:
-Assess leadership team's qualifications in context of {company}'s business model, geographic presence, and financial performance from prior research.
-
-Focus on experience relevant to identified growth strategies and market challenges.""",
-            "required_fields": ["ceo", "cfo", "senior_executives", "leadership_experience"]
+Provide investment banking-grade executive profiles with specific names, backgrounds, and achievements. Focus on leadership capabilities relevant to {company}'s growth strategy and market challenges.""",
+            "required_fields": ["ceo_profile", "cfo_profile", "senior_executives_profiles", "board_composition", "leadership_tenure", "succession_planning", "executive_achievements"]
         },
 
         "growth_strategy_projections": {
@@ -201,93 +274,150 @@ Include specific valuation multiples and deal metrics where available.""",
 
         "valuation_overview": {
             "title": "Valuation Analysis",
-            "prompt": """🔍 COMPREHENSIVE VALUATION ANALYSIS for {company}:
+            "prompt": """🔍 CRITICAL: DETAILED VALUATION ANALYSIS WITH ACTUAL CALCULATIONS for {company}:
 
 CONTEXT FROM PRIOR RESEARCH:
-Use all previous research findings about {company}'s financial performance, growth strategy, competitive positioning, and market dynamics to inform valuation analysis.
+Use ALL financial data, growth rates, and competitive insights from Topics 1-6 to perform DETAILED valuation calculations.
 
-You must provide THREE COMPLETE VALUATION METHODOLOGIES with actual calculations:
+🚨 MANDATORY REQUIREMENTS - NO EXPLANATORY TEXT ALLOWED:
+You MUST provide THREE COMPLETE VALUATION METHODOLOGIES with SPECIFIC NUMERICAL CALCULATIONS:
 
-1. **DCF Analysis** (Provide full calculation):
-   - Extract company's latest revenue from conversation history and prior research
-   - Project 5-year revenue growth using stated/researched growth rates
-   - Apply sector-appropriate EBITDA margins (research industry benchmarks)
-   - Calculate FCF using typical tax rates, capex, and working capital assumptions
-   - Apply terminal growth rate (2-3%) and appropriate WACC (8-12% based on risk profile)
-   - **PROVIDE ENTERPRISE VALUE AND EQUITY VALUE ESTIMATES**
+1. **DCF ANALYSIS - PROVIDE ACTUAL NUMBERS**:
+   ✅ REQUIRED: Extract {company}'s actual latest annual revenue (in millions USD)
+   ✅ REQUIRED: Calculate 5-year revenue projections using researched growth rates
+   ✅ REQUIRED: Research and apply sector-specific EBITDA margins (provide %)
+   ✅ REQUIRED: Calculate Free Cash Flow for each projected year
+   ✅ REQUIRED: Apply researched WACC rate (8-15% based on risk profile)
+   ✅ REQUIRED: Use terminal growth rate 2-3%
+   ⭐ **OUTPUT REQUIRED**: Specific Enterprise Value range (e.g., "$125M - $180M")
+   ⭐ **OUTPUT REQUIRED**: Specific Equity Value range after debt adjustments
 
-2. **Trading Multiples** (Calculate actual valuation):
-   - Research current EV/Revenue multiples for public company peers in {company}'s sector
-   - Research EV/EBITDA multiples for comparable companies
-   - Apply median, 25th percentile, and 75th percentile multiples to company metrics
-   - **PROVIDE VALUATION RANGE BASED ON MULTIPLE APPROACHES**
+2. **TRADING MULTIPLES - PROVIDE MARKET-BASED CALCULATIONS**:
+   ✅ REQUIRED: Research 5-8 public company peers with EV/Revenue multiples
+   ✅ REQUIRED: Research EV/EBITDA multiples for comparable companies
+   ✅ REQUIRED: List peer company names and their specific multiples
+   ✅ REQUIRED: Apply 25th, median, 75th percentile multiples to {company}
+   ⭐ **OUTPUT REQUIRED**: EV/Revenue valuation range with calculations
+   ⭐ **OUTPUT REQUIRED**: EV/EBITDA valuation range with calculations
 
-3. **Precedent Transactions** (Calculate transaction-based value):
-   - Use precedent transactions researched in Topic 6
-   - Extract transaction multiples (EV/Revenue, EV/EBITDA) from recent deals
-   - Apply transaction multiples to company's financial metrics
-   - **PROVIDE TRANSACTION-BASED VALUATION ESTIMATE**
+3. **PRECEDENT TRANSACTIONS - CALCULATE TRANSACTION VALUE**:
+   ✅ REQUIRED: Use 4-6 recent transactions from Topic 6 research
+   ✅ REQUIRED: Extract specific transaction multiples (EV/Rev, EV/EBITDA)
+   ✅ REQUIRED: List deal names, multiples, and dates
+   ✅ REQUIRED: Apply transaction multiples to {company}'s metrics
+   ⭐ **OUTPUT REQUIRED**: Transaction-based valuation estimate with calculations
 
-**REQUIRED OUTPUT**: Three distinct valuation estimates with methodology details, assumptions, and final enterprise/equity values for {company}.
-- Use sector-appropriate WACC (typically 8-12% for established companies, 10-15% for high-growth)
-- Terminal growth: 2-4% (based on company maturity)
-- **Calculate and provide specific enterprise value range**
+🎯 **FINAL DELIVERABLE**:
+- DCF Valuation: $XXM - $YYM Enterprise Value
+- Trading Multiples: $XXM - $YYM Enterprise Value  
+- Transaction Multiples: $XXM - $YYM Enterprise Value
+- **BLENDED VALUATION RANGE**: $XXM - $YYM (specify currency)
+- **IMPLIED ACQUISITION PRICE RANGE**: Include control premium estimates
 
-**FINAL VALUATION RANGE**: Provide specific monetary amounts (in company's reporting currency) and methodology summary
+🚨 CRITICAL INSTRUCTION:
+- NO generic explanations like "Valuation metrics help assess company value"
+- ONLY specific calculations, assumptions, and numerical results
+- Include ALL calculation details and assumptions
+- Provide monetary amounts in millions (e.g., "$85M", not "market-based valuation")
+- This valuation determines buyer affordability analysis in Topics 8-10
 
 RESEARCH INSTRUCTIONS:
-Provide comprehensive valuation analysis using industry-standard methodologies. Include all assumptions, calculations, and final valuation ranges. This valuation will determine buyer affordability in subsequent topics.""",
-            "required_fields": ["dcf_analysis", "trading_multiples", "precedent_multiples", "valuation_range"]
+Research actual financial data, peer multiples, and transaction comparables. Provide investment banking-grade valuation analysis with specific numerical ranges.""",
+            "required_fields": ["dcf_enterprise_value", "trading_multiples_valuation", "transaction_multiples_valuation", "blended_valuation_range", "acquisition_price_range"]
         },
 
         "strategic_buyers": {
             "title": "Strategic Buyers Analysis",
-            "prompt": """Identify strategic buyers who could acquire {company}:
+            "prompt": """🎯 STRATEGIC ACQUIRER IDENTIFICATION for {company}:
 
 CONTEXT FROM PRIOR RESEARCH:
-Use valuation analysis from Topic 7 to ensure buyers can afford the acquisition. Use geographic and business model insights from all prior research.
+Use {company}'s valuation range from Topic 7 and business model from Topics 1-6 to identify SPECIFIC strategic acquirers.
 
-REQUIRED INFORMATION:
-- 5-7 potential strategic acquirers with names and descriptions
-- **AFFORDABILITY ANALYSIS**: Verify each buyer can afford {company}'s valuation range from Topic 7
-- Strategic rationale for each buyer (synergies, market access, etc.)
-- Financial capacity analysis (revenue, market cap, cash position vs. required acquisition cost)
-- Previous acquisition history and M&A strategy
-- Geographic and market overlap with target (prioritize buyers in {company}'s geography)
-- Synergy opportunities and value creation potential
-- Competitive positioning and strategic fit
-- Management and board receptiveness to M&A
+🚨 MANDATORY REQUIREMENTS - PROVIDE ACTUAL COMPANY NAMES:
+Identify 6-8 SPECIFIC strategic buyers with detailed analysis:
+
+**FOR EACH STRATEGIC BUYER PROVIDE**:
+✅ **Company Name**: Actual corporation name (e.g., "Microsoft", "Salesforce")
+✅ **Current Revenue**: Latest annual revenue in billions/millions USD
+✅ **Market Cap**: Current market capitalization
+✅ **Cash Position**: Available cash and credit facilities
+✅ **Affordability Score**: Can they afford {company}'s valuation? (Yes/No + rationale)
+✅ **Strategic Rationale**: Why they would acquire {company} (2-3 specific reasons)
+✅ **Synergy Value**: Estimated synergy potential in $M
+✅ **Acquisition History**: Recent relevant acquisitions with deal values
+✅ **Geographic Fit**: Presence in {company}'s markets
+✅ **Strategic Fit Rating**: 1-10 scale with rationale
+
+**RESEARCH REQUIREMENTS**:
+- Research actual public companies with 10x+ {company}'s estimated revenue
+- Verify each buyer's recent M&A activity and deal capacity
+- Focus on companies in same/adjacent industries with geographic overlap
+- **CRITICAL**: Reference specific valuation range from Topic 7 for affordability
+
+**AFFORDABILITY ANALYSIS**:
+For buyers to be viable, they typically need:
+- Revenue: 10-20x target company revenue
+- Market Cap: 20-50x target enterprise value
+- Cash/Credit: 2-3x acquisition price available
+
+**OUTPUT FORMAT REQUIRED**:
+1. [Company Name] - $XXB Revenue, $YYB Market Cap
+   - Affordability: Can acquire for $ZZM (within credit capacity)
+   - Strategic Rationale: [Specific business reasons]
+   - Synergies: $AAM potential value creation
+   - Fit Score: X/10
 
 RESEARCH INSTRUCTIONS:
-Identify corporations with strategic interest, financial capacity (typically 5-10x target company revenue), and logical synergies. **CRITICAL**: Use the valuation range from Topic 7 to verify each buyer can afford the acquisition.
-
-Focus on companies with active M&A programs and strategic fit. Prioritize buyers operating in or targeting {company}'s geographic markets.""",
-            "required_fields": ["strategic_buyers", "affordability_analysis", "acquisition_rationale", "financial_capacity", "synergies"]
+Provide investment banking-grade strategic buyer analysis with specific company names, financial capacity verification, and detailed strategic rationale.""",
+            "required_fields": ["strategic_buyers_list", "affordability_verification", "acquisition_rationale_detailed", "financial_capacity_analysis", "synergy_estimates", "fit_ratings"]
         },
 
         "financial_buyers": {
             "title": "Financial Buyers Analysis", 
-            "prompt": """⚠️ IMPORTANT: Identify PRIVATE EQUITY FIRMS suitable for {company}:
+            "prompt": """💰 PRIVATE EQUITY FIRM IDENTIFICATION for {company}:
 
 CONTEXT FROM PRIOR RESEARCH:
-Use valuation analysis from Topic 7 and all business insights from prior research to identify suitable PE firms.
+Use {company}'s valuation range from Topic 7 and business characteristics to identify SPECIFIC PE firms.
 
-REQUIRED INFORMATION:
-- 5-7 relevant PE firms with fund details and AUM
-- **AFFORDABILITY ANALYSIS**: Verify each PE firm can afford {company}'s valuation range
-- Investment criteria and sector focus alignment
-- Deal size capabilities and check size ranges matching valuation
-- Portfolio companies and relevant experience in {company}'s sector
-- Geographic investment focus (prioritize firms active in {company}'s geography)
-- Investment strategy (growth, buyout, etc.)
-- Recent transactions and sector activity
-- Fund vintage and investment timeline
+🚨 MANDATORY REQUIREMENTS - PROVIDE ACTUAL PE FIRM NAMES:
+Identify 6-8 SPECIFIC private equity firms with detailed analysis:
+
+**FOR EACH PE FIRM PROVIDE**:
+✅ **Firm Name**: Actual PE firm name (e.g., "KKR", "Blackstone Growth")
+✅ **Fund Size**: Latest fund AUM in billions USD
+✅ **Deal Size Range**: Typical investment range (e.g., "$50M-$500M")
+✅ **Check Size Capability**: Can they write check for {company}? (Yes/No + amount)
+✅ **Sector Focus**: Industry expertise relevant to {company}
+✅ **Geographic Focus**: Investment regions matching {company}'s markets
+✅ **Recent Deals**: 2-3 recent investments with deal values in similar sector
+✅ **Investment Strategy**: Growth/buyout/sector-specific focus
+✅ **Portfolio Fit**: How {company} fits their portfolio strategy
+✅ **Fit Rating**: 1-10 scale with investment rationale
+
+**RESEARCH REQUIREMENTS**:
+- Research actual PE firms with funds raised 2020-2024
+- Verify each firm's deal size capabilities vs. {company}'s valuation
+- Focus on firms with sector expertise and geographic presence
+- **CRITICAL**: Use Topic 7 valuation range to ensure deal size fit
+
+**PE FIRM SIZE REQUIREMENTS**:
+For {company}'s valuation, target PE firms with:
+- Fund Size: 5-15x target deal value
+- Deal Size Sweet Spot: 0.5-2x {company}'s enterprise value
+- Geographic Presence: Active in {company}'s primary markets
+- Sector Experience: Relevant portfolio companies or sector focus
+
+**OUTPUT FORMAT REQUIRED**:
+1. [PE Firm Name] - $XXB Fund, $YY-$ZZM Deal Range
+   - Check Size: Can invest $AAM in {company} (within range)
+   - Sector Fit: [Specific industry focus/experience]
+   - Geography: [Active regions matching {company}]
+   - Recent Deal: [Similar company, $BBM, date]
+   - Strategy Fit: X/10
 
 RESEARCH INSTRUCTIONS:
-Focus ONLY on Private Equity firms (NOT venture capital firms). Use valuation range from Topic 7 to ensure firms have appropriate fund size and deal capacity.
-
-Focus on PE firms with sector expertise, appropriate deal size capabilities, and geographic alignment with {company}'s markets.""",
-            "required_fields": ["pe_firms", "affordability_analysis", "investment_criteria", "fund_details", "sector_experience"]
+Provide investment banking-grade PE analysis with specific firm names, fund capacities, and detailed investment fit rationale.""",
+            "required_fields": ["pe_firms_list", "fund_capacity_analysis", "deal_size_fit", "sector_expertise", "geographic_alignment", "recent_transactions", "investment_fit_ratings"]
         },
 
         "global_conglomerates": {
