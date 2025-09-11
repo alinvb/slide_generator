@@ -6596,10 +6596,21 @@ RENDER PLAN JSON:
                                 else:
                                     st.warning("⚠️ JSONs generated but some validation issues detected - auto-improvement will run automatically")
                                 
-                                # Show auto-population success
+                                # Show auto-population success with enhanced notification
                                 st.balloons()
                                 st.success("🚀 **Auto-Population Complete!** JSONs have been automatically populated!")
-                                st.info("💡 **Switch to JSON Editor tab** to see the populated JSONs and download files!")
+                                
+                                # Create a prominent notification box
+                                st.markdown("""
+                                <div style="background-color: #e8f4fd; border: 2px solid #1f77b4; border-radius: 10px; padding: 15px; margin: 10px 0;">
+                                    <h3 style="color: #1f77b4; margin: 0 0 10px 0;">✅ Ready for Next Step!</h3>
+                                    <p style="margin: 5px 0; font-size: 16px;"><strong>📋 Step 1:</strong> Switch to <strong>"JSON Editor"</strong> tab to review the populated JSONs</p>
+                                    <p style="margin: 5px 0; font-size: 16px;"><strong>🎯 Step 2:</strong> Switch to <strong>"Execute"</strong> tab to generate your PowerPoint presentation</p>
+                                    <p style="margin: 5px 0; font-size: 14px; color: #666;">💡 Your research data has been automatically converted to JSON format and is ready to use!</p>
+                                </div>
+                                """, unsafe_allow_html=True)
+                                
+                                st.info("💡 **Next Steps**: (1) JSON Editor tab → Review JSONs, (2) Execute tab → Generate PowerPoint!")
                                 
                             else:
                                 st.error("❌ Manual generation failed - missing JSONs despite response")
@@ -6631,7 +6642,17 @@ RENDER PLAN JSON:
                             }
                         
                         # Add completion message indicating manual JSON generation
-                        completion_message = f"🚀 **Adaptive JSON Generation Triggered**\n\n📊 Generated {len(slide_list)} slides based on conversation analysis:\n• **Included**: {', '.join(slide_list)}\n• **Quality**: {analysis_report.get('quality_summary', 'Quality analysis complete')}\n\n" + ai_response
+                        try:
+                            # Final safety check before using analysis_report
+                            if not isinstance(analysis_report, dict):
+                                print(f"🚨 FINAL SAFETY: analysis_report type: {type(analysis_report)}, value: {analysis_report}")
+                                analysis_report = {'quality_summary': 'Type safety fallback applied'}
+                            
+                            quality_info = analysis_report.get('quality_summary', 'Quality analysis complete')
+                            completion_message = f"🚀 **Adaptive JSON Generation Triggered**\n\n📊 Generated {len(slide_list)} slides based on conversation analysis:\n• **Included**: {', '.join(slide_list)}\n• **Quality**: {quality_info}\n\n" + ai_response
+                        except Exception as e:
+                            print(f"🚨 ERROR in completion message creation: {str(e)}")
+                            completion_message = f"🚀 **Adaptive JSON Generation Triggered**\n\n📊 Generated {len(slide_list)} slides\n\n" + ai_response
                         st.session_state.messages.append({"role": "assistant", "content": completion_message})
                         st.rerun()
     
