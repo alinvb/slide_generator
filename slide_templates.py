@@ -3687,8 +3687,6 @@ def render_sea_conglomerates_slide(data=None, color_scheme=None, typography=None
         
         print(f"[DEBUG] Displayed data missing message - no hard-coded fallbacks used")
         return prs
-            }
-        ]
     
     # Create or use existing presentation
     if prs is None:
