@@ -1,0 +1,17 @@
+{
+  "entities": {
+    "company": {
+      "name": "Test Company"
+    }
+  },
+  "facts": {
+    "years": ["2022", "2023", "2024"],
+    "revenue_usd_m": [10, 25, 50],
+    "ebitda_usd_m": [2, 8, 15],
+    "ebitda_margins": [10.0, 15.0, 20.0]
+  },
+  "management_team": {
+    "left_column_profiles": [],
+    "right_column_profiles": []
+  }
+}

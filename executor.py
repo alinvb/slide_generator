@@ -55,6 +55,25 @@ def execute_plan(
     Returns:
         Tuple[Presentation, str]: The presentation object and the path where it was saved
     """
+    # 🔍 [EXECUTOR DEBUG] Log all inputs to execute_plan
+    print(f"🔍 [EXECUTOR DEBUG] execute_plan called with:")
+    print(f"🔍 [EXECUTOR DEBUG] - plan type: {type(plan)}")
+    print(f"🔍 [EXECUTOR DEBUG] - content type: {type(content)}")
+    print(f"🔍 [EXECUTOR DEBUG] - content_ir type: {type(content_ir)}")
+    print(f"🔍 [EXECUTOR DEBUG] - company_name: {company_name}")
+    
+    if isinstance(plan, dict):
+        print(f"🔍 [EXECUTOR DEBUG] - plan keys: {list(plan.keys())}")
+        if 'slides' in plan:
+            print(f"🔍 [EXECUTOR DEBUG] - plan slides count: {len(plan['slides'])}")
+    else:
+        print(f"🔍 [EXECUTOR DEBUG] - plan is NOT a dict: {plan}")
+        
+    if isinstance(content_ir, dict):
+        print(f"🔍 [EXECUTOR DEBUG] - content_ir keys: {list(content_ir.keys())}")
+    else:
+        print(f"🔍 [EXECUTOR DEBUG] - content_ir is NOT a dict: {content_ir}")
+    
     prs_obj = _ensure_prs(prs)
     
     # Use the sophisticated adapters.render_plan_to_pptx function

@@ -7065,14 +7065,42 @@ with tab_execute:
         if st.button("🚀 Generate Presentation", type="primary", use_container_width=True):
             with st.spinner("🎨 Generating your PowerPoint presentation... This may take 2-3 minutes."):
                 try:
-                    # Get JSONs
+                    # 🔍 [POWERPOINT DEBUG] Get JSONs with detailed debugging
+                    print("🔍 [POWERPOINT DEBUG] Starting PowerPoint generation...")
+                    
                     content_ir = st.session_state.get( "content_ir_json")
                     render_plan = st.session_state.get( "render_plan_json")
                     
+                    print(f"🔍 [POWERPOINT DEBUG] Initial fetch:")
+                    print(f"🔍 [POWERPOINT DEBUG] - content_ir type: {type(content_ir)}")
+                    print(f"🔍 [POWERPOINT DEBUG] - render_plan type: {type(render_plan)}")
+                    print(f"🔍 [POWERPOINT DEBUG] - content_ir is_dict: {isinstance(content_ir, dict)}")
+                    print(f"🔍 [POWERPOINT DEBUG] - render_plan is_dict: {isinstance(render_plan, dict)}")
+                    
                     if not content_ir:
-                        content_ir = json.loads(st.session_state.get( "generated_content_ir", "{}"))
+                        print("🔍 [POWERPOINT DEBUG] Content IR not found, trying string version...")
+                        content_ir_str = st.session_state.get( "generated_content_ir", "{}")
+                        print(f"🔍 [POWERPOINT DEBUG] - content_ir_str length: {len(content_ir_str)}")
+                        content_ir = json.loads(content_ir_str)
+                        print(f"🔍 [POWERPOINT DEBUG] - parsed content_ir type: {type(content_ir)}")
+                        
                     if not render_plan:
-                        render_plan = json.loads(st.session_state.get( "generated_render_plan", "{}"))
+                        print("🔍 [POWERPOINT DEBUG] Render plan not found, trying string version...")
+                        render_plan_str = st.session_state.get( "generated_render_plan", "{}")
+                        print(f"🔍 [POWERPOINT DEBUG] - render_plan_str length: {len(render_plan_str)}")
+                        render_plan = json.loads(render_plan_str)
+                        print(f"🔍 [POWERPOINT DEBUG] - parsed render_plan type: {type(render_plan)}")
+                    
+                    # Final validation before execution
+                    print(f"🔍 [POWERPOINT DEBUG] Final objects:")
+                    print(f"🔍 [POWERPOINT DEBUG] - content_ir: {type(content_ir)}, keys: {list(content_ir.keys()) if isinstance(content_ir, dict) else 'NOT A DICT'}")
+                    print(f"🔍 [POWERPOINT DEBUG] - render_plan: {type(render_plan)}, keys: {list(render_plan.keys()) if isinstance(render_plan, dict) else 'NOT A DICT'}")
+                    
+                    if isinstance(content_ir, dict) and isinstance(render_plan, dict):
+                        print("✅ [POWERPOINT DEBUG] Both objects are valid dictionaries - proceeding with generation")
+                    else:
+                        print(f"❌ [POWERPOINT DEBUG] ERROR: Invalid object types - content_ir: {type(content_ir)}, render_plan: {type(render_plan)}")
+                        raise ValueError(f"Invalid JSON object types: content_ir={type(content_ir)}, render_plan={type(render_plan)}")
                     
                     # Generate presentation using existing executor
                     from executor import execute_plan
@@ -7086,9 +7114,11 @@ with tab_execute:
                     }
                     
                     # Execute presentation generation
+                    # Fix parameter name - execute_plan expects 'plan' not 'render_plan'
+                    print(f"🔍 [POWERPOINT DEBUG] Calling execute_plan with correct parameters...")
                     result = execute_plan(
+                        plan=render_plan,  # Fixed: was render_plan=render_plan
                         content_ir=content_ir,
-                        render_plan=render_plan,
                         company_name=company_name,
                         config=generation_config
                     )
