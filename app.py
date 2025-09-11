@@ -6172,6 +6172,14 @@ with tab_chat:
                     if st.button("🚀 Generate JSON Now", type="secondary", help="Generate presentation with available information"):
                         # Starting JSON generation process
                         print(f"🚨 [GENERATE_JSON_NOW] 🚀 BUTTON CLICKED! Starting generation process...")
+                        
+                        # Set up API configuration with sonar-pro as default
+                        api_key = st.session_state.get('api_key', '')
+                        selected_model = st.session_state.get('model', 'sonar-pro')
+                        api_service = st.session_state.get('api_service', 'perplexity')
+                        
+                        print(f"🔍 [API_CONFIG] Using model: {selected_model}, service: {api_service}, key length: {len(api_key) if api_key else 0}")
+                        
                         # Force JSON generation with adaptive slide selection
                         from perfect_json_prompter import get_interview_completion_prompt
                         from topic_based_slide_generator import generate_topic_based_presentation
@@ -6181,47 +6189,15 @@ with tab_chat:
                         print(f"🔍 [DEBUG] research_completed flag: {research_completed}")
                         print(f"🔍 [DEBUG] messages count: {len(st.session_state.messages)}")
                         
-                        # 🎬 ADD NETFLIX TEST DATA FOR COMPREHENSIVE TESTING
+                        # No automatic fallback data - only use LLM backup research
                         if len(st.session_state.messages) < 5:  # If no substantial conversation data
-                            print(f"📝 [NETFLIX_DATA] Loading comprehensive Netflix investment banking test data...")
-                            
-                            # Load Netflix conversation data from our new module
-                            try:
-                                from create_netflix_conversation_data import create_netflix_conversation
-                                netflix_research_messages = create_netflix_conversation()
-                            except ImportError:
-                                # Fallback to basic Netflix data if module not found
-                                netflix_research_messages = [
-                                    {"role": "system", "content": "Investment banking research assistant"},
-                                    {"role": "user", "content": "I want to analyze Netflix for a potential acquisition. It's the leading global streaming entertainment service with over 260 million subscribers worldwide."},
-                                    {"role": "user", "content": "Strategic buyers could include Apple (has $200B+ cash, needs content for Apple TV+), Amazon (content for Prime Video, cloud synergies), Microsoft (gaming + content convergence)."},
-                                    {"role": "user", "content": "Financial buyers include Berkshire Hathaway (Warren Buffett likes media/content businesses), Apollo Global Management (large media deals), KKR (has media expertise)."},
-                                    {"role": "assistant", "content": "Netflix research complete with strategic buyers, financial buyers, and comprehensive investment analysis ready for JSON generation."}
-                                ]
-                            fake_research_messages = [
-                                {"role": "system", "content": "Investment banking research assistant"},
-                                {"role": "assistant", "content": "Let's conduct comprehensive research on TechCorp Solutions for your investment banking pitch deck."},
-                                {"role": "user", "content": "TechCorp Solutions is a technology company founded in 2018, headquartered in Dubai, UAE. We provide AI-powered business automation solutions to SMEs across the Middle East."},
-                                {"role": "assistant", "content": "**Business Overview Research Complete**\n\nCompany: TechCorp Solutions\nFounded: 2018\nHeadquarters: Dubai, UAE\nIndustry: Technology/AI Solutions\nTarget Market: SMEs in Middle East\n\nNow let's discuss your historical financial performance. Can you provide revenue and EBITDA data for the last 3-5 years?"},
-                                {"role": "user", "content": "Our financial performance: 2021: $2.5M revenue, $400K EBITDA. 2022: $4.2M revenue, $850K EBITDA. 2023: $7.1M revenue, $1.6M EBITDA. 2024 projected: $12M revenue, $3.2M EBITDA. EBITDA margins improving from 16% to 26%."},
-                                {"role": "assistant", "content": "**Financial Performance Research Complete**\n\nStrong growth trajectory:\n- Revenue CAGR: 115% (2021-2024)\n- EBITDA growth: 700%+ over 3 years\n- Margin expansion: 16% to 26%\n\nNow let's cover your management team. Who are the key executives?"},
-                                {"role": "user", "content": "Management team: Ahmed Al-Rashid (CEO, former McKinsey consultant, 15 years tech experience), Sarah Johnson (CTO, ex-Google engineer, AI/ML expertise), Omar Hassan (CFO, former PwC, 12 years finance experience), Fatima Al-Zahra (VP Sales, 10 years B2B sales in region)."},
-                                {"role": "assistant", "content": "**Management Team Research Complete**\n\nStrong leadership with complementary skills:\n- CEO: Strategic consulting background\n- CTO: Big Tech AI expertise\n- CFO: Professional services finance experience\n- VP Sales: Regional market knowledge\n\nNow let's discuss strategic buyers who might be interested in acquiring TechCorp Solutions."},
-                                {"role": "user", "content": "Potential strategic buyers include Microsoft (expanding Middle East presence), Oracle (AI automation focus), SAP (SME solutions), Salesforce (regional expansion), IBM (AI portfolio), and regional players like Careem Tech and Talabat Tech looking to diversify."},
-                                {"role": "assistant", "content": "**Strategic Buyers Research Complete**\n\nIdentified 7 strategic buyers:\n- Global Tech: Microsoft, Oracle, SAP, Salesforce, IBM\n- Regional: Careem Tech, Talabat Tech\n- Strategic rationale: AI capabilities, regional market access\n\nNow let's identify financial buyers - PE firms interested in your sector."},
-                                {"role": "user", "content": "Financial buyers include: MEVP ($250M fund, tech focus), Wamda Capital ($75M, regional tech), STV ($500M Saudi fund), Global Ventures ($100M MENA tech), Algebra Ventures ($90M fund), plus international firms like General Atlantic, KKR, and Carlyle who have regional presence."},
-                                {"role": "assistant", "content": "**Research Complete!** All 14 topics covered including business overview, financials, management, strategic buyers, financial buyers, market positioning, growth strategy, and valuation methodologies. \n\n✅ **Ready for JSON Generation**: You can now click 'Generate JSON Now' to create your comprehensive pitch deck with all research data."}
-                            ]
-                            
-                            # Update session state with Netflix research data
-                            st.session_state.messages = netflix_research_messages
-                            st.session_state['research_completed'] = True
-                            st.session_state['netflix_data_loaded'] = True
-                            
-                            st.success("🎬 **Netflix Test Data Loaded!** Comprehensive investment banking analysis ready with strategic buyers (Apple, Amazon, Microsoft), financial buyers (Berkshire Hathaway, Apollo, KKR), and complete valuation analysis.")
-                            st.info("🔄 **Next Step**: Click 'Generate JSON Now' again to test bulletproof JSON generation with Netflix conversation data. Enhanced Netflix fallback data ensures populated sections even without API key.")
-                            print(f"📝 [NETFLIX_DATA] Loaded {len(netflix_research_messages)} Netflix conversation messages")
-                            st.rerun()  # Refresh page to show updated data and allow user to click button again
+                            st.warning("⚠️ **Insufficient conversation data for JSON generation.**")
+                            st.info("💡 **Options:**")
+                            st.markdown("- Use the **Research Agent** above to automatically research any company")  
+                            st.markdown("- Click **🎬 Load Netflix Data** button above for testing")
+                            st.markdown("- Have a conversation about your company first")
+                            st.stop()  # Stop execution instead of loading fallback data
+                        
                         
                         # FORCE 14 SLIDES ALWAYS - Remove all slide selection logic
                         print("🚀 [FORCED] Always generating ALL 14 investment banking slides")
@@ -6366,13 +6342,13 @@ RENDER PLAN JSON:
                                     if not working_api_key:
                                         print("🚨 [CRITICAL] NO API KEY - THIS IS WHY JSON IS EMPTY!")
                                         print("💡 [INFO] No API key configured in session state or environment.")
-                                        print("📊 [INFO] Using comprehensive fallback data for demonstration purposes.")
+                                        print("📊 [INFO] Using LLM backup research for data generation.")
                                         st.error("🚨 **CRITICAL: No API Key Found!** This is why your strategic buyers and other sections are empty.")
                                         st.warning("⚠️ **Add your Perplexity API key in the sidebar for real research.**")
                                         
-                                        # Enhanced fallback - the bulletproof generator will handle this with comprehensive Netflix data
-                                        print("🎬 [FALLBACK] Bulletproof generator will use comprehensive Netflix/generic fallback data")
-                                        return None  # Let bulletproof generator handle the fallback with full data structures
+                                        # Use LLM backup research instead of fallback data
+                                        print("🔍 [LLM_BACKUP] Bulletproof generator will use LLM-based research instead of fallback")
+                                        return None  # Let bulletproof generator handle with LLM research
                                     
                                     # Detect if this is a comprehensive gap-filling call that needs extended timeout
                                     is_gap_filling = False
@@ -6404,17 +6380,17 @@ RENDER PLAN JSON:
                                         
                                         if not response or len(response) < 10:
                                             print("🚨 [API_DEBUG] API RESPONSE TOO SHORT - LIKELY FAILED!")
-                                            st.warning(f"⚠️ **API Response Empty:** Got {len(response) if response else 0} characters - using enhanced fallback")
-                                            print("🎬 [FALLBACK] Bulletproof generator will use comprehensive Netflix/generic fallback data")
-                                            return None  # Let bulletproof generator handle the fallback with full data structures
+                                            st.warning(f"⚠️ **API Response Empty:** Got {len(response) if response else 0} characters - using LLM backup research")
+                                            print("🔍 [LLM_BACKUP] Bulletproof generator will use LLM-based research instead of fallback")
+                                            return None  # Let bulletproof generator handle with LLM research
                                         
                                         return response
                                         
                                     except Exception as e:
                                         print(f"🚨 [API_DEBUG] API CALL FAILED: {str(e)}")
-                                        st.warning(f"⚠️ **API Call Error:** {str(e)} - using enhanced fallback")
-                                        print("🎬 [FALLBACK] Bulletproof generator will use comprehensive Netflix/generic fallback data")
-                                        return None  # Let bulletproof generator handle the fallback with full data structures
+                                        st.warning(f"⚠️ **API Call Error:** {str(e)} - using LLM backup research")
+                                        print("🔍 [LLM_BACKUP] Bulletproof generator will use LLM-based research instead of fallback")
+                                        return None  # Let bulletproof generator handle with LLM research
                                 
                                 # 🚨 ENHANCED: Show progress tracking before calling bulletproof generator
                                 st.info("🔄 **Starting Bulletproof JSON Generation** - Progress tracking will show below")
