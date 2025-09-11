@@ -6616,7 +6616,27 @@ RENDER PLAN JSON:
 with tab_extract:
     st.subheader("🎨 Brand Configuration & Upload")
     
-    st.markdown("### 📤 Upload Brand Deck")
+    st.markdown("### 🏢 Company Branding")
+    
+    # Company name for deck footer/branding
+    company_display_name = st.text_input(
+        "Company Name for Presentation",
+        value=st.session_state.get('company_name', ''),
+        placeholder="e.g., Moelis & Company, Goldman Sachs, JP Morgan",
+        help="This company name will appear in the bottom right corner of your PowerPoint slides",
+        key="brand_company_name"
+    )
+    
+    # Store for use in presentation generation
+    if company_display_name:
+        st.session_state['presentation_company_name'] = company_display_name
+        st.info(f"✅ Company name set: **{company_display_name}** (will appear on slides)")
+    else:
+        st.info("💡 Enter your company name to brand the presentation")
+    
+    st.markdown("---")
+    
+    st.markdown("### 📤 Upload Brand Deck (Optional)")
     st.info("Upload your company's brand deck (PowerPoint) to extract colors, fonts, and styling automatically")
     
     # Simple brand upload
@@ -6637,8 +6657,32 @@ with tab_extract:
         st.info("📁 No brand deck uploaded - default styling will be used")
     
     st.markdown("---")
+    st.markdown("---")
+    
+    # Show current branding status
+    st.markdown("### 📊 Current Branding Status")
+    
+    # Company name status
+    presentation_name = st.session_state.get('presentation_company_name')
+    research_name = st.session_state.get('company_name')
+    
+    if presentation_name:
+        st.success(f"🏢 **Presentation Company:** {presentation_name}")
+    elif research_name:
+        st.info(f"🔍 **Research Company:** {research_name} (will be used for branding)")
+        st.caption("💡 Set a custom presentation company name above to override")
+    else:
+        st.warning("⚠️ No company name set for branding")
+    
+    # Brand deck status
+    if st.session_state.get('uploaded_brand_file'):
+        st.success("🎨 **Brand Deck:** Uploaded and ready")
+    else:
+        st.info("📁 **Brand Deck:** Using default styling")
+    
+    st.markdown("---")
     st.markdown("### 📋 **Next Steps**")
-    st.markdown("1. **Upload brand deck** (above) ← You are here")  
+    st.markdown("1. **Set company name & upload brand deck** ← You are here")  
     st.markdown("2. **Go to Execute tab** to generate PowerPoint")
     st.markdown("3. **Brand extraction** happens automatically during generation")
 
@@ -6800,8 +6844,9 @@ with tab_execute:
     else:
         st.success("✅ **Ready to Generate**: Both JSONs are available!")
         
-        # Company name for file naming
-        company_name = st.session_state.get('company_name', 'company')
+        # Company name for file naming and presentation branding
+        # Use the branding company name from Brand tab, fallback to research company name
+        company_name = st.session_state.get('presentation_company_name') or st.session_state.get('company_name', 'company')
         
         # Generation options
         col1, col2 = st.columns(2)
