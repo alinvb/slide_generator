@@ -466,6 +466,8 @@ Ensure all data is specific to {company_name} and factually accurate."""
             print(f"❌ [RESEARCH] WARNING: No research data was generated - all slides may use fallbacks")
         
         print(f"🚨 [DEBUG] RESEARCH PHASE COMPLETE - returning {len(missing_data)} fields")
+        print(f"🚨 [DEBUG] About to RETURN from research_missing_data function")
+        print(f"🚨 [DEBUG] Return value type: {type(missing_data)}")
         return missing_data
     
     def filter_slides_by_conversation_coverage(self, complete_data: Dict, required_slides: List[str]) -> List[str]:
@@ -1706,8 +1708,16 @@ def generate_bulletproof_json(messages: List[Dict], required_slides: List[str], 
         conversation_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages[-10:]])  # Last 10 messages
         print(f"📚 [DEBUG] Conversation context length: {len(conversation_text)} characters")
         
-        research_data = generator.research_missing_data(extracted_data, required_slides, llm_api_call, conversation_text)
-        print(f"📚 [DEBUG] Research data keys: {list(research_data.keys()) if research_data else 'None'}")
+        try:
+            research_data = generator.research_missing_data(extracted_data, required_slides, llm_api_call, conversation_text)
+            print(f"🚨 [DEBUG] research_missing_data RETURNED successfully")
+            print(f"📚 [DEBUG] Research data type: {type(research_data)}")
+            print(f"📚 [DEBUG] Research data keys: {list(research_data.keys()) if research_data else 'None'}")
+        except Exception as e:
+            print(f"❌ [DEBUG] CRITICAL ERROR in research_missing_data: {e}")
+            import traceback
+            print(f"❌ [DEBUG] Traceback: {traceback.format_exc()}")
+            research_data = {}
         
         print(f"🚨 [DEBUG] RESEARCH PHASE FULLY COMPLETE - about to call generate_perfect_jsons")
         print(f"🚨 [DEBUG] extracted_data: {len(extracted_data) if extracted_data else 0} fields")
