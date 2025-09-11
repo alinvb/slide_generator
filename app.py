@@ -6370,7 +6370,39 @@ with tab_chat:
                             print(f"🔬 RESEARCH AGENT: Generating ALL {len(slide_list)} slides from comprehensive research")
                         else:
                             # Chat-based: Generate slides for covered topics only  
-                            slide_list, adaptive_render_plan, analysis_report = generate_topic_based_presentation(st.session_state.messages)
+                            try:
+                                result = generate_topic_based_presentation(st.session_state.messages)
+                                if isinstance(result, tuple) and len(result) == 3:
+                                    slide_list, adaptive_render_plan, analysis_report = result
+                                    # Ensure analysis_report is a dict, not a tuple
+                                    if not isinstance(analysis_report, dict):
+                                        print(f"⚠️ WARNING: analysis_report is {type(analysis_report)}, converting to dict")
+                                        analysis_report = {
+                                            'generation_type': 'chat_based_fallback',
+                                            'quality_summary': 'Chat-based analysis with type correction',
+                                            'topics_covered': len(slide_list) if isinstance(slide_list, list) else 0,
+                                            'total_topics': 14
+                                        }
+                                else:
+                                    print(f"⚠️ WARNING: Unexpected result type from generate_topic_based_presentation: {type(result)}")
+                                    slide_list = []
+                                    adaptive_render_plan = {}
+                                    analysis_report = {
+                                        'generation_type': 'error_fallback',
+                                        'quality_summary': 'Error in topic analysis, using fallback',
+                                        'topics_covered': 0,
+                                        'total_topics': 14
+                                    }
+                            except Exception as e:
+                                print(f"❌ Error in generate_topic_based_presentation: {str(e)}")
+                                slide_list = []
+                                adaptive_render_plan = {}
+                                analysis_report = {
+                                    'generation_type': 'exception_fallback',
+                                    'quality_summary': f'Exception occurred: {str(e)}',
+                                    'topics_covered': 0,
+                                    'total_topics': 14
+                                }
                             print(f"💬 CHAT-BASED: Generating {len(slide_list)} slides for covered topics")
                         
                         completion_prompt = f"""Based on our comprehensive research, generate JSON structures for these {len(slide_list)} investment banking slides:
@@ -6579,12 +6611,22 @@ RENDER PLAN JSON:
                             # Try to continue with partial data or trigger auto-improvement
                             content_ir, render_plan, validation_results = None, None, {"overall_valid": False}
                         
-                        # Ensure analysis_report exists (fallback if not defined)
+                        # Ensure analysis_report exists and is a dict (fallback if not defined)
                         if 'analysis_report' not in locals():
                             analysis_report = {
                                 'generation_type': 'research_agent_comprehensive',
                                 'quality_summary': 'Comprehensive research completed for all 14 topics',
                                 'topics_covered': 14,
+                                'total_topics': 14
+                            }
+                        
+                        # Additional safety check: ensure analysis_report is a dict
+                        if not isinstance(analysis_report, dict):
+                            print(f"🚨 SAFETY: analysis_report is {type(analysis_report)}, converting to dict")
+                            analysis_report = {
+                                'generation_type': 'type_safety_fallback',
+                                'quality_summary': 'Type safety correction applied',
+                                'topics_covered': len(slide_list) if 'slide_list' in locals() else 14,
                                 'total_topics': 14
                             }
                         
