@@ -6595,8 +6595,8 @@ RENDER PLAN JSON:
                                 # ALWAYS use bulletproof system for conversation extraction and research
                                 print("🔧 [MANDATORY] Using bulletproof system with conversation extraction and research...")
                                 
-                                # Import bulletproof generator 
-                                from bulletproof_json_generator import generate_bulletproof_json
+                                # Import CLEAN bulletproof generator (rewritten to eliminate hangs)
+                                from bulletproof_json_generator_clean import generate_clean_bulletproof_json
                                 
                                 def bulletproof_llm_call(messages):
                                     return shared_call_llm_api(messages, selected_model, api_key, api_service)
@@ -6608,8 +6608,8 @@ RENDER PLAN JSON:
                                 print(f"🚨 [GENERATE_JSON_NOW] About to call generate_bulletproof_json with {len(slide_list)} slides")
                                 print(f"🚨 [GENERATE_JSON_NOW] Messages count: {len(st.session_state.messages)}")
                                 
-                                # Generate bulletproof JSONs with conversation extraction and research
-                                bulletproof_response, content_ir_direct, render_plan_direct = generate_bulletproof_json(
+                                # Generate bulletproof JSONs with CLEAN rewritten system (no hangs)
+                                bulletproof_response, content_ir_direct, render_plan_direct = generate_clean_bulletproof_json(
                                     st.session_state.messages, 
                                     slide_list,
                                     bulletproof_llm_call
