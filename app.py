@@ -6978,11 +6978,55 @@ with tab_extract:
                 st.success(f"✅ **Successfully uploaded:** {uploaded_file.name} ({uploaded_file.size:,} bytes)")
                 st.info("🎨 **Ready for brand extraction** - Your brand styling will be applied when generating presentations")
                 
-                # Show file details
-                with st.expander("📄 File Details"):
+                # Show file details and brand preview
+                with st.expander("📄 File Details & Brand Preview"):
                     st.write(f"**Filename:** {uploaded_file.name}")
                     st.write(f"**File size:** {uploaded_file.size:,} bytes ({uploaded_file.size / (1024*1024):.1f} MB)")
                     st.write(f"**File type:** {uploaded_file.type}")
+                    
+                    # Quick brand preview
+                    if st.button("🔍 Preview Brand Colors", key="preview_brand"):
+                        try:
+                            preview_progress = st.progress(0)
+                            preview_status = st.empty()
+                            
+                            preview_status.info("🎨 Analyzing brand file...")
+                            preview_progress.progress(0.3)
+                            
+                            api_key = st.session_state.get('api_key')
+                            model_name = st.session_state.get('selected_model', 'claude-3-5-sonnet-20241022')
+                            api_service = st.session_state.get('api_service', 'claude')
+                            
+                            preview_progress.progress(0.6)
+                            
+                            # Use rule-based extraction for quick preview (faster)
+                            preview_brand_config = brand_extractor.extract_brand_from_pptx(uploaded_file, use_llm=False)
+                            
+                            preview_progress.progress(1.0)
+                            preview_status.success("✅ Brand preview ready!")
+                            
+                            if preview_brand_config and preview_brand_config.get('color_scheme'):
+                                st.markdown("**🎨 Preview Colors:**")
+                                preview_cols = st.columns(4)
+                                color_scheme = preview_brand_config.get('color_scheme', {})
+                                
+                                for idx, (name, color) in enumerate(list(color_scheme.items())[:4]):
+                                    with preview_cols[idx]:
+                                        if hasattr(color, 'r'):
+                                            hex_color = f"#{color.r:02x}{color.g:02x}{color.b:02x}"
+                                            st.markdown(f"""
+                                            <div style="background-color: {hex_color}; height: 40px; border-radius: 3px; border: 1px solid #ddd; margin-bottom: 5px;"></div>
+                                            <small>{name}</small>
+                                            """, unsafe_allow_html=True)
+                                
+                                typography = preview_brand_config.get('typography', {})
+                                st.markdown(f"**🔤 Primary Font:** {typography.get('primary_font', 'Arial')}")
+                            else:
+                                st.warning("No custom colors detected - will use default styling")
+                                
+                        except Exception as e:
+                            st.error(f"Brand preview failed: {str(e)}")
+                            preview_progress.progress(1.0)
                 
                 print(f"✅ [BRAND UPLOAD] Successfully uploaded: {uploaded_file.name} ({uploaded_file.size} bytes)")
                 
@@ -7014,6 +7058,13 @@ with tab_extract:
             - Font families and sizes
             - Layout preferences
             - Corporate styling elements
+            
+            **💡 Tips for Better Brand Extraction:**
+            - Use slides with your company's primary colors (headers, logos, backgrounds)
+            - Include slides with different text sizes (titles, headers, body text)
+            - Avoid purely white/black backgrounds if possible
+            - Templates or master slides work best for extraction
+            - AI-powered extraction (with API key) gives better results than rule-based
             """)
     
     st.markdown("---")
@@ -7311,7 +7362,16 @@ with tab_execute:
                             model_name = st.session_state.get('selected_model', st.session_state.get('model', 'claude-3-5-sonnet-20241022'))
                             api_service = st.session_state.get('api_service', 'claude')
                             
+                            # Show brand extraction progress to user
+                            brand_progress = st.progress(0)
+                            brand_status = st.empty()
+                            
+                            brand_status.info("🎨 Starting brand extraction...")
+                            brand_progress.progress(0.2)
+                            
                             if api_key:
+                                brand_status.info("🤖 Using AI-powered brand analysis...")
+                                brand_progress.progress(0.5)
                                 brand_config = brand_extractor.extract_brand_from_pptx(
                                     uploaded_brand_file, 
                                     use_llm=True,
@@ -7319,10 +7379,47 @@ with tab_execute:
                                     model_name=model_name, 
                                     api_service=api_service
                                 )
+                                brand_progress.progress(0.9)
                                 print(f"✅ [BRAND DEBUG] Successfully extracted brand config with {len(brand_config.get('color_scheme', {}))} colors")
                             else:
-                                print("⚠️ [BRAND DEBUG] No API key available, using basic extraction")
+                                brand_status.info("📏 Using rule-based brand extraction...")
+                                brand_progress.progress(0.5)
                                 brand_config = brand_extractor.extract_brand_from_pptx(uploaded_brand_file, use_llm=False)
+                                brand_progress.progress(0.9)
+                                print("⚠️ [BRAND DEBUG] No API key available, using basic extraction")
+                            
+                            # Show extracted brand information to user
+                            if brand_config and brand_config.get('color_scheme'):
+                                brand_progress.progress(1.0)
+                                brand_status.success("✅ Brand extraction completed!")
+                                
+                                # Display extracted colors visually
+                                st.markdown("### 🎨 Extracted Brand Colors")
+                                color_cols = st.columns(5)
+                                color_scheme = brand_config.get('color_scheme', {})
+                                
+                                for idx, (name, color) in enumerate(color_scheme.items()):
+                                    if idx < 5:  # Show first 5 colors
+                                        with color_cols[idx]:
+                                            if hasattr(color, 'r'):
+                                                hex_color = f"#{color.r:02x}{color.g:02x}{color.b:02x}"
+                                                st.markdown(f"""
+                                                <div style="background-color: {hex_color}; height: 60px; border-radius: 5px; border: 1px solid #ddd;"></div>
+                                                <small><strong>{name.title()}</strong><br>{hex_color}</small>
+                                                """, unsafe_allow_html=True)
+                                
+                                # Display extracted font
+                                typography = brand_config.get('typography', {})
+                                primary_font = typography.get('primary_font', 'Arial')
+                                title_size = typography.get('title_size', 24)
+                                
+                                st.markdown(f"### 🔤 Extracted Typography")
+                                st.markdown(f"**Primary Font:** {primary_font}")
+                                st.markdown(f"**Title Size:** {title_size}pt")
+                                
+                            else:
+                                brand_progress.progress(1.0)
+                                brand_status.warning("⚠️ Brand extraction completed, using default styling")
                         except Exception as e:
                             print(f"❌ [BRAND DEBUG] Brand extraction failed: {e}")
                             brand_config = None
