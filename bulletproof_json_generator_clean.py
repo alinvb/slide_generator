@@ -481,6 +481,13 @@ Generate ONLY the JSON object with ALL fields filled using realistic, profession
                 "version": "clean_v1.0"
             },
             
+            # CRITICAL: Add bulletproof protection markers to prevent auto-improvement corruption
+            "_bulletproof_generated": True,
+            "_generation_timestamp": datetime.now().isoformat(),
+            "_data_sources": ["bulletproof_conversation_extraction", "llm_gap_filling"],
+            "_slides_generated": len(required_slides),
+            "_generation_method": "clean_bulletproof_v1.0",
+            
             # Business Overview Slide Data - ALL from LLM
             "business_overview": {
                 "title": "Business Overview",
@@ -773,7 +780,14 @@ Generate ONLY the JSON object with ALL fields filled using realistic, profession
                 "slide_transitions": "fade",
                 "logo_placement": "top_right",
                 "footer_text": "Confidential & Proprietary"
-            }
+            },
+            
+            # CRITICAL: Add bulletproof protection markers to prevent auto-improvement corruption
+            "_bulletproof_generated": True,
+            "_generation_timestamp": datetime.now().isoformat(),
+            "_data_sources": ["bulletproof_render_plan_generation"],
+            "_slides_generated": len(required_slides),
+            "_generation_method": "clean_bulletproof_v1.0"
         }
         
         # Template mapping to match RENDERER_MAP in adapters.py
