@@ -296,12 +296,15 @@ Focus on PE firms with sector expertise, appropriate deal size capabilities, and
 CONTEXT FROM PRIOR RESEARCH:
 Use {company}'s geographic presence and business model from prior research to identify relevant conglomerates. Use valuation analysis to verify affordability.
 
+VECTOR DATABASE PRECEDENT TRANSACTIONS:
+{vector_db_transactions}
+
 REQUIRED INFORMATION:
 - 5-6 major global conglomerates with acquisition capability
 - **GEOGRAPHIC ALIGNMENT**: Focus on conglomerates operating in {company}'s target geography
 - Business portfolio and strategic interests alignment
 - **AFFORDABILITY ANALYSIS**: Financial capacity vs. {company}'s valuation range
-- Previous acquisition track record in similar sectors
+- Previous acquisition track record in similar sectors (use vector DB data above)
 - Strategic rationale for acquiring {company}
 - Management approach to acquisitions and integration
 - Local market advantages and synergies
@@ -309,6 +312,7 @@ REQUIRED INFORMATION:
 
 RESEARCH INSTRUCTIONS:
 Focus on large, diversified conglomerates with presence in {company}'s geographic markets. Prioritize conglomerates from the same region or with strong expansion interests in {company}'s geography.
+IMPORTANT: Use the vector database transaction data above to identify conglomerates that have acquired similar companies and reference specific deals, valuations, and strategic rationales.
 
 Use valuation range from Topic 7 to ensure conglomerates have financial capacity for acquisition.""",
             "required_fields": ["global_conglomerates", "geographic_alignment", "acquisition_capacity", "strategic_fit", "regional_advantages"]
@@ -433,8 +437,65 @@ def research_all_topics(company_name: str, user_info: str = "") -> Dict[str, Any
         progress_bar.progress(progress)
         status_text.text(f"Researching {topic_config['title']} (Topic {i+1}/{total_topics})")
         
-        # Format prompt with company name
-        formatted_prompt = topic_config['prompt'].format(company=company_name)
+        # Format prompt with company name and vector DB data if applicable
+        vector_db_transactions = ""
+        
+        # Special handling for global_conglomerates topic - query vector DB for similar transactions
+        if topic_id == "global_conglomerates":
+            try:
+                # Import and initialize vector DB
+                from vector_db import VectorDBManager
+                vector_db = VectorDBManager()
+                
+                # Check if vector DB credentials are available
+                if st.session_state.get('vector_db_id') and st.session_state.get('vector_db_token'):
+                    vector_db.initialize(
+                        database_id=st.session_state['vector_db_id'],
+                        token=st.session_state['vector_db_token']
+                    )
+                    
+                    # Extract company details from previous research for better querying
+                    company_overview = ""
+                    sector = ""
+                    region = ""
+                    
+                    # Try to extract context from previous research results
+                    if 'business_overview' in results:
+                        company_overview = results['business_overview'].get('content', '')[:500]
+                    if 'competitive_positioning' in results:
+                        sector_info = results['competitive_positioning'].get('content', '')
+                        sector = sector_info[:200] if sector_info else "Technology"
+                    if 'product_service_footprint' in results:
+                        geo_info = results['product_service_footprint'].get('content', '')
+                        region = geo_info[:200] if geo_info else "Global"
+                    
+                    # Query vector DB for precedent transactions
+                    transactions = vector_db.get_precedent_transactions(
+                        company_name=company_name,
+                        company_overview=company_overview or f"Company: {company_name}",
+                        sector=sector or "Technology",
+                        region=region or "Global"
+                    )
+                    
+                    if transactions:
+                        vector_db_transactions = "SIMILAR TRANSACTION DATA FROM DATABASE:\n"
+                        for i, tx in enumerate(transactions[:10]):  # Limit to top 10
+                            vector_db_transactions += f"\n{i+1}. {tx}\n"
+                        vector_db_transactions += "\nUse this transaction data to identify relevant conglomerates and their acquisition patterns.\n"
+                    else:
+                        vector_db_transactions = "No similar transactions found in vector database. Focus on general market research.\n"
+                else:
+                    vector_db_transactions = "Vector database not configured. Using general market research approach.\n"
+                    
+            except Exception as e:
+                print(f"⚠️ Vector DB query failed for {topic_id}: {str(e)}")
+                vector_db_transactions = "Vector database unavailable. Using general market research approach.\n"
+        
+        # Format prompt with company name and vector DB data
+        formatted_prompt = topic_config['prompt'].format(
+            company=company_name,
+            vector_db_transactions=vector_db_transactions
+        )
         
         # Add accumulated context from prior topics (except for Topic 1)
         if i > 0:

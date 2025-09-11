@@ -6368,40 +6368,47 @@ with tab_chat:
                             print(f"🔬 RESEARCH AGENT: Generating ALL {len(slide_list)} slides from comprehensive research")
                         else:
                             # Chat-based: Generate slides for covered topics only  
+                            slide_list = []
+                            adaptive_render_plan = {}
+                            analysis_report = {
+                                'generation_type': 'chat_based_default',
+                                'quality_summary': 'Chat-based analysis initialized',
+                                'topics_covered': 0,
+                                'total_topics': 14
+                            }
+                            
                             try:
                                 result = generate_topic_based_presentation(st.session_state.messages)
+                                print(f"🔍 DEBUG: generate_topic_based_presentation returned type: {type(result)}")
+                                
                                 if isinstance(result, tuple) and len(result) == 3:
-                                    slide_list, adaptive_render_plan, analysis_report = result
-                                    # Ensure analysis_report is a dict, not a tuple
-                                    if not isinstance(analysis_report, dict):
-                                        print(f"⚠️ WARNING: analysis_report is {type(analysis_report)}, converting to dict")
+                                    temp_slide_list, temp_adaptive_render_plan, temp_analysis_report = result
+                                    print(f"🔍 DEBUG: temp_analysis_report type: {type(temp_analysis_report)}")
+                                    
+                                    # Only use results if they're valid types
+                                    if isinstance(temp_slide_list, list):
+                                        slide_list = temp_slide_list
+                                    if isinstance(temp_adaptive_render_plan, dict):
+                                        adaptive_render_plan = temp_adaptive_render_plan
+                                    if isinstance(temp_analysis_report, dict):
+                                        analysis_report = temp_analysis_report
+                                    else:
+                                        print(f"⚠️ WARNING: temp_analysis_report is {type(temp_analysis_report)}, using fallback")
                                         analysis_report = {
-                                            'generation_type': 'chat_based_fallback',
-                                            'quality_summary': 'Chat-based analysis with type correction',
-                                            'topics_covered': len(slide_list) if isinstance(slide_list, list) else 0,
+                                            'generation_type': 'type_correction_fallback',
+                                            'quality_summary': f'Type correction applied - was {type(temp_analysis_report)}',
+                                            'topics_covered': len(slide_list),
                                             'total_topics': 14
                                         }
                                 else:
-                                    print(f"⚠️ WARNING: Unexpected result type from generate_topic_based_presentation: {type(result)}")
-                                    slide_list = []
-                                    adaptive_render_plan = {}
-                                    analysis_report = {
-                                        'generation_type': 'error_fallback',
-                                        'quality_summary': 'Error in topic analysis, using fallback',
-                                        'topics_covered': 0,
-                                        'total_topics': 14
-                                    }
+                                    print(f"⚠️ WARNING: Unexpected result type or length from generate_topic_based_presentation: {type(result)}, len: {len(result) if hasattr(result, '__len__') else 'N/A'}")
+                                    
                             except Exception as e:
                                 print(f"❌ Error in generate_topic_based_presentation: {str(e)}")
-                                slide_list = []
-                                adaptive_render_plan = {}
-                                analysis_report = {
-                                    'generation_type': 'exception_fallback',
-                                    'quality_summary': f'Exception occurred: {str(e)}',
-                                    'topics_covered': 0,
-                                    'total_topics': 14
-                                }
+                                # Keep the default values set above
+                                
                             print(f"💬 CHAT-BASED: Generating {len(slide_list)} slides for covered topics")
+                            print(f"💬 FINAL analysis_report type: {type(analysis_report)}")
                         
                         completion_prompt = f"""Based on our comprehensive research, generate JSON structures for these {len(slide_list)} investment banking slides:
 
@@ -6640,20 +6647,24 @@ RENDER PLAN JSON:
                             }
                         
                         # Add completion message indicating manual JSON generation
+                        # BULLETPROOF analysis_report handling
+                        quality_info = "Quality analysis complete"
                         try:
-                            # Final safety check before using analysis_report
-                            if not isinstance(analysis_report, dict):
-                                analysis_report = {'quality_summary': 'Type safety fallback applied'}
-                            
-                            # Extra safety: ensure analysis_report has get method
-                            if not hasattr(analysis_report, 'get'):
-                                analysis_report = {'quality_summary': 'No get method fallback'}
-                            
-                            quality_info = analysis_report.get('quality_summary', 'Quality analysis complete')
+                            print(f"🔍 FINAL DEBUG: analysis_report type before completion: {type(analysis_report)}")
+                            if isinstance(analysis_report, dict) and hasattr(analysis_report, 'get'):
+                                quality_info = analysis_report.get('quality_summary', 'Quality analysis complete')
+                            else:
+                                print(f"🚨 SAFETY: analysis_report is not a dict or has no get method: {type(analysis_report)}")
+                                quality_info = "Fallback quality analysis"
+                        except Exception as e:
+                            print(f"🚨 ERROR accessing analysis_report: {str(e)}")
+                            quality_info = "Error in quality analysis"
+                        
+                        try:
                             completion_message = f"🚀 **Adaptive JSON Generation Triggered**\n\n📊 Generated {len(slide_list)} slides based on conversation analysis:\n• **Included**: {', '.join(slide_list)}\n• **Quality**: {quality_info}\n\n" + ai_response
                         except Exception as e:
-                            print(f"🚨 ERROR in completion message creation: {str(e)}")
-                            completion_message = f"🚀 **Adaptive JSON Generation Triggered**\n\n📊 Generated {len(slide_list)} slides\n\n" + ai_response
+                            print(f"🚨 ERROR creating completion message: {str(e)}")
+                            completion_message = f"🚀 **Adaptive JSON Generation Triggered**\n\n📊 Generated slides\n\n" + str(ai_response)
                         st.session_state.messages.append({"role": "assistant", "content": completion_message})
                         st.rerun()
     
@@ -6713,6 +6724,41 @@ with tab_extract:
         st.info(f"✅ Company name set: **{company_display_name}** (will appear on slides)")
     else:
         st.info("💡 Enter your company name to brand the presentation")
+    
+    st.markdown("---")
+    
+    st.markdown("### 🗄️ Vector Database Configuration (Optional)")
+    st.info("Configure vector database to enhance research with precedent transaction data for Global Conglomerates analysis")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        vector_db_id = st.text_input(
+            "Vector Database ID",
+            value=st.session_state.get('vector_db_id', ''),
+            placeholder="e.g., your-database-id",
+            help="Cassandra Vector Database ID for precedent transactions",
+            key="vector_db_id_input"
+        )
+        
+    with col2:
+        vector_db_token = st.text_input(
+            "Vector Database Token",
+            value=st.session_state.get('vector_db_token', ''),
+            placeholder="Enter your database token",
+            type="password",
+            help="Authentication token for vector database access",
+            key="vector_db_token_input"
+        )
+    
+    if vector_db_id and vector_db_token:
+        st.session_state['vector_db_id'] = vector_db_id
+        st.session_state['vector_db_token'] = vector_db_token
+        st.success("✅ Vector Database configured - will enhance Global Conglomerates research with similar transaction data")
+    elif vector_db_id or vector_db_token:
+        st.warning("⚠️ Please provide both Database ID and Token")
+    else:
+        st.info("💡 Vector DB is optional - research will use web search if not configured")
     
     st.markdown("---")
     
