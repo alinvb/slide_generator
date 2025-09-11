@@ -1200,14 +1200,54 @@ Format as JSON array with objects containing: name, description, investment_thes
         total_slides = len(covered_slides)
         print(f"📊 [PROGRESS] Starting generation of {total_slides} slides: {covered_slides}")
         
+        # 🚨 ENHANCED: Create progress container for better visibility
+        try:
+            import streamlit as st
+            
+            # Create progress container
+            progress_container = st.container()
+            with progress_container:
+                st.markdown(f"### 🔄 **JSON Generation Progress**")
+                st.markdown(f"**Target**: {total_slides} slides from bulletproof generator")
+                st.markdown(f"**Slides**: {', '.join([s.replace('_', ' ').title() for s in covered_slides[:5]])}{'...' if len(covered_slides) > 5 else ''}")
+                
+                # Initial progress bar
+                initial_progress = st.progress(0, text="Starting JSON generation...")
+                
+            st.markdown("---")
+            
+            print(f"✅ [PROGRESS] Progress container created successfully")
+            
+        except Exception as e:
+            print(f"⚠️ [PROGRESS] Progress container creation failed: {e}")
+            pass
+        
         for slide_index, slide_type in enumerate(covered_slides, 1):
             print(f"🔄 [PROGRESS] Generating slide {slide_index}/{total_slides}: {slide_type}")
             
-            # Also show progress in Streamlit if available
+            # 🚨 ENHANCED PROGRESS TRACKING - Multiple display methods
             try:
                 import streamlit as st
-                st.info(f"🔄 Generating slide {slide_index}/{total_slides}: **{slide_type.replace('_', ' ').title()}**")
-            except:
+                
+                # Method 1: Progress info box
+                progress_msg = f"🔄 **Generating Slide {slide_index}/{total_slides}**: {slide_type.replace('_', ' ').title()}"
+                st.info(progress_msg)
+                
+                # Method 2: Progress bar
+                progress_percentage = slide_index / total_slides
+                st.progress(progress_percentage, text=f"Slide {slide_index}/{total_slides}: {slide_type.replace('_', ' ').title()}")
+                
+                # Method 3: Status update  
+                st.write(f"🔧 **Currently Processing**: {slide_type.replace('_', ' ').title()} ({slide_index}/{total_slides})")
+                
+                # Add small delay for UI visibility
+                import time
+                time.sleep(0.1)
+                
+                print(f"✅ [PROGRESS] Streamlit UI updated for slide {slide_index}/{total_slides}")
+                
+            except Exception as e:
+                print(f"⚠️ [PROGRESS] Streamlit display failed: {e} - continuing with console output only")
                 pass  # Continue if Streamlit not available
             if slide_type == "business_overview":
                 # Use research-enhanced data (both conversation + LLM research)
@@ -1256,8 +1296,11 @@ Format as JSON array with objects containing: name, description, investment_thes
                 print(f"✅ [PROGRESS] Completed slide {slide_index}/{total_slides}: business_overview")
                 try:
                     import streamlit as st
-                    st.success(f"✅ Slide {slide_index}/{total_slides} complete: **Business Overview**")
-                except:
+                    st.success(f"✅ **Slide {slide_index}/{total_slides} Complete**: Business Overview")
+                    # Update progress bar to show completion
+                    st.progress(slide_index / total_slides, text=f"Completed {slide_index}/{total_slides}: Business Overview")
+                except Exception as e:
+                    print(f"⚠️ [PROGRESS] Success display failed: {e}")
                     pass
             
             elif slide_type == "product_service_footprint":
@@ -1300,8 +1343,11 @@ Format as JSON array with objects containing: name, description, investment_thes
                 print(f"✅ [PROGRESS] Completed slide {slide_index}/{total_slides}: product_service_footprint")
                 try:
                     import streamlit as st
-                    st.success(f"✅ Slide {slide_index}/{total_slides} complete: **Product & Service Footprint**")
-                except:
+                    st.success(f"✅ **Slide {slide_index}/{total_slides} Complete**: Product & Service Footprint")
+                    # Update progress bar
+                    st.progress(slide_index / total_slides, text=f"Completed {slide_index}/{total_slides}: Product & Service Footprint")
+                except Exception as e:
+                    print(f"⚠️ [PROGRESS] Success display failed: {e}")
                     pass
             
             elif slide_type == "historical_financial_performance":
@@ -1552,8 +1598,11 @@ Format as JSON array with objects containing: name, description, investment_thes
                 print(f"✅ [PROGRESS] Completed slide {slide_index}/{total_slides}: {slide_type}")
                 try:
                     import streamlit as st
-                    st.success(f"✅ Slide {slide_index}/{total_slides} complete: **{slide_type.replace('_', ' ').title()}**")
-                except:
+                    st.success(f"✅ **Slide {slide_index}/{total_slides} Complete**: {slide_type.replace('_', ' ').title()}")
+                    # Update progress bar
+                    st.progress(slide_index / total_slides, text=f"Completed {slide_index}/{total_slides}: {slide_type.replace('_', ' ').title()}")
+                except Exception as e:
+                    print(f"⚠️ [PROGRESS] Success display failed: {e}")
                     pass
         
         render_plan = {"slides": slides}
@@ -1564,9 +1613,23 @@ Format as JSON array with objects containing: name, description, investment_thes
         
         try:
             import streamlit as st
+            
+            # Final progress update
+            st.progress(1.0, text=f"JSON Generation Complete! {len(slides)}/{total_slides} slides generated")
+            
+            # Success celebration
             st.balloons()
             st.success(f"🎉 **JSON Generation Complete!** Successfully generated {len(slides)}/{total_slides} slides")
-        except:
+            
+            # Show summary
+            with st.expander(f"📋 View Generated Slides ({len(slides)} total)"):
+                for i, slide in enumerate(slides, 1):
+                    st.write(f"{i}. **{slide.get('template', 'Unknown').replace('_', ' ').title()}**")
+            
+            print(f"✅ [PROGRESS] Final UI update completed successfully")
+            
+        except Exception as e:
+            print(f"⚠️ [PROGRESS] Final UI update failed: {e}")
             pass
         
         print(f"🎯 [DEBUG] Final objects before return:")

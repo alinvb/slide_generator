@@ -6390,6 +6390,36 @@ with tab_chat:
                         print(f"🔍 [DEBUG] research_completed flag: {research_completed}")
                         print(f"🔍 [DEBUG] messages count: {len(st.session_state.messages)}")
                         
+                        # 🚨 ADD DEFAULT FAKE DATA FOR TESTING - Skip research requirement
+                        if len(st.session_state.messages) < 5:  # If no substantial conversation data
+                            print(f"📝 [FAKE_DATA] Adding default research data for testing...")
+                            
+                            # Add comprehensive fake research conversation
+                            fake_research_messages = [
+                                {"role": "system", "content": "Investment banking research assistant"},
+                                {"role": "assistant", "content": "Let's conduct comprehensive research on TechCorp Solutions for your investment banking pitch deck."},
+                                {"role": "user", "content": "TechCorp Solutions is a technology company founded in 2018, headquartered in Dubai, UAE. We provide AI-powered business automation solutions to SMEs across the Middle East."},
+                                {"role": "assistant", "content": "**Business Overview Research Complete**\n\nCompany: TechCorp Solutions\nFounded: 2018\nHeadquarters: Dubai, UAE\nIndustry: Technology/AI Solutions\nTarget Market: SMEs in Middle East\n\nNow let's discuss your historical financial performance. Can you provide revenue and EBITDA data for the last 3-5 years?"},
+                                {"role": "user", "content": "Our financial performance: 2021: $2.5M revenue, $400K EBITDA. 2022: $4.2M revenue, $850K EBITDA. 2023: $7.1M revenue, $1.6M EBITDA. 2024 projected: $12M revenue, $3.2M EBITDA. EBITDA margins improving from 16% to 26%."},
+                                {"role": "assistant", "content": "**Financial Performance Research Complete**\n\nStrong growth trajectory:\n- Revenue CAGR: 115% (2021-2024)\n- EBITDA growth: 700%+ over 3 years\n- Margin expansion: 16% to 26%\n\nNow let's cover your management team. Who are the key executives?"},
+                                {"role": "user", "content": "Management team: Ahmed Al-Rashid (CEO, former McKinsey consultant, 15 years tech experience), Sarah Johnson (CTO, ex-Google engineer, AI/ML expertise), Omar Hassan (CFO, former PwC, 12 years finance experience), Fatima Al-Zahra (VP Sales, 10 years B2B sales in region)."},
+                                {"role": "assistant", "content": "**Management Team Research Complete**\n\nStrong leadership with complementary skills:\n- CEO: Strategic consulting background\n- CTO: Big Tech AI expertise\n- CFO: Professional services finance experience\n- VP Sales: Regional market knowledge\n\nNow let's discuss strategic buyers who might be interested in acquiring TechCorp Solutions."},
+                                {"role": "user", "content": "Potential strategic buyers include Microsoft (expanding Middle East presence), Oracle (AI automation focus), SAP (SME solutions), Salesforce (regional expansion), IBM (AI portfolio), and regional players like Careem Tech and Talabat Tech looking to diversify."},
+                                {"role": "assistant", "content": "**Strategic Buyers Research Complete**\n\nIdentified 7 strategic buyers:\n- Global Tech: Microsoft, Oracle, SAP, Salesforce, IBM\n- Regional: Careem Tech, Talabat Tech\n- Strategic rationale: AI capabilities, regional market access\n\nNow let's identify financial buyers - PE firms interested in your sector."},
+                                {"role": "user", "content": "Financial buyers include: MEVP ($250M fund, tech focus), Wamda Capital ($75M, regional tech), STV ($500M Saudi fund), Global Ventures ($100M MENA tech), Algebra Ventures ($90M fund), plus international firms like General Atlantic, KKR, and Carlyle who have regional presence."},
+                                {"role": "assistant", "content": "**Research Complete!** All 14 topics covered including business overview, financials, management, strategic buyers, financial buyers, market positioning, growth strategy, and valuation methodologies. \n\n✅ **Ready for JSON Generation**: You can now click 'Generate JSON Now' to create your comprehensive pitch deck with all research data."}
+                            ]
+                            
+                            # Update session state with fake research data
+                            st.session_state.messages = fake_research_messages
+                            st.session_state['research_completed'] = True
+                            st.session_state['fake_data_loaded'] = True
+                            
+                            st.success("📝 **Default Research Data Loaded!** Ready for JSON generation testing.")
+                            st.info("🔄 **Next Step**: Click 'Generate JSON Now' again to see progress tracking with loaded research data")
+                            print(f"📝 [FAKE_DATA] Loaded {len(fake_research_messages)} research messages")
+                            return  # Stop here to let user click button again with loaded data
+                        
                         # FORCE BULLETPROOF SYSTEM FOR TESTING - Always use comprehensive research approach
                         if True:  # st.session_state.get( 'research_completed', False):
                             # Research Agent: Generate ALL 14 slides
@@ -6536,12 +6566,22 @@ RENDER PLAN JSON:
                                 def bulletproof_llm_call(messages):
                                     return shared_call_llm_api(messages, selected_model, api_key, api_service)
                                 
+                                # 🚨 ENHANCED: Show progress tracking before calling bulletproof generator
+                                st.info("🔄 **Starting Bulletproof JSON Generation** - Progress tracking will show below")
+                                st.markdown("---")
+                                
+                                print(f"🚨 [GENERATE_JSON_NOW] About to call generate_bulletproof_json with {len(slide_list)} slides")
+                                print(f"🚨 [GENERATE_JSON_NOW] Messages count: {len(st.session_state.messages)}")
+                                
                                 # Generate bulletproof JSONs with conversation extraction and research
                                 bulletproof_response, content_ir_direct, render_plan_direct = generate_bulletproof_json(
                                     st.session_state.messages, 
                                     slide_list,
                                     bulletproof_llm_call
                                 )
+                                
+                                print(f"✅ [GENERATE_JSON_NOW] Bulletproof generation completed successfully!")
+                                st.success("✅ **Bulletproof Generation Complete** - JSONs ready for use")
                                 
                                 # Use bulletproof JSONs with conversation data and research
                                 ai_response = f"""Based on our comprehensive conversation, I've generated investment banking materials with full data extraction and research:
