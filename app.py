@@ -5900,9 +5900,11 @@ tab_chat, tab_extract, tab_json, tab_execute, tab_validate = st.tabs(["🔬 Rese
 with tab_chat:
     st.subheader("🔬 Research Agent - AI Investment Banking Research")
     
+    # API key is now configured via config.py file
+    api_key = st.session_state.get('api_key', '')
     if not api_key:
-        st.error("⚠️ Please enter your API key in the sidebar to start research")
-        st.stop()
+        st.info("ℹ️ API key is configured via config.py file. If you don't have one, the system will use fallback data.")
+        # Don't stop execution - allow fallback mode to work
     
     # Import Research Agent functions
     from research_agent import research_all_topics, fact_check_user_info
@@ -7475,6 +7477,7 @@ with tab_execute:
                             
                             # Extract brand configuration using LLM analysis
                             api_key = st.session_state.get('api_key')
+                            api_key = st.session_state.get('api_key', '')
                             model_name = st.session_state.get('selected_model', st.session_state.get('model', 'claude-3-5-sonnet-20241022'))
                             api_service = st.session_state.get('api_service', 'claude')
                             
