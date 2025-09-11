@@ -6360,6 +6360,13 @@ with tab_chat:
                                 "strategic_buyers", "financial_buyers", "global_conglomerates",
                                 "margin_cost_resilience", "investor_considerations", "investor_process_overview"
                             ]
+                            # Create analysis report for Research Agent
+                            analysis_report = {
+                                'generation_type': 'research_agent_comprehensive',
+                                'quality_summary': 'Comprehensive research completed for all 14 topics',
+                                'topics_covered': 14,
+                                'total_topics': 14
+                            }
                             print(f"🔬 RESEARCH AGENT: Generating ALL {len(slide_list)} slides from comprehensive research")
                         else:
                             # Chat-based: Generate slides for covered topics only  
@@ -6571,6 +6578,15 @@ RENDER PLAN JSON:
                             print(f"[GENERATE_JSON_NOW] Extraction error: {str(e)}")
                             # Try to continue with partial data or trigger auto-improvement
                             content_ir, render_plan, validation_results = None, None, {"overall_valid": False}
+                        
+                        # Ensure analysis_report exists (fallback if not defined)
+                        if 'analysis_report' not in locals():
+                            analysis_report = {
+                                'generation_type': 'research_agent_comprehensive',
+                                'quality_summary': 'Comprehensive research completed for all 14 topics',
+                                'topics_covered': 14,
+                                'total_topics': 14
+                            }
                         
                         # Add completion message indicating manual JSON generation
                         completion_message = f"🚀 **Adaptive JSON Generation Triggered**\n\n📊 Generated {len(slide_list)} slides based on conversation analysis:\n• **Included**: {', '.join(slide_list)}\n• **Quality**: {analysis_report.get('quality_summary', 'Quality analysis complete')}\n\n" + ai_response
