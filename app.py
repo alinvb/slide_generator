@@ -6418,7 +6418,7 @@ with tab_chat:
                             st.success("📝 **Default Research Data Loaded!** Ready for JSON generation testing.")
                             st.info("🔄 **Next Step**: Click 'Generate JSON Now' again to see progress tracking with loaded research data")
                             print(f"📝 [FAKE_DATA] Loaded {len(fake_research_messages)} research messages")
-                            return  # Stop here to let user click button again with loaded data
+                            st.rerun()  # Refresh page to show updated data and allow user to click button again
                         
                         # FORCE BULLETPROOF SYSTEM FOR TESTING - Always use comprehensive research approach
                         if True:  # st.session_state.get( 'research_completed', False):
