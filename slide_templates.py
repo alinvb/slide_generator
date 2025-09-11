@@ -15,9 +15,98 @@ from datetime import datetime
 # Removed circular import - _apply_standard_header_and_title is now defined locally
 
 
-def get_brand_styling(brand_config=None, color_scheme=None, typography=None):
-    """Extract brand styling or use defaults - FIXED VERSION"""
-    print(f"[DEBUG] get_brand_styling called with brand_config: {brand_config is not None}")
+def get_template_styling(template_name="modern"):
+    """Get template-specific color schemes and fonts"""
+    template_configs = {
+        "modern": {
+            "color_scheme": {
+                "primary": RGBColor(24, 58, 88),      # Current blue
+                "secondary": RGBColor(181, 151, 91),   # Current gold  
+                "accent": RGBColor(64, 64, 64),
+                "text": RGBColor(64, 64, 64),
+                "background": RGBColor(255, 255, 255),
+                "light_grey": RGBColor(240, 240, 240),
+                "footer_grey": RGBColor(128, 128, 128)
+            },
+            "typography": {
+                "primary_font": 'Arial',
+                "title_size": Pt(24),
+                "header_size": Pt(14),
+                "body_size": Pt(11),
+                "small_size": Pt(9)
+            }
+        },
+        "professional": {
+            "color_scheme": {
+                "primary": RGBColor(30, 58, 138),      # Deep blue
+                "secondary": RGBColor(59, 130, 246),    # Medium blue
+                "accent": RGBColor(147, 197, 253),      # Light blue
+                "text": RGBColor(55, 65, 81),
+                "background": RGBColor(255, 255, 255),
+                "light_grey": RGBColor(243, 244, 246),
+                "footer_grey": RGBColor(107, 114, 128)
+            },
+            "typography": {
+                "primary_font": 'Times New Roman',
+                "title_size": Pt(26),
+                "header_size": Pt(15),
+                "body_size": Pt(12),
+                "small_size": Pt(10)
+            }
+        },
+        "corporate": {
+            "color_scheme": {
+                "primary": RGBColor(88, 28, 135),      # Deep purple
+                "secondary": RGBColor(147, 51, 234),    # Medium purple
+                "accent": RGBColor(196, 181, 253),      # Light purple
+                "text": RGBColor(55, 65, 81),
+                "background": RGBColor(255, 255, 255),
+                "light_grey": RGBColor(249, 250, 251),
+                "footer_grey": RGBColor(107, 114, 128)
+            },
+            "typography": {
+                "primary_font": 'Aptos',
+                "title_size": Pt(25),
+                "header_size": Pt(14),
+                "body_size": Pt(11),
+                "small_size": Pt(9)
+            }
+        },
+        "investor": {
+            "color_scheme": {
+                "primary": RGBColor(56, 189, 248),      # Medium blue
+                "secondary": RGBColor(125, 211, 252),    # Light blue  
+                "accent": RGBColor(186, 230, 253),       # Very light blue
+                "text": RGBColor(71, 85, 105),
+                "background": RGBColor(255, 255, 255),
+                "light_grey": RGBColor(248, 250, 252),
+                "footer_grey": RGBColor(100, 116, 139)
+            },
+            "typography": {
+                "primary_font": 'Aptos',
+                "title_size": Pt(24),
+                "header_size": Pt(14),
+                "body_size": Pt(11),
+                "small_size": Pt(9)
+            }
+        }
+    }
+    
+    # Normalize template name
+    template_key = template_name.lower() if template_name else "modern"
+    return template_configs.get(template_key, template_configs["modern"])
+
+def get_brand_styling(brand_config=None, color_scheme=None, typography=None, template_name="modern", **kwargs):
+    """Extract brand styling or use template-specific defaults - ENHANCED VERSION"""
+    # Check if template_name is in kwargs (for backward compatibility)
+    if 'template_name' in kwargs and kwargs['template_name']:
+        template_name = kwargs['template_name']
+    
+    print(f"[DEBUG] get_brand_styling called with brand_config: {brand_config is not None}, template: {template_name}")
+    
+    # Get template-specific defaults first
+    template_config = get_template_styling(template_name)
+    print(f"[DEBUG] Using template '{template_name}' with primary color: RGB({template_config['color_scheme']['primary'].r},{template_config['color_scheme']['primary'].g},{template_config['color_scheme']['primary'].b})")
     
     if brand_config:
         print(f"[DEBUG] Brand config keys: {list(brand_config.keys())}")
@@ -29,15 +118,7 @@ def get_brand_styling(brand_config=None, color_scheme=None, typography=None):
         
         # Handle different color formats - IMPROVED CONVERSION
         colors = {}
-        color_defaults = {
-            "primary": RGBColor(24, 58, 88),
-            "secondary": RGBColor(181, 151, 91),
-            "accent": RGBColor(64, 64, 64),
-            "text": RGBColor(64, 64, 64),
-            "background": RGBColor(255, 255, 255),
-            "light_grey": RGBColor(240, 240, 240),
-            "footer_grey": RGBColor(128, 128, 128)
-        }
+        color_defaults = template_config['color_scheme']
         
         for key, default_color in color_defaults.items():
             if key in brand_colors:
@@ -68,13 +149,7 @@ def get_brand_styling(brand_config=None, color_scheme=None, typography=None):
                 colors[key] = default_color
         
         # Handle fonts with better error handling
-        font_defaults = {
-            "primary_font": 'Arial',
-            "title_size": Pt(24),
-            "header_size": Pt(14),
-            "body_size": Pt(11),
-            "small_size": Pt(9)
-        }
+        font_defaults = template_config['typography']
         
         fonts = {}
         for key, default_value in font_defaults.items():
@@ -102,33 +177,18 @@ def get_brand_styling(brand_config=None, color_scheme=None, typography=None):
         print(f"[DEBUG] Final fonts: {fonts['primary_font']}, title={fonts['title_size']}")
         
     else:
-        print("[DEBUG] No brand_config, using defaults")
-        # Use passed parameters or defaults
-        colors = color_scheme or {
-            "primary": RGBColor(24, 58, 88),
-            "secondary": RGBColor(181, 151, 91),
-            "accent": RGBColor(64, 64, 64),
-            "text": RGBColor(64, 64, 64),
-            "background": RGBColor(255, 255, 255),
-            "light_grey": RGBColor(240, 240, 240),
-            "footer_grey": RGBColor(128, 128, 128)
-        }
-        
-        fonts = typography or {
-            "primary_font": 'Arial',
-            "title_size": Pt(24),
-            "header_size": Pt(14),
-            "body_size": Pt(11),
-            "small_size": Pt(9)
-        }
+        print(f"[DEBUG] No brand_config, using template '{template_name}' defaults")
+        # Use passed parameters or template defaults
+        colors = color_scheme or template_config['color_scheme']
+        fonts = typography or template_config['typography']
     
     return colors, fonts
 
 
-def _apply_standard_header_and_title(slide, title_text, brand_config=None, company_name="Moelis"):
+def _apply_standard_header_and_title(slide, title_text, brand_config=None, company_name="Moelis", template_name="modern"):
     """Apply standardized header and title formatting to a slide"""
     # Get brand styling
-    colors, fonts = get_brand_styling(brand_config)
+    colors, fonts = get_brand_styling(brand_config, template_name=template_name)
     
     # Add title with clean header style
     title_left = Inches(0.5)
@@ -202,7 +262,7 @@ def ensure_prs(prs=None):
     return prs_obj
 
 
-def render_management_team_slide(data=None, color_scheme=None, typography=None, company_name="Your Company", prs=None, brand_config=None, **kwargs):
+def render_management_team_slide(data=None, color_scheme=None, typography=None, company_name="Your Company", prs=None, brand_config=None, template_name="modern", **kwargs):
     """
     Renders a sophisticated management team slide with brand configuration support
     """
@@ -216,7 +276,7 @@ def render_management_team_slide(data=None, color_scheme=None, typography=None, 
         prs = ensure_prs(prs)
     
     # Get brand styling
-    colors, fonts = get_brand_styling(brand_config, color_scheme, typography)
+    colors, fonts = get_brand_styling(brand_config, color_scheme, typography, template_name)
     
     # Add blank slide
     slide_layout = prs.slide_layouts[6]
@@ -224,7 +284,7 @@ def render_management_team_slide(data=None, color_scheme=None, typography=None, 
     
     # STANDARDIZED: Apply header and title
     title_text = (data or {}).get('title', 'Senior Management Team')
-    _apply_standard_header_and_title(slide, title_text, brand_config, company_name)
+    _apply_standard_header_and_title(slide, title_text, brand_config, company_name, template_name)
     
     # Calculate total content to determine adaptive spacing
     left_profiles = (data or {}).get('left_column_profiles', [])

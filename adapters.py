@@ -218,7 +218,7 @@ def _coerce_plan(plan: Optional[Dict]=None, content: Optional[Any]=None, content
             return {"slides": src[key]}
     raise ValueError("Unrecognized plan/content shape. Expect dict with 'slides' or a list of slide dicts.")
 
-def _safe_call(renderer, data: Dict, prs, company_name: str, content: Dict = None, brand_config: Optional[Dict] = None):
+def _safe_call(renderer, data: Dict, prs, company_name: str, content: Dict = None, brand_config: Optional[Dict] = None, template_name: str = "modern"):
     """
     Call renderer with the correct parameter signature for your slide templates.
     Your renderers expect: renderer(slide_data, color_scheme=None, typography=None, company_name="Moelis", prs=None)
@@ -250,7 +250,8 @@ def _safe_call(renderer, data: Dict, prs, company_name: str, content: Dict = Non
             typography=typography, 
             company_name=company_name, 
             prs=prs,
-            brand_config=brand_config  # Pass full brand config for header standardization
+            brand_config=brand_config,  # Pass full brand config for header standardization
+            template_name=template_name  # Pass template name for styling
         )
         
     except TypeError as te:
@@ -302,6 +303,7 @@ def render_plan_to_pptx(
     prs=None,
     company_name: str = "Moelis",
     brand_config: Optional[Dict] = None,  # NEW: Brand configuration
+    config: Optional[Dict] = None,  # NEW: Generation configuration with template
     **_ignore_kwargs,
 ):
     """
@@ -348,6 +350,12 @@ def render_plan_to_pptx(
     elif isinstance(content_ir, dict):
         content_dict = content_ir
 
+    # Extract template name from config
+    template_name = "modern"  # default
+    if config and isinstance(config, dict):
+        template_name = config.get("template", "modern")
+    print(f"[DEBUG] Using template style: {template_name}")
+    
     print(f"[DEBUG] Processing {len(slides)} slides")
     if brand_config:
         print(f"[DEBUG] Using custom brand configuration")
@@ -382,7 +390,7 @@ def render_plan_to_pptx(
         else:
             print(f"[DEBUG] Slide {idx}: Found renderer for '{template}': {renderer.__name__ if hasattr(renderer, '__name__') else str(renderer)}")
             
-        prs = _safe_call(renderer, data, prs, company_name, content_dict, brand_config)
+        prs = _safe_call(renderer, data, prs, company_name, content_dict, brand_config, template_name)
 
     print(f"[DEBUG] Finished processing. Total slides in presentation: {len(prs.slides)}")
     return prs

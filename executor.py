@@ -36,6 +36,7 @@ def execute_plan(
     deck_path: Optional[str] = None,
     company_name: str = "Moelis",
     brand_config: Optional[Dict] = None,  # NEW: Brand configuration
+    config: Optional[Dict] = None,  # NEW: Generation configuration with template
     **kwargs,  # Changed from _ignore_kwargs to handle additional parameters
 ) -> Tuple[Any, str]:
     """
@@ -85,7 +86,8 @@ def execute_plan(
             content_ir=content_ir,
             prs=prs_obj,
             company_name=company_name,
-            brand_config=brand_config
+            brand_config=brand_config,
+            config=config
         )
         print("✅ Successfully used sophisticated adapters rendering")
     except Exception as e:
