@@ -227,6 +227,140 @@ def generate_fallback_response(messages: List[Dict]) -> str:
                 "highlights": ["Market-leading AI analytics platform", "Fortune 500 customer base", "Rapid revenue growth trajectory", "Proprietary technology stack"],
                 "services": ["Enterprise Analytics Platform", "AI-Powered Insights", "Real-time Data Processing", "Custom Business Intelligence"],
                 "positioning_desc": "Premium provider of enterprise-grade analytics solutions with strong competitive moats"
+            },
+            "competitive_analysis": {
+                "competitors": [
+                    {"name": "Tableau", "revenue": 1200},
+                    {"name": "Power BI", "revenue": 800},
+                    {"name": "Looker", "revenue": 400}
+                ],
+                "assessment": [
+                    ["Company", "Market Focus", "Product Quality", "Enterprise Adoption", "Innovation"],
+                    [company_name, "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"],
+                    ["Tableau", "⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐", "⭐⭐⭐"],
+                    ["Power BI", "⭐⭐⭐⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐"],
+                    ["Looker", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐"]
+                ],
+                "barriers": [
+                    {"title": "High Switching Costs", "desc": "Complex data integrations create customer lock-in"},
+                    {"title": "Technical Expertise", "desc": "Specialized knowledge required for advanced analytics"},
+                    {"title": "Data Security", "desc": "Enterprise-grade security and compliance requirements"}
+                ],
+                "advantages": [
+                    {"title": "Advanced AI Capabilities", "desc": "Proprietary machine learning algorithms and models"},
+                    {"title": "Scalable Architecture", "desc": "Cloud-native platform handling massive data volumes"},
+                    {"title": "Enterprise Focus", "desc": "Purpose-built for large organization requirements"}
+                ]
+            },
+            "product_service_data": {
+                "services": [
+                    {"title": "Enterprise Analytics Platform", "desc": "Comprehensive business intelligence and analytics solution"},
+                    {"title": "AI-Powered Insights", "desc": "Machine learning driven predictive analytics and recommendations"},
+                    {"title": "Real-time Data Processing", "desc": "High-performance streaming data analytics and visualization"},
+                    {"title": "Custom Business Intelligence", "desc": "Tailored analytics solutions for specific industry needs"}
+                ],
+                "coverage_table": [
+                    ["Market Segment", "Product", "Coverage", "Status"],
+                    ["Enterprise", "Full Platform", "Global", "Deployed"],
+                    ["Mid-Market", "Core Analytics", "North America", "Expanding"],
+                    ["SMB", "Starter Edition", "US/Canada", "Limited"]
+                ],
+                "metrics": {
+                    "active_customers": 1200,
+                    "data_processed_tb": 50000,
+                    "uptime_percentage": 99.9,
+                    "customer_satisfaction": 4.8
+                }
+            },
+            "growth_strategy_data": {
+                "growth_strategy": {
+                    "strategies": [
+                        "International market expansion into APAC and Europe",
+                        "Product portfolio expansion with AI/ML capabilities", 
+                        "Strategic partnerships with cloud providers",
+                        "Acquisition of complementary technology companies",
+                        "Enterprise customer upselling and cross-selling"
+                    ]
+                },
+                "financial_projections": {
+                    "categories": ["2023", "2024E", "2025E", "2026E"],
+                    "revenue": [52.0, 85.0, 135.0, 200.0],
+                    "ebitda": [8.0, 18.0, 35.0, 60.0]
+                }
+            },
+            "investor_process_data": {
+                "diligence_topics": [
+                    "Technology architecture and IP assessment",
+                    "Financial performance and projections analysis",
+                    "Market position and competitive landscape review",
+                    "Management team and organizational structure",
+                    "Customer base and revenue concentration analysis",
+                    "Legal and regulatory compliance review"
+                ],
+                "synergy_opportunities": [
+                    "Cross-selling to acquirer's existing customer base",
+                    "Integration of complementary product portfolios",
+                    "Operational efficiencies and cost synergies",
+                    "Enhanced R&D capabilities and innovation",
+                    "Geographic expansion leveraging acquirer's presence"
+                ],
+                "risk_factors": [
+                    "Customer concentration and key account dependencies",
+                    "Competitive pressure from larger technology companies",
+                    "Technology obsolescence and rapid innovation cycles",
+                    "Key personnel retention and talent acquisition",
+                    "Economic downturn impact on enterprise spending"
+                ],
+                "mitigants": [
+                    "Diversified customer base development strategy",
+                    "Continuous R&D investment and innovation pipeline",
+                    "Strong employee retention programs and equity incentives",
+                    "Flexible cost structure and scalable operations",
+                    "Long-term customer contracts and recurring revenue model"
+                ],
+                "timeline": [
+                    "Phase 1: Due diligence and initial negotiations (60 days)",
+                    "Phase 2: Detailed financial and legal review (45 days)",
+                    "Phase 3: Final negotiations and regulatory approvals (30 days)",
+                    "Phase 4: Integration planning and closing (30 days)"
+                ]
+            },
+            "margin_cost_data": {
+                "chart_data": {
+                    "categories": ["2021", "2022", "2023", "2024E", "2025E"],
+                    "values": [-8.3, 7.1, 15.4, 21.2, 26.5]
+                },
+                "cost_management": {
+                    "items": [
+                        {"title": "Cloud Infrastructure Optimization", "description": "Automated scaling and resource management"},
+                        {"title": "Sales & Marketing Efficiency", "description": "Data-driven customer acquisition strategies"},
+                        {"title": "R&D Process Improvements", "description": "Agile development and faster time-to-market"}
+                    ]
+                },
+                "risk_mitigation": {
+                    "main_strategy": "Diversified revenue streams and flexible cost structure to maintain margin resilience during market fluctuations"
+                }
+            },
+            "sea_conglomerates": [
+                {"name": "Genting Group", "country": "Malaysia", "description": "Diversified conglomerate with technology investments", "key_shareholders": "Genting family", "key_financials": "$4.2B revenue", "contact": "N/A"},
+                {"name": "Jardine Matheson", "country": "Hong Kong", "description": "Asian conglomerate with technology and services focus", "key_shareholders": "Keswick family", "key_financials": "$38B revenue", "contact": "N/A"},
+                {"name": "CP Group", "country": "Thailand", "description": "Thai conglomerate expanding into technology sector", "key_shareholders": "Chearavanont family", "key_financials": "$65B revenue", "contact": "N/A"}
+            ],
+            "investor_considerations": {
+                "considerations": [
+                    "Strong revenue growth trajectory and market opportunity",
+                    "Experienced management team with proven track record",
+                    "Differentiated technology platform and competitive advantages",
+                    "Recurring revenue model with high customer retention",
+                    "Scalable business model with improving unit economics"
+                ],
+                "mitigants": [
+                    "Market validation through Fortune 500 customer adoption",
+                    "Conservative financial projections with upside potential",
+                    "Proven ability to execute on growth initiatives",
+                    "Strong balance sheet and capital efficiency",
+                    "Clear path to profitability and cash flow generation"
+                ]
             }
         }
         return json.dumps(fallback_data)

@@ -6599,16 +6599,22 @@ RENDER PLAN JSON:
                                 from bulletproof_json_generator_clean import generate_clean_bulletproof_json
                                 
                                 def bulletproof_llm_call(messages):
-                                    # Use API key from session, environment, or prompt user to configure
+                                    # Use API key from session state, environment, or fallback
                                     import os
-                                    working_api_key = api_key or os.getenv('PERPLEXITY_API_KEY', '')
-                                    working_model = selected_model or "sonar-pro"  
-                                    working_service = api_service or "perplexity"
+                                    working_api_key = st.session_state.get('api_key', '') or os.getenv('PERPLEXITY_API_KEY', '')
+                                    working_model = st.session_state.get('model', 'sonar-pro')  
+                                    working_service = st.session_state.get('api_service', 'perplexity')
+                                    
+                                    # Debug logging for API key configuration
+                                    print(f"🔍 [API_KEY_DEBUG] Session state api_key: {'*' * len(working_api_key) if working_api_key else 'None'}")
+                                    print(f"🔍 [API_KEY_DEBUG] Using model: {working_model}")
+                                    print(f"🔍 [API_KEY_DEBUG] Using service: {working_service}")
                                     
                                     # If no API key, show helpful message but still use fallback data
                                     if not working_api_key:
-                                        print("💡 [INFO] No API key configured. Set PERPLEXITY_API_KEY environment variable for real LLM generation.")
+                                        print("💡 [INFO] No API key configured in session state or environment.")
                                         print("📊 [INFO] Using comprehensive fallback data for demonstration purposes.")
+                                        st.warning("⚠️ **No API Key Configured** - Using comprehensive demo data. Add your API key in the sidebar for real research.")
                                     
                                     # Detect if this is a comprehensive gap-filling call that needs extended timeout
                                     is_gap_filling = False

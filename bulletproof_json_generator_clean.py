@@ -32,34 +32,105 @@ class CleanBulletproofJSONGenerator:
                 return {}
             
             # Use LLM to extract basic company information from conversation
-            extraction_prompt = f"""Extract comprehensive company information from this conversation. Focus on SPECIFIC details mentioned:
+            extraction_prompt = f"""Extract comprehensive company and investment banking information from this conversation. Focus on SPECIFIC details mentioned:
 
 CONVERSATION:
 {conversation_text}
 
 Extract and return a JSON with these fields, using ONLY information mentioned in the conversation:
 {{
+    // BASIC COMPANY INFO
     "company_name": "Exact company name mentioned (or 'TechCorp Solutions' if none specific)",
-    "business_description": "Detailed business description from conversation",
+    "business_description_detailed": "Comprehensive business description including what company does, how it operates, key offerings",
     "industry": "Specific industry/sector mentioned",
     "founded_year": "Founding year if mentioned",
-    "headquarters_location": "Specific location if mentioned", 
+    "headquarters_location": "Specific location if mentioned",
+    
+    // PRODUCTS & SERVICES 
+    "products_services_detailed": ["Detailed descriptions of specific products/services mentioned with features/benefits"],
+    "key_offerings": ["Main product lines, service categories, or revenue streams discussed"],
+    "product_differentiation": ["How products/services differ from competitors as mentioned"],
+    
+    // COMPETITIVE POSITIONING
+    "competitive_positioning": "How company positions itself vs competitors based on conversation",
+    "competitors_mentioned": ["Competitor names mentioned in conversation with context"],
+    "competitive_advantages_mentioned": ["Specific moats, differentiators, or competitive strengths discussed"],
+    "market_position": "Market leadership position, share, or ranking if mentioned",
+    
+    // FINANCIAL METRICS
     "annual_revenue_usd_m": [list of revenue numbers if mentioned],
     "ebitda_usd_m": [list of EBITDA numbers if mentioned],
-    "financial_years": [corresponding years],
-    "key_executives": ["Names of executives/founders mentioned"],
-    "products_services": ["Specific products or services mentioned"],
-    "competitors_mentioned": ["Competitor names mentioned in conversation"],
-    "financial_details": ["Specific financial metrics or milestones mentioned"],
+    "revenue_growth_rates": ["Specific revenue growth percentages or trends mentioned"],
+    "ebitda_margins": ["EBITDA margin percentages if discussed"],
+    "financial_years": [corresponding years for financial data],
+    "financial_details": ["Other financial metrics, ratios, or milestones mentioned"],
+    "profitability_metrics": ["Profit margins, ROI, ROE, or other profitability measures discussed"],
+    
+    // MANAGEMENT & LEADERSHIP
+    "management_team_detailed": ["Executive names with full titles, backgrounds, tenure, experience mentioned"],
+    "key_executives": ["Names of executives/founders with their roles"],
+    "management_quality": "Assessment of management team quality/experience from conversation",
+    "board_composition": ["Board members or advisors mentioned"],
+    
+    // GROWTH & STRATEGY
+    "growth_strategy_details": ["Specific growth initiatives, expansion plans, or strategic priorities discussed"],
     "growth_details": ["Growth rates, expansion plans, or projections mentioned"],
+    "market_expansion": ["Geographic expansion, new markets, or customer segments discussed"],
+    "innovation_pipeline": ["R&D efforts, new product development, or technology initiatives mentioned"],
+    "operational_improvements": ["Efficiency gains, cost savings, or operational changes discussed"],
+    
+    // MARKET & OPPORTUNITY
     "market_details": ["Market size, position, or share information mentioned"],
+    "market_opportunity_details": ["TAM, SAM, growth rates, or market dynamics mentioned"],
+    "market_trends": ["Industry trends, tailwinds, or market drivers discussed"],
+    "customer_base": ["Customer segments, key clients, or customer characteristics mentioned"],
+    
+    // TRANSACTIONS & PRECEDENTS
+    "precedent_transactions": ["Comparable M&A deals, acquisitions, or transactions referenced by name/details"],
+    "transaction_comps_mentioned": ["Comparable transactions or deals with valuations/multiples"],
+    "recent_funding": ["Recent equity raises, debt financing, or capital events discussed"],
+    "transaction_history": ["Previous acquisitions made by the company or prior ownership changes"],
+    
+    // BUYERS & INVESTMENT
+    "strategic_buyers_mentioned": ["Strategic acquirers/corporate buyers mentioned by name with rationale"],
+    "financial_buyers_mentioned": ["PE firms, VC firms, financial buyers mentioned by name with rationale"],
+    "potential_acquirers_mentioned": ["Any other potential buyers or acquirers discussed"],
+    "buyer_synergies": ["Specific synergies each buyer type could realize as discussed"],
+    
+    // INVESTMENT THESIS
+    "investment_considerations": ["Key factors driving investment attractiveness or concerns"],
+    "investment_thesis_points": ["Primary reasons why company is attractive investment target"],
+    "value_drivers": ["Key business drivers that create or destroy value as discussed"],
+    "catalysts": ["Events or developments that could drive value creation mentioned"],
+    
+    // VALUATION & DEAL TERMS  
+    "valuation_estimates_mentioned": ["Specific valuation multiples, ranges, or estimates discussed"],
+    "valuation_methodologies": ["DCF, comparable company, precedent transaction methods discussed"],
+    "deal_structure_details": ["Transaction structure, terms, or deal specifics discussed"],
+    "pricing_expectations": ["Expected purchase price, multiples, or valuation ranges"],
+    
+    // RISKS & CHALLENGES
+    "risk_factors_discussed": ["Specific business risks, concerns, or challenges raised"],
+    "challenges_mentioned": ["Business challenges or operational issues discussed"],
+    "regulatory_considerations": ["Regulatory hurdles, compliance issues, or government considerations"],
+    "integration_risks": ["Post-acquisition integration challenges or considerations discussed"],
+    
+    // STRATEGIC CONSIDERATIONS
+    "synergies_mentioned": ["Specific synergies, value-add, or strategic benefits discussed"],
+    "strategic_rationale": ["Why acquisition makes strategic sense for buyers"],
+    "exit_strategies_mentioned": ["IPO plans, acquisition timeline, or exit discussions"],
+    "deal_timeline": ["Transaction timeline, milestones, or process steps discussed"],
+    
+    // ADDITIONAL CONTEXT
     "business_model": "How the company makes money based on conversation",
     "key_achievements": ["Specific accomplishments or milestones mentioned"],
-    "challenges_mentioned": ["Business challenges or risks discussed"],
-    "key_discussion_points": ["Main topics discussed with specific details"]
+    "key_discussion_points": ["Main topics discussed with specific details"],
+    "due_diligence_notes": ["DD findings, concerns, or validation points mentioned"]
 }}
 
 🚨 CRITICAL: Extract ONLY facts explicitly mentioned in conversation. Use empty arrays [] for missing lists, null for unknown single values.
+🎯 INVESTMENT BANKING FOCUS: Prioritize financial metrics, buyer discussions, valuation estimates, management details, competitive positioning, growth strategy, precedent transactions, and investment considerations.
+💡 USER EXPERTISE PRIORITY: When users provide specific buyer names, valuations, or strategic insights, capture these exactly as stated.
 Return only valid JSON:"""
             
             print("🤖 [CLEAN] Making LLM call for conversation extraction...")

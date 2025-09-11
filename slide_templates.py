@@ -126,8 +126,13 @@ def get_brand_styling(brand_config=None, color_scheme=None, typography=None, tem
     template_config = get_template_styling(template_name)
     try:
         primary_color = template_config['color_scheme']['primary']
-        if hasattr(primary_color, 'r') and hasattr(primary_color, 'g') and hasattr(primary_color, 'b'):
-            print(f"[DEBUG] Using template '{template_name}' with primary color: RGB({primary_color.r},{primary_color.g},{primary_color.b})")
+        if isinstance(primary_color, RGBColor):
+            # Convert RGBColor to RGB values for display
+            hex_str = str(primary_color)
+            r = int(hex_str[0:2], 16)
+            g = int(hex_str[2:4], 16) 
+            b = int(hex_str[4:6], 16)
+            print(f"[DEBUG] Using template '{template_name}' with primary color: RGB({r},{g},{b}) (#{hex_str})")
         else:
             print(f"[DEBUG] Using template '{template_name}' with primary color: {primary_color}")
     except Exception as e:
@@ -151,10 +156,14 @@ def get_brand_styling(brand_config=None, color_scheme=None, typography=None, tem
                 print(f"[DEBUG] Processing color {key}: {brand_color} (type: {type(brand_color)})")
                 
                 # Handle different color formats
-                if hasattr(brand_color, 'r') and hasattr(brand_color, 'g') and hasattr(brand_color, 'b'):
+                if isinstance(brand_color, RGBColor):
                     # Already an RGBColor object
                     colors[key] = brand_color
-                    print(f"[DEBUG] Using RGBColor: {key} = RGB({brand_color.r}, {brand_color.g}, {brand_color.b})")
+                    hex_str = str(brand_color)
+                    r = int(hex_str[0:2], 16)
+                    g = int(hex_str[2:4], 16) 
+                    b = int(hex_str[4:6], 16)
+                    print(f"[DEBUG] Using RGBColor: {key} = RGB({r}, {g}, {b}) (#{hex_str})")
                 elif isinstance(brand_color, tuple) and len(brand_color) == 3:
                     # Tuple format (r, g, b)
                     colors[key] = RGBColor(*brand_color)
@@ -198,8 +207,20 @@ def get_brand_styling(brand_config=None, color_scheme=None, typography=None, tem
             else:
                 fonts[key] = default_value
         
-        print(f"[DEBUG] Final colors: primary=RGB({colors['primary'].r},{colors['primary'].g},{colors['primary'].b})")
-        print(f"[DEBUG] Final fonts: {fonts['primary_font']}, title={fonts['title_size']}")
+        # Debug final colors properly
+        try:
+            primary_color = colors.get('primary')
+            if isinstance(primary_color, RGBColor):
+                hex_str = str(primary_color)
+                r = int(hex_str[0:2], 16)
+                g = int(hex_str[2:4], 16) 
+                b = int(hex_str[4:6], 16)
+                print(f"[DEBUG] Final colors: primary=RGB({r},{g},{b}) (#{hex_str})")
+            else:
+                print(f"[DEBUG] Final colors: primary={primary_color}")
+            print(f"[DEBUG] Final fonts: {fonts['primary_font']}, title={fonts['title_size']}")
+        except Exception as e:
+            print(f"[DEBUG] Color debug error: {e}")
         
     else:
         print(f"[DEBUG] No brand_config, using template '{template_name}' defaults")
