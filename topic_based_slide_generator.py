@@ -8,6 +8,21 @@ Direct 1-to-1 mapping: 1 answered question = 1 slide, 2 questions = 2 slides, et
 import json
 from typing import Dict, List, Any, Tuple
 
+# NUCLEAR TUPLE ERROR FIX: Bulletproof get function
+def safe_get(obj, key, default=None):
+    """Bulletproof get function that handles any object type"""
+    try:
+        if hasattr(obj, 'get') and callable(getattr(obj, 'get')):
+            return obj.get(key, default)
+        elif isinstance(obj, dict):
+            return obj.get(key, default)
+        else:
+            print(f"🚨 SAFE_GET in topic_based_slide_generator: Object is {type(obj)}, not dict - returning default: {default}")
+            return default
+    except Exception as e:
+        print(f"🚨 SAFE_GET ERROR in topic_based_slide_generator: {str(e)}, returning default: {default}")
+        return default
+
 
 class TopicBasedSlideGenerator:
     """
@@ -240,7 +255,18 @@ class TopicBasedSlideGenerator:
         Direct 1:1 mapping - 1 answered question = 1 slide
         """
         # Get covered topics from conversation analysis
-        covered_topics, progress_info = self.get_covered_topics_from_progress(messages)
+        try:
+            result = self.get_covered_topics_from_progress(messages)
+            print(f"🔍 DEBUG: get_covered_topics_from_progress returned type: {type(result)}")
+            if isinstance(result, tuple) and len(result) == 2:
+                covered_topics, progress_info = result
+                print(f"🔍 DEBUG: covered_topics type: {type(covered_topics)}, progress_info type: {type(progress_info)}")
+            else:
+                print(f"🚨 ERROR: Expected tuple of length 2, got {type(result)} with length {len(result) if hasattr(result, '__len__') else 'N/A'}")
+                covered_topics, progress_info = [], {}
+        except Exception as e:
+            print(f"🚨 ERROR in get_covered_topics_from_progress: {str(e)}")
+            covered_topics, progress_info = [], {}
         
         print(f"🎯 TOPIC-BASED: Found {len(covered_topics)} covered topics: {covered_topics}")
         
@@ -266,7 +292,7 @@ class TopicBasedSlideGenerator:
         }
         
         # Sort covered topics by their interview position
-        sorted_covered_topics = sorted(covered_topics, key=lambda x: topic_positions.get(x, 999))
+        sorted_covered_topics = sorted(covered_topics, key=lambda x: safe_get(topic_positions, x, 999))
         
         # Create slides for each covered topic
         for topic_name in sorted_covered_topics:
@@ -285,13 +311,13 @@ class TopicBasedSlideGenerator:
             "slides_included": slide_list,
             "covered_topics": covered_topics,
             "topics_covered": len(covered_topics),
-            "total_topics": progress_info.get("total_topics", 14),
-            "completion_percentage": progress_info.get("completion_percentage", 0),
+            "total_topics": safe_get(progress_info, "total_topics", 14),
+            "completion_percentage": safe_get(progress_info, "completion_percentage", 0),
             "direct_mapping": True,
             "conversation_analysis": {
-                "method": progress_info.get("method", "analyze_conversation_progress"), 
-                "context_aware": progress_info.get("context_aware", False),
-                "user_indicated_repetition": progress_info.get("user_indicated_repetition", False)
+                "method": safe_get(progress_info, "method", "analyze_conversation_progress"), 
+                "context_aware": safe_get(progress_info, "context_aware", False),
+                "user_indicated_repetition": safe_get(progress_info, "user_indicated_repetition", False)
             }
         }
         
