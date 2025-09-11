@@ -6526,6 +6526,21 @@ RENDER PLAN JSON:
                                 
                                 print(f"✅ [BULLETPROOF] Complete system used - conversation extraction + research + generation")
                                 
+                                # 🚨 CRITICAL: Store bulletproof JSONs in session state
+                                if content_ir_direct and render_plan_direct:
+                                    st.session_state['content_ir_json'] = content_ir_direct
+                                    st.session_state['render_plan_json'] = render_plan_direct
+                                    
+                                    # Also store string versions for compatibility
+                                    st.session_state["generated_content_ir"] = json.dumps(content_ir_direct, indent=2)
+                                    st.session_state["generated_render_plan"] = json.dumps(render_plan_direct, indent=2)
+                                    
+                                    # Set success flags
+                                    st.session_state["files_ready"] = True
+                                    st.session_state["auto_populated"] = True
+                                    
+                                    print(f"✅ [BULLETPROOF] Session state updated with rich JSONs")
+                                
                             except Exception as e:
                                 st.error(f"❌ Generation failed: {str(e)}")
                                 print(f"❌ [HYBRID] Error: {str(e)}")
