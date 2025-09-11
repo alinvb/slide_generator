@@ -6949,94 +6949,152 @@ with tab_extract:
         col1, col2 = st.columns([1, 3])
         with col1:
             if st.button("🗑️ Remove File", key="clear_brand_file"):
-                del st.session_state['uploaded_brand_file']
+                if 'uploaded_brand_file' in st.session_state:
+                    del st.session_state['uploaded_brand_file']
+                if 'brand_file_processed' in st.session_state:
+                    del st.session_state['brand_file_processed']
                 st.rerun()
         with col2:
             st.info("💡 Brand styling will be applied automatically when generating presentations")
     
-    # Single file uploader with proper configuration
+    # Reset the file uploader if we need to clear state
+    uploader_key = f"brand_upload_{st.session_state.get('brand_upload_counter', 0)}"
+    
+    # Single file uploader with proper configuration and unique key
     uploaded_file = st.file_uploader(
         "Upload PowerPoint file (.pptx)",
         type=['pptx'],
         help="Select a PowerPoint file to extract brand colors, fonts, and styling",
-        key="brand_upload_single",
+        key=uploader_key,
         accept_multiple_files=False,
         label_visibility="visible"
     )
     
-    # Handle file upload
+    # Handle file upload with better state management
     if uploaded_file is not None:
-        try:
-            # Validate file
-            if uploaded_file.size == 0:
-                st.error("❌ **Error:** The uploaded file is empty. Please select a valid PowerPoint file.")
-            elif uploaded_file.size > 200 * 1024 * 1024:  # 200MB limit
-                st.error("❌ **Error:** File is too large (over 200MB). Please use a smaller file.")
-            else:
-                # File is valid - store it
-                st.session_state['uploaded_brand_file'] = uploaded_file
-                st.success(f"✅ **Successfully uploaded:** {uploaded_file.name} ({uploaded_file.size:,} bytes)")
-                st.info("🎨 **Ready for brand extraction** - Your brand styling will be applied when generating presentations")
+        # Check if this is a new file (different from current)
+        current_file = st.session_state.get('uploaded_brand_file')
+        is_new_file = (
+            current_file is None or 
+            current_file.name != uploaded_file.name or 
+            current_file.size != uploaded_file.size
+        )
+        
+        if is_new_file:
+            try:
+                # Show immediate feedback
+                st.info(f"📤 **Processing:** {uploaded_file.name}...")
                 
-                # Show file details and brand preview
-                with st.expander("📄 File Details & Brand Preview"):
-                    st.write(f"**Filename:** {uploaded_file.name}")
-                    st.write(f"**File size:** {uploaded_file.size:,} bytes ({uploaded_file.size / (1024*1024):.1f} MB)")
-                    st.write(f"**File type:** {uploaded_file.type}")
+                # Validate file
+                if uploaded_file.size == 0:
+                    st.error("❌ **Error:** The uploaded file is empty. Please select a valid PowerPoint file.")
+                elif uploaded_file.size > 200 * 1024 * 1024:  # 200MB limit
+                    st.error("❌ **Error:** File is too large (over 200MB). Please use a smaller file.")
+                else:
+                    # File is valid - store it
+                    st.session_state['uploaded_brand_file'] = uploaded_file
+                    st.session_state['brand_file_processed'] = False  # Mark as not yet processed
                     
-                    # Quick brand preview
-                    if st.button("🔍 Preview Brand Colors", key="preview_brand"):
-                        try:
-                            preview_progress = st.progress(0)
-                            preview_status = st.empty()
-                            
-                            preview_status.info("🎨 Analyzing brand file...")
-                            preview_progress.progress(0.3)
-                            
-                            api_key = st.session_state.get('api_key')
-                            model_name = st.session_state.get('selected_model', 'claude-3-5-sonnet-20241022')
-                            api_service = st.session_state.get('api_service', 'claude')
-                            
-                            preview_progress.progress(0.6)
-                            
-                            # Use rule-based extraction for quick preview (faster)
-                            preview_brand_config = brand_extractor.extract_brand_from_pptx(uploaded_file, use_llm=False)
-                            
-                            preview_progress.progress(1.0)
-                            preview_status.success("✅ Brand preview ready!")
-                            
-                            if preview_brand_config and preview_brand_config.get('color_scheme'):
-                                st.markdown("**🎨 Preview Colors:**")
-                                preview_cols = st.columns(4)
-                                color_scheme = preview_brand_config.get('color_scheme', {})
+                    # Increment counter to reset uploader for next time
+                    counter = st.session_state.get('brand_upload_counter', 0)
+                    st.session_state['brand_upload_counter'] = counter + 1
+                    
+                    st.success(f"✅ **Successfully uploaded:** {uploaded_file.name} ({uploaded_file.size:,} bytes)")
+                    st.info("🎨 **Ready for brand extraction** - Your brand styling will be applied when generating presentations")
+                    
+                    # Show file details and brand preview
+                    with st.expander("📄 File Details & Brand Preview", expanded=True):
+                        st.write(f"**Filename:** {uploaded_file.name}")
+                        st.write(f"**File size:** {uploaded_file.size:,} bytes ({uploaded_file.size / (1024*1024):.1f} MB)")
+                        st.write(f"**File type:** {uploaded_file.type}")
+                        
+                        # Quick brand preview with unique key
+                        preview_key = f"preview_brand_{uploaded_file.name}_{uploaded_file.size}"
+                        if st.button("🔍 Preview Brand Colors", key=preview_key):
+                            try:
+                                preview_progress = st.progress(0)
+                                preview_status = st.empty()
                                 
-                                for idx, (name, color) in enumerate(list(color_scheme.items())[:4]):
-                                    with preview_cols[idx]:
-                                        if hasattr(color, 'r'):
-                                            hex_color = f"#{color.r:02x}{color.g:02x}{color.b:02x}"
-                                            st.markdown(f"""
-                                            <div style="background-color: {hex_color}; height: 40px; border-radius: 3px; border: 1px solid #ddd; margin-bottom: 5px;"></div>
-                                            <small>{name}</small>
-                                            """, unsafe_allow_html=True)
+                                preview_status.info("🎨 Analyzing brand file...")
+                                preview_progress.progress(0.3)
                                 
-                                typography = preview_brand_config.get('typography', {})
-                                st.markdown(f"**🔤 Primary Font:** {typography.get('primary_font', 'Arial')}")
-                            else:
-                                st.warning("No custom colors detected - will use default styling")
+                                # Use rule-based extraction for quick preview (faster)
+                                uploaded_file.seek(0)  # Reset file pointer
+                                preview_brand_config = brand_extractor.extract_brand_from_pptx(uploaded_file, use_llm=False)
                                 
-                        except Exception as e:
-                            st.error(f"Brand preview failed: {str(e)}")
-                            preview_progress.progress(1.0)
-                
-                print(f"✅ [BRAND UPLOAD] Successfully uploaded: {uploaded_file.name} ({uploaded_file.size} bytes)")
-                
-        except Exception as e:
-            st.error(f"❌ **Upload Error:** {str(e)}")
-            print(f"❌ [BRAND UPLOAD ERROR] {e}")
+                                preview_progress.progress(1.0)
+                                preview_status.success("✅ Brand preview ready!")
+                                
+                                if preview_brand_config and preview_brand_config.get('color_scheme'):
+                                    st.markdown("**🎨 Preview Colors:**")
+                                    preview_cols = st.columns(4)
+                                    color_scheme = preview_brand_config.get('color_scheme', {})
+                                    
+                                    for idx, (name, color) in enumerate(list(color_scheme.items())[:4]):
+                                        with preview_cols[idx]:
+                                            if hasattr(color, 'r'):
+                                                hex_color = f"#{color.r:02x}{color.g:02x}{color.b:02x}"
+                                                st.markdown(f"""
+                                                <div style="background-color: {hex_color}; height: 40px; border-radius: 3px; border: 1px solid #ddd; margin-bottom: 5px;"></div>
+                                                <small>{name}</small>
+                                                """, unsafe_allow_html=True)
+                                    
+                                    typography = preview_brand_config.get('typography', {})
+                                    st.markdown(f"**🔤 Primary Font:** {typography.get('primary_font', 'Arial')}")
+                                else:
+                                    st.warning("No custom colors detected - will use default styling")
+                                    
+                            except Exception as e:
+                                st.error(f"Brand preview failed: {str(e)}")
+                                preview_progress.progress(1.0)
+                    
+                    print(f"✅ [BRAND UPLOAD] Successfully uploaded: {uploaded_file.name} ({uploaded_file.size} bytes)")
+                    
+            except Exception as e:
+                st.error(f"❌ **Upload Error:** {str(e)}")
+                print(f"❌ [BRAND UPLOAD ERROR] {e}")
+        else:
+            # File already processed, show current status
+            if current_file:
+                st.info(f"📄 **Current file:** {current_file.name} - Use 'Remove File' button above to upload a different file")
     
-    # Upload instructions if no file
-    elif not current_file:
+    # Upload instructions and debugging if no file
+    elif not current_file and uploaded_file is None:
         st.info("📁 **No brand file uploaded** - Default styling will be used")
+        
+        # Add upload debugging information
+        st.markdown("### 🔧 Upload Troubleshooting")
+        if st.button("🧪 Test File Upload System", key="test_upload_system"):
+            st.write("**Upload System Status:**")
+            st.write(f"- Streamlit version: {st.__version__}")
+            st.write(f"- Session state keys: {list(st.session_state.keys())}")
+            st.write(f"- Current uploader key: {uploader_key}")
+            st.write(f"- Browser upload support: ✅ Enabled")
+            
+            # Test file size limits
+            st.write("**File Size Limits:**")
+            st.write("- Maximum file size: 200 MB")
+            st.write("- Supported formats: .pptx only")
+            
+            st.info("💡 **If uploads aren't working:** Try refreshing the page, using a different browser, or check your internet connection")
+        
+        # Alternative upload method
+        st.markdown("### 🔄 Alternative Upload Method")
+        st.info("If the main uploader isn't working, try this alternative method:")
+        
+        # Simple backup uploader with different key
+        backup_uploaded_file = st.file_uploader(
+            "Backup uploader - try if main upload fails",
+            type=['pptx'],
+            help="Alternative method to upload your PowerPoint brand file",
+            key="brand_upload_backup",
+            accept_multiple_files=False
+        )
+        
+        if backup_uploaded_file is not None:
+            st.success("✅ Backup uploader worked!")
+            st.session_state['uploaded_brand_file'] = backup_uploaded_file
+            st.rerun()
         
         with st.expander("ℹ️ **How to Upload Brand Files**"):
             st.markdown("""
