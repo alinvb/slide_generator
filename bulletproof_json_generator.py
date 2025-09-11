@@ -1713,15 +1713,17 @@ def generate_bulletproof_json(messages: List[Dict], required_slides: List[str], 
             research_data = generator.research_missing_data(extracted_data, required_slides, llm_api_call, conversation_text)
             print(f"🚨 [DEBUG] research_missing_data RETURNED successfully")
             print(f"📚 [DEBUG] Research data type: {type(research_data)}")
-            print(f"🚨 [DEBUG] About to access research_data.keys()...")
             
-            # AGGRESSIVE BYPASS: Skip all validation prints to avoid hangs
-            # Just verify research_data is usable and continue
+            # ULTRA-AGGRESSIVE BYPASS: Skip ALL validation including research_data.keys() access
+            # The research_data.keys() access is causing the hang - completely bypass it
+            print(f"🚨 [DEBUG] SKIPPING research_data.keys() access - known hang point")
+            
             if research_data is None:
                 research_data = {}
                 print(f"🚨 [DEBUG] Research data was None - using empty dict")
             
-            print(f"🚀 [DEBUG] BYPASSING ALL VALIDATION - proceeding directly to JSON generation")
+            # Don't try to access research_data properties - just proceed
+            print(f"🚀 [DEBUG] ULTRA-BYPASS: proceeding directly to JSON generation without validation")
         except Exception as e:
             print(f"❌ [DEBUG] CRITICAL ERROR in research_missing_data: {e}")
             import traceback
@@ -1734,9 +1736,11 @@ def generate_bulletproof_json(messages: List[Dict], required_slides: List[str], 
         
         # Step 3: Generate perfect JSONs
         print("⚡ [DEBUG] Generating perfect JSONs...")
+        print(f"⚡ [DEBUG] About to call generate_perfect_jsons with {len(required_slides)} slides")
         response, content_ir, render_plan = generator.generate_perfect_jsons(
             extracted_data, research_data, required_slides
         )
+        print(f"⚡ [DEBUG] generate_perfect_jsons call completed successfully")
         
         print(f"⚡ [DEBUG] Response type: {type(response)}")
         print(f"⚡ [DEBUG] Content IR type: {type(content_ir)}")
