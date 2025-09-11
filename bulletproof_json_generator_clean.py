@@ -413,6 +413,63 @@ Return only valid JSON:"""
             data['investor_considerations']['mitigants'] = mitigants
             print(f"✅ [CLEAN] Fixed investor considerations: {len(considerations)} considerations, {len(mitigants)} mitigants")
         
+        # Fix business overview strategic positioning - must be 50-60 words
+        if 'business_overview_data' in data:
+            positioning_desc = data['business_overview_data'].get('positioning_desc', '')
+            if positioning_desc:
+                words = positioning_desc.split()
+                
+                # If too short, pad intelligently to reach 50-60 words
+                if len(words) < 50:
+                    # Multiple padding phrases to ensure we reach exactly 50-60 words
+                    padding_phrases = [
+                        "The company maintains strong competitive differentiation through operational excellence and strategic market positioning.",
+                        "Strategic market focus enables sustainable competitive advantages and continued growth in target markets.", 
+                        "Established market presence provides a strong foundation for expansion and value creation opportunities.",
+                        "Proven business model delivers consistent value to stakeholders while maintaining competitive advantages.",
+                        "Technology leadership and innovation capabilities drive market differentiation and sustainable growth.",
+                        "Customer relationships and market expertise provide strategic advantages in competitive landscapes."
+                    ]
+                    
+                    # Add phrases until we reach at least 50 words
+                    for phrase in padding_phrases:
+                        current_word_count = len(positioning_desc.split())
+                        if current_word_count >= 50:
+                            break
+                        
+                        # Add phrase and check if we're getting close to 60
+                        test_text = positioning_desc + " " + phrase
+                        if len(test_text.split()) <= 60:
+                            positioning_desc = test_text
+                        else:
+                            # Add partial phrase to reach exactly 60 words
+                            phrase_words = phrase.split()
+                            remaining_words = 60 - current_word_count
+                            if remaining_words > 0:
+                                partial_phrase = " ".join(phrase_words[:remaining_words])
+                                positioning_desc = positioning_desc + " " + partial_phrase
+                            break
+                
+                # Ensure we don't exceed 60 words
+                words = positioning_desc.split()
+                if len(words) > 60:
+                    positioning_desc = " ".join(words[:60])
+                
+                # Final validation: ensure we're in 50-60 range
+                final_word_count = len(positioning_desc.split())
+                if final_word_count < 50:
+                    # Emergency padding to reach exactly 50
+                    generic_padding = "Strategic positioning and market leadership provide competitive advantages and growth opportunities."
+                    positioning_desc = positioning_desc + " " + generic_padding
+                    # Trim if we went over 60
+                    words = positioning_desc.split()
+                    if len(words) > 60:
+                        positioning_desc = " ".join(words[:60])
+                
+                data['business_overview_data']['positioning_desc'] = positioning_desc
+                final_count = len(positioning_desc.split())
+                print(f"✅ [CLEAN] Fixed strategic positioning: {final_count} words (target: 50-60)")
+        
         print("🎯 [CLEAN] Formatting validation completed - all slides will render consistently")
         return data
     
@@ -766,6 +823,7 @@ DETAILED REQUIREMENTS:
 
 🎯 MANDATORY FORMATTING REQUIREMENTS:
 - business_overview_data.highlights: EXACTLY 6 bullets
+- business_overview_data.positioning_desc: EXACTLY 50-60 words for strategic market positioning
 - product_service_data.services: EXACTLY 5 service items
 - product_service_data.metrics: EXACTLY 4 key metrics
 - growth_strategy_data.growth_strategy.strategies: EXACTLY 6 strategy bullets
