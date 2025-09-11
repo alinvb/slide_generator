@@ -809,7 +809,9 @@ Generate ONLY the JSON object with ALL fields filled using realistic, profession
             "margin_cost_resilience": "margin_cost_resilience",
             "growth_strategy": "growth_strategy_projections",
             "growth_strategy_projections": "growth_strategy_projections",
-            "product_service_footprint": "product_service_footprint"
+            "product_service_footprint": "product_service_footprint",
+            "global_conglomerates": "sea_conglomerates",  # Fix: Map Global Conglomerates to SEA Conglomerates renderer
+            "sea_conglomerates": "sea_conglomerates"
         }
         
         # CRITICAL FIX: Create proper data extraction for each slide type
@@ -831,15 +833,13 @@ Generate ONLY the JSON object with ALL fields filled using realistic, profession
                 }
             
             elif slide_type == "valuation_overview":
-                # Valuation renderer expects valuation_data array
+                # Valuation renderer expects valuation_data array with specific field names
                 valuation_data = content_ir.get('valuation_data', [])
-                # Ensure proper formatting for valuation data
-                formatted_valuation = self._format_valuation_data(valuation_data)
                 
                 return {
                     "title": "Valuation Overview",
                     "subtitle": "Implied EV/Post IRFS-16 EBITDA",
-                    "valuation_data": formatted_valuation,
+                    "valuation_data": valuation_data,  # Use original comprehensive data, no formatting needed
                     "methodologies": content_ir.get('valuation_overview', {}).get('methodologies', [])
                 }
             
@@ -879,15 +879,17 @@ Generate ONLY the JSON object with ALL fields filled using realistic, profession
                 }
             
             elif slide_type == "precedent_transactions":
-                # Precedent transactions renderer
+                # Precedent transactions renderer expects 'transactions' field
+                precedent_data = content_ir.get('precedent_transactions', [])
                 return {
                     "title": "Precedent Transactions",
-                    "precedent_transactions": content_ir.get('precedent_transactions', []),
-                    "comparable_deals": content_ir.get('precedent_transactions', [])
+                    "transactions": precedent_data,  # Renderer expects this field name
+                    "precedent_transactions": precedent_data,  # Keep for compatibility
+                    "comparable_deals": precedent_data  # Keep for compatibility
                 }
             
             elif slide_type in ["strategic_buyers", "financial_buyers"]:
-                # Buyer profiles renderer
+                # Buyer profiles renderer expects table_rows with specific field names
                 if slide_type == "strategic_buyers":
                     buyers = content_ir.get('strategic_buyers', [])
                     title = "Strategic Buyers"
@@ -895,10 +897,24 @@ Generate ONLY the JSON object with ALL fields filled using realistic, profession
                     buyers = content_ir.get('financial_buyers', [])
                     title = "Financial Buyers"
                 
+                # Convert buyers to table_rows format expected by renderer
+                table_rows = []
+                for buyer in buyers:
+                    if isinstance(buyer, dict):
+                        table_rows.append({
+                            'buyer_name': buyer.get('name', buyer.get('buyer_name', '')),
+                            'description': buyer.get('description', buyer.get('overview', '')), 
+                            'strategic_rationale': buyer.get('strategic_rationale', buyer.get('rationale', buyer.get('investment_rationale', ''))),
+                            'key_synergies': buyer.get('key_synergies', buyer.get('synergies', buyer.get('synergy_potential', ''))),
+                            'fit': buyer.get('fit', buyer.get('strategic_fit', 'High'))
+                        })
+                
                 return {
                     "title": title,
-                    "buyers": buyers,
-                    "buyer_profiles": buyers
+                    "table_rows": table_rows,  # This is what the renderer expects
+                    "table_headers": ['Buyer Name', 'Description', 'Strategic Rationale', 'Key Synergies', 'Fit'],
+                    "buyers": buyers,  # Keep for compatibility
+                    "buyer_profiles": buyers  # Keep for compatibility
                 }
             
             elif slide_type in ["investment_considerations", "investor_considerations"]:
@@ -946,6 +962,16 @@ Generate ONLY the JSON object with ALL fields filled using realistic, profession
                     "synergy_opportunities": content_ir.get('investor_process_data', {}).get('synergy_opportunities', []),
                     "risk_factors": content_ir.get('investor_process_data', {}).get('risk_factors', []),
                     "timeline": content_ir.get('investor_process_data', {}).get('timeline', [])
+                }
+            
+            elif slide_type in ["global_conglomerates", "sea_conglomerates"]:
+                # SEA Conglomerates renderer - for both Global and SEA conglomerates
+                conglomerates_data = content_ir.get('sea_conglomerates', content_ir.get('global_conglomerates', []))
+                return {
+                    "title": "Global Conglomerates" if slide_type == "global_conglomerates" else "SEA Conglomerates",
+                    "sea_conglomerates": conglomerates_data,
+                    "conglomerates": conglomerates_data,  # For compatibility
+                    "company_profiles": conglomerates_data  # Alternative field name
                 }
             
             else:
