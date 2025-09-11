@@ -45,6 +45,70 @@ class CleanBulletproofJSONGenerator:
                 formatted_profiles.append(formatted_profile)
         return formatted_profiles
     
+    def _ensure_numeric_competitor_revenue(self, competitors: List[Dict]) -> List[Dict]:
+        """Ensure competitor revenue is numeric for chart rendering"""
+        formatted_competitors = []
+        for competitor in competitors:
+            if isinstance(competitor, dict):
+                formatted_competitor = competitor.copy()
+                # Ensure revenue is numeric for chart rendering
+                revenue = competitor.get('revenue', 0)
+                if isinstance(revenue, str):
+                    # Try to extract number from string
+                    import re
+                    revenue_match = re.search(r'([0-9,]+)', str(revenue).replace('$', '').replace('M', ''))
+                    if revenue_match:
+                        try:
+                            formatted_competitor['revenue'] = float(revenue_match.group(1).replace(',', ''))
+                        except:
+                            formatted_competitor['revenue'] = 100  # Default fallback
+                    else:
+                        formatted_competitor['revenue'] = 100  # Default fallback
+                elif not isinstance(revenue, (int, float)):
+                    formatted_competitor['revenue'] = 100  # Default fallback
+                else:
+                    formatted_competitor['revenue'] = float(revenue)
+                
+                formatted_competitors.append(formatted_competitor)
+        return formatted_competitors
+    
+    def _format_valuation_data(self, valuation_data: List[Dict]) -> List[Dict]:
+        """Format valuation data to match slide renderer expectations"""
+        formatted_data = []
+        for item in valuation_data:
+            if isinstance(item, dict):
+                formatted_item = {
+                    "method": item.get('method', 'Valuation Method'),
+                    "low": str(item.get('low', '8.0x')),  # Ensure string format
+                    "high": str(item.get('high', '12.0x'))  # Ensure string format
+                }
+                formatted_data.append(formatted_item)
+        return formatted_data
+    
+    def _ensure_numeric_array(self, data: Any) -> List[float]:
+        """Ensure data is a list of numeric values"""
+        if not isinstance(data, list):
+            return []
+        
+        numeric_data = []
+        for item in data:
+            try:
+                numeric_data.append(float(item))
+            except (ValueError, TypeError):
+                # Skip non-numeric values
+                continue
+        return numeric_data
+    
+    def _ensure_string_array(self, data: Any) -> List[str]:
+        """Ensure data is a list of string values"""
+        if not isinstance(data, list):
+            return []
+        
+        string_data = []
+        for item in data:
+            string_data.append(str(item))
+        return string_data
+    
     def comprehensive_llm_gap_filling(self, extracted_data: Dict, llm_api_call) -> Dict:
         """MANDATORY LLM gap-filling - must extract/estimate ALL fields from available context"""
         print("🤖 [CLEAN] Starting MANDATORY comprehensive LLM gap-filling...")
@@ -264,13 +328,13 @@ JSON Response:"""
                 }
             },
             
-            # Financial Performance Slide Data - ALL from LLM
+            # Financial Performance Slide Data - ALL from LLM with proper array formatting
             "financial_performance": {
                 "title": "Historical Financial Performance",
-                "revenue_data": enhanced_data.get('annual_revenue_usd_m', []),
-                "ebitda_data": enhanced_data.get('ebitda_usd_m', []),
-                "years": enhanced_data.get('financial_years', []),
-                "margins": enhanced_data.get('ebitda_margins', []),
+                "revenue_data": self._ensure_numeric_array(enhanced_data.get('annual_revenue_usd_m', [])),
+                "ebitda_data": self._ensure_numeric_array(enhanced_data.get('ebitda_usd_m', [])),
+                "years": self._ensure_string_array(enhanced_data.get('financial_years', [])),
+                "margins": self._ensure_numeric_array(enhanced_data.get('ebitda_margins', [])),
                 "growth_metrics": enhanced_data.get('growth_rates', []),
                 "financial_highlights": enhanced_data.get('financial_highlights', []),
                 "historical_data": {

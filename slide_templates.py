@@ -102,7 +102,25 @@ def get_brand_styling(brand_config=None, color_scheme=None, typography=None, tem
     if 'template_name' in kwargs and kwargs['template_name']:
         template_name = kwargs['template_name']
     
-    print(f"[DEBUG] get_brand_styling called with brand_config: {brand_config is not None}, template: {template_name}")
+    # Normalize template name to handle different casing and formats
+    if template_name:
+        template_name = template_name.lower().strip()
+        # Map common variations
+        template_mapping = {
+            "professional": "professional",
+            "modern": "modern", 
+            "corporate": "corporate",
+            "investor": "investor",
+            # Handle variations
+            "prof": "professional",
+            "corp": "corporate",
+            "inv": "investor"
+        }
+        template_name = template_mapping.get(template_name, "modern")
+    else:
+        template_name = "modern"
+    
+    print(f"[DEBUG] get_brand_styling called with brand_config: {brand_config is not None}, normalized template: {template_name}")
     
     # Get template-specific defaults first
     template_config = get_template_styling(template_name)
@@ -194,6 +212,14 @@ def get_brand_styling(brand_config=None, color_scheme=None, typography=None, tem
 
 def _apply_standard_header_and_title(slide, title_text, brand_config=None, company_name="Moelis", template_name="modern"):
     """Apply standardized header and title formatting to a slide"""
+    # Normalize template name
+    if template_name:
+        template_name = template_name.lower().strip()
+    else:
+        template_name = "modern"
+    
+    print(f"[DEBUG] _apply_standard_header_and_title using template: {template_name}")
+    
     # Get brand styling
     colors, fonts = get_brand_styling(brand_config, template_name=template_name)
     
@@ -281,6 +307,14 @@ def render_management_team_slide(data=None, color_scheme=None, typography=None, 
         prs.slide_height = Inches(7.5)
     else:
         prs = ensure_prs(prs)
+    
+    # Normalize template name for consistency
+    if template_name:
+        template_name = template_name.lower().strip()
+    else:
+        template_name = "modern"
+    
+    print(f"[DEBUG] Management team slide using template: {template_name}")
     
     # Get brand styling
     colors, fonts = get_brand_styling(brand_config, color_scheme, typography, template_name)

@@ -6929,7 +6929,7 @@ with tab_extract:
     if st.button("🧪 Test Button - Click Me", key="brand_test_button"):
         st.success("🧪 Test button works! Widget area is functional.")
     
-    # Simple brand upload with enhanced debugging and different key
+    # Enhanced brand upload with multiple fallback options and improved debugging
     try:
         # Clear any existing file first
         if 'uploaded_brand_file' in st.session_state:
@@ -6942,41 +6942,75 @@ with tab_extract:
         
         st.markdown("**Step 1: Select your brand PowerPoint file**")
         
-        # Primary uploader
-        uploaded_brand = st.file_uploader(
-            "Choose .pptx file",
-            type=['pptx'],
-            help="Upload a PowerPoint file to extract brand colors and fonts automatically",
-            key="brand_uploader_v2"
-        )
+        # Create columns for better layout
+        upload_col1, upload_col2 = st.columns(2)
         
-        # Alternative uploader if primary doesn't work
-        if not uploaded_brand:
-            st.markdown("**Alternative: Try this uploader if the above doesn't work**")
-            uploaded_brand_alt = st.file_uploader(
-                "Alternative uploader for .pptx files",
-                type=['pptx', 'ppt'],
-                help="Backup file uploader",
-                key="brand_uploader_alt"
+        uploaded_brand = None
+        
+        with upload_col1:
+            st.markdown("**Primary Uploader**")
+            # Primary uploader with enhanced options
+            uploaded_brand = st.file_uploader(
+                "Choose .pptx file",
+                type=['pptx'],
+                help="Upload a PowerPoint file to extract brand colors and fonts automatically",
+                key="brand_uploader_v3",
+                accept_multiple_files=False
             )
-            if uploaded_brand_alt:
-                uploaded_brand = uploaded_brand_alt
         
-        print(f"🎨 [BRAND DEBUG] File uploader result: {uploaded_brand}")
+        with upload_col2:
+            st.markdown("**Alternative Uploader**")
+            # Alternative uploader if primary doesn't work
+            uploaded_brand_alt = st.file_uploader(
+                "Backup .pptx uploader",
+                type=['pptx', 'ppt'],
+                help="Try this if the main uploader doesn't work",
+                key="brand_uploader_alt_v3",
+                accept_multiple_files=False
+            )
+        
+        # Use whichever uploader has a file
+        if uploaded_brand_alt and not uploaded_brand:
+            uploaded_brand = uploaded_brand_alt
+            print(f"🎨 [BRAND DEBUG] Using alternative uploader result")
+        
+        # Debug information
+        print(f"🎨 [BRAND DEBUG] Primary uploader result: {uploaded_brand}")
+        print(f"🎨 [BRAND DEBUG] Alternative uploader result: {uploaded_brand_alt}")
         
         if uploaded_brand:
             print(f"🎨 [BRAND DEBUG] File uploaded - name: {uploaded_brand.name}, size: {uploaded_brand.size}")
-            st.success(f"✅ Brand deck uploaded: {uploaded_brand.name}")
+            st.success(f"✅ Brand deck uploaded: {uploaded_brand.name} ({uploaded_brand.size} bytes)")
             st.info("💡 Brand extraction will happen automatically when you generate the PowerPoint in the Execute tab")
             
-            # Store the uploaded file in session state
-            st.session_state['uploaded_brand_file'] = uploaded_brand
-            print(f"🎨 [BRAND DEBUG] File stored in session state successfully")
+            # Validate file
+            if uploaded_brand.size > 0:
+                # Store the uploaded file in session state
+                st.session_state['uploaded_brand_file'] = uploaded_brand
+                print(f"🎨 [BRAND DEBUG] File stored in session state successfully")
+            else:
+                st.error("❌ Uploaded file appears to be empty. Please try again.")
+                print(f"❌ [BRAND DEBUG] Uploaded file is empty")
         else:
             st.info("📁 No brand deck uploaded - default styling will be used")
+            # Add troubleshooting tips
+            with st.expander("🔧 Brand Upload Troubleshooting"):
+                st.markdown("""
+                **If the brand upload isn't working:**
+                
+                1. **File Format**: Ensure your file is a .pptx (PowerPoint) file
+                2. **File Size**: Keep files under 200MB for best results
+                3. **Browser**: Try refreshing the page or using a different browser
+                4. **Alternative**: Use the backup uploader in the right column
+                5. **Manual**: If upload fails, you can still generate presentations with default styling
+                
+                **Supported formats**: .pptx (recommended), .ppt (legacy)
+                """)
             
     except Exception as e:
         print(f"❌ [BRAND DEBUG] File uploader error: {e}")
+        st.error(f"❌ Brand upload error: {e}")
+        st.info("📁 Continuing with default styling...")
         st.error(f"❌ File upload error: {str(e)}")
         st.info("📁 Using default styling due to upload error")
     
