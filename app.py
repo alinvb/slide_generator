@@ -6196,34 +6196,56 @@ with tab_chat:
     if not st.session_state.get('research_completed', False) and len(st.session_state.get('messages', [])) <= 4:
         col_demo1, col_demo2 = st.columns([2, 1])
         with col_demo2:
-            if st.button("📝 Load Demo Data", type="secondary", help="Load sample research data for testing"):
-                print(f"📝 [DEMO_DATA] Loading default research data for testing...")
+            if st.button("🎬 Load Netflix Data", type="secondary", help="Load Netflix investment banking conversation for testing"):
+                print(f"🎬 [NETFLIX_DATA] Loading Netflix research conversation for testing...")
                 
-                # Add comprehensive fake research conversation
-                fake_research_messages = [
+                # Add Netflix investment banking research conversation
+                netflix_research_messages = [
                     {"role": "system", "content": "Investment banking research assistant"},
-                    {"role": "assistant", "content": "Let's conduct comprehensive research on TechCorp Solutions for your investment banking pitch deck."},
-                    {"role": "user", "content": "TechCorp Solutions is a technology company founded in 2018, headquartered in Dubai, UAE. We provide AI-powered business automation solutions to SMEs across the Middle East."},
-                    {"role": "assistant", "content": "**Business Overview Research Complete**\n\nCompany: TechCorp Solutions\nFounded: 2018\nHeadquarters: Dubai, UAE\nIndustry: Technology/AI Solutions\nTarget Market: SMEs in Middle East\n\nNow let's discuss your historical financial performance. Can you provide revenue and EBITDA data for the last 3-5 years?"},
-                    {"role": "user", "content": "Our financial performance: 2021: $2.5M revenue, $400K EBITDA. 2022: $4.2M revenue, $850K EBITDA. 2023: $7.1M revenue, $1.6M EBITDA. 2024 projected: $12M revenue, $3.2M EBITDA. EBITDA margins improving from 16% to 26%."},
-                    {"role": "assistant", "content": "**Financial Performance Research Complete**\n\nStrong growth trajectory:\n- Revenue CAGR: 115% (2021-2024)\n- EBITDA growth: 700%+ over 3 years\n- Margin expansion: 16% to 26%\n\nNow let's cover your management team. Who are the key executives?"},
-                    {"role": "user", "content": "Management team: Ahmed Al-Rashid (CEO, former McKinsey consultant, 15 years tech experience), Sarah Johnson (CTO, ex-Google engineer, AI/ML expertise), Omar Hassan (CFO, former PwC, 12 years finance experience), Fatima Al-Zahra (VP Sales, 10 years B2B sales in region)."},
-                    {"role": "assistant", "content": "**Management Team Research Complete**\n\nStrong leadership with complementary skills:\n- CEO: Strategic consulting background\n- CTO: Big Tech AI expertise\n- CFO: Professional services finance experience\n- VP Sales: Regional market knowledge\n\nNow let's discuss strategic buyers who might be interested in acquiring TechCorp Solutions."},
-                    {"role": "user", "content": "Potential strategic buyers include Microsoft (expanding Middle East presence), Oracle (AI automation focus), SAP (SME solutions), Salesforce (regional expansion), IBM (AI portfolio), and regional players like Careem Tech and Talabat Tech looking to diversify."},
-                    {"role": "assistant", "content": "**Strategic Buyers Research Complete**\n\nIdentified 7 strategic buyers:\n- Global Tech: Microsoft, Oracle, SAP, Salesforce, IBM\n- Regional: Careem Tech, Talabat Tech\n- Strategic rationale: AI capabilities, regional market access\n\nNow let's identify financial buyers - PE firms interested in your sector."},
-                    {"role": "user", "content": "Financial buyers include: MEVP ($250M fund, tech focus), Wamda Capital ($75M, regional tech), STV ($500M Saudi fund), Global Ventures ($100M MENA tech), Algebra Ventures ($90M fund), plus international firms like General Atlantic, KKR, and Carlyle who have regional presence."},
-                    {"role": "assistant", "content": "**Research Complete!** All 14 topics covered including business overview, financials, management, strategic buyers, financial buyers, market positioning, growth strategy, and valuation methodologies. \n\n✅ **Ready for JSON Generation**: You can now click 'Generate JSON Now' to create your comprehensive pitch deck with all research data."}
+                    {"role": "assistant", "content": "Let's conduct comprehensive research on Netflix, Inc. for your investment banking analysis and potential acquisition scenarios."},
+                    
+                    {"role": "user", "content": "I want to analyze Netflix for a potential acquisition. It's the leading global streaming entertainment service with over 260 million subscribers worldwide. Founded in 1997, headquartered in Los Gatos, California. They've transformed from DVD-by-mail to the dominant streaming platform."},
+                    
+                    {"role": "assistant", "content": "**Business Overview Research Complete**\n\nCompany: Netflix, Inc.\nFounded: 1997\nHeadquarters: Los Gatos, California\nIndustry: Streaming Entertainment / Media Technology\nBusiness Model: Subscription-based streaming service\nGlobal Reach: 260+ million subscribers\nKey Differentiator: Original content production + global streaming platform\n\nNow let's discuss your financial performance. What's the current revenue and profitability situation?"},
+                    
+                    {"role": "user", "content": "Netflix's financials are strong. 2024 revenue around $39 billion, growing to projected $63 billion by 2029. EBITDA margins have improved significantly - from $9.75B in 2024 to projected $15.7B by 2029. They're highly profitable now with strong cash generation from the subscriber base."},
+                    
+                    {"role": "assistant", "content": "**Financial Performance Research Complete**\n\nStrong financial trajectory:\n- Revenue: $39B (2024) → $63B (2029E)\n- EBITDA: $9.75B → $15.7B\n- Margin expansion and cash generation\n- Subscription model provides recurring revenue\n\nNow let's identify the management team. Who are the key executives driving Netflix's strategy?"},
+                    
+                    {"role": "user", "content": "Key management includes Co-CEO Ted Sarandos (Chief Content Officer background, Hollywood relationships), Co-CEO Greg Peters (former Chief Product Officer, tech/product focus), CFO Spencer Neumann (former Activision CFO, finance expertise), and Chief Marketing Officer Bela Bajaria (content strategy and global expansion)."},
+                    
+                    {"role": "assistant", "content": "**Management Team Research Complete**\n\nStrong dual-CEO leadership structure:\n- Co-CEO Ted Sarandos: Content/Hollywood expertise\n- Co-CEO Greg Peters: Technology/Product focus  \n- CFO Spencer Neumann: Finance/Operations (ex-Activision)\n- CMO Bela Bajaria: Global content strategy\n\nNow let's discuss potential strategic buyers. Which companies would be interested in acquiring Netflix?"},
+                    
+                    {"role": "user", "content": "Strategic buyers could include Apple (has $200B+ cash, needs content for Apple TV+), Amazon (content for Prime Video, cloud synergies), Microsoft (gaming + content convergence, Azure integration), Disney (streaming consolidation, content library combination), and potentially Google/Alphabet (YouTube synergies, cloud infrastructure)."},
+                    
+                    {"role": "assistant", "content": "**Strategic Buyers Research Complete**\n\nIdentified 5 major strategic buyers:\n- Apple: $200B+ cash position, Apple TV+ content needs\n- Amazon: Prime Video integration, AWS cloud synergies\n- Microsoft: Gaming convergence, Azure infrastructure\n- Disney: Streaming consolidation, content library merger\n- Google/Alphabet: YouTube integration, cloud capabilities\n\nNow let's identify financial buyers. Which private equity or investment firms would consider Netflix?"},
+                    
+                    {"role": "user", "content": "Financial buyers are limited given Netflix's $200B+ market cap, but potential buyers include Berkshire Hathaway (Warren Buffett likes media/content businesses), Apollo Global Management (large media deals), KKR (has media expertise), Blackstone (infrastructure/content assets), and sovereign wealth funds like Saudi PIF or Singapore GIC who can handle mega-deals."},
+                    
+                    {"role": "assistant", "content": "**Financial Buyers Research Complete**\n\nLimited to mega-cap capable buyers:\n- Berkshire Hathaway: Buffett's media preference\n- Apollo Global Management: Large media deal experience\n- KKR: Media sector expertise\n- Blackstone: Content/infrastructure focus\n- Sovereign funds: Saudi PIF, Singapore GIC (mega-deal capacity)\n\nNow let's discuss valuation. What multiples and methodologies are relevant for Netflix?"},
+                    
+                    {"role": "user", "content": "Netflix should be valued using multiple approaches: DCF analysis based on subscriber growth and cash flow projections, comparable company analysis vs Disney, Amazon Prime, Apple TV+ (probably 8-12x revenue), and precedent transactions like Disney-Fox ($71B), AT&T-WarnerMedia ($85B), and Amazon-MGM ($8.45B). Given streaming leadership and global scale, Netflix could command 10-15x revenue multiple."},
+                    
+                    {"role": "assistant", "content": "**Valuation Research Complete**\n\nThree valuation methodologies:\n- DCF Analysis: Subscriber-based cash flow projections\n- Comparable Companies: 8-12x revenue vs Disney/Amazon\n- Precedent Transactions: Disney-Fox ($71B), AT&T-Warner ($85B), Amazon-MGM ($8.45B)\n- Target Multiple: 10-15x revenue given market leadership\n\nLet's discuss competitive positioning. How does Netflix compete in streaming?"},
+                    
+                    {"role": "user", "content": "Netflix competes against Disney+ (family content), Amazon Prime Video (bundled offering), Apple TV+ (premium originals), HBO Max/Discovery+ (premium content), YouTube (free/ad-supported), and international players like Tencent Video. Netflix's advantages are global scale, original content production capabilities, recommendation algorithm, and first-mover advantage in streaming."},
+                    
+                    {"role": "assistant", "content": "**Competitive Analysis Complete**\n\nMain competitors and Netflix advantages:\n- vs Disney+: Broader content vs family focus\n- vs Amazon Prime: Standalone vs bundled model\n- vs Apple TV+: Scale vs premium positioning\n- vs HBO Max: Volume vs prestige content\n- vs YouTube: Paid vs ad-supported\n\nKey advantages: Global scale, original content, ML algorithms, first-mover\n\nFinally, what are the key investment considerations and risks?"},
+                    
+                    {"role": "user", "content": "Investment considerations include Netflix's market leadership position, strong content pipeline with $15B+ annual content spend, global subscriber growth potential especially in emerging markets, and pricing power. Key risks are increased competition from tech giants, content cost inflation, subscriber saturation in mature markets, and potential regulation of content or pricing in key markets."},
+                    
+                    {"role": "assistant", "content": "**Investment Considerations & Risk Assessment Complete**\n\nInvestment Highlights:\n- Market leadership in streaming\n- $15B+ annual content investment\n- Global growth potential\n- Subscription pricing power\n\nKey Risks:\n- Tech giant competition (Apple, Amazon, Google)\n- Content cost inflation\n- Subscriber saturation in mature markets\n- Regulatory risks in key jurisdictions\n\n✅ **Netflix Research Complete!** All 14 topics covered including business overview, financials, management, strategic buyers, financial buyers, competitive positioning, valuation methodologies, and investment considerations.\n\n✅ **Ready for JSON Generation**: You can now click 'Generate JSON Now' to create your comprehensive Netflix investment banking presentation."}
                 ]
                 
-                # Update session state with fake research data
-                st.session_state.messages = fake_research_messages
+                # Update session state with Netflix research data
+                st.session_state.messages = netflix_research_messages
                 st.session_state['research_completed'] = True
                 st.session_state['fake_data_loaded'] = True
-                st.session_state['company_name'] = 'TechCorp Solutions'
-                st.session_state['current_company'] = 'TechCorp Solutions'
+                st.session_state['company_name'] = 'Netflix, Inc.'
+                st.session_state['current_company'] = 'Netflix, Inc.'
                 
-                st.success("📝 **Demo Research Data Loaded!** Scroll down to find the '🚀 Generate JSON Now' button.")
-                print(f"📝 [DEMO_DATA] Loaded {len(fake_research_messages)} research messages")
+                st.success("🎬 **Netflix Research Data Loaded!** Comprehensive investment banking conversation ready. Scroll down to find the '🚀 Generate JSON Now' button.")
+                print(f"🎬 [NETFLIX_DATA] Loaded {len(netflix_research_messages)} Netflix research messages")
                 st.rerun()  # Refresh page to show updated data
     
     st.markdown("### 🔍 Company Research")
