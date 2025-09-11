@@ -464,6 +464,8 @@ Ensure all data is specific to {company_name} and factually accurate."""
             print(f"🔍 [RESEARCH] Successfully researched data keys: {list(missing_data.keys())}")
         else:
             print(f"❌ [RESEARCH] WARNING: No research data was generated - all slides may use fallbacks")
+        
+        print(f"🚨 [DEBUG] RESEARCH PHASE COMPLETE - returning {len(missing_data)} fields")
         return missing_data
     
     def filter_slides_by_conversation_coverage(self, complete_data: Dict, required_slides: List[str]) -> List[str]:
@@ -1165,6 +1167,12 @@ Format as JSON array with objects containing: name, description, investment_thes
         print(f"🎯 [SMART FILTER] Original slides: {len(required_slides)}, Covered slides: {len(covered_slides)}")
         print(f"🎯 [SMART FILTER] Including only: {covered_slides}")
         
+        # 🚨 DEBUG: Add debugging before slide generation loop
+        print(f"🔍 [DEBUG] About to start slide generation loop...")
+        print(f"🔍 [DEBUG] covered_slides type: {type(covered_slides)}")
+        print(f"🔍 [DEBUG] covered_slides length: {len(covered_slides) if covered_slides else 'None'}")
+        print(f"🔍 [DEBUG] covered_slides content: {covered_slides}")
+        
         # Build Content IR JSON using EXACT working structure
         # 🚨 RESEARCH-DRIVEN CONTENT GENERATION - NO MORE GENERIC FALLBACKS!
         company_name = complete_data.get("company_name") 
@@ -1222,7 +1230,11 @@ Format as JSON array with objects containing: name, description, investment_thes
             print(f"⚠️ [PROGRESS] Progress container creation failed: {e}")
             pass
         
+        print(f"🚨 [DEBUG] ENTERING SLIDE GENERATION LOOP - covered_slides: {covered_slides}")
+        print(f"🚨 [DEBUG] total_slides: {total_slides}")
+        
         for slide_index, slide_type in enumerate(covered_slides, 1):
+            print(f"🚨 [DEBUG] LOOP ITERATION {slide_index}: Processing {slide_type}")
             print(f"🔄 [PROGRESS] Generating slide {slide_index}/{total_slides}: {slide_type}")
             
             # 🚨 ENHANCED PROGRESS TRACKING - Multiple display methods
@@ -1696,6 +1708,11 @@ def generate_bulletproof_json(messages: List[Dict], required_slides: List[str], 
         
         research_data = generator.research_missing_data(extracted_data, required_slides, llm_api_call, conversation_text)
         print(f"📚 [DEBUG] Research data keys: {list(research_data.keys()) if research_data else 'None'}")
+        
+        print(f"🚨 [DEBUG] RESEARCH PHASE FULLY COMPLETE - about to call generate_perfect_jsons")
+        print(f"🚨 [DEBUG] extracted_data: {len(extracted_data) if extracted_data else 0} fields")
+        print(f"🚨 [DEBUG] research_data: {len(research_data) if research_data else 0} fields") 
+        print(f"🚨 [DEBUG] required_slides: {required_slides}")
         
         # Step 3: Generate perfect JSONs
         print("⚡ [DEBUG] Generating perfect JSONs...")
