@@ -6696,9 +6696,16 @@ RENDER PLAN JSON:
                         # Extract and process JSON structures
                         
                         try:
-                            # Extract JSONs using efficient extraction method
-                            content_ir, render_plan = extract_jsons_from_response(ai_response)
-                            validation_results = {"overall_valid": True}
+                            # 🚨 CRITICAL FIX: Use direct JSONs from bulletproof generator instead of extracting from response
+                            if content_ir_direct and render_plan_direct:
+                                print("✅ [BULLETPROOF-FIX] Using direct JSONs from bulletproof generator")
+                                content_ir, render_plan = content_ir_direct, render_plan_direct
+                                validation_results = {"overall_valid": True}
+                            else:
+                                # Fallback: Extract JSONs using efficient extraction method (for non-bulletproof flows)
+                                print("🔄 [FALLBACK] Extracting JSONs from response text")
+                                content_ir, render_plan = extract_jsons_from_response(ai_response)
+                                validation_results = {"overall_valid": True}
                             
                             if content_ir and render_plan:
                                 st.success("✅ JSON generation successful!")
