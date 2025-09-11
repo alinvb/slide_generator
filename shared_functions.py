@@ -136,7 +136,7 @@ def run_research(query: str) -> str:
     """
     # Use the shared call_llm_api function
     messages = [
-        {"role": "system", "content": "You are an expert investment banking research analyst. Provide comprehensive, well-sourced research with citations."},
+        {"role": "system", "content": "You are a senior investment banking research analyst with 15+ years experience at Goldman Sachs and Morgan Stanley. You provide SPECIFIC, DETAILED, and FACTUAL research with exact numbers, dates, names, and citations. NEVER use generic placeholders - always research real data. Focus on providing investment-grade analysis suitable for M&A transactions and due diligence processes."},
         {"role": "user", "content": query}
     ]
     

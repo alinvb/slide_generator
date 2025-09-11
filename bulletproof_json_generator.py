@@ -8,50 +8,20 @@ from typing import Dict, List, Any
 
 class BulletproofJSONGenerator:
     def __init__(self):
-        # ACTUAL template fields based on slide_templates.py requirements
-        self.slide_templates = {
+        # RESEARCH-DRIVEN CONTENT GENERATION - NO MORE GENERIC TEMPLATES!
+        # This system now generates rich, specific content from actual research data
+        self.research_field_mapping = {
             "business_overview": {
-                "required_fields": ["title", "description", "timeline", "highlights", "services", "positioning_desc"],
-                "template": {
-                    "title": "Business & Operational Overview",
-                    "description": "Leading PropTech platform transforming real estate investment",
-                    "timeline": {"start_year": "2022", "end_year": "2024"},
-                    "highlights": ["Key achievement 1", "Key achievement 2"],
-                    "services": ["Service 1", "Service 2"],
-                    "positioning_desc": "Market positioning description"
-                }
+                "extract_from_research": ["business_overview", "product_service_footprint"],
+                "required_data": ["company_name", "description", "highlights", "services", "positioning"]
             },
             "historical_financial_performance": {
-                "required_fields": ["title", "chart"],
-                "template": {
-                    "title": "Historical Financial Performance",
-                    "chart": {
-                        "title": "Revenue & EBITDA Growth",
-                        "categories": ["2022", "2023", "2024"],
-                        "revenue": [10, 25, 50],
-                        "ebitda": [2, 8, 15]
-                    },
-                    "key_metrics": {
-                        "title": "Key Performance Metrics",
-                        "metrics": []
-                    }
-                }
+                "extract_from_research": ["historical_financial_performance"],
+                "required_data": ["revenue_data", "ebitda_data", "growth_metrics", "financial_highlights"]
             },
             "management_team": {
-                "required_fields": ["title", "left_column_profiles", "right_column_profiles"],
-                "template": {
-                    "title": "Management Team",
-                    "left_column_profiles": [{
-                        "name": "CEO Name",
-                        "role_title": "Chief Executive Officer",
-                        "experience_bullets": ["Experience 1", "Experience 2"]
-                    }],
-                    "right_column_profiles": [{
-                        "name": "CTO Name", 
-                        "role_title": "Chief Technology Officer",
-                        "experience_bullets": ["Experience 1", "Experience 2"]
-                    }]
-                }
+                "extract_from_research": ["management_team"],
+                "required_data": ["executive_profiles", "leadership_experience", "team_structure"]
             },
             "product_service_footprint": {
                 "required_fields": ["title", "services", "coverage_table", "metrics"],
@@ -108,31 +78,53 @@ class BulletproofJSONGenerator:
         conversation_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages])
         
         extraction_prompt = f"""
-Extract all company information from this conversation into structured data. Pay special attention to specific company details, financial figures, team members, and product offerings mentioned.
+🔍 CRITICAL EXTRACTION TASK - NO GENERIC DATA ALLOWED:
+
+Extract SPECIFIC, DETAILED company information from this investment banking research conversation.
 
 CONVERSATION:
 {conversation_text}
 
-Extract and return ONLY a JSON object with these fields (use null for fields not found, extract exact values mentioned):
+🚨 STRICT REQUIREMENTS:
+- Extract ONLY actual data mentioned in conversation
+- Use null for any field not specifically mentioned
+- NO generic placeholders like "Company Name" or "Strategic Buyer 1"
+- Numerical data must be exact figures from conversation
+- Names must be actual company/person names, not descriptions
+
+Extract and return ONLY a JSON object with these fields:
 {{
-    "company_name": "exact company name from conversation",
-    "description": "detailed business description from conversation", 
-    "founded": "founding year if mentioned",
-    "headquarters": "location/city if mentioned",
-    "key_milestones": ["specific milestones mentioned in conversation"],
-    "years": ["years mentioned for financial data"],
-    "revenue_usd_m": [actual revenue figures in millions if mentioned],
-    "ebitda_usd_m": [actual EBITDA figures in millions if mentioned],
-    "team_members": [{{"name": "Actual Name", "title": "Actual Title", "background": "Background info"}}],
-    "products_services": ["specific products/services mentioned"],
-    "market_coverage": "geographic regions mentioned",
-    "growth_strategies": ["specific growth plans mentioned"],
-    "financial_highlights": ["specific financial achievements mentioned"],
-    "user_base": "user/customer numbers if mentioned",
-    "partnerships": ["partnerships or collaborations mentioned"]
+    "company_name": "EXACT company name from conversation (null if generic)",
+    "business_description": "DETAILED business description from research (2-3 sentences minimum)",
+    "founded_year": "founding year if mentioned (null if not specific)",
+    "headquarters_location": "specific city, state/country if mentioned",
+    "employee_count": "actual employee number if mentioned",
+    "legal_structure": "Inc/Corp/LLC etc. if mentioned",
+    "key_milestones": ["SPECIFIC milestones with dates from conversation"],
+    "financial_years": ["actual years for financial data mentioned"],
+    "annual_revenue_usd_m": ["actual revenue figures in millions from conversation"],
+    "ebitda_usd_m": ["actual EBITDA figures in millions from conversation"],
+    "ebitda_margins": ["actual EBITDA margin percentages from conversation"],
+    "growth_rates": ["specific growth rate percentages mentioned"],
+    "team_members": [{{"name": "ACTUAL person name", "title": "ACTUAL title", "background": "specific background"}}],
+    "products_services_list": ["SPECIFIC products/services mentioned with details"],
+    "geographic_markets": ["specific countries/regions mentioned"],
+    "competitive_advantages": ["specific advantages mentioned in research"],
+    "strategic_buyers_identified": [{{"name": "ACTUAL company name", "rationale": "specific reason", "financial_capacity": "specific capacity"}}],
+    "financial_buyers_identified": [{{"name": "ACTUAL PE firm name", "fund_size": "specific fund size", "deal_range": "specific range"}}],
+    "precedent_transactions": [{{"target": "ACTUAL target name", "acquirer": "ACTUAL acquirer", "value": "specific value", "date": "actual date"}}],
+    "dcf_valuation_range": "specific DCF range from conversation (e.g., '$50M-$75M')",
+    "trading_multiples_valuation": "specific trading multiple valuation range",
+    "transaction_multiples_valuation": "specific transaction multiple valuation range",
+    "blended_valuation_range": "final blended valuation range from research"
 }}
 
-IMPORTANT: Extract exact figures and names mentioned in the conversation. Do not make up data.
+⚠️ CRITICAL INSTRUCTION:
+- If conversation contains generic terms like "Company Name", "Strategic Buyer 1", return null for those fields
+- Only extract data that is SPECIFIC and DETAILED from actual research
+- Financial figures must be actual numbers mentioned, not estimates
+- Company names must be real companies, not placeholders
+
 RESPOND WITH ONLY THE JSON - NO OTHER TEXT.
 """
         
@@ -203,6 +195,351 @@ RESPOND WITH ONLY THE JSON - NO OTHER TEXT.
         print(f"✅ [FIXED] Including all topic-based slides: {covered_slides}")
         return covered_slides
     
+    # ================================================================
+    # 🚀 RESEARCH-DRIVEN EXTRACTION METHODS - RICH CONTENT GENERATION
+    # ================================================================
+    
+    def _extract_financial_facts(self, data: Dict) -> Dict:
+        """Extract rich financial data from research"""
+        # Use research-extracted financial data or indicate missing
+        years = data.get("financial_years", [])
+        revenues = data.get("annual_revenue_usd_m", [])
+        ebitdas = data.get("ebitda_usd_m", [])
+        margins = data.get("ebitda_margins", [])
+        
+        # Only include if we have actual data, not placeholders
+        if years and revenues and len(years) == len(revenues):
+            return {
+                "years": years,
+                "revenue_usd_m": revenues,
+                "ebitda_usd_m": ebitdas if ebitdas else [None] * len(years),
+                "ebitda_margins": margins if margins else [None] * len(years)
+            }
+        
+        # Return empty structure if no real financial data found
+        return {
+            "years": [],
+            "revenue_usd_m": [],
+            "ebitda_usd_m": [],
+            "ebitda_margins": []
+        }
+    
+    def _extract_management_team(self, data: Dict) -> Dict:
+        """Extract detailed management team from research"""
+        team_members = data.get("team_members", [])
+        
+        if not team_members:
+            return {
+                "left_column_profiles": [],
+                "right_column_profiles": []
+            }
+        
+        # Split team into left/right columns
+        left_profiles = []
+        right_profiles = []
+        
+        for i, member in enumerate(team_members[:4]):  # Max 4 executives
+            profile = {
+                "name": member.get("name", "[Name Required]"),
+                "role_title": member.get("title", "[Title Required]"),
+                "experience_bullets": member.get("background", "").split(". ") if member.get("background") else ["[Experience Required]"]
+            }
+            
+            if i % 2 == 0:
+                left_profiles.append(profile)
+            else:
+                right_profiles.append(profile)
+        
+        return {
+            "left_column_profiles": left_profiles,
+            "right_column_profiles": right_profiles
+        }
+    
+    def _extract_strategic_buyers(self, data: Dict) -> List[Dict]:
+        """Extract strategic buyers from research"""
+        buyers = data.get("strategic_buyers_identified", [])
+        
+        if not buyers:
+            return []  # Return empty if no research data
+        
+        strategic_buyers = []
+        for buyer in buyers[:6]:  # Max 6 buyers
+            strategic_buyers.append({
+                "buyer_name": buyer.get("name", "[Buyer Name Required]"),
+                "description": buyer.get("description", "[Description Required]"),
+                "strategic_rationale": buyer.get("rationale", "[Rationale Required]"),
+                "key_synergies": buyer.get("synergies", "[Synergies Required]"),
+                "fit": buyer.get("fit_rating", "[Fit Rating Required]"),
+                "financial_capacity": buyer.get("financial_capacity", "[Capacity Required]")
+            })
+        
+        return strategic_buyers
+    
+    def _extract_financial_buyers(self, data: Dict) -> List[Dict]:
+        """Extract financial buyers from research"""
+        buyers = data.get("financial_buyers_identified", [])
+        
+        if not buyers:
+            return []  # Return empty if no research data
+        
+        financial_buyers = []
+        for buyer in buyers[:6]:  # Max 6 buyers
+            financial_buyers.append({
+                "buyer_name": buyer.get("name", "[PE Firm Name Required]"),
+                "description": buyer.get("description", "[Description Required]"),
+                "strategic_rationale": buyer.get("investment_thesis", "[Investment Thesis Required]"),
+                "key_synergies": buyer.get("value_creation", "[Value Creation Required]"),
+                "fit": buyer.get("fit_rating", "[Fit Rating Required]"),
+                "financial_capacity": buyer.get("fund_size", "[Fund Size Required]")
+            })
+        
+        return financial_buyers
+    
+    def _extract_competitive_analysis(self, data: Dict, company_name: str) -> Dict:
+        """Extract competitive analysis from research"""
+        competitors_data = data.get("competitors_identified", [])
+        
+        if not competitors_data:
+            return {
+                "competitors": [],
+                "assessment": [["Company", "Rating"], [company_name, "[Rating Required]"]],
+                "barriers": [],
+                "advantages": []
+            }
+        
+        competitors = [{"name": comp.get("name", "[Competitor Required]"), "revenue": comp.get("revenue", 0)} for comp in competitors_data[:6]]
+        
+        return {
+            "competitors": competitors,
+            "assessment": data.get("competitive_assessment", [["Company", "Rating"], [company_name, "[Rating Required]"]]),
+            "barriers": data.get("competitive_barriers", []),
+            "advantages": data.get("competitive_advantages", [])
+        }
+    
+    def _extract_precedent_transactions(self, data: Dict) -> List[Dict]:
+        """Extract precedent transactions from research"""
+        transactions = data.get("precedent_transactions", [])
+        
+        if not transactions:
+            return []  # Return empty if no research data
+        
+        precedent_list = []
+        for txn in transactions[:8]:  # Max 8 transactions
+            precedent_list.append({
+                "target": txn.get("target", "[Target Required]"),
+                "acquirer": txn.get("acquirer", "[Acquirer Required]"),
+                "date": txn.get("date", "[Date Required]"),
+                "country": txn.get("country", "[Country Required]"),
+                "enterprise_value": txn.get("value", "[Value Required]"),
+                "revenue": txn.get("revenue", "[Revenue Required]"),
+                "ev_revenue_multiple": txn.get("multiple", "[Multiple Required]")
+            })
+        
+        return precedent_list
+    
+    def _extract_valuation_analysis(self, data: Dict) -> List[Dict]:
+        """Extract detailed valuation analysis from research"""
+        # Look for actual valuation data from research
+        dcf_range = data.get("dcf_valuation_range", "")
+        trading_range = data.get("trading_multiples_valuation", "")
+        transaction_range = data.get("transaction_multiples_valuation", "")
+        blended_range = data.get("blended_valuation_range", "")
+        
+        valuation_methods = []
+        
+        if dcf_range and dcf_range != "[Research Required]":
+            valuation_methods.append({
+                "methodology": "Discounted Cash Flow (DCF)",
+                "enterprise_value": dcf_range,
+                "metric": "DCF",
+                "22a_multiple": "n/a",
+                "23e_multiple": "n/a",
+                "commentary": data.get("dcf_assumptions", "Based on projected cash flows and WACC assumptions")
+            })
+        
+        if trading_range and trading_range != "[Research Required]":
+            valuation_methods.append({
+                "methodology": "Trading Multiples (EV/Revenue)",
+                "enterprise_value": trading_range,
+                "metric": "EV/Revenue",
+                "22a_multiple": data.get("revenue_multiple_22a", "n/a"),
+                "23e_multiple": data.get("revenue_multiple_23e", "n/a"),
+                "commentary": data.get("trading_commentary", "Based on public company trading multiples")
+            })
+        
+        if transaction_range and transaction_range != "[Research Required]":
+            valuation_methods.append({
+                "methodology": "Transaction Multiples",
+                "enterprise_value": transaction_range,
+                "metric": "EV/Revenue",
+                "22a_multiple": data.get("transaction_multiple", "n/a"),
+                "23e_multiple": "n/a",
+                "commentary": data.get("transaction_commentary", "Based on recent M&A transaction multiples")
+            })
+        
+        # If no research valuation data available, return empty
+        if not valuation_methods:
+            return []
+        
+        return valuation_methods
+    
+    def _extract_product_service_data(self, data: Dict) -> Dict:
+        """Extract product/service data from research"""
+        services_list = data.get("products_services_list", [])
+        geographic_markets = data.get("geographic_markets", [])
+        
+        services = []
+        if services_list:
+            for service in services_list[:6]:  # Max 6 services
+                if isinstance(service, dict):
+                    services.append({
+                        "title": service.get("name", "[Service Name Required]"),
+                        "desc": service.get("description", "[Description Required]")
+                    })
+                else:
+                    services.append({
+                        "title": str(service),
+                        "desc": "[Description Required]"
+                    })
+        
+        # Build coverage table from geographic data
+        coverage_table = [["Region", "Market Segment", "Major Assets/Products", "Coverage Details"]]
+        if geographic_markets:
+            for market in geographic_markets[:5]:  # Max 5 regions
+                if isinstance(market, dict):
+                    coverage_table.append([
+                        market.get("region", "[Region Required]"),
+                        market.get("segment", "[Segment Required]"),
+                        market.get("products", "[Products Required]"),
+                        market.get("details", "[Details Required]")
+                    ])
+                else:
+                    coverage_table.append([str(market), "[Segment Required]", "[Products Required]", "[Details Required]"])
+        
+        return {
+            "services": services,
+            "coverage_table": coverage_table,
+            "metrics": data.get("operational_metrics", {})
+        }
+    
+    def _extract_business_overview(self, data: Dict, company_name: str) -> Dict:
+        """Extract business overview from research"""
+        description = data.get("business_description", "")
+        if not description or len(description) < 20:  # Require substantial description
+            description = "[Detailed business description required from research]"
+        
+        founded_year = data.get("founded_year", 2022)
+        current_year = 2024
+        
+        highlights = data.get("key_milestones", [])
+        if not highlights:
+            highlights = ["[Key milestone 1 required]", "[Key milestone 2 required]"]
+        
+        services = data.get("products_services_list", [])
+        if not services:
+            services = ["[Service 1 required]", "[Service 2 required]"]
+        elif isinstance(services[0], dict):
+            services = [s.get("name", "[Service name required]") for s in services[:4]]
+        
+        return {
+            "description": description,
+            "timeline": {"start_year": founded_year, "end_year": current_year},
+            "highlights": highlights[:4],  # Max 4 highlights
+            "services": services[:4],  # Max 4 services
+            "positioning_desc": data.get("market_positioning", f"[Market positioning for {company_name} required from research]")
+        }
+    
+    def _extract_growth_strategy_data(self, data: Dict) -> Dict:
+        """Extract growth strategy from research"""
+        strategies = data.get("growth_strategies", [])
+        if not strategies:
+            strategies = ["[Growth strategy 1 required]"]
+        
+        # Extract financial projections if available
+        years = data.get("projection_years", ["2023", "2024", "2025"])
+        revenue_proj = data.get("revenue_projections", [])
+        ebitda_proj = data.get("ebitda_projections", [])
+        
+        return {
+            "growth_strategy": {"strategies": strategies[:6]},  # Max 6 strategies
+            "financial_projections": {
+                "categories": years[:5],  # Max 5 years
+                "revenue": revenue_proj[:5] if revenue_proj else [],
+                "ebitda": ebitda_proj[:5] if ebitda_proj else []
+            }
+        }
+    
+    def _extract_margin_cost_data(self, data: Dict) -> Dict:
+        """Extract margin and cost data from research"""
+        years = data.get("financial_years", ["2022", "2023", "2024"])
+        margins = data.get("ebitda_margins", [])
+        
+        cost_items = data.get("cost_management_initiatives", [])
+        cost_management_items = []
+        
+        if cost_items:
+            for item in cost_items[:6]:  # Max 6 items
+                if isinstance(item, dict):
+                    cost_management_items.append({
+                        "title": item.get("title", "[Cost Initiative Required]"),
+                        "description": item.get("description", "[Description Required]")
+                    })
+                else:
+                    cost_management_items.append({
+                        "title": str(item),
+                        "description": "[Description Required]"
+                    })
+        
+        return {
+            "chart_data": {
+                "categories": years[:5],  # Max 5 years
+                "values": margins[:5] if margins else []
+            },
+            "cost_management": {"items": cost_management_items},
+            "risk_mitigation": {
+                "main_strategy": data.get("cost_risk_mitigation", "[Cost risk mitigation strategy required]")
+            }
+        }
+    
+    def _extract_global_conglomerates(self, data: Dict) -> List[Dict]:
+        """Extract global conglomerate data from research"""
+        conglomerates = data.get("global_conglomerates_identified", [])
+        
+        if not conglomerates:
+            return []  # Return empty if no research data
+        
+        conglomerate_list = []
+        for cong in conglomerates[:8]:  # Max 8 conglomerates
+            conglomerate_list.append({
+                "name": cong.get("name", "[Conglomerate Name Required]"),
+                "country": cong.get("country", "[Country Required]"),
+                "description": cong.get("description", "[Description Required]"),
+                "key_shareholders": cong.get("shareholders", "[Shareholders Required]"),
+                "key_financials": cong.get("financials", "[Financials Required]"),
+                "contact": cong.get("contact", "N/A")
+            })
+        
+        return conglomerate_list
+    
+    def _extract_investor_considerations(self, data: Dict) -> Dict:
+        """Extract investor considerations from research"""
+        risks = data.get("investment_risks", [])
+        mitigants = data.get("risk_mitigants", [])
+        
+        if not risks:
+            risks = ["[Investment risk 1 required]", "[Investment risk 2 required]"]
+        if not mitigants:
+            mitigants = ["[Risk mitigation 1 required]", "[Risk mitigation 2 required]"]
+        
+        return {
+            "considerations": risks[:6],  # Max 6 risks
+            "mitigants": mitigants[:6]    # Max 6 mitigants
+        }
+    
+    # ================================================================
+    # END RESEARCH-DRIVEN EXTRACTION METHODS
+    # ================================================================
+    
     def generate_perfect_jsons(self, extracted_data: Dict, research_data: Dict, required_slides: List[str]):
         """Generate perfect Content IR and Render Plan JSONs"""
         
@@ -215,105 +552,31 @@ RESPOND WITH ONLY THE JSON - NO OTHER TEXT.
         print(f"🎯 [SMART FILTER] Including only: {covered_slides}")
         
         # Build Content IR JSON using EXACT working structure
-        company_name = complete_data.get("company_name", "Company Name")
+        # 🚨 RESEARCH-DRIVEN CONTENT GENERATION - NO MORE GENERIC FALLBACKS!
+        company_name = complete_data.get("company_name") 
+        if not company_name or company_name == "Company Name":
+            print("❌ WARNING: No specific company name found in research - generating will be limited")
+            company_name = "[Research Required]"
+            
         content_ir = {
             "entities": {
                 "company": {
                     "name": company_name
                 }
             },
-            "facts": {
-                "years": complete_data.get("years", ["2022", "2023", "2024"]),
-                "revenue_usd_m": complete_data.get("revenue_usd_m", [10, 25, 50]),
-                "ebitda_usd_m": complete_data.get("ebitda_usd_m", [2, 8, 15]),
-                "ebitda_margins": complete_data.get("ebitda_margins", [10.0, 15.0, 20.0])
-            },
-            "management_team": {
-                "left_column_profiles": complete_data.get("left_column_profiles", [{
-                    "name": "CEO Name",
-                    "role_title": "Chief Executive Officer",
-                    "experience_bullets": ["Experience 1", "Experience 2"]
-                }]),
-                "right_column_profiles": complete_data.get("right_column_profiles", [{
-                    "name": "CTO Name",
-                    "role_title": "Chief Technology Officer", 
-                    "experience_bullets": ["Experience 1", "Experience 2"]
-                }])
-            },
-            "strategic_buyers": complete_data.get("strategic_buyers", [
-                {
-                    "buyer_name": "Strategic Buyer 1",
-                    "description": "Industry leader",
-                    "strategic_rationale": "Strategic fit",
-                    "key_synergies": "Operational synergies",
-                    "fit": "High (8/10)",
-                    "financial_capacity": "Very High"
-                }
-            ]),
-            "financial_buyers": complete_data.get("financial_buyers", [
-                {
-                    "buyer_name": "Financial Buyer 1",
-                    "description": "Leading VC fund",
-                    "strategic_rationale": "Growth investment",
-                    "key_synergies": "Market expansion",
-                    "fit": "High (8/10)",
-                    "financial_capacity": "Very High"
-                }
-            ]),
-            "competitive_analysis": complete_data.get("competitive_analysis", {
-                "competitors": [{"name": "Competitor 1", "revenue": 100}],
-                "assessment": [["Company", "Rating"], [company_name, "⭐⭐⭐⭐⭐"]],
-                "barriers": [{"title": "Technology", "desc": "Advanced technology barriers"}],
-                "advantages": [{"title": "Innovation", "desc": "Leading innovation"}]
-            }),
-            "precedent_transactions": complete_data.get("precedent_transactions", [
-                {
-                    "target": "Target Co",
-                    "acquirer": "Acquirer Co",
-                    "date": "2024",
-                    "enterprise_value": "$1B",
-                    "ev_revenue_multiple": "10x"
-                }
-            ]),
-            "valuation_data": complete_data.get("valuation_data", [
-                {
-                    "methodology": "Trading Multiples",
-                    "enterprise_value": "$50M-100M", 
-                    "commentary": "Based on comparable analysis"
-                }
-            ]),
-            "product_service_data": complete_data.get("product_service_data", {
-                "services": [{"title": "Service 1", "desc": "Description"}],
-                "coverage_table": [["Region", "Coverage"], ["Primary", "Main market"]],
-                "metrics": {"key_metric": 100}
-            }),
-            "business_overview_data": complete_data.get("business_overview_data", {
-                "description": f"{company_name} business description",
-                "timeline": {"start_year": 2022, "end_year": 2024},
-                "highlights": ["Key milestone 1", "Key milestone 2"],
-                "services": ["Service 1", "Service 2"],
-                "positioning_desc": f"{company_name} market positioning"
-            }),
-            "growth_strategy_data": complete_data.get("growth_strategy_data", {
-                "growth_strategy": {"strategies": ["Growth strategy 1"]},
-                "financial_projections": {
-                    "categories": ["2023", "2024", "2025"],
-                    "revenue": [20, 35, 60],
-                    "ebitda": [3, 8, 15]
-                }
-            }),
-            "margin_cost_data": complete_data.get("margin_cost_data", {
-                "chart_data": {
-                    "categories": ["2022", "2023", "2024"],
-                    "values": [10, 15, 20]
-                },
-                "cost_management": {"items": []},
-                "risk_mitigation": {"main_strategy": "Cost management strategy"}
-            }),
-            "investor_considerations": complete_data.get("investor_considerations", {
-                "considerations": ["Risk 1", "Risk 2"],
-                "mitigants": ["Mitigation 1", "Mitigation 2"]
-            })
+            "facts": self._extract_financial_facts(complete_data),
+            "management_team": self._extract_management_team(complete_data),
+            "strategic_buyers": self._extract_strategic_buyers(complete_data),
+            "financial_buyers": self._extract_financial_buyers(complete_data),
+            "competitive_analysis": self._extract_competitive_analysis(complete_data, company_name),
+            "precedent_transactions": self._extract_precedent_transactions(complete_data),
+            "valuation_data": self._extract_valuation_analysis(complete_data),
+            "product_service_data": self._extract_product_service_data(complete_data),
+            "business_overview_data": self._extract_business_overview(complete_data, company_name),
+            "growth_strategy_data": self._extract_growth_strategy_data(complete_data),
+            "margin_cost_data": self._extract_margin_cost_data(complete_data),
+            "sea_conglomerates": self._extract_global_conglomerates(complete_data),
+            "investor_considerations": self._extract_investor_considerations(complete_data)
         }
         
         # Build Render Plan JSON using EXACT working structure
