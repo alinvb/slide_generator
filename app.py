@@ -6722,7 +6722,17 @@ RENDER PLAN JSON:
                                 
                                 # 🔧 MANDATORY AUTO-IMPROVEMENT INTEGRATION
                                 # Always apply auto-improvement for JSON generation (not optional)
-                                if st.session_state.get( 'api_key'):
+                                # CRITICAL FIX: Skip auto-improvement for bulletproof results to prevent data corruption
+                                is_bulletproof_data = (
+                                    isinstance(content_ir, dict) and 
+                                    content_ir.get('metadata', {}).get('version', '').startswith('clean_v') and
+                                    len(content_ir) > 20  # Bulletproof data has comprehensive sections
+                                )
+                                
+                                if is_bulletproof_data:
+                                    st.success("✅ Using bulletproof data - skipping auto-improvement to preserve comprehensive content")
+                                    print("🎯 [BULLETPROOF-SKIP] Skipping auto-improvement for bulletproof data to prevent corruption")
+                                elif st.session_state.get('api_key'):
                                     with st.spinner("🔧 Auto-improving JSON quality with conversation data..."):
                                         try:
                                             # Use OPTIMIZED auto-improvement system for better performance
