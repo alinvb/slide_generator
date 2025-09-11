@@ -1712,7 +1712,21 @@ def generate_bulletproof_json(messages: List[Dict], required_slides: List[str], 
             research_data = generator.research_missing_data(extracted_data, required_slides, llm_api_call, conversation_text)
             print(f"🚨 [DEBUG] research_missing_data RETURNED successfully")
             print(f"📚 [DEBUG] Research data type: {type(research_data)}")
-            print(f"📚 [DEBUG] Research data keys: {list(research_data.keys()) if research_data else 'None'}")
+            print(f"🚨 [DEBUG] About to access research_data.keys()...")
+            
+            # Safely access keys to avoid potential infinite loop
+            try:
+                if research_data is None:
+                    print(f"📚 [DEBUG] Research data is None")
+                elif isinstance(research_data, dict):
+                    keys_list = list(research_data.keys())
+                    print(f"📚 [DEBUG] Research data keys count: {len(keys_list)}")
+                    print(f"📚 [DEBUG] Research data keys: {keys_list}")
+                else:
+                    print(f"📚 [DEBUG] Research data is not a dict: {research_data}")
+            except Exception as keys_error:
+                print(f"❌ [DEBUG] ERROR accessing research_data.keys(): {keys_error}")
+                print(f"❌ [DEBUG] Research data repr: {repr(research_data)}")
         except Exception as e:
             print(f"❌ [DEBUG] CRITICAL ERROR in research_missing_data: {e}")
             import traceback
