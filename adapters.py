@@ -45,6 +45,21 @@ RENDERER_MAP = {
     "buyer_profiles": _get_attr("render_buyer_profiles_slide"),
     # growth
     "growth_strategy_projections": _get_attr("render_growth_strategy_slide"),
+    
+    # MISSING TEMPLATE MAPPINGS - Fix "No renderer found" errors
+    "market_analysis": _get_attr("render_competitive_positioning_slide"),  # Maps to competitive positioning
+    "financials": _get_attr("render_historical_financial_performance_slide"),  # Maps to financial performance
+    "transaction_overview": _get_attr("render_precedent_transactions_slide"),  # Maps to precedent transactions
+    "risk_factors": _get_attr("render_investor_considerations_slide"),  # Maps to investor considerations
+    
+    # Additional alias mappings for flexibility
+    "financial_performance": _get_attr("render_historical_financial_performance_slide"),
+    "leadership_team": _get_attr("render_management_team_slide"),
+    "strategic_buyers": _get_attr("render_buyer_profiles_slide"),
+    "financial_buyers": _get_attr("render_buyer_profiles_slide"),
+    "investment_considerations": _get_attr("render_investor_considerations_slide"),
+    "growth_strategy": _get_attr("render_growth_strategy_slide"),
+    "global_conglomerates": _get_attr("render_sea_conglomerates_slide"),
 }
 
 # ---- brand configuration helpers ----

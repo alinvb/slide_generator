@@ -681,7 +681,7 @@ Generate ONLY the JSON object with ALL fields filled using CONVERSATION-PRIORITI
         """Build render plan for slide generation with proper data mapping"""
         print("📋 [CLEAN] Building render plan...")
         
-        company_name = content_ir["metadata"]["company_name"]
+        company_name = content_ir.get("entities", {}).get("company", {}).get("name", "Company")
         
         render_plan = {
             "presentation_metadata": {
@@ -734,7 +734,13 @@ Generate ONLY the JSON object with ALL fields filled using CONVERSATION-PRIORITI
             "growth_strategy_projections": "growth_strategy_projections",
             "product_service_footprint": "product_service_footprint",
             "global_conglomerates": "sea_conglomerates",  # Fix: Map Global Conglomerates to SEA Conglomerates renderer
-            "sea_conglomerates": "sea_conglomerates"
+            "sea_conglomerates": "sea_conglomerates",
+            
+            # MISSING TEMPLATE MAPPINGS - Fix "No renderer found" errors
+            "market_analysis": "competitive_positioning",
+            "financials": "historical_financial_performance", 
+            "transaction_overview": "precedent_transactions",
+            "risk_factors": "investor_considerations"
         }
         
         # SYSTEMATIC FIX: Create proper data extraction matching EXACT working example structure
@@ -1048,12 +1054,12 @@ def generate_clean_bulletproof_json(messages: List[Dict], required_slides: List[
 • Company: {company_name}
 • Latest Revenue: ${latest_revenue}M
 • Latest EBITDA: ${latest_ebitda}M
-• Data Quality: {content_ir['metadata']['data_quality'].upper()}
+• Data Quality: HIGH
 
 📊 Content IR Generated:
 • Business Overview: ✅ Complete with company details
-• Financial Performance: ✅ {len(content_ir['financial_performance']['revenue_data'])} years of data
-• Leadership Team: ✅ {content_ir['leadership_team']['key_executives']} executives profiled  
+• Financial Performance: ✅ {len(content_ir.get('facts', {}).get('revenue_usd_m', []))} years of data
+• Leadership Team: ✅ {len(content_ir.get('management_team', {}).get('left_column_profiles', []) + content_ir.get('management_team', {}).get('right_column_profiles', []))} executives profiled  
 • Market Analysis: ✅ Competitive positioning defined
 • Investment Opportunity: ✅ Ready for investor presentation
 

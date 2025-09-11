@@ -1,0 +1,286 @@
+{
+  "entities": {
+    "company": {
+      "name": "Test Company",
+      "industry": "Diversified Industrials",
+      "headquarters": "New York, NY",
+      "founded": 2001,
+      "ownership": "Private"
+    }
+  },
+  "facts": {
+    "years": [
+      "2022",
+      "2023",
+      "2024E"
+    ],
+    "revenue_usd_m": [
+      120,
+      145,
+      180
+    ],
+    "ebitda_usd_m": [
+      18,
+      24,
+      31
+    ],
+    "ebitda_margins": [
+      15.0,
+      16.6,
+      17.2
+    ]
+  },
+  "management_team": {
+    "left_column_profiles": [
+      {
+        "name": "Jane Smith",
+        "title": "Chief Executive Officer",
+        "tenure_years": 8,
+        "background": "Former Managing Director at Global Bank; 20+ years in industrials and M&A."
+      },
+      {
+        "name": "Robert Lee",
+        "title": "Chief Financial Officer",
+        "tenure_years": 5,
+        "background": "Ex-Director at Big Four; extensive experience in capital markets and financial strategy."
+      }
+    ],
+    "right_column_profiles": [
+      {
+        "name": "Emily Chen",
+        "title": "Chief Operating Officer",
+        "tenure_years": 6,
+        "background": "Operations leader with a track record in scaling multi-site businesses."
+      },
+      {
+        "name": "David Patel",
+        "title": "Head of Corporate Development",
+        "tenure_years": 4,
+        "background": "Former investment banker; led $1B+ in successful transactions."
+      }
+    ]
+  },
+  "charts": [
+    {
+      "id": "chart_hist_perf",
+      "type": "combo",
+      "title": "Revenue & EBITDA Growth",
+      "categories": [
+        "2020",
+        "2021",
+        "2022",
+        "2023",
+        "2024E"
+      ],
+      "revenue": [
+        120,
+        145,
+        180,
+        210,
+        240
+      ],
+      "ebitda": [
+        18,
+        24,
+        31,
+        40,
+        47
+      ],
+      "unit": "US$m"
+    }
+  ],
+  "investor_considerations": {
+    "key_highlights": [
+      "Consistent double-digit revenue and EBITDA growth",
+      "Strong management team with proven execution capability",
+      "Robust pipeline of organic and inorganic growth opportunities"
+    ],
+    "investment_risks": [
+      "Exposure to cyclical end-markets",
+      "Potential integration risks from acquisitions"
+    ],
+    "mitigants": [
+      "Diversified customer base",
+      "Disciplined M&A framework"
+    ]
+  },
+  "competitive_analysis": {
+    "peer_set": [
+      "Alpha Industrial Corp",
+      "Beta Manufacturing Ltd",
+      "Gamma Holdings Inc"
+    ],
+    "competitive_positioning": "Test Company maintains a leading market share in core segments, supported by differentiated technology and customer relationships."
+  },
+  "precedent_transactions": {
+    "transactions": [
+      {
+        "target": "Delta Components",
+        "acquirer": "Omega Partners",
+        "date": "2023-06",
+        "value_usd_m": 350,
+        "ev_ebitda": 12.5
+      },
+      {
+        "target": "Sigma Solutions",
+        "acquirer": "Beta Manufacturing Ltd",
+        "date": "2022-11",
+        "value_usd_m": 420,
+        "ev_ebitda": 13.1
+      }
+    ]
+  },
+  "valuation_data": {
+    "trading_multiples": {
+      "ev_ebitda": [
+        11.2,
+        12.0,
+        13.0
+      ],
+      "ev_sales": [
+        2.1,
+        2.3,
+        2.5
+      ]
+    },
+    "precedent_multiples": {
+      "ev_ebitda": [
+        12.5,
+        13.1
+      ]
+    }
+  },
+  "sea_conglomerates": {
+    "notable_players": [
+      "SEA Holdings",
+      "Pacific Group",
+      "LionRock Enterprises"
+    ],
+    "relevance": "Potential strategic acquirers with active investment mandates in the sector."
+  },
+  "strategic_buyers": {
+    "buyers": [
+      {
+        "name": "Alpha Industrial Corp",
+        "rationale": "Expansion into adjacent markets and product synergies"
+      },
+      {
+        "name": "SEA Holdings",
+        "rationale": "Regional diversification and operational integration"
+      }
+    ]
+  },
+  "financial_buyers": {
+    "buyers": [
+      {
+        "name": "Omega Partners",
+        "rationale": "Platform investment with buy-and-build strategy"
+      },
+      {
+        "name": "Summit Equity",
+        "rationale": "Strong track record in industrials and value creation"
+      }
+    ]
+  },
+  "product_service_data": {
+    "core_products": [
+      "Precision components",
+      "Industrial automation systems"
+    ],
+    "service_offerings": [
+      "Aftermarket support",
+      "Custom engineering solutions"
+    ]
+  },
+  "business_overview_data": {
+    "summary": "Test Company is a leading provider of industrial solutions, delivering innovative products and services to a global customer base.",
+    "geographic_reach": [
+      "North America",
+      "Europe",
+      "Asia-Pacific"
+    ],
+    "customer_segments": [
+      "OEMs",
+      "Distributors",
+      "End-users"
+    ]
+  },
+  "growth_strategy_data": {
+    "organic_initiatives": [
+      "Expansion of sales force in high-growth regions",
+      "Investment in R&D for next-generation products"
+    ],
+    "inorganic_initiatives": [
+      "Targeted acquisitions in complementary segments",
+      "Strategic partnerships with technology providers"
+    ]
+  },
+  "investor_process_data": {
+    "diligence_topics": [
+      {
+        "title": "Financial Review",
+        "description": "Comprehensive analysis of historical performance, forecasts, and key value drivers."
+      },
+      {
+        "title": "Market Analysis",
+        "description": "Assessment of addressable market, growth trends, and competitive landscape."
+      },
+      {
+        "title": "Operational Due Diligence",
+        "description": "Evaluation of supply chain, manufacturing capabilities, and scalability."
+      }
+    ],
+    "synergy_opportunities": [
+      {
+        "title": "Revenue Synergies",
+        "description": "Cross-selling to existing customers and expansion into new markets."
+      },
+      {
+        "title": "Cost Synergies",
+        "description": "Procurement optimization and operational efficiencies."
+      }
+    ],
+    "risk_factors": [
+      "Market volatility",
+      "Competitive pressure",
+      "Supply chain disruptions"
+    ],
+    "mitigants": [
+      "Diversified portfolio",
+      "Strong market position",
+      "Long-term supplier agreements"
+    ],
+    "timeline": [
+      {
+        "date": "Week 1-2",
+        "description": "Initial due diligence and data room access"
+      },
+      {
+        "date": "Week 3-4",
+        "description": "Management presentations and Q&A"
+      },
+      {
+        "date": "Week 5-6",
+        "description": "Site visits and confirmatory diligence"
+      }
+    ]
+  },
+  "margin_cost_data": {
+    "gross_margin_percent": [
+      32.0,
+      33.5,
+      34.0
+    ],
+    "operating_margin_percent": [
+      14.0,
+      15.2,
+      16.0
+    ],
+    "cost_breakdown": {
+      "materials_percent": 45.0,
+      "labor_percent": 25.0,
+      "overhead_percent": 15.0,
+      "other_percent": 15.0
+    }
+  }
+}
