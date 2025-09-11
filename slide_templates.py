@@ -1179,12 +1179,13 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
         return prs
     
     # If we have competitors data, proceed with chart
-            {'name': company_name, 'revenue': 50},  # User's company
-            {'name': 'Competitor A', 'revenue': 45},
-            {'name': 'Competitor B', 'revenue': 60},
-            {'name': 'Competitor C', 'revenue': 35},
-            {'name': 'Market Leader', 'revenue': 80}
-        ]
+    chart_competitors_data = [
+        {'name': company_name, 'revenue': 50},  # User's company
+        {'name': 'Competitor A', 'revenue': 45},
+        {'name': 'Competitor B', 'revenue': 60},
+        {'name': 'Competitor C', 'revenue': 35},
+        {'name': 'Market Leader', 'revenue': 80}
+    ]
     
     chart_data = ChartData()
     chart_data.categories = [comp['name'] for comp in competitors_data]
