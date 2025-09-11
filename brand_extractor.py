@@ -788,6 +788,11 @@ class BrandExtractor:
             for k, v in brand_config['color_scheme'].items():
                 hex_color = self._rgb_to_hex(v)
                 print(f"  {k}: {hex_color}")
+            
+            print(f"[BRAND DEBUG] Extracted typography:")
+            for k, v in brand_config['typography'].items():
+                print(f"  {k}: {v}")
+            
             return brand_config
             
         except Exception as e:
@@ -1042,11 +1047,15 @@ class BrandExtractor:
             'small_size': 9
         }
         
+        print(f"[FONT DEBUG] Starting font extraction from {len(prs.slides)} slides...")
+        
         try:
-            for slide in prs.slides[:5]:
-                for shape in slide.shapes:
+            for slide_idx, slide in enumerate(prs.slides[:5]):
+                print(f"[FONT DEBUG] Processing slide {slide_idx + 1} with {len(slide.shapes)} shapes")
+                for shape_idx, shape in enumerate(slide.shapes):
                     try:
                         if hasattr(shape, 'text_frame') and shape.text_frame:
+                            print(f"[FONT DEBUG] Found text frame in shape {shape_idx}")
                             for paragraph in shape.text_frame.paragraphs:
                                 for run in paragraph.runs:
                                     if run.font.name:
@@ -1057,19 +1066,26 @@ class BrandExtractor:
                                             except:
                                                 pass
                                         
+                                        print(f"[FONT DEBUG] Found font: {run.font.name}, size: {font_size_pts}pt")
+                                        
                                         if font_size_pts and font_size_pts >= 20:
                                             fonts['primary_font'] = run.font.name
                                             fonts['title_size'] = font_size_pts
+                                            print(f"[FONT DEBUG] Set primary font: {run.font.name}, title size: {font_size_pts}pt")
                                             break
                                         elif font_size_pts and font_size_pts >= 14:
                                             fonts['header_size'] = font_size_pts
+                                            print(f"[FONT DEBUG] Set header size: {font_size_pts}pt")
                                         elif font_size_pts and font_size_pts >= 10:
                                             fonts['body_size'] = font_size_pts
+                                            print(f"[FONT DEBUG] Set body size: {font_size_pts}pt")
                     except Exception:
                         continue
         except Exception as e:
             self.logger.warning(f"Could not extract fonts, using defaults: {str(e)}")
+            print(f"[FONT DEBUG] Font extraction error: {str(e)}")
         
+        print(f"[FONT DEBUG] Final fonts extracted: {fonts}")
         return fonts
     
     def _extract_header_style(self, prs: Presentation) -> Dict:

@@ -6367,7 +6367,6 @@ with tab_chat:
                                 'topics_covered': 14,
                                 'total_topics': 14
                             }
-                            print(f"🔬 RESEARCH AGENT: Created analysis_report type: {type(analysis_report)}")
                             print(f"🔬 RESEARCH AGENT: Generating ALL {len(slide_list)} slides from comprehensive research")
                         else:
                             # Chat-based: Generate slides for covered topics only  
@@ -6644,29 +6643,18 @@ RENDER PLAN JSON:
                         
                         # Add completion message indicating manual JSON generation
                         try:
-                            # Debug logging for troubleshooting
-                            print(f"🔍 DEBUG: analysis_report type: {type(analysis_report)}")
-                            print(f"🔍 DEBUG: analysis_report value: {analysis_report}")
-                            print(f"🔍 DEBUG: slide_list type: {type(slide_list)}, length: {len(slide_list) if hasattr(slide_list, '__len__') else 'N/A'}")
-                            
                             # Final safety check before using analysis_report
                             if not isinstance(analysis_report, dict):
-                                print(f"🚨 FINAL SAFETY: analysis_report type: {type(analysis_report)}, value: {analysis_report}")
                                 analysis_report = {'quality_summary': 'Type safety fallback applied'}
                             
                             # Extra safety: ensure analysis_report has get method
                             if not hasattr(analysis_report, 'get'):
-                                print(f"🚨 NO GET METHOD: analysis_report type: {type(analysis_report)}")
                                 analysis_report = {'quality_summary': 'No get method fallback'}
                             
                             quality_info = analysis_report.get('quality_summary', 'Quality analysis complete')
-                            print(f"🔍 DEBUG: quality_info extracted: {quality_info}")
-                            
                             completion_message = f"🚀 **Adaptive JSON Generation Triggered**\n\n📊 Generated {len(slide_list)} slides based on conversation analysis:\n• **Included**: {', '.join(slide_list)}\n• **Quality**: {quality_info}\n\n" + ai_response
-                            print(f"🔍 DEBUG: completion_message created successfully")
                         except Exception as e:
                             print(f"🚨 ERROR in completion message creation: {str(e)}")
-                            print(f"🚨 ERROR details - analysis_report: {analysis_report}, type: {type(analysis_report)}")
                             completion_message = f"🚀 **Adaptive JSON Generation Triggered**\n\n📊 Generated {len(slide_list)} slides\n\n" + ai_response
                         st.session_state.messages.append({"role": "assistant", "content": completion_message})
                         st.rerun()
