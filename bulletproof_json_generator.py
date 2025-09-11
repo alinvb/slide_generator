@@ -1721,20 +1721,8 @@ def generate_bulletproof_json(messages: List[Dict], required_slides: List[str], 
                 elif isinstance(research_data, dict):
                     keys_list = list(research_data.keys())
                     print(f"📚 [DEBUG] Research data keys count: {len(keys_list)}")
-                    print(f"🚨 [DEBUG] About to print keys list...")
-                    
-                    # Print keys safely - avoid potential issues with large lists
-                    try:
-                        if len(keys_list) > 50:
-                            print(f"📚 [DEBUG] Research data keys (first 50): {keys_list[:50]}")
-                            print(f"📚 [DEBUG] Research data keys (truncated, total: {len(keys_list)})")
-                        else:
-                            print(f"📚 [DEBUG] Research data keys: {keys_list}")
-                        print(f"🚨 [DEBUG] Keys list printed successfully!")
-                    except Exception as print_error:
-                        print(f"❌ [DEBUG] ERROR printing keys list: {print_error}")
-                        print(f"❌ [DEBUG] Keys list type: {type(keys_list)}")
-                        print(f"❌ [DEBUG] Keys list length: {len(keys_list)}")
+                    print(f"🚨 [DEBUG] Skipping keys list printing to avoid hang - {len(keys_list)} keys available")
+                    print(f"🚨 [DEBUG] Keys list validation complete!")
                 else:
                     print(f"📚 [DEBUG] Research data is not a dict: {research_data}")
             except Exception as keys_error:
