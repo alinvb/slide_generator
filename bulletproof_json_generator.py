@@ -1105,10 +1105,9 @@ Format as JSON array with objects containing: name, description, investment_thes
     def generate_perfect_jsons(self, extracted_data: Dict, research_data: Dict, required_slides: List[str]):
         """Generate perfect Content IR and Render Plan JSONs"""
         
-        print(f"📊 [DEBUG] generate_perfect_jsons called with:")
-        print(f"📊 [DEBUG] - extracted_data type: {type(extracted_data)}, keys: {list(extracted_data.keys()) if extracted_data else 'None'}")
-        print(f"📊 [DEBUG] - research_data type: {type(research_data)}, keys: {list(research_data.keys()) if research_data else 'None'}")
-        print(f"📊 [DEBUG] - required_slides: {required_slides}")
+        print(f"🎉 [DEBUG] *** ENTERED generate_perfect_jsons METHOD ***")
+        print(f"📊 [DEBUG] Data received - extracted: {len(extracted_data) if extracted_data else 0}, research: {len(research_data) if research_data else 0}")
+        print(f"📊 [DEBUG] Slides to generate: {len(required_slides) if required_slides else 0}")
         
         # Merge extracted and research data
         complete_data = {**extracted_data, **research_data}
@@ -1232,8 +1231,10 @@ Format as JSON array with objects containing: name, description, investment_thes
             print(f"⚠️ [PROGRESS] Progress container creation failed: {e}")
             pass
         
-        print(f"🚨 [DEBUG] ENTERING SLIDE GENERATION LOOP - covered_slides: {covered_slides}")
-        print(f"🚨 [DEBUG] total_slides: {total_slides}")
+        print(f"🎯 [DEBUG] *** ABOUT TO START SLIDE GENERATION LOOP ***")
+        print(f"🎯 [DEBUG] covered_slides count: {len(covered_slides) if covered_slides else 0}")
+        print(f"🎯 [DEBUG] total_slides: {total_slides}")
+        print(f"🚨 [DEBUG] ENTERING SLIDE GENERATION LOOP NOW!")
         
         for slide_index, slide_type in enumerate(covered_slides, 1):
             print(f"🚨 [DEBUG] LOOP ITERATION {slide_index}: Processing {slide_type}")
@@ -1714,24 +1715,13 @@ def generate_bulletproof_json(messages: List[Dict], required_slides: List[str], 
             print(f"📚 [DEBUG] Research data type: {type(research_data)}")
             print(f"🚨 [DEBUG] About to access research_data.keys()...")
             
-            # Bypass all key access - just validate research_data exists
-            try:
-                if research_data is None:
-                    print(f"📚 [DEBUG] Research data is None")
-                elif isinstance(research_data, dict):
-                    # Don't access .keys() at all - just count length
-                    data_len = len(research_data) if research_data else 0
-                    print(f"📚 [DEBUG] Research data length: {data_len}")
-                    print(f"🚨 [DEBUG] Research data validation complete - bypassing all key operations")
-                else:
-                    print(f"📚 [DEBUG] Research data is not a dict: {type(research_data)}")
-                    
-                print(f"🚨 [DEBUG] Successfully completed research data validation!")
-                    
-            except Exception as keys_error:
-                print(f"❌ [DEBUG] ERROR in research_data validation: {keys_error}")
-                import traceback
-                print(f"❌ [DEBUG] Validation traceback: {traceback.format_exc()}")
+            # AGGRESSIVE BYPASS: Skip all validation prints to avoid hangs
+            # Just verify research_data is usable and continue
+            if research_data is None:
+                research_data = {}
+                print(f"🚨 [DEBUG] Research data was None - using empty dict")
+            
+            print(f"🚀 [DEBUG] BYPASSING ALL VALIDATION - proceeding directly to JSON generation")
         except Exception as e:
             print(f"❌ [DEBUG] CRITICAL ERROR in research_missing_data: {e}")
             import traceback
@@ -1739,9 +1729,8 @@ def generate_bulletproof_json(messages: List[Dict], required_slides: List[str], 
             research_data = {}
         
         print(f"🚨 [DEBUG] RESEARCH PHASE FULLY COMPLETE - about to call generate_perfect_jsons")
-        print(f"🚨 [DEBUG] extracted_data: {len(extracted_data) if extracted_data else 0} fields")
-        print(f"🚨 [DEBUG] research_data: {len(research_data) if research_data else 0} fields") 
-        print(f"🚨 [DEBUG] required_slides: {required_slides}")
+        print(f"🚨 [DEBUG] Data counts - extracted: {len(extracted_data) if extracted_data else 0}, research: {len(research_data) if research_data else 0}")
+        print(f"🚨 [DEBUG] Required slides count: {len(required_slides) if required_slides else 0}")
         
         # Step 3: Generate perfect JSONs
         print("⚡ [DEBUG] Generating perfect JSONs...")
