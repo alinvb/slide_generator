@@ -32,23 +32,34 @@ class CleanBulletproofJSONGenerator:
                 return {}
             
             # Use LLM to extract basic company information from conversation
-            extraction_prompt = f"""Extract basic company information from this conversation:
+            extraction_prompt = f"""Extract comprehensive company information from this conversation. Focus on SPECIFIC details mentioned:
 
+CONVERSATION:
 {conversation_text}
 
-Extract and return a JSON with these fields:
+Extract and return a JSON with these fields, using ONLY information mentioned in the conversation:
 {{
-    "company_name": "Company name mentioned (or 'TechCorp Solutions' if none specific)",
-    "business_description": "Brief business description from conversation",
-    "industry": "Industry category",
+    "company_name": "Exact company name mentioned (or 'TechCorp Solutions' if none specific)",
+    "business_description": "Detailed business description from conversation",
+    "industry": "Specific industry/sector mentioned",
     "founded_year": "Founding year if mentioned",
-    "headquarters_location": "Location if mentioned",
+    "headquarters_location": "Specific location if mentioned", 
     "annual_revenue_usd_m": [list of revenue numbers if mentioned],
     "ebitda_usd_m": [list of EBITDA numbers if mentioned],
     "financial_years": [corresponding years],
-    "key_discussion_points": ["Main topics discussed"]
+    "key_executives": ["Names of executives/founders mentioned"],
+    "products_services": ["Specific products or services mentioned"],
+    "competitors_mentioned": ["Competitor names mentioned in conversation"],
+    "financial_details": ["Specific financial metrics or milestones mentioned"],
+    "growth_details": ["Growth rates, expansion plans, or projections mentioned"],
+    "market_details": ["Market size, position, or share information mentioned"],
+    "business_model": "How the company makes money based on conversation",
+    "key_achievements": ["Specific accomplishments or milestones mentioned"],
+    "challenges_mentioned": ["Business challenges or risks discussed"],
+    "key_discussion_points": ["Main topics discussed with specific details"]
 }}
 
+🚨 CRITICAL: Extract ONLY facts explicitly mentioned in conversation. Use empty arrays [] for missing lists, null for unknown single values.
 Return only valid JSON:"""
             
             print("🤖 [CLEAN] Making LLM call for conversation extraction...")
@@ -162,10 +173,27 @@ Return only valid JSON:"""
         return string_data
     
     def comprehensive_llm_gap_filling(self, extracted_data: Dict, llm_api_call) -> Dict:
-        """MANDATORY LLM gap-filling - must extract/estimate ALL fields from available context"""
-        print("🤖 [CLEAN] Starting MANDATORY comprehensive LLM gap-filling...")
+        """MANDATORY LLM gap-filling - PRIORITIZE conversation context, then fill gaps intelligently"""
+        print("🤖 [CLEAN] Starting CONVERSATION-PRIORITIZED comprehensive gap-filling...")
         
-        # Create MANDATORY gap-filling prompt that forces LLM to extract or estimate everything
+        # Show what conversation context we have
+        conversation_facts = [
+            extracted_data.get('company_name'),
+            extracted_data.get('business_description'), 
+            extracted_data.get('industry'),
+            extracted_data.get('key_executives', []),
+            extracted_data.get('products_services', []),
+            extracted_data.get('competitors_mentioned', []),
+            extracted_data.get('financial_details', []),
+            extracted_data.get('growth_details', [])
+        ]
+        non_empty_facts = [f for f in conversation_facts if f and (isinstance(f, list) and len(f) > 0) or (not isinstance(f, list) and f != 'null')]
+        
+        print(f"🔍 [CLEAN] Conversation context strength: {len(non_empty_facts)}/8 key areas have details")
+        print(f"📊 [CLEAN] Company: {extracted_data.get('company_name', 'Unknown')}")
+        print(f"🏭 [CLEAN] Industry: {extracted_data.get('industry', 'Unknown')}")
+        
+        # Create context-prioritized gap-filling prompt
         context_json = json.dumps(extracted_data, indent=2)
         # Create comprehensive prompt using LlamaIndex structure as template
         llamaindex_template = '''
@@ -340,23 +368,38 @@ Return only valid JSON:"""
         
         gap_filling_prompt = f"""Based on the company information provided, generate a comprehensive investment banking JSON that follows this EXACT structure but with realistic data for the actual company described.
 
-COMPANY CONTEXT: {context_json}
+🔍 COMPANY CONTEXT FROM CONVERSATION: 
+{context_json}
 
 TEMPLATE TO FOLLOW: {llamaindex_template}
 
-IMPORTANT INSTRUCTIONS:
-1. Use the EXACT same field names and structure as the template
-2. Replace ALL placeholder values with realistic data for the company in the context
-3. Generate 4+ management_team_profiles with detailed experience_bullets (5 bullets each)
-4. Generate 4+ strategic_buyers and 4+ financial_buyers appropriate to the industry
-5. Create realistic competitive_analysis with assessment matrix using star ratings
-6. Generate 5+ precedent_transactions with realistic valuations
-7. Include comprehensive valuation_data with multiple methodologies
-8. Ensure ALL numeric data is realistic for the company size and industry
-9. Make sure facts.years, revenue_usd_m, ebitda_usd_m arrays have same length
-10. Use industry-appropriate terminology throughout
+🚨 CRITICAL INSTRUCTIONS - CONVERSATION CONTEXT PRIORITY:
+1. ALWAYS PRIORITIZE information from the COMPANY CONTEXT above - this is the actual company being analyzed
+2. Use SPECIFIC details, names, numbers, and facts mentioned in the conversation context
+3. If the conversation mentions specific executives, competitors, financials, or business details - USE THOSE EXACT DETAILS
+4. Only use realistic estimates for data NOT mentioned in the conversation context
+5. Match the actual industry, business model, and scale described in the conversation
 
-Generate ONLY the JSON object with ALL fields filled using realistic, professional investment banking data:
+DETAILED REQUIREMENTS:
+1. Use the EXACT same field names and structure as the template
+2. Extract REAL company details from conversation context first, then estimate missing fields
+3. Generate 4+ management_team_profiles - use actual names from conversation if mentioned, otherwise realistic industry names
+4. Generate 4+ strategic_buyers and 4+ financial_buyers appropriate to the ACTUAL industry mentioned in conversation
+5. Create realistic competitive_analysis based on ACTUAL competitors mentioned in conversation context
+6. Generate 5+ precedent_transactions relevant to the SPECIFIC industry and business model from conversation
+7. Include comprehensive valuation_data appropriate to the ACTUAL company size and business model discussed
+8. Ensure ALL numeric data reflects the ACTUAL company scale mentioned in conversation (not generic data)
+9. Make sure facts.years, revenue_usd_m, ebitda_usd_m arrays have same length and reflect conversation context
+10. Use the SPECIFIC industry terminology and business model details from the conversation
+
+🎯 PRIORITY ORDER: 
+1) CONVERSATION FACTS (highest priority - use exact details mentioned)
+2) INDUSTRY-SPECIFIC REALISTIC DATA (for the actual industry discussed)  
+3) PROFESSIONAL ESTIMATES (only for fields not covered by conversation context)
+
+⚠️ NEVER use generic placeholder data when conversation context provides specific information!
+
+Generate ONLY the JSON object with ALL fields filled using CONVERSATION-PRIORITIZED, professional investment banking data:
 
 """
 
