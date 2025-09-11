@@ -7113,14 +7113,46 @@ with tab_execute:
                         "output_format": output_format
                     }
                     
+                    # Extract brand configuration from uploaded file if available
+                    brand_config = None
+                    uploaded_brand_file = st.session_state.get('uploaded_brand_file')
+                    if uploaded_brand_file:
+                        try:
+                            print("🎨 [BRAND DEBUG] Processing uploaded brand deck...")
+                            from brand_extractor import BrandExtractor
+                            brand_extractor = BrandExtractor()
+                            
+                            # Extract brand configuration using LLM analysis
+                            api_key = st.session_state.get('api_key')
+                            model_name = st.session_state.get('selected_model', st.session_state.get('model', 'claude-3-5-sonnet-20241022'))
+                            api_service = st.session_state.get('api_service', 'claude')
+                            
+                            if api_key:
+                                brand_config = brand_extractor.extract_brand_from_pptx(
+                                    uploaded_brand_file, 
+                                    use_llm=True,
+                                    api_key=api_key,
+                                    model_name=model_name, 
+                                    api_service=api_service
+                                )
+                                print(f"✅ [BRAND DEBUG] Successfully extracted brand config with {len(brand_config.get('color_scheme', {}))} colors")
+                            else:
+                                print("⚠️ [BRAND DEBUG] No API key available, using basic extraction")
+                                brand_config = brand_extractor.extract_brand_from_pptx(uploaded_brand_file, use_llm=False)
+                        except Exception as e:
+                            print(f"❌ [BRAND DEBUG] Brand extraction failed: {e}")
+                            brand_config = None
+                    
                     # Execute presentation generation
                     # Fix parameter name - execute_plan expects 'plan' not 'render_plan'
                     print(f"🔍 [POWERPOINT DEBUG] Calling execute_plan with correct parameters...")
+                    print(f"🎨 [POWERPOINT DEBUG] Using brand_config: {brand_config is not None}")
                     result = execute_plan(
                         plan=render_plan,  # Fixed: was render_plan=render_plan
                         content_ir=content_ir,
                         company_name=company_name,
-                        config=generation_config
+                        config=generation_config,
+                        brand_config=brand_config  # NEW: Pass extracted brand configuration
                     )
                     
                     print(f"🔍 [POWERPOINT DEBUG] Execute_plan returned: {type(result)}")
