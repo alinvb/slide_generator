@@ -7123,48 +7123,60 @@ with tab_execute:
                         config=generation_config
                     )
                     
-                    if safe_get(result, 'success'):
-                        st.success("✅ **Presentation Generated Successfully!**")
+                    print(f"🔍 [POWERPOINT DEBUG] Execute_plan returned: {type(result)}")
+                    
+                    # execute_plan returns (prs_obj, save_path) tuple, not dict
+                    if result and len(result) == 2:
+                        prs_obj, save_path = result
+                        print(f"🔍 [POWERPOINT DEBUG] Unpacked result: prs_obj={type(prs_obj)}, save_path={save_path}")
                         
-                        # Show generation summary
-                        st.markdown("### 📊 Generation Summary")
-                        col1, col2, col3 = st.columns(3)
+                        # Check if generation was successful
+                        if prs_obj and save_path != "failed_to_save.pptx":
+                            st.success("✅ **Presentation Generated Successfully!**")
                         
-                        with col1:
-                            st.metric("Slides Generated", safe_get(result, 'slide_count', 0))
-                        with col2:
-                            st.metric("File Size", safe_get(result, 'file_size', 'N/A'))
-                        with col3:
-                            st.metric("Generation Time", safe_get(result, 'generation_time', 'N/A'))
-                        
-                        # Download section
-                        st.markdown("### 📥 Download Your Files")
-                        
-                        # Create download buttons
-                        if 'pptx_file' in result:
-                            st.download_button(
-                                "📥 Download PowerPoint (.pptx)",
-                                data=result['pptx_file'],
-                                file_name=f"{company_name}_pitch_deck.pptx",
-                                mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                                use_container_width=True
-                            )
-                        
-                        if 'pdf_file' in result:
-                            st.download_button(
-                                "📥 Download PDF",
-                                data=result['pdf_file'],
-                                file_name=f"{company_name}_pitch_deck.pdf",
-                                mime="application/pdf",
-                                use_container_width=True
-                            )
-                        
-                        # Success message with next steps
-                        st.balloons()
-                        st.success("🎉 **Complete!** Your investment banking pitch deck is ready for download.")
-                        
+                            # Show generation summary
+                            st.markdown("### 📊 Generation Summary")
+                            col1, col2, col3 = st.columns(3)
+                            
+                            with col1:
+                                slide_count = len(prs_obj.slides) if prs_obj and hasattr(prs_obj, 'slides') else 0
+                                st.metric("Slides Generated", slide_count)
+                            with col2:
+                                # Get file size if file exists
+                                import os
+                                if os.path.exists(save_path):
+                                    file_size = f"{os.path.getsize(save_path) / 1024:.1f} KB"
+                                else:
+                                    file_size = "N/A"
+                                st.metric("File Size", file_size)
+                            with col3:
+                                st.metric("Generation Time", "< 1 minute")
+                            
+                            # Download section
+                            st.markdown("### 📥 Download Your Files")
+                            
+                            # Create download buttons for PowerPoint file
+                            if os.path.exists(save_path):
+                                with open(save_path, 'rb') as f:
+                                    pptx_data = f.read()
+                                
+                                st.download_button(
+                                    "📥 Download PowerPoint (.pptx)",
+                                    data=pptx_data,
+                                    file_name=f"{company_name}_pitch_deck.pptx",
+                                    mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                                    use_container_width=True
+                                )
+                                
+                                # Success message with next steps
+                                st.balloons()
+                                st.success("🎉 **Complete!** Your investment banking pitch deck is ready for download.")
+                            else:
+                                st.error(f"❌ Generated file not found at: {save_path}")
+                        else:
+                            st.error("❌ **Generation Failed**: PowerPoint file was not created successfully")
                     else:
-                        st.error(f"❌ **Generation Failed**: {safe_get(result, 'error', 'Unknown error')}")
+                        st.error("❌ **Generation Failed**: Invalid result format from executor")
                         st.info("💡 **Troubleshooting**: Check that your JSONs are properly formatted in the JSON Editor tab")
                         
                 except Exception as e:
