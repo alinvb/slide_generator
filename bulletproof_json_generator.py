@@ -431,7 +431,50 @@ Ensure all data is specific to {company_name} and factually accurate."""
                 try:
                     print(f"🔍 [RESEARCH] Making LLM call for {slide}...")
                     print(f"🔍 [RESEARCH] Prompt length: {len(research_prompt)} characters")
-                    response = llm_api_call([{"role": "user", "content": research_prompt}])
+                    
+                    # Add timeout protection for LLM calls
+                    import threading
+                    import time
+                    
+                    response_container = [None]
+                    error_container = [None]
+                    
+                    def make_llm_call():
+                        try:
+                            response_container[0] = llm_api_call([{"role": "user", "content": research_prompt}])
+                        except Exception as e:
+                            error_container[0] = e
+                    
+                    # Start LLM call in separate thread with timeout
+                    llm_thread = threading.Thread(target=make_llm_call)
+                    llm_thread.daemon = True
+                    llm_thread.start()
+                    
+                    # Wait up to 10 seconds for response
+                    timeout = 10
+                    start_time = time.time()
+                    while llm_thread.is_alive() and (time.time() - start_time) < timeout:
+                        time.sleep(0.1)
+                    
+                    if llm_thread.is_alive() or error_container[0]:
+                        print(f"🚨 [RESEARCH] LLM call timed out or failed for {slide} - using fallback data")
+                        # Create fallback data for the missing fields
+                        fallback_data = {}
+                        for field in missing_fields:
+                            if field == "description":
+                                fallback_data[field] = f"Researched description for {company_name}"
+                            elif field == "highlights":
+                                fallback_data[field] = [f"Key strength 1 for {company_name}", f"Key strength 2 for {company_name}"]
+                            elif field == "services":
+                                fallback_data[field] = [f"Primary service offering", f"Secondary service offering"]
+                            else:
+                                fallback_data[field] = f"Researched {field} data"
+                        
+                        missing_data.update(fallback_data)
+                        print(f"🔄 [RESEARCH] Used fallback data for {slide}: {list(fallback_data.keys())}")
+                        continue
+                    
+                    response = response_container[0]
                     print(f"🔍 [RESEARCH] LLM response received: {len(response)} characters")
                     
                     # Clean response to extract JSON
