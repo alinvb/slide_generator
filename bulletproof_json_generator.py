@@ -236,8 +236,7 @@ RESPOND WITH ONLY THE JSON - NO OTHER TEXT.
             
             # Try to extract at least company name from response
             import re
-            company_match = re.search(r'["\']company_name["\']\s*:\s*["\']([^"\'
-]+)["\']', response)
+            company_match = re.search(r'"company_name"\s*:\s*"([^"]+)"', response)
             if company_match:
                 company_name = company_match.group(1)
                 print(f"🔧 [EXTRACTION DEBUG] Extracted company name from failed JSON: {company_name}")
