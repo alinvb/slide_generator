@@ -1,3 +1,18 @@
+# NUCLEAR TUPLE ERROR FIX: Bulletproof get function
+def safe_get(obj, key, default=None):
+    """Bulletproof get function that handles any object type"""
+    try:
+        if hasattr(obj, 'get') and callable(getattr(obj, 'get')):
+            return obj.get(key, default)
+        elif isinstance(obj, dict):
+            return obj.get(key, default)
+        else:
+            print(f"🚨 SAFE_GET: Object is {type(obj)}, not dict - returning default: {default}")
+            return default
+    except Exception as e:
+        print(f"🚨 SAFE_GET ERROR: {str(e)}, returning default: {default}")
+        return default
+
 import json
 import io
 from pathlib import Path
@@ -3385,7 +3400,7 @@ def display_validation_results(validation_results):
 def automated_llm_feedback_and_retry(validation_results, messages, selected_model, api_key, api_service, max_retries=2):
     """Enhanced automated feedback system that provides detailed corrections to LLM and retries generation"""
     
-    if validation_results and validation_results.get('overall_valid', False):
+    if validation_results and safe_get(validation_results, 'overall_valid', False):
         return None, None, None  # No feedback needed
     
     print(f"\n🤖 AUTOMATED FEEDBACK SYSTEM: Validation failed, generating enhanced feedback for LLM...")
@@ -5377,7 +5392,7 @@ def extract_and_validate_jsons(response_text):
         validation_results['overall_valid'] = False
     
     # CRITICAL: Check recent fixes validation
-    recent_fixes_validation = structure_validation.get('recent_fixes_validation', {})
+    recent_fixes_validation = safe_get(structure_validation, 'recent_fixes_validation', {})
     recent_fixes_valid = all(recent_fixes_validation.values()) if recent_fixes_validation else True
     
     if not recent_fixes_valid:
@@ -5395,9 +5410,9 @@ def extract_and_validate_jsons(response_text):
     validation_results['structure_quality_score'] = min(structure_score, recent_fixes_score)
     
     print(f"\n📈 VALIDATION SUMMARY:")
-    print(f"Structure Quality: {validation_results.get('structure_quality_score', 0)}%")
+    print(f"Structure Quality: {safe_get(validation_results, 'structure_quality_score', 0)}%")
     print(f"Overall Valid: {'✅ Yes' if validation_results['overall_valid'] else '❌ No'}")
-    print(f"Critical Issues: {len(validation_results.get('critical_issues', []))}")
+    print(f"Critical Issues: {len(safe_get(validation_results, 'critical_issues', []))}")
     
     print("="*80)
     print("🔍 JSON EXTRACTION AND VALIDATION COMPLETED")
@@ -6593,7 +6608,7 @@ RENDER PLAN JSON:
                                 st.session_state["auto_populated"] = True
                                 
                                 # Show validation summary
-                                if validation_results and validation_results.get('overall_valid', False):
+                                if validation_results and safe_get(validation_results, 'overall_valid', False):
                                     if 'summary' in validation_results:
                                         st.success(f"🎯 Validation: {validation_results['summary']['valid_slides']}/{validation_results['summary']['total_slides']} slides validated successfully!")
                                     else:
@@ -6652,7 +6667,7 @@ RENDER PLAN JSON:
                         try:
                             print(f"🔍 FINAL DEBUG: analysis_report type before completion: {type(analysis_report)}")
                             if isinstance(analysis_report, dict) and hasattr(analysis_report, 'get'):
-                                quality_info = analysis_report.get('quality_summary', 'Quality analysis complete')
+                                quality_info = safe_get(analysis_report, 'quality_summary', 'Quality analysis complete')
                             else:
                                 print(f"🚨 SAFETY: analysis_report is not a dict or has no get method: {type(analysis_report)}")
                                 quality_info = "Fallback quality analysis"
@@ -6845,7 +6860,7 @@ with tab_json:
                 from bulletproof_json_generator import validate_presentation_content
                 validation_results = validate_presentation_content(content_ir_json, render_plan_json)
                 
-                if validation_results.get('overall_valid', False):
+                if safe_get(validation_results, 'overall_valid', False):
                     st.success(f"✅ **High Quality JSONs**: {validation_results['summary']['valid_slides']}/{validation_results['summary']['total_slides']} slides validated")
                 else:
                     st.warning(f"⚠️ **Validation Issues**: {validation_results['summary'].get('total_issues', 0)} issues found - auto-fixes available")
