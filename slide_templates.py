@@ -1159,13 +1159,26 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
     add_clean_text(slide, Inches(0.5), Inches(1.3), Inches(6), Inches(0.3), 
                    "Revenue Comparison vs. Competitors", 14, colors["primary"], True)
     
-    # Create bar chart data from user's competitive analysis
+    # Create bar chart data from user's competitive analysis  
     competitors_data = slide_data.get('competitors', [])
     
-    # If no competitors provided, create generic placeholder data
+    print(f"[DEBUG] Competitive positioning: Found {len(competitors_data)} competitors")
+    print(f"[DEBUG] Available slide_data keys: {list(slide_data.keys()) if isinstance(slide_data, dict) else 'Not a dict'}")
+    print(f"[DEBUG] First competitor: {competitors_data[0] if competitors_data else 'None'}")
+    
+    # If no competitors provided, show error message instead of hard-coded data
     if not competitors_data:
-        company_name = content_ir.get('entities', {}).get('company', {}).get('name', 'Company')
-        competitors_data = [
+        print(f"[ERROR] No competitors data found - this should not happen with TechCorp data")
+        # Add debug message
+        message_box = slide.shapes.add_textbox(Inches(0.5), Inches(2.0), Inches(6), Inches(2))
+        message_frame = message_box.text_frame
+        message_frame.text = f"Competitors not found in slide data.\n\nAvailable keys: {list(slide_data.keys()) if isinstance(slide_data, dict) else 'Not a dict'}\n\nThis indicates a data mapping issue."
+        message_para = message_frame.paragraphs[0]
+        message_para.font.name = fonts["primary_font"]
+        message_para.font.size = Pt(10)
+        return prs
+    
+    # If we have competitors data, proceed with chart
             {'name': company_name, 'revenue': 50},  # User's company
             {'name': 'Competitor A', 'revenue': 45},
             {'name': 'Competitor B', 'revenue': 60},
@@ -3024,10 +3037,11 @@ def render_valuation_overview_slide(data=None, color_scheme=None, typography=Non
     subtitle_para.font.color.rgb = colors["primary"]
     
     if not valuation_data:
+        print(f"[ERROR] No valuation data found in slide_data keys: {list(data.keys()) if isinstance(data, dict) else 'Not a dict'}")
         # Add message about missing data
         message_box = slide.shapes.add_textbox(Inches(2), Inches(2.5), Inches(9), Inches(1))
         message_frame = message_box.text_frame
-        message_frame.text = "Valuation data will be displayed here when available."
+        message_frame.text = f"Valuation data not found. Available data keys: {list(data.keys()) if isinstance(data, dict) else 'None'}"
         message_para = message_frame.paragraphs[0]
         message_para.alignment = PP_ALIGN.CENTER
         message_para.font.name = fonts["primary_font"]

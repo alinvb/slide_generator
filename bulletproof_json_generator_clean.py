@@ -218,6 +218,18 @@ MANDATORY COMPREHENSIVE DATA GENERATION (EXACT FIELD NAMES REQUIRED):
 **12. PRODUCT/SERVICE COVERAGE:**
 - products_services_list: [Array of specific offerings relevant to this business]
 - service_coverage: [Array of service areas or geographic coverage]
+- geographic_markets: [Array of markets/regions served]
+
+**13. INVESTOR PROCESS & DUE DILIGENCE:**
+- diligence_topics: [Array of due diligence focus areas for this industry]
+- synergy_opportunities: [Array of potential synergies for acquirers] 
+- risk_factors: [Array of key business/industry risks]
+- mitigants: [Array of risk mitigation factors]
+- timeline: [Array of transaction timeline milestones]
+
+**14. COST & MARGIN ANALYSIS:**
+- cost_management: Object with "title" and "items" array of cost initiatives
+- risk_mitigation: Object with "main_strategy" and "banker_view" for professional analysis
 
 UNIVERSAL QUALITY STANDARDS:
 ✅ Industry-appropriate terminology and metrics
@@ -448,6 +460,100 @@ JSON Response:"""
                 "growth_initiatives": enhanced_data.get('growth_initiatives', []),
                 "financial_projections": enhanced_data.get('financial_projections', {}),
                 "expansion_plans": enhanced_data.get('expansion_plans', [])
+            },
+            
+            # CRITICAL: Add all legacy fields that slide renderers expect
+            "management_team": {
+                "profiles": enhanced_data.get('management_team_profiles', []),
+                "executives": enhanced_data.get('management_team_profiles', []),
+                "team_data": enhanced_data.get('management_team_profiles', [])
+            },
+            
+            "investor_considerations": {
+                "investment_highlights": enhanced_data.get('investment_highlights_detailed', []),
+                "key_themes": enhanced_data.get('key_investment_themes', []),
+                "strategic_buyers": enhanced_data.get('strategic_buyers_analysis', []),
+                "financial_buyers": enhanced_data.get('financial_buyers_analysis', [])
+            },
+            
+            "competitive_analysis": {
+                "competitors": enhanced_data.get('competitors', []),
+                "competitive_advantages": enhanced_data.get('competitive_advantages', []),
+                "market_position": enhanced_data.get('market_position'),
+                "barriers_to_entry": enhanced_data.get('barriers_to_entry', [])
+            },
+            
+            "valuation_data": enhanced_data.get('valuation_data', []),
+            
+            "sea_conglomerates": enhanced_data.get('sea_conglomerates', []),
+            
+            "strategic_buyers": enhanced_data.get('strategic_buyers_analysis', []),
+            
+            "financial_buyers": enhanced_data.get('financial_buyers_analysis', []),
+            
+            "product_service_data": {
+                "services": enhanced_data.get('products_services_list', []),
+                "markets": enhanced_data.get('geographic_markets', []),
+                "coverage": enhanced_data.get('service_coverage', [])
+            },
+            
+            "business_overview_data": {
+                "company_name": enhanced_data.get('company_name'),
+                "description": enhanced_data.get('business_description'),
+                "industry": enhanced_data.get('industry'),
+                "founded_year": enhanced_data.get('founded_year'),
+                "headquarters": enhanced_data.get('headquarters_location'),
+                "key_metrics": {
+                    "revenue": f"${latest_revenue}M" if latest_revenue else "Revenue data available",
+                    "ebitda": f"${latest_ebitda}M" if latest_ebitda else "EBITDA data available",
+                    "employees": enhanced_data.get('employee_count')
+                }
+            },
+            
+            "growth_strategy_data": {
+                "initiatives": enhanced_data.get('growth_initiatives', []),
+                "projections": enhanced_data.get('financial_projections', {}),
+                "strategies": enhanced_data.get('growth_initiatives', [])
+            },
+            
+            "investor_process_data": {
+                "diligence_topics": enhanced_data.get('diligence_topics', [
+                    {"title": "Financial Review", "description": "Comprehensive financial analysis and projections"},
+                    {"title": "Market Analysis", "description": "Market size, growth trends, and competitive landscape"},
+                    {"title": "Technology Assessment", "description": "Platform scalability and technical infrastructure"},
+                    {"title": "Management Evaluation", "description": "Leadership team assessment and organizational structure"}
+                ]),
+                "synergy_opportunities": enhanced_data.get('synergy_opportunities', [
+                    {"title": "Revenue Synergies", "description": "Cross-selling and market expansion opportunities"},
+                    {"title": "Cost Synergies", "description": "Operational efficiency and infrastructure optimization"},
+                    {"title": "Strategic Synergies", "description": "Technology integration and capability enhancement"}
+                ]),
+                "risk_factors": enhanced_data.get('risk_factors', [
+                    "Market competition and technological disruption",
+                    "Regulatory changes in target markets",
+                    "Key personnel retention and integration challenges"
+                ]),
+                "mitigants": enhanced_data.get('mitigants', [
+                    "Strong competitive moat and differentiated technology",
+                    "Diversified revenue streams across geographies",
+                    "Experienced management team with proven track record"
+                ]),
+                "timeline": enhanced_data.get('timeline', [
+                    {"date": "Week 1-2", "description": "Initial due diligence and management presentations"},
+                    {"date": "Week 3-4", "description": "Detailed financial and technical review"},
+                    {"date": "Week 5-6", "description": "Final negotiations and closing preparations"}
+                ])
+            },
+            
+            "margin_cost_data": {
+                "cost_management": enhanced_data.get('cost_management', {}),
+                "risk_mitigation": enhanced_data.get('risk_mitigation', {}),
+                "financial_metrics": {
+                    "revenue_data": self._ensure_numeric_array(enhanced_data.get('annual_revenue_usd_m', [])),
+                    "ebitda_data": self._ensure_numeric_array(enhanced_data.get('ebitda_usd_m', [])),
+                    "years": self._ensure_string_array(enhanced_data.get('financial_years', [])),
+                    "margins": self._ensure_numeric_array(enhanced_data.get('ebitda_margins', []))
+                }
             }
         }
         
