@@ -293,21 +293,40 @@ RESPOND WITH ONLY THE JSON - NO OTHER TEXT.
                 
                 print(f"🔍 [RESEARCH] Researching missing fields for {slide}: {missing_fields}")
                 print(f"🔍 [RESEARCH] Conversation context length: {len(conversation_context)} characters")
-                print(f"🔍 [RESEARCH] Will make LLM call for {slide} research...")
+                print(f"🚨 [DEBUG] About to process conversation context...")
                 
                 # 🚨 CRITICAL FIX: Include conversation context from Research Agent
                 context_section = ""
+                print(f"🚨 [DEBUG] Checking if conversation_context exists...")
                 if conversation_context:
+                    print(f"🚨 [DEBUG] Processing conversation context of length {len(conversation_context)}")
+                else:
+                    print(f"🚨 [DEBUG] No conversation context - using empty string")
+                
+                print(f"🚨 [DEBUG] About to create context_section...")
+                if conversation_context:
+                    print(f"🚨 [DEBUG] Creating context_section with conversation_context[:3000]")
+                    
+                    # Safe context slicing to prevent hangs
+                    try:
+                        safe_context = str(conversation_context)[:3000] if conversation_context else ""
+                        print(f"🚨 [DEBUG] Safe context slicing successful - length: {len(safe_context)}")
+                    except Exception as e:
+                        print(f"🚨 [DEBUG] Context slicing failed: {e} - using fallback")
+                        safe_context = "Research context unavailable"
+                    
                     context_section = f"""
 🔍 RESEARCH AGENT CONTEXT:
 The following detailed research has already been conducted about {company_name}:
 
-{conversation_context[:3000]}...
+{safe_context}...
 
 🎯 USE THE ABOVE CONTEXT: The Research Agent has already gathered comprehensive information. Use this context to provide accurate, specific data for the missing fields.
 
 """
+                    print(f"🚨 [DEBUG] Context section created successfully")
                 
+                print(f"🚨 [DEBUG] About to create research_prompt...")
                 research_prompt = f"""{context_section}
 🔍 COMPREHENSIVE RESEARCH TASK for {company_name}:
 
@@ -427,6 +446,9 @@ Based on the Research Agent context and your analysis of {company_name}, provide
 
 RESPOND WITH ONLY THE JSON OBJECT - NO OTHER TEXT OR EXPLANATIONS.
 Ensure all data is specific to {company_name} and factually accurate."""
+                
+                print(f"🚨 [DEBUG] Research prompt constructed successfully - length: {len(research_prompt)}")
+                print(f"🔍 [RESEARCH] Will make LLM call for {slide} research...")
                 
                 try:
                     print(f"🔍 [RESEARCH] Making LLM call for {slide}...")
