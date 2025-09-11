@@ -15,9 +15,128 @@ from datetime import datetime
 # Removed circular import - _apply_standard_header_and_title is now defined locally
 
 
-def get_brand_styling(brand_config=None, color_scheme=None, typography=None):
-    """Extract brand styling or use defaults - FIXED VERSION"""
-    print(f"[DEBUG] get_brand_styling called with brand_config: {brand_config is not None}")
+def get_template_styling(template_name="modern"):
+    """Get template-specific color schemes and fonts"""
+    template_configs = {
+        "modern": {
+            "color_scheme": {
+                "primary": RGBColor(24, 58, 88),      # Current blue
+                "secondary": RGBColor(181, 151, 91),   # Current gold  
+                "accent": RGBColor(64, 64, 64),
+                "text": RGBColor(64, 64, 64),
+                "background": RGBColor(255, 255, 255),
+                "light_grey": RGBColor(240, 240, 240),
+                "footer_grey": RGBColor(128, 128, 128)
+            },
+            "typography": {
+                "primary_font": 'Arial',
+                "title_size": Pt(24),
+                "header_size": Pt(14),
+                "body_size": Pt(11),
+                "small_size": Pt(9)
+            }
+        },
+        "professional": {
+            "color_scheme": {
+                "primary": RGBColor(30, 58, 138),      # Deep blue
+                "secondary": RGBColor(59, 130, 246),    # Medium blue
+                "accent": RGBColor(147, 197, 253),      # Light blue
+                "text": RGBColor(55, 65, 81),
+                "background": RGBColor(255, 255, 255),
+                "light_grey": RGBColor(243, 244, 246),
+                "footer_grey": RGBColor(107, 114, 128)
+            },
+            "typography": {
+                "primary_font": 'Times New Roman',
+                "title_size": Pt(26),
+                "header_size": Pt(15),
+                "body_size": Pt(12),
+                "small_size": Pt(10)
+            }
+        },
+        "corporate": {
+            "color_scheme": {
+                "primary": RGBColor(88, 28, 135),      # Deep purple
+                "secondary": RGBColor(147, 51, 234),    # Medium purple
+                "accent": RGBColor(196, 181, 253),      # Light purple
+                "text": RGBColor(55, 65, 81),
+                "background": RGBColor(255, 255, 255),
+                "light_grey": RGBColor(249, 250, 251),
+                "footer_grey": RGBColor(107, 114, 128)
+            },
+            "typography": {
+                "primary_font": 'Aptos',
+                "title_size": Pt(25),
+                "header_size": Pt(14),
+                "body_size": Pt(11),
+                "small_size": Pt(9)
+            }
+        },
+        "investor": {
+            "color_scheme": {
+                "primary": RGBColor(56, 189, 248),      # Medium blue
+                "secondary": RGBColor(125, 211, 252),    # Light blue  
+                "accent": RGBColor(186, 230, 253),       # Very light blue
+                "text": RGBColor(71, 85, 105),
+                "background": RGBColor(255, 255, 255),
+                "light_grey": RGBColor(248, 250, 252),
+                "footer_grey": RGBColor(100, 116, 139)
+            },
+            "typography": {
+                "primary_font": 'Aptos',
+                "title_size": Pt(24),
+                "header_size": Pt(14),
+                "body_size": Pt(11),
+                "small_size": Pt(9)
+            }
+        }
+    }
+    
+    # Normalize template name
+    template_key = template_name.lower() if template_name else "modern"
+    return template_configs.get(template_key, template_configs["modern"])
+
+def get_brand_styling(brand_config=None, color_scheme=None, typography=None, template_name="modern", **kwargs):
+    """Extract brand styling or use template-specific defaults - ENHANCED VERSION"""
+    # Check if template_name is in kwargs (for backward compatibility)
+    if 'template_name' in kwargs and kwargs['template_name']:
+        template_name = kwargs['template_name']
+    
+    # Normalize template name to handle different casing and formats
+    if template_name:
+        template_name = template_name.lower().strip()
+        # Map common variations
+        template_mapping = {
+            "professional": "professional",
+            "modern": "modern", 
+            "corporate": "corporate",
+            "investor": "investor",
+            # Handle variations
+            "prof": "professional",
+            "corp": "corporate",
+            "inv": "investor"
+        }
+        template_name = template_mapping.get(template_name, "modern")
+    else:
+        template_name = "modern"
+    
+    print(f"[DEBUG] get_brand_styling called with brand_config: {brand_config is not None}, normalized template: {template_name}")
+    
+    # Get template-specific defaults first
+    template_config = get_template_styling(template_name)
+    try:
+        primary_color = template_config['color_scheme']['primary']
+        if isinstance(primary_color, RGBColor):
+            # Convert RGBColor to RGB values for display
+            hex_str = str(primary_color)
+            r = int(hex_str[0:2], 16)
+            g = int(hex_str[2:4], 16) 
+            b = int(hex_str[4:6], 16)
+            print(f"[DEBUG] Using template '{template_name}' with primary color: RGB({r},{g},{b}) (#{hex_str})")
+        else:
+            print(f"[DEBUG] Using template '{template_name}' with primary color: {primary_color}")
+    except Exception as e:
+        print(f"[DEBUG] Color debug error: {e}, using template '{template_name}'")
     
     if brand_config:
         print(f"[DEBUG] Brand config keys: {list(brand_config.keys())}")
@@ -29,15 +148,7 @@ def get_brand_styling(brand_config=None, color_scheme=None, typography=None):
         
         # Handle different color formats - IMPROVED CONVERSION
         colors = {}
-        color_defaults = {
-            "primary": RGBColor(24, 58, 88),
-            "secondary": RGBColor(181, 151, 91),
-            "accent": RGBColor(64, 64, 64),
-            "text": RGBColor(64, 64, 64),
-            "background": RGBColor(255, 255, 255),
-            "light_grey": RGBColor(240, 240, 240),
-            "footer_grey": RGBColor(128, 128, 128)
-        }
+        color_defaults = template_config['color_scheme']
         
         for key, default_color in color_defaults.items():
             if key in brand_colors:
@@ -45,10 +156,14 @@ def get_brand_styling(brand_config=None, color_scheme=None, typography=None):
                 print(f"[DEBUG] Processing color {key}: {brand_color} (type: {type(brand_color)})")
                 
                 # Handle different color formats
-                if hasattr(brand_color, 'r') and hasattr(brand_color, 'g') and hasattr(brand_color, 'b'):
+                if isinstance(brand_color, RGBColor):
                     # Already an RGBColor object
                     colors[key] = brand_color
-                    print(f"[DEBUG] Using RGBColor: {key} = RGB({brand_color.r}, {brand_color.g}, {brand_color.b})")
+                    hex_str = str(brand_color)
+                    r = int(hex_str[0:2], 16)
+                    g = int(hex_str[2:4], 16) 
+                    b = int(hex_str[4:6], 16)
+                    print(f"[DEBUG] Using RGBColor: {key} = RGB({r}, {g}, {b}) (#{hex_str})")
                 elif isinstance(brand_color, tuple) and len(brand_color) == 3:
                     # Tuple format (r, g, b)
                     colors[key] = RGBColor(*brand_color)
@@ -68,13 +183,7 @@ def get_brand_styling(brand_config=None, color_scheme=None, typography=None):
                 colors[key] = default_color
         
         # Handle fonts with better error handling
-        font_defaults = {
-            "primary_font": 'Arial',
-            "title_size": Pt(24),
-            "header_size": Pt(14),
-            "body_size": Pt(11),
-            "small_size": Pt(9)
-        }
+        font_defaults = template_config['typography']
         
         fonts = {}
         for key, default_value in font_defaults.items():
@@ -98,37 +207,42 @@ def get_brand_styling(brand_config=None, color_scheme=None, typography=None):
             else:
                 fonts[key] = default_value
         
-        print(f"[DEBUG] Final colors: primary=RGB({colors['primary'].r},{colors['primary'].g},{colors['primary'].b})")
-        print(f"[DEBUG] Final fonts: {fonts['primary_font']}, title={fonts['title_size']}")
+        # Debug final colors properly
+        try:
+            primary_color = colors.get('primary')
+            if isinstance(primary_color, RGBColor):
+                hex_str = str(primary_color)
+                r = int(hex_str[0:2], 16)
+                g = int(hex_str[2:4], 16) 
+                b = int(hex_str[4:6], 16)
+                print(f"[DEBUG] Final colors: primary=RGB({r},{g},{b}) (#{hex_str})")
+            else:
+                print(f"[DEBUG] Final colors: primary={primary_color}")
+            print(f"[DEBUG] Final fonts: {fonts['primary_font']}, title={fonts['title_size']}")
+        except Exception as e:
+            print(f"[DEBUG] Color debug error: {e}")
         
     else:
-        print("[DEBUG] No brand_config, using defaults")
-        # Use passed parameters or defaults
-        colors = color_scheme or {
-            "primary": RGBColor(24, 58, 88),
-            "secondary": RGBColor(181, 151, 91),
-            "accent": RGBColor(64, 64, 64),
-            "text": RGBColor(64, 64, 64),
-            "background": RGBColor(255, 255, 255),
-            "light_grey": RGBColor(240, 240, 240),
-            "footer_grey": RGBColor(128, 128, 128)
-        }
-        
-        fonts = typography or {
-            "primary_font": 'Arial',
-            "title_size": Pt(24),
-            "header_size": Pt(14),
-            "body_size": Pt(11),
-            "small_size": Pt(9)
-        }
+        print(f"[DEBUG] No brand_config, using template '{template_name}' defaults")
+        # Use passed parameters or template defaults
+        colors = color_scheme or template_config['color_scheme']
+        fonts = typography or template_config['typography']
     
     return colors, fonts
 
 
-def _apply_standard_header_and_title(slide, title_text, brand_config=None, company_name="Moelis"):
+def _apply_standard_header_and_title(slide, title_text, brand_config=None, company_name="Moelis", template_name="modern"):
     """Apply standardized header and title formatting to a slide"""
+    # Normalize template name
+    if template_name:
+        template_name = template_name.lower().strip()
+    else:
+        template_name = "modern"
+    
+    print(f"[DEBUG] _apply_standard_header_and_title using template: {template_name}")
+    
     # Get brand styling
-    colors, fonts = get_brand_styling(brand_config)
+    colors, fonts = get_brand_styling(brand_config, template_name=template_name)
     
     # Add title with clean header style
     title_left = Inches(0.5)
@@ -163,100 +277,7 @@ def _apply_standard_header_and_title(slide, title_text, brand_config=None, compa
     underline_shape.line.fill.background()
 
 
-def get_brand_styling(brand_config=None, color_scheme=None, typography=None):
-    """Extract brand styling or use defaults - reusable across all functions"""
-    if brand_config:
-        colors = {}
-        
-        # Handle different color formats that might be in brand_config
-        if 'color_scheme' in brand_config:
-            # Standard format: brand_config['color_scheme']
-            brand_colors = brand_config['color_scheme']
-            for name, color in brand_colors.items():
-                if isinstance(color, tuple) and len(color) == 3:
-                    # Convert tuple (r, g, b) to RGBColor
-                    r, g, b = color
-                    colors[name] = RGBColor(r, g, b)
-                elif isinstance(color, str) and color.startswith('#'):
-                    # Convert hex to RGBColor
-                    hex_color = color.lstrip('#')
-                    colors[name] = RGBColor(
-                        int(hex_color[0:2], 16),
-                        int(hex_color[2:4], 16), 
-                        int(hex_color[4:6], 16)
-                    )
-                elif hasattr(color, 'r'):  # Already RGBColor
-                    colors[name] = color
-                else:
-                    # Fallback to default
-                    colors[name] = RGBColor(24, 58, 88)
-        
-        # Handle the actual format from brand extraction: list of tuples
-        elif 'extracted_colors' in brand_config:
-            extracted_colors = brand_config['extracted_colors']
-            if isinstance(extracted_colors, list):
-                for name, color_value in extracted_colors:
-                    if isinstance(color_value, str) and color_value.startswith('#'):
-                        # Convert hex to RGBColor
-                        hex_color = color_value.lstrip('#')
-                        colors[name] = RGBColor(
-                            int(hex_color[0:2], 16),
-                            int(hex_color[2:4], 16), 
-                            int(hex_color[4:6], 16)
-                        )
-                    elif isinstance(color_value, tuple) and len(color_value) == 3:
-                        # Convert tuple (r, g, b) to RGBColor
-                        r, g, b = color_value
-                        colors[name] = RGBColor(r, g, b)
-                    else:
-                        # Fallback to default
-                        colors[name] = RGBColor(24, 58, 88)  # Default blue
-        
-        # Ensure all required colors are present
-        default_colors = {
-            "primary": RGBColor(24, 58, 88),
-            "secondary": RGBColor(181, 151, 91),
-            "accent": RGBColor(64, 64, 64),
-            "text": RGBColor(64, 64, 64),
-            "background": RGBColor(255, 255, 255),
-            "light_grey": RGBColor(240, 240, 240),
-            "footer_grey": RGBColor(128, 128, 128)
-        }
-        
-        for name, default_color in default_colors.items():
-            if name not in colors:
-                colors[name] = default_color
-        
-        # Handle typography
-        brand_fonts = brand_config.get('typography', {})
-        fonts = {
-            "primary_font": brand_fonts.get('primary_font', 'Arial'),
-            "title_size": Pt(brand_fonts.get('title_size', 24)),
-            "header_size": Pt(brand_fonts.get('header_size', 14)),
-            "body_size": Pt(brand_fonts.get('body_size', 11)),
-            "small_size": Pt(brand_fonts.get('small_size', 9))
-        }
-    else:
-        # Use passed parameters or defaults
-        colors = color_scheme or {
-            "primary": RGBColor(24, 58, 88),
-            "secondary": RGBColor(181, 151, 91),
-            "accent": RGBColor(64, 64, 64),
-            "text": RGBColor(64, 64, 64),
-            "background": RGBColor(255, 255, 255),
-            "light_grey": RGBColor(240, 240, 240),
-            "footer_grey": RGBColor(128, 128, 128)
-        }
-        
-        fonts = typography or {
-            "primary_font": 'Arial',
-            "title_size": Pt(24),
-            "header_size": Pt(14),
-            "body_size": Pt(11),
-            "small_size": Pt(9)
-        }
-    
-    return colors, fonts
+
 
 
 def ensure_prs(prs=None):
@@ -295,7 +316,7 @@ def ensure_prs(prs=None):
     return prs_obj
 
 
-def render_management_team_slide(data=None, color_scheme=None, typography=None, company_name="Your Company", prs=None, brand_config=None, **kwargs):
+def render_management_team_slide(data=None, color_scheme=None, typography=None, company_name="Your Company", prs=None, brand_config=None, template_name="modern", **kwargs):
     """
     Renders a sophisticated management team slide with brand configuration support
     """
@@ -308,8 +329,16 @@ def render_management_team_slide(data=None, color_scheme=None, typography=None, 
     else:
         prs = ensure_prs(prs)
     
+    # Normalize template name for consistency
+    if template_name:
+        template_name = template_name.lower().strip()
+    else:
+        template_name = "modern"
+    
+    print(f"[DEBUG] Management team slide using template: {template_name}")
+    
     # Get brand styling
-    colors, fonts = get_brand_styling(brand_config, color_scheme, typography)
+    colors, fonts = get_brand_styling(brand_config, color_scheme, typography, template_name)
     
     # Add blank slide
     slide_layout = prs.slide_layouts[6]
@@ -317,7 +346,7 @@ def render_management_team_slide(data=None, color_scheme=None, typography=None, 
     
     # STANDARDIZED: Apply header and title
     title_text = (data or {}).get('title', 'Senior Management Team')
-    _apply_standard_header_and_title(slide, title_text, brand_config, company_name)
+    _apply_standard_header_and_title(slide, title_text, brand_config, company_name, template_name)
     
     # Calculate total content to determine adaptive spacing
     left_profiles = (data or {}).get('left_column_profiles', [])
@@ -970,17 +999,17 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
                        "Key operational metrics will be displayed here when data is available.", 
                        12, colors["text"], False, PP_ALIGN.CENTER)
     
-    # Dynamic metrics layout
-    metrics_left_col = table_left + Inches(0.3)
-    metrics_right_col = table_left + Inches(2.8)
-    col_width = Inches(2.2)
+    # FIXED: Dynamic metrics layout with better spacing to prevent overlap
+    metrics_left_col = table_left + Inches(0.2)
+    metrics_right_col = table_left + Inches(3.2)  # Increased spacing
+    col_width = Inches(2.0)  # Reduced width to prevent overlap
     
     # Left column metrics (first half)
     left_metrics = metric_keys[:len(metric_keys)//2]
     for i, key in enumerate(left_metrics):
         metric_data = metrics[key]
         
-        # FIXED: Handle both string and object metric formats
+        # FIXED: Handle string, object, and numeric metric formats
         if isinstance(metric_data, str):
             # String format: convert to object structure
             label = key.replace('_', ' ').title()
@@ -990,16 +1019,26 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
             # Object format: use existing structure
             label = metric_data.get('label', key.replace('_', ' ').title())
             value = metric_data.get('value', '')
+        elif isinstance(metric_data, (int, float)):
+            # Numeric format: format appropriately
+            label = key.replace('_', ' ').title()
+            if key.endswith('_m'):  # Millions indicator
+                value = f"{metric_data}M"
+            elif key.endswith('_k'):  # Thousands indicator  
+                value = f"{metric_data}K"
+            else:
+                value = f"{metric_data:,}"  # Add commas for large numbers
+            print(f"[DEBUG] Converting numeric metric '{key}': {metric_data} → {value}")
         else:
             # Fallback for other types
             label = key.replace('_', ' ').title()
             value = str(metric_data)
             print(f"[DEBUG] Unknown metric format for '{key}': {type(metric_data)}")
         
-        y_offset = Inches(0.2 + i * 0.55)
-        add_clean_text(slide, metrics_left_col, metrics_box_top + y_offset, col_width, Inches(0.2), 
-                       label, 10, colors["text"])
-        add_clean_text(slide, metrics_left_col, metrics_box_top + y_offset + Inches(0.2), col_width, Inches(0.25), 
+        y_offset = Inches(0.2 + i * 0.6)  # Increased spacing
+        add_clean_text(slide, metrics_left_col, metrics_box_top + y_offset, col_width, Inches(0.18), 
+                       label, 9, colors["text"])  # Smaller font
+        add_clean_text(slide, metrics_left_col, metrics_box_top + y_offset + Inches(0.18), col_width, Inches(0.22), 
                        value, 16, colors["primary"], True)
     
     # Right column metrics (second half)
@@ -1007,7 +1046,7 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
     for i, key in enumerate(right_metrics):
         metric_data = metrics[key]
         
-        # FIXED: Handle both string and object metric formats
+        # FIXED: Handle string, object, and numeric metric formats
         if isinstance(metric_data, str):
             # String format: convert to object structure
             label = key.replace('_', ' ').title()
@@ -1017,16 +1056,26 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
             # Object format: use existing structure
             label = metric_data.get('label', key.replace('_', ' ').title())
             value = metric_data.get('value', '')
+        elif isinstance(metric_data, (int, float)):
+            # Numeric format: format appropriately
+            label = key.replace('_', ' ').title()
+            if key.endswith('_m'):  # Millions indicator
+                value = f"{metric_data}M"
+            elif key.endswith('_k'):  # Thousands indicator  
+                value = f"{metric_data}K"
+            else:
+                value = f"{metric_data:,}"  # Add commas for large numbers
+            print(f"[DEBUG] Converting numeric metric '{key}': {metric_data} → {value}")
         else:
             # Fallback for other types
             label = key.replace('_', ' ').title()
             value = str(metric_data)
             print(f"[DEBUG] Unknown metric format for '{key}': {type(metric_data)}")
         
-        y_offset = Inches(0.2 + i * 0.55)
-        add_clean_text(slide, metrics_right_col, metrics_box_top + y_offset, col_width, Inches(0.2), 
-                       label, 10, colors["text"])
-        add_clean_text(slide, metrics_right_col, metrics_box_top + y_offset + Inches(0.2), col_width, Inches(0.25), 
+        y_offset = Inches(0.2 + i * 0.6)  # Increased spacing
+        add_clean_text(slide, metrics_right_col, metrics_box_top + y_offset, col_width, Inches(0.18), 
+                       label, 9, colors["text"])  # Smaller font
+        add_clean_text(slide, metrics_right_col, metrics_box_top + y_offset + Inches(0.18), col_width, Inches(0.22), 
                        value, 16, colors["primary"], True)
     
     # Get today's date
@@ -1131,19 +1180,33 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
     add_clean_text(slide, Inches(0.5), Inches(1.3), Inches(6), Inches(0.3), 
                    "Revenue Comparison vs. Competitors", 14, colors["primary"], True)
     
-    # Create bar chart data from user's competitive analysis
+    # Create bar chart data from user's competitive analysis  
     competitors_data = slide_data.get('competitors', [])
     
-    # If no competitors provided, create generic placeholder data
+    print(f"[DEBUG] Competitive positioning: Found {len(competitors_data)} competitors")
+    print(f"[DEBUG] Available slide_data keys: {list(slide_data.keys()) if isinstance(slide_data, dict) else 'Not a dict'}")
+    print(f"[DEBUG] First competitor: {competitors_data[0] if competitors_data else 'None'}")
+    
+    # If no competitors provided, show error message instead of hard-coded data
     if not competitors_data:
-        company_name = content_ir.get('entities', {}).get('company', {}).get('name', 'Company')
-        competitors_data = [
-            {'name': company_name, 'revenue': 50},  # User's company
-            {'name': 'Competitor A', 'revenue': 45},
-            {'name': 'Competitor B', 'revenue': 60},
-            {'name': 'Competitor C', 'revenue': 35},
-            {'name': 'Market Leader', 'revenue': 80}
-        ]
+        print(f"[ERROR] No competitors data found - this should not happen with TechCorp data")
+        # Add debug message
+        message_box = slide.shapes.add_textbox(Inches(0.5), Inches(2.0), Inches(6), Inches(2))
+        message_frame = message_box.text_frame
+        message_frame.text = f"Competitors not found in slide data.\n\nAvailable keys: {list(slide_data.keys()) if isinstance(slide_data, dict) else 'Not a dict'}\n\nThis indicates a data mapping issue."
+        message_para = message_frame.paragraphs[0]
+        message_para.font.name = fonts["primary_font"]
+        message_para.font.size = Pt(10)
+        return prs
+    
+    # If we have competitors data, proceed with chart
+    chart_competitors_data = [
+        {'name': company_name, 'revenue': 50},  # User's company
+        {'name': 'Competitor A', 'revenue': 45},
+        {'name': 'Competitor B', 'revenue': 60},
+        {'name': 'Competitor C', 'revenue': 35},
+        {'name': 'Market Leader', 'revenue': 80}
+    ]
     
     chart_data = ChartData()
     chart_data.categories = [comp['name'] for comp in competitors_data]
@@ -1283,17 +1346,20 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
         for i, row in enumerate(assessment_data[:3]):
             print(f"[DEBUG] Assessment row {i}: {row}")
     else:
-        # Fallback: create proper table from user's actual data or use default
-        print(f"[DEBUG] Creating fallback assessment table")
-        assessment_data = [
-            ["Company", "Market Focus", "Connectors/Indexing", "Enterprise Adoption", "Factuality/Traceability"],
-            ["LlamaIndex", "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"],
-            ["LangChain", "⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐"],
-            ["CrewAI", "⭐⭐⭐", "⭐⭐⭐", "⭐⭐", "⭐⭐⭐"],
-            ["OpenAI API", "⭐⭐⭐⭐", "⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐"],
-            ["Haystack", "⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐"]
-        ]
-        print(f"[DEBUG] Using LlamaIndex competitive assessment data")
+        # NO HARD-CODED FALLBACKS: Show message that LLM data is required
+        print(f"[ERROR] No competitive assessment data provided - LLM generation required")
+        
+        # Add message about missing data instead of hard-coded fallback
+        message_box = slide.shapes.add_textbox(Inches(7.5), Inches(2.0), Inches(5.5), Inches(1.5))
+        message_frame = message_box.text_frame
+        message_frame.text = "Competitive assessment data not available. Please ensure LLM generates comprehensive competitor analysis."
+        message_para = message_frame.paragraphs[0]
+        message_para.alignment = PP_ALIGN.CENTER
+        message_para.font.name = fonts["primary_font"]
+        message_para.font.size = Pt(12)
+        message_para.font.color.rgb = colors["text"]
+        print(f"[DEBUG] Displayed data missing message - no hard-coded fallbacks used")
+        return prs
     
     # Create assessment table
     table_left = Inches(7.5)
@@ -1360,12 +1426,15 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
     add_clean_text(slide, Inches(0.5), Inches(4.5), Inches(6), Inches(0.3), 
                    "Barriers to Entry", 14, colors["primary"], True)
     
-    barriers = slide_data.get('barriers', [
-        {"title": "Regulatory Compliance:", "desc": "Stringent healthcare licensing requirements and facility standards"},
-        {"title": "Specialist Recruitment:", "desc": "Challenging acquisition of multilingual medical talent"},
-        {"title": "Prime Real Estate:", "desc": "Limited availability and high cost of clinic locations"},
-        {"title": "Insurance Relationships:", "desc": "Established direct billing partnerships with 35+ insurers"}
-    ])
+    # NO HARD-CODED FALLBACKS: Barriers must come from LLM-generated data
+    barriers = slide_data.get('barriers', slide_data.get('barriers_to_entry', []))
+    
+    if not barriers:
+        print(f"[ERROR] No barriers to entry data provided - LLM generation required")
+        # Show message instead of hard-coded data
+        add_clean_text(slide, Inches(0.5), Inches(4.8), Inches(6), Inches(0.5), 
+                       "Barriers to entry analysis not available. LLM must generate industry-specific barriers.", 
+                       10, colors["text"])
     
     y_start = Inches(4.9)
     for i, barrier in enumerate(barriers):
@@ -1858,20 +1927,25 @@ def render_margin_cost_resilience_slide(data=None, color_scheme=None, typography
     else:
         print(f"[DEBUG] Using fallback cost management items")
     
-    cost_items = cost_section.get('items', [
-        {
-            "title": "Operational Efficiency",
-            "description": "Streamlined processes and resource optimization initiatives"
-        },
-        {
-            "title": "Technology Investment", 
-            "description": "Digital transformation reducing administrative overhead"
-        },
-        {
-            "title": "Supply Chain Management",
-            "description": "Centralized procurement and vendor consolidation"
-        }
-    ])
+    # NO HARD-CODED FALLBACKS: Cost items must come from LLM
+    cost_items = cost_section.get('items', [])
+    
+    if not cost_items:
+        cost_items = [
+            {
+                "title": "Cost Management Data Required",
+                "description": "LLM must generate industry-specific cost management initiatives"
+            },
+            {
+                "title": "No Generic Fallbacks", 
+                "description": "All content must be relevant to company's actual business model"
+            },
+            {
+                "title": "Industry-Appropriate Content",
+                "description": "Cost initiatives must match company's operational profile"
+            }
+        ]
+        print(f"[ERROR] No cost management data - LLM generation required")
     
     y_start = Inches(4.8)
     
@@ -1931,13 +2005,13 @@ def render_margin_cost_resilience_slide(data=None, color_scheme=None, typography
             }
             print(f"[DEBUG] Converted unknown main_strategy type to object format")
     else:
-        # Provide comprehensive fallback when no data available
+        # NO HARD-CODED FALLBACKS: Show message that LLM data is required
         main_strategy = {
-            'title': 'Diversified Revenue Strategy',
-            'description': 'Multiple revenue streams and operational efficiency measures provide resilience against market volatility and cost pressures',
-            'benefits': ['Reduced earnings volatility', 'Stable cash generation', 'Operational flexibility']
+            'title': 'Risk Mitigation Data Required',
+            'description': 'LLM must generate industry-specific risk mitigation strategies based on company business model and market risks',
+            'benefits': ['LLM data required', 'No generic fallbacks', 'Industry-specific content needed']
         }
-        print(f"[DEBUG] Using fallback risk mitigation strategy")
+        print(f"[ERROR] No risk mitigation data - LLM generation required")
     
     strategy_box = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8), Inches(1.8), Inches(5), Inches(1.8))
     strategy_box.fill.solid()
@@ -1976,12 +2050,12 @@ def render_margin_cost_resilience_slide(data=None, color_scheme=None, typography
         banker_view = risk_section.get('banker_view', {})
         print(f"[DEBUG] Using provided banker's view")
     else:
-        # Enhanced fallback banker's view
+        # NO HARD-CODED FALLBACKS: Show message that LLM data is required
         banker_view = {
-            'title': "BANKER'S VIEW",
-            'text': 'Strong operational resilience through diversified revenue streams and disciplined cost management supports sustainable margin expansion and reduced business risk profile.'
+            'title': "BANKER'S VIEW - DATA REQUIRED",
+            'text': 'LLM must generate professional banker analysis based on company-specific risk profile and market positioning.'
         }
-        print(f"[DEBUG] Using fallback banker's view")
+        print(f"[ERROR] No banker's view data - LLM generation required")
     
     banker_box = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8), Inches(3.8), Inches(5), Inches(0.8))
     banker_box.fill.solid()
@@ -2205,34 +2279,64 @@ def render_historical_financial_performance_slide(data=None, color_scheme=None, 
     metrics_y = Inches(4.4)
     metrics = metrics_section.get('metrics', [])
     
+    # FIXED: Handle both string and object formats for metrics
+    processed_metrics = []
+    for i, metric in enumerate(metrics):
+        if isinstance(metric, str):
+            # Convert string to structured format
+            processed_metrics.append({
+                'title': f'Key Metric {i+1}',
+                'value': metric,
+                'period': '(Historical)',
+                'note': 'Key performance indicator'
+            })
+        elif isinstance(metric, dict):
+            # Ensure all required fields exist
+            processed_metrics.append({
+                'title': metric.get('title', f'Key Metric {i+1}'),
+                'value': metric.get('value', 'N/A'),
+                'period': metric.get('period', '(Historical)'),
+                'note': metric.get('note', 'Key performance indicator')
+            })
+        else:
+            # Fallback for other types
+            processed_metrics.append({
+                'title': f'Key Metric {i+1}',
+                'value': str(metric),
+                'period': '(Historical)',
+                'note': 'Key performance indicator'
+            })
+    
     # If no metrics provided, create default ones
-    if not metrics:
-        metrics = [
+    if not processed_metrics:
+        processed_metrics = [
             {
-                'title': 'Patient Growth (CAGR)',
-                'value': '12.4%',
-                'period': '(2020-2024)',
-                'note': '✓ Consistent growth despite pandemic disruptions'
+                'title': 'Revenue Growth',
+                'value': '25%',
+                'period': '(CAGR)',
+                'note': 'Consistent growth trajectory'
             },
             {
-                'title': 'Patient Retention Rate',
-                'value': '87%',
+                'title': 'EBITDA Margin',
+                'value': '18%',
                 'period': '(2024)',
-                'note': '✓ Premium market segment leading indicator'
+                'note': 'Strong profitability'
             },
             {
-                'title': 'Avg. Revenue Per Patient',
-                'value': '$980',
-                'period': 'USD (2024)',
-                'note': '↗ +8.2% increase from 2023'
+                'title': 'Customer Base',
+                'value': '500+',
+                'period': '(Enterprise)',
+                'note': 'Growing customer portfolio'
             },
             {
-                'title': 'Corporate Contracts',
-                'value': '35+',
-                'period': '(2024)',
-                'note': '● Major financial institutions & MNCs'
+                'title': 'Market Position',
+                'value': 'Top 3',
+                'period': '(Industry)',
+                'note': 'Leading market position'
             }
         ]
+    
+    metrics = processed_metrics
     
     # Calculate positions to fit exactly 4 boxes across slide width
     slide_content_width = Inches(12.5)  # Total usable width
@@ -2276,7 +2380,7 @@ def render_historical_financial_performance_slide(data=None, color_scheme=None, 
     # Key Drivers of Revenue Growth section - FIXED TITLE
     revenue_section = (data or {}).get('revenue_growth', {})
     covid_y = Inches(5.7)
-    section_title = revenue_section.get('title', 'Key Drivers of Revenue Growth')
+    section_title = revenue_section.get('title', 'Key Growth Drivers')
     add_clean_text(slide, Inches(1), covid_y, Inches(7), Inches(0.2), 
                    section_title, 12, colors["primary"], True)
     
@@ -2383,9 +2487,14 @@ def render_business_overview_slide(data=None, color_scheme=None, typography=None
     title_text = slide_data.get('title', 'Business & Operational Overview')
     _apply_standard_header_and_title(slide, title_text, brand_config, company_name)
     
-    # Company description - FIXED POSITIONING TO AVOID OVERLAP
-    company_desc = slide_data.get('description', 'Leading healthcare services provider with comprehensive medical care and operational excellence.')
-    print(f"[DEBUG] Company description: {company_desc}")
+    # Company description - NO HARD-CODED FALLBACKS
+    company_desc = slide_data.get('description', slide_data.get('company_description', slide_data.get('business_description', '')))
+    
+    if not company_desc:
+        company_desc = "Company description not available. LLM must generate industry-specific business overview."
+        print(f"[ERROR] No company description provided - LLM generation required")
+    else:
+        print(f"[DEBUG] Using LLM-generated company description: {company_desc[:50]}...")
     
     # FIXED: Better positioning to avoid overlap with highlights
     add_clean_text(slide, Inches(0.8), Inches(1.3), Inches(6.5), Inches(1.0), 
@@ -2401,8 +2510,9 @@ def render_business_overview_slide(data=None, color_scheme=None, typography=None
     timeline_y = Inches(2.6)  # Moved down slightly to accommodate longer description text
     
     try:
-        # Start year circle
-        start_year = timeline_data.get('start_year', '2015')
+        # Start year circle - FIXED: Convert integer years to strings
+        start_year_raw = timeline_data.get('start_year', '2015')
+        start_year = str(start_year_raw)  # Ensure it's a string for display
         circle1 = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(1), timeline_y, Inches(0.12), Inches(0.12))
         circle1.fill.solid()
         circle1.fill.fore_color.rgb = colors["secondary"]
@@ -2415,8 +2525,9 @@ def render_business_overview_slide(data=None, color_scheme=None, typography=None
         line.fill.fore_color.rgb = colors["secondary"]
         line.line.fill.background()
         
-        # End year circle
-        end_year = timeline_data.get('end_year', '2024')
+        # End year circle - FIXED: Convert integer years to strings
+        end_year_raw = timeline_data.get('end_year', '2024')
+        end_year = str(end_year_raw)  # Ensure it's a string for display
         circle2 = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(5), timeline_y, Inches(0.12), Inches(0.12))
         circle2.fill.solid()
         circle2.fill.fore_color.rgb = colors["secondary"]
@@ -2519,18 +2630,35 @@ def render_business_overview_slide(data=None, color_scheme=None, typography=None
     except Exception as e:
         print(f"[DEBUG] Services section error: {e}")
     
-    # Strategic Positioning section - REPOSITIONED AND RESIZED
+    # Strategic Positioning section - MOVED HIGHER AND OPTIMIZED FOR 50-60 WORDS
     try:
         positioning_title = slide_data.get('positioning_title', 'Strategic Market Positioning')
-        add_clean_text(slide, Inches(0.8), Inches(5.8), Inches(7), Inches(0.3), 
+        add_clean_text(slide, Inches(0.8), Inches(5.0), Inches(7), Inches(0.3), 
                        positioning_title, 12, colors["primary"], True)
         
-        positioning_desc = slide_data.get('positioning_desc', 
-            'The company has established itself as the leading premium healthcare provider in Southeast Asia, '
-            'serving both individual patients and corporate clients with comprehensive medical services and exceptional care standards.')
+        # Get positioning description and validate length
+        positioning_desc = slide_data.get('positioning_desc', slide_data.get('market_positioning', slide_data.get('strategic_positioning', '')))
         
-        # FIXED: Reduced width and increased height for better text flow
-        add_clean_text(slide, Inches(0.8), Inches(6.1), Inches(7), Inches(0.8), 
+        if not positioning_desc:
+            positioning_desc = "Strategic market positioning analysis not available from conversation context. Company requires comprehensive market positioning description for investment presentation."
+            print(f"[ERROR] No positioning description provided - LLM generation required")
+        
+        # Validate and adjust text length to 50-60 words
+        words = positioning_desc.split()
+        if len(words) < 50:
+            # Pad with generic strategic positioning text if too short
+            padding_text = "The company maintains competitive differentiation through operational excellence and strategic market focus."
+            positioning_desc = positioning_desc + " " + padding_text
+            words = positioning_desc.split()
+        
+        if len(words) > 60:
+            # Trim to exactly 60 words if too long
+            positioning_desc = " ".join(words[:60])
+        
+        print(f"[DEBUG] Strategic positioning: {len(words)} words -> {len(positioning_desc.split())} words")
+        
+        # MOVED HIGHER: Positioned at 5.3 instead of 6.1 for better spacing
+        add_clean_text(slide, Inches(0.8), Inches(5.3), Inches(7), Inches(0.6), 
                        positioning_desc, 10, colors["text"])
     except Exception as e:
         print(f"[DEBUG] Positioning section error: {e}")
@@ -2634,13 +2762,26 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
     bar_top = Inches(2.3)  # Moved down to avoid title overlap
     
     for i, transaction in enumerate(transactions):
-        multiple_raw = transaction.get('ev_revenue_multiple', 0)
+        # ROBUST: Handle both dict objects and string data
+        if isinstance(transaction, dict):
+            multiple_raw = transaction.get('ev_revenue_multiple', 0)
+        elif isinstance(transaction, str):
+            # If transaction is a string, skip chart rendering for this item
+            print(f"[DEBUG] Precedent transaction {i} is string, skipping chart: {transaction}")
+            multiple_raw = 0
+        else:
+            print(f"[DEBUG] Precedent transaction {i} has unexpected type: {type(transaction)}")
+            multiple_raw = 0
         
-        # Convert multiple to float (handle string formats like "50x", "25.5x", etc.)
+        # Convert multiple to float (handle string formats like "50x", "25.5x", "N/A", etc.)
         try:
             if isinstance(multiple_raw, str):
-                # Remove 'x' and convert to float
-                multiple = float(multiple_raw.replace('x', '').replace('X', '').strip())
+                # Handle N/A, n/a, and other non-numeric values
+                if multiple_raw.lower() in ['n/a', 'na', '-', '']:
+                    multiple = 0
+                else:
+                    # Remove 'x' and convert to float
+                    multiple = float(multiple_raw.replace('x', '').replace('X', '').strip())
             else:
                 multiple = float(multiple_raw) if multiple_raw else 0
         except (ValueError, TypeError):
@@ -2649,12 +2790,31 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
         # Scale bar height properly - max 1.5 inches total
         max_bar_height = Inches(1.5)
         if multiple > 0:
-            # Find the max multiple to scale properly
-            max_multiple = max([
-                float(str(t.get('ev_revenue_multiple', '0')).replace('x', '').replace('X', '').strip() or '0')
-                for t in transactions
-            ])
-            if max_multiple > 0:
+            # Find the max multiple to scale properly - ROBUST: Handle mixed data types
+            multiples = []
+            for t in transactions:
+                try:
+                    # ROBUST: Handle both dict objects and other data types
+                    if isinstance(t, dict):
+                        mult_raw = t.get('ev_revenue_multiple', '0')
+                    else:
+                        # Skip non-dict transactions for scaling calculation
+                        continue
+                        
+                    if isinstance(mult_raw, str):
+                        # Handle N/A, n/a, and other non-numeric values
+                        if mult_raw.lower() in ['n/a', 'na', '-', '']:
+                            continue
+                        mult_val = float(mult_raw.replace('x', '').replace('X', '').strip())
+                    else:
+                        mult_val = float(mult_raw) if mult_raw else 0
+                    if mult_val > 0:
+                        multiples.append(mult_val)
+                except (ValueError, TypeError):
+                    continue
+            
+            if multiples:
+                max_multiple = max(multiples)
                 # Scale relative to max, with maximum height of 1.5 inches
                 bar_height = Inches((multiple / max_multiple) * 1.5)
             else:
@@ -2749,10 +2909,22 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
         para.alignment = PP_ALIGN.RIGHT
         cell.vertical_anchor = MSO_ANCHOR.MIDDLE
     
-    # Format data table
+    # Format data table - ROBUST: Handle mixed data types
     for col_idx, transaction in enumerate(transactions):
-        target = transaction.get('target', 'N/A')
-        acquirer = transaction.get('acquirer', 'N/A')
+        # ROBUST: Handle both dict objects and string data
+        if isinstance(transaction, dict):
+            target = transaction.get('target', 'N/A')
+            acquirer = transaction.get('acquirer', 'N/A')
+        elif isinstance(transaction, str):
+            # If transaction is a string, create a simple row
+            target = f"Transaction {col_idx + 1}"
+            acquirer = "Data Format Issue"
+            print(f"[DEBUG] Converting string transaction to table row: {transaction}")
+        else:
+            # Handle other unexpected types
+            target = f"Transaction {col_idx + 1}"
+            acquirer = "Unknown Format"
+            print(f"[DEBUG] Unexpected transaction type {type(transaction)}: {transaction}")
         
         # Smart truncation for company names - keep more characters but break intelligently
         def smart_truncate(name, max_length=18):
@@ -2832,15 +3004,28 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
             except (ValueError, TypeError):
                 return 'N/A'
         
-        data_values = [
-            transaction.get('date', 'N/A'),
-            target,
-            acquirer,
-            transaction.get('country', 'N/A'),
-            convert_financial_value(transaction.get('enterprise_value')),
-            convert_financial_value(transaction.get('revenue')),
-            convert_multiple_value(transaction.get('ev_revenue_multiple'))
-        ]
+        # ROBUST: Handle different transaction data formats
+        if isinstance(transaction, dict):
+            data_values = [
+                transaction.get('date', 'N/A'),
+                target,
+                acquirer,
+                transaction.get('country', 'N/A'),
+                convert_financial_value(transaction.get('enterprise_value')),
+                convert_financial_value(transaction.get('revenue')),
+                convert_multiple_value(transaction.get('ev_revenue_multiple'))
+            ]
+        else:
+            # Fallback for non-dict data
+            data_values = [
+                'N/A',  # date
+                target,
+                acquirer, 
+                'N/A',  # country
+                'Data Issue',  # enterprise_value
+                'Data Issue',  # revenue
+                'N/A'   # ev_revenue_multiple
+            ]
         
         for row_idx, value in enumerate(data_values):
             cell = data_table.cell(row_idx, col_idx)
@@ -2928,10 +3113,11 @@ def render_valuation_overview_slide(data=None, color_scheme=None, typography=Non
     subtitle_para.font.color.rgb = colors["primary"]
     
     if not valuation_data:
+        print(f"[ERROR] No valuation data found in slide_data keys: {list(data.keys()) if isinstance(data, dict) else 'Not a dict'}")
         # Add message about missing data
         message_box = slide.shapes.add_textbox(Inches(2), Inches(2.5), Inches(9), Inches(1))
         message_frame = message_box.text_frame
-        message_frame.text = "Valuation data will be displayed here when available."
+        message_frame.text = f"Valuation data not found. Available data keys: {list(data.keys()) if isinstance(data, dict) else 'None'}"
         message_para = message_frame.paragraphs[0]
         message_para.alignment = PP_ALIGN.CENTER
         message_para.font.name = fonts["primary_font"]
@@ -3141,31 +3327,14 @@ def render_growth_strategy_slide(data=None, color_scheme=None, typography=None, 
             add_clean_text(slide, Inches(0.85), y_pos - Inches(0.05), Inches(5.5), Inches(0.3), 
                            strategy, 9, colors["text"])
     else:
-        # FIXED: Add fallback content when no strategies are available
-        print(f"[DEBUG] Growth Strategy: No strategies found, adding fallback message")
+        # NO HARD-CODED FALLBACKS: Show message that LLM data is required
+        print(f"[ERROR] Growth Strategy: No strategies found - LLM generation required")
         print(f"[DEBUG] Available slide_data keys: {list(slide_data.keys())}")
         
-        fallback_strategies = [
-            "Strategic growth initiatives will be outlined here",
-            "Market expansion and diversification plans", 
-            "Operational efficiency improvements",
-            "Technology and innovation investments",
-            "Sustainability and ESG initiatives"
-        ]
-        
-        for i, strategy in enumerate(fallback_strategies):
-            y_pos = Inches(1.8 + i * 0.35)
-            
-            # Grey bullet for fallback content
-            bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(0.7), y_pos, Inches(0.06), Inches(0.06))
-            bullet.fill.solid()
-            bullet.fill.fore_color.rgb = colors["light_grey"]
-            bullet.line.fill.background()
-            bullet.shadow.inherit = False
-            
-            # Strategy text in lighter color
-            add_clean_text(slide, Inches(0.85), y_pos - Inches(0.05), Inches(5.5), Inches(0.3), 
-                           strategy, 9, colors["footer_grey"])
+        # Add message about missing data instead of generic fallback
+        add_clean_text(slide, Inches(0.7), Inches(2.0), Inches(5.5), Inches(1.0), 
+                       "Growth strategies not available.\n\nLLM must generate industry-specific growth initiatives based on company business model and market opportunities.", 
+                       10, colors["text"])
     
     # Financial Projections Chart - ENHANCED: Better data handling and fallback
     projections = slide_data.get('financial_projections', {})
@@ -3334,6 +3503,17 @@ def render_growth_strategy_slide(data=None, color_scheme=None, typography=None, 
     footer_right_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
     
     return prs
+
+
+# ALIAS FUNCTION: Handle naming mismatch between template name and function name
+def render_growth_strategy_projections_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, **kwargs):
+    """
+    Alias for render_growth_strategy_slide to handle template name mismatch.
+    The template is called 'growth_strategy_projections' but the function was named 'growth_strategy'.
+    """
+    return render_growth_strategy_slide(data=data, color_scheme=color_scheme, typography=typography, 
+                                      company_name=company_name, prs=prs, brand_config=brand_config, **kwargs)
+
 
 def render_buyer_profiles_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, **kwargs):
     """
@@ -3559,44 +3739,29 @@ def render_sea_conglomerates_slide(data=None, color_scheme=None, typography=None
     print(f"[DEBUG] First company data: {slide_data[0] if slide_data else 'No data'}")
     print(f"[DEBUG] Input data type: {type(data)}")
     print(f"[DEBUG] Input data keys: {list(data.keys()) if isinstance(data, dict) else 'Not a dict'}")
-    print(f"[DEBUG] Using fallback data: {not slide_data}")
+    print(f"[DEBUG] LLM data provided: {bool(slide_data)}")
     
-    # Default data if none provided - FALLBACK ONLY (Oil & Gas focused)
+    # NO HARD-CODED FALLBACKS: All data must come from LLM generation
     if not slide_data:
-        slide_data = [
-            {
-                "name": "Reliance Industries Limited",
-                "country": "India",
-                "description": "Large diversified conglomerate with significant oil refining and petrochemicals operations",
-                "key_shareholders": "Mukesh Ambani family trust and public investors",
-                "key_financials": "Revenue: US$104B, Strong energy sector presence",
-                "contact": "Managing Director - Energy Sector"
-            },
-            {
-                "name": "Mitsubishi Corporation",
-                "country": "Japan", 
-                "description": "Global trading and investment conglomerate with extensive energy and natural resources portfolio",
-                "key_shareholders": "Mitsubishi Group companies and institutional investors",
-                "key_financials": "Revenue: US$156B+, Major energy trading operations",
-                "contact": "Executive Director - Energy Trading"
-            },
-            {
-                "name": "China National Petroleum Corporation",
-                "country": "China",
-                "description": "State-owned oil and gas corporation with integrated upstream and downstream operations",
-                "key_shareholders": "Chinese state-owned enterprise",
-                "key_financials": "Revenue: US$480B+, Leading global oil producer",
-                "contact": "Managing Director - International Operations"
-            },
-            {
-                "name": "Adnoc Group", 
-                "country": "UAE",
-                "description": "National oil company with diversified energy portfolio and strategic international partnerships",
-                "key_shareholders": "UAE government and sovereign funds",
-                "key_financials": "Revenue: US$60B+, Expanding global footprint",
-                "contact": "Executive Director - Corporate Development"
-            }
-        ]
+        print(f"[ERROR] No SEA conglomerates data provided - LLM generation required")
+        
+        # Add message about missing data instead of hard-coded fallback
+        message_box = slide.shapes.add_textbox(Inches(2), Inches(3), Inches(9), Inches(2))
+        message_frame = message_box.text_frame
+        message_frame.text = ("Strategic buyer profiles not available.\n\n"
+                             "The LLM must generate industry-specific potential acquirers based on:\n"
+                             "• Company industry and business model\n"
+                             "• Geographic markets and operations\n" 
+                             "• Strategic fit and synergy opportunities\n"
+                             "• Market consolidation trends")
+        message_para = message_frame.paragraphs[0]
+        message_para.alignment = PP_ALIGN.LEFT
+        message_para.font.name = fonts["primary_font"]
+        message_para.font.size = Pt(12)
+        message_para.font.color.rgb = colors["text"]
+        
+        print(f"[DEBUG] Displayed data missing message - no hard-coded fallbacks used")
+        return prs
     
     # Create or use existing presentation
     if prs is None:
@@ -3679,12 +3844,12 @@ def render_sea_conglomerates_slide(data=None, color_scheme=None, typography=None
         for row_idx, company in enumerate(chunk_data, 1):
             # Define the data for each column - handle different data structures
             row_data = [
-                company.get('name', ''),
-                company.get('country', ''),
-                company.get('description', company.get('healthcare_focus', '')),  # Fallback to healthcare_focus
-                company.get('key_shareholders', 'N/A'),
-                company.get('key_financials', company.get('revenue', '')),  # Fallback to revenue
-                company.get('contact', company.get('moelis_contact', 'To be assigned'))
+                company.get('name', 'Company Name Required'),
+                company.get('country', 'Country Required'),
+                company.get('description', company.get('business_description', 'Description Required')),
+                company.get('key_shareholders', 'Shareholders Required'),
+                company.get('key_financials', company.get('revenue', company.get('financials', 'Financials Required'))),
+                company.get('contact', company.get('moelis_contact', 'Contact Required'))
             ]
             
             for col_idx, data in enumerate(row_data):
