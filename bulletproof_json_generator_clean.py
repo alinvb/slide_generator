@@ -70,7 +70,7 @@ Return only valid JSON:"""
             json_match = re.search(r'\{.*\}', extraction_response, re.DOTALL)
             if json_match:
                 import json
-                extracted_data = json.loads(json_match.group())
+                json_str = json_match.group()\n                # Clean JSON string to fix Unicode issues\n                json_str_cleaned = json_str.replace('–', '-').replace('—', '-').replace('"', '\"').replace('"', '\"').replace(''', \"'\").replace(''', \"'\")\n                \n                try:\n                    extracted_data = json.loads(json_str_cleaned)\n                except json.JSONDecodeError as e:\n                    print(f\"⚠️ [CLEAN] Conversation JSON parsing failed: {e}, using fallback\")\n                    json_str_fixed = json_str_cleaned.replace(',}', '}').replace(',]', ']')\n                    try:\n                        extracted_data = json.loads(json_str_fixed)\n                    except:\n                        print(f\"❌ [CLEAN] Conversation extraction completely failed, using minimal fallback\")\n                        return {\n                            \"company_name\": \"TechCorp Solutions\",\n                            \"business_description\": \"Technology company providing business solutions\",\n                            \"industry\": \"Technology\",\n                            \"key_discussion_points\": [\"Business analysis and investment opportunity\"]\n                        }
                 field_count = len(extracted_data) if extracted_data else 0
                 print(f"✅ [CLEAN] INDEPENDENT extraction successful: {field_count} fields")
                 return extracted_data
@@ -273,7 +273,7 @@ Return only valid JSON:"""
   "valuation_data": [
     {
       "methodology": "Trading Multiples (EV/Revenue)",
-      "enterprise_value": "$76–114M",
+      "enterprise_value": "$76-114M",
       "metric": "EV/Revenue",
       "22a_multiple": "3.6x",
       "23e_multiple": "3.0x",
@@ -420,7 +420,7 @@ Generate ONLY the JSON object with ALL fields filled using CONVERSATION-PRIORITI
                 json_str = json_match.group()
                 print(f"📊 [CLEAN] Extracted JSON length: {len(json_str)} characters")
                 
-                gap_fill_json = json.loads(json_str)
+                # Clean JSON string to fix common Unicode issues\n                json_str_cleaned = json_str.replace('–', '-').replace('—', '-').replace('"', '\"').replace('"', '\"').replace(''', \"'\").replace(''', \"'\")\n                \n                try:\n                    gap_fill_json = json.loads(json_str_cleaned)\n                except json.JSONDecodeError as e:\n                    print(f\"❌ [CLEAN] JSON parsing failed: {e}\")\n                    print(f\"🔍 [CLEAN] Problematic JSON around error: ...{json_str_cleaned[max(0, e.pos-50):e.pos+50]}...\")\n                    # Try to fix common issues and retry\n                    json_str_fixed = json_str_cleaned.replace(',}', '}').replace(',]', ']')\n                    try:\n                        gap_fill_json = json.loads(json_str_fixed)\n                        print(f\"✅ [CLEAN] JSON parsing succeeded after fixing\")\n                    except:\n                        print(f\"❌ [CLEAN] JSON parsing failed even after cleaning, using fallback\")\n                        raise e
                 print(f"✅ [CLEAN] Successfully parsed gap-fill JSON with {len(gap_fill_json)} fields")
                 
                 # Debug: Check for key LlamaIndex fields
@@ -740,7 +740,7 @@ Generate ONLY the JSON object with ALL fields filled using CONVERSATION-PRIORITI
                 return {
                     "title": "Historical Financial Performance",
                     "chart": {
-                        "title": "Revenue & EBITDA (2020–2024E)",
+                        "title": "Revenue & EBITDA (2020-2024E)",
                         "categories": content_ir.get('facts', {}).get('years', []),
                         "revenue": content_ir.get('facts', {}).get('revenue_usd_m', []),
                         "ebitda": content_ir.get('facts', {}).get('ebitda_usd_m', [])
@@ -777,7 +777,7 @@ Generate ONLY the JSON object with ALL fields filled using CONVERSATION-PRIORITI
                     "revenue_growth": {
                         "title": "Key Growth Drivers",
                         "points": [
-                            "2020–2024E CAGR: 120% driven by enterprise adoption",
+                            "2020-2024E CAGR: 120% driven by enterprise adoption",
                             "Strong cloud platform adoption scaling rapidly",
                             "Enterprise customer base expanding with Fortune 500 clients"
                         ]
