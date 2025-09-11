@@ -110,7 +110,7 @@ def _maybe_set_company(text: str):
 
 def _current_company() -> str:
     """Get current company context"""
-    return st.safe_get(session_state, 'current_company', st.session_state.get('company_name', ''))
+    return st.session_state.get( 'current_company', st.session_state.get('company_name', ''))
 
 def _user_provided_company_info(text: str) -> bool:
     """
@@ -178,8 +178,8 @@ Only include fields that are clearly mentioned in the research. Return just the 
             {"role": "user", "content": extraction_prompt}
         ]
         
-        response = shared_call_llm_api(messages, st.safe_get(session_state, 'model', 'claude-3-5-sonnet-20241022'), 
-                              st.safe_get(session_state, 'api_key'), st.safe_get(session_state, 'api_service', 'claude'))
+        response = shared_call_llm_api(messages, st.session_state.get( 'model', 'claude-3-5-sonnet-20241022'), 
+                              st.session_state.get( 'api_key'), st.session_state.get( 'api_service', 'claude'))
         
         if response:
             import json
@@ -210,7 +210,7 @@ def _get_context_aware_next_question(entity: str, progress_info: dict) -> str:
     Generate next question that acknowledges the research context about the entity.
     """
     # Check if we have extracted data about this entity
-    extracted_data = st.safe_get(session_state, 'extracted_entity_data', {}).get(entity, {})
+    extracted_data = st.session_state.get( 'extracted_entity_data', {}).get(entity, {})
     
     if extracted_data:
         # We have research context, ask more targeted questions
@@ -281,8 +281,8 @@ Answer briefly and factually. If you don't know, say so and offer to research.""
     ]
     
     try:
-        response = shared_call_llm_api(messages, st.safe_get(session_state, 'model', 'claude-3-5-sonnet-20241022'), 
-                              st.safe_get(session_state, 'api_key'), st.safe_get(session_state, 'api_service', 'claude'))
+        response = shared_call_llm_api(messages, st.session_state.get( 'model', 'claude-3-5-sonnet-20241022'), 
+                              st.session_state.get( 'api_key'), st.session_state.get( 'api_service', 'claude'))
         return _strip_unresolved_citations(response or "I'm not sure about that. Would you like me to research it?")
     except Exception as e:
         return f"I'm not sure about that. Would you like me to research {entity} for more details?"
@@ -316,8 +316,8 @@ Use the context to extract known metrics and provide LOW/BASE/HIGH scenarios wit
     ]
     
     try:
-        response = shared_call_llm_api(messages, st.safe_get(session_state, 'model', 'claude-3-5-sonnet-20241022'), 
-                              st.safe_get(session_state, 'api_key'), st.safe_get(session_state, 'api_service', 'claude'))
+        response = shared_call_llm_api(messages, st.session_state.get( 'model', 'claude-3-5-sonnet-20241022'), 
+                              st.session_state.get( 'api_key'), st.session_state.get( 'api_service', 'claude'))
         return _strip_unresolved_citations(response or "I'll need more financial data to provide a reliable revenue estimate.")
     except Exception as e:
         return f"I'll need more financial data to estimate {entity} revenue. What metrics do you have available?"
@@ -478,7 +478,7 @@ def _memory_transcript(max_turns: int = 12, max_chars: int = 2400) -> str:
     lines = []
     try:
         from langchain.memory import ConversationBufferMemory
-        if isinstance(st.safe_get(session_state, 'lc_memory'), ConversationBufferMemory):
+        if isinstance(st.session_state.get( 'lc_memory'), ConversationBufferMemory):
             msgs = st.session_state.lc_memory.chat_memory.messages[-(max_turns*2):]
             for m in msgs:
                 role = getattr(m, "type", None) or getattr(m, "role", "")
@@ -833,11 +833,11 @@ def _set_entity_profile(name: str, *, aliases=None, confusions=None, home_countr
 
 def _get_entity_name() -> str:
     # Try universal entity profile first, then fallback to existing system
-    ep = st.safe_get(session_state, "entity_profile", {})
+    ep = st.session_state.get( "entity_profile", {})
     if safe_get(ep, "name"):
         return ep["name"]
     # Fallback to existing company name system
-    return st.safe_get(session_state, 'company_name', st.session_state.get('current_company', ''))
+    return st.session_state.get( 'company_name', st.session_state.get('current_company', ''))
 
 def _maybe_lock_entity_from_text(text: str):
     t = (text or "").strip()
@@ -860,7 +860,7 @@ def _maybe_lock_entity_from_text(text: str):
 
 def _entity_conflict_detect(text: str) -> bool:
     # Generic cross-entity drift detector using 'confusions' set and currency/country clues.
-    ep = st.safe_get(session_state, "entity_profile", {})
+    ep = st.session_state.get( "entity_profile", {})
     if not ep or not text: return False
     s = text.lower()
     # direct confusion terms
@@ -903,8 +903,8 @@ def _run_research_universal(user_text: str):
             {"role": "system", "content": "You are a research assistant. Use readable titles + links."},
             {"role": "user", "content": guarded}
         ]
-        out = shared_call_llm_api(messages, st.safe_get(session_state, 'model', 'claude-3-5-sonnet-20241022'), 
-                          st.safe_get(session_state, 'api_key'), st.safe_get(session_state, 'api_service', 'claude'))
+        out = shared_call_llm_api(messages, st.session_state.get( 'model', 'claude-3-5-sonnet-20241022'), 
+                          st.session_state.get( 'api_key'), st.session_state.get( 'api_service', 'claude'))
     except Exception as e:
         print(f"Research error: {e}")
         out = f"Research on {entity or 'target company'} regarding {user_text}."
@@ -915,8 +915,8 @@ def _run_research_universal(user_text: str):
         refine = f"{prefix}{user_text} (exclude confusable entities; adhere strictly to the specified entity profile)"
         try:
             messages[1]["content"] = refine
-            out2 = shared_call_llm_api(messages, st.safe_get(session_state, 'model', 'claude-3-5-sonnet-20241022'), 
-                               st.safe_get(session_state, 'api_key'), st.safe_get(session_state, 'api_service', 'claude'))
+            out2 = shared_call_llm_api(messages, st.session_state.get( 'model', 'claude-3-5-sonnet-20241022'), 
+                               st.session_state.get( 'api_key'), st.session_state.get( 'api_service', 'claude'))
             out2 = _sanitize_output(out2 or "")
             if len(out2) > len(out) * 0.5:
                 out = out2
@@ -937,8 +937,8 @@ def _run_fact_lookup_universal(user_text: str):
             {"role": "system", "content": "You answer direct factual questions briefly."},
             {"role": "user", "content": prompt}
         ]
-        out = shared_call_llm_api(messages, st.safe_get(session_state, 'model', 'claude-3-5-sonnet-20241022'), 
-                          st.safe_get(session_state, 'api_key'), st.safe_get(session_state, 'api_service', 'claude'))
+        out = shared_call_llm_api(messages, st.session_state.get( 'model', 'claude-3-5-sonnet-20241022'), 
+                          st.session_state.get( 'api_key'), st.session_state.get( 'api_service', 'claude'))
         return _sanitize_output(out or "I'm not sure about that. Would you like me to research it?")
     except Exception:
         return f"I'm not sure about that. Would you like me to research {entity} for more details?"
@@ -963,7 +963,7 @@ def _recent_assistant_question_duplicate(new_q: str, window: int = 6) -> bool:
     nq = normalize(new_q)
     count = 0
     
-    for m in st.safe_get(session_state, "messages", [])[-window:]:
+    for m in st.session_state.get( "messages", [])[-window:]:
         if safe_get(m, "role") == "assistant":
             content = safe_get(m, "content", "")
             # Check for repetitive valuation questions specifically
@@ -1031,7 +1031,7 @@ def _known_metrics_for_estimation() -> dict:
         transcript = _memory_transcript(max_turns=18, max_chars=6000)
     except Exception: 
         transcript = ""
-    sess = " ".join(safe_get(m, "content","") for m in st.safe_get(session_state, "messages", [])[-10:])
+    sess = " ".join(safe_get(m, "content","") for m in st.session_state.get( "messages", [])[-10:])
     km = _parse_metrics_from_text(transcript + "\n" + sess)
     if "derived_metrics" in st.session_state: 
         km = _merge_metrics(km, st.session_state["derived_metrics"])
@@ -1046,8 +1046,8 @@ def _run_research_for_estimation(entity_hint: str, user_text: str) -> tuple[str,
             {"role": "system", "content": "You are a research assistant. Find recent, reputable sources for the target entity/sector. Return a concise bullet list with TITLE and LINK for each source (no naked [1]/[2]). Then add a short 'Metrics' section with any numeric signals: active users/cardholders, ARPU ($/user), TPV/GMV (USD), take-rate (%), POS count."},
             {"role": "user", "content": query}
         ]
-        txt = shared_call_llm_api(messages, st.safe_get(session_state, 'model', 'claude-3-5-sonnet-20241022'), 
-                          st.safe_get(session_state, 'api_key'), st.safe_get(session_state, 'api_service', 'claude')) or ""
+        txt = shared_call_llm_api(messages, st.session_state.get( 'model', 'claude-3-5-sonnet-20241022'), 
+                          st.session_state.get( 'api_key'), st.session_state.get( 'api_service', 'claude')) or ""
     except Exception:
         txt = f"Research on {entity_hint} for estimation purposes."
     
@@ -1082,8 +1082,8 @@ def _estimate_from_metrics(metrics: dict) -> str:
             {"role": "system", "content": instructions},
             {"role": "user", "content": primer}
         ]
-        res = shared_call_llm_api(messages, st.safe_get(session_state, 'model', 'claude-3-5-sonnet-20241022'), 
-                          st.safe_get(session_state, 'api_key'), st.safe_get(session_state, 'api_service', 'claude'))
+        res = shared_call_llm_api(messages, st.session_state.get( 'model', 'claude-3-5-sonnet-20241022'), 
+                          st.session_state.get( 'api_key'), st.session_state.get( 'api_service', 'claude'))
         return _sanitize_output(res or "")
     except Exception:
         return "I'll need more financial data to provide a reliable revenue estimate."
@@ -1196,7 +1196,7 @@ def _remember_company_from_user(user_text: str):
 def _run_research(user_text: str):
     """PATCHED RESEARCH: Uses sticky entity + guardrails"""
     # Get sticky company from memory
-    entity = st.safe_get(session_state, 'current_company') or st.safe_get(session_state, 'company_name', '')
+    entity = st.session_state.get( 'current_company') or st.session_state.get( 'company_name', '')
     
     if entity:
         # Use universal research with entity guardrails
@@ -5701,7 +5701,7 @@ def call_llm_api(messages, model_name, api_key, service="perplexity"):
     """Call LLM API (Perplexity or Claude) with the conversation - Enhanced with Vector DB"""
     try:
         # Check if Vector DB is available and enhance the last user message
-        if st.safe_get(session_state, "vector_db_initialized", False):
+        if st.session_state.get( "vector_db_initialized", False):
             try:
                 from enhanced_ai_analysis import get_enhanced_ai_analysis
                 enhanced_ai = get_enhanced_ai_analysis()
@@ -5956,7 +5956,7 @@ with st.sidebar:
         
         auto_improve_enabled = st.toggle(
             "Enable Auto-Improvement",
-            value=st.safe_get(session_state, 'auto_improve_enabled', True),
+            value=st.session_state.get( 'auto_improve_enabled', True),
             help="Automatically improve JSON quality using API calls after generation",
             key="sidebar_auto_improve_toggle"
         )
@@ -5973,8 +5973,8 @@ with st.sidebar:
             print(f"[IMPROVE_BUTTON] generated_render_plan exists: {'generated_render_plan' in st.session_state}")
             
             # Check both storage formats for JSONs
-            content_ir_json = st.safe_get(session_state, 'content_ir_json')
-            render_plan_json = st.safe_get(session_state, 'render_plan_json')
+            content_ir_json = st.session_state.get( 'content_ir_json')
+            render_plan_json = st.session_state.get( 'render_plan_json')
             
             print(f"[IMPROVE_BUTTON] Direct content_ir_json: {type(content_ir_json)} - {content_ir_json is not None}")
             print(f"[IMPROVE_BUTTON] Direct render_plan_json: {type(render_plan_json)} - {render_plan_json is not None}")
@@ -5982,7 +5982,7 @@ with st.sidebar:
             # Fallback: try to parse from string representations
             if not content_ir_json:
                 try:
-                    content_ir_str = st.safe_get(session_state, "generated_content_ir", "")
+                    content_ir_str = st.session_state.get( "generated_content_ir", "")
                     print(f"[IMPROVE_BUTTON] Content IR string length: {len(content_ir_str)}")
                     if content_ir_str and len(content_ir_str.strip()) > 10:
                         content_ir_json = json.loads(content_ir_str)
@@ -5992,7 +5992,7 @@ with st.sidebar:
             
             if not render_plan_json:
                 try:
-                    render_plan_str = st.safe_get(session_state, "generated_render_plan", "")
+                    render_plan_str = st.session_state.get( "generated_render_plan", "")
                     print(f"[IMPROVE_BUTTON] Render Plan string length: {len(render_plan_str)}")
                     if render_plan_str and len(render_plan_str.strip()) > 10:
                         render_plan_json = json.loads(render_plan_str)
@@ -6011,16 +6011,16 @@ with st.sidebar:
                         improved_content_ir, is_perfect_content, content_report = auto_improve_json_with_api_calls(
                             content_ir_json, "content_ir", 
                             st.session_state['api_key'],
-                            st.safe_get(session_state, 'selected_model', st.session_state.get('model', 'claude-3-5-sonnet-20241022')),
-                            st.safe_get(session_state, 'api_service', 'claude')
+                            st.session_state.get( 'selected_model', st.session_state.get('model', 'claude-3-5-sonnet-20241022')),
+                            st.session_state.get( 'api_service', 'claude')
                         )
                         
                         # Improve Render Plan
                         improved_render_plan, is_perfect_render, render_plan_report = auto_improve_json_with_api_calls(
                             render_plan_json, "render_plan",
                             st.session_state['api_key'], 
-                            st.safe_get(session_state, 'selected_model', st.session_state.get('model', 'claude-3-5-sonnet-20241022')),
-                            st.safe_get(session_state, 'api_service', 'claude')
+                            st.session_state.get( 'selected_model', st.session_state.get('model', 'claude-3-5-sonnet-20241022')),
+                            st.session_state.get( 'api_service', 'claude')
                         )
                         
                         # Update session state with improved JSONs - BOTH FORMATS
@@ -6033,7 +6033,7 @@ with st.sidebar:
                             st.session_state["generated_render_plan"] = json.dumps(improved_render_plan, indent=2)
                         
                         # Update files_data if it exists
-                        if st.safe_get(session_state, "files_data"):
+                        if st.session_state.get( "files_data"):
                             files_data = st.session_state["files_data"]
                             if improved_content_ir:
                                 files_data['content_ir_json'] = json.dumps(improved_content_ir, indent=2)
@@ -6051,7 +6051,7 @@ with st.sidebar:
                             st.info("ℹ️ JSONs were already at good quality")
                         
                         # Update API usage stats
-                        usage_stats = st.safe_get(session_state, 'auto_improve_api_usage', {
+                        usage_stats = st.session_state.get( 'auto_improve_api_usage', {
                             "total_calls": 0, "successful_calls": 0, "total_tokens": 0, "total_time": 0.0
                         })
                         
@@ -6076,17 +6076,17 @@ with st.sidebar:
                     missing_parts.append("Render Plan")
                 st.warning(f"⚠️ Missing: {', '.join(missing_parts)}. Generate JSONs first before improvement.")
         
-        if st.safe_get(session_state, 'auto_improve_enabled', False) and not api_key:
+        if st.session_state.get( 'auto_improve_enabled', False) and not api_key:
             st.warning("⚠️ Auto-improvement requires API key")
     
     # 🚨 CRITICAL DEBUG: Show current session state status
-    if st.safe_get(session_state, 'auto_improve_enabled', False):
+    if st.session_state.get( 'auto_improve_enabled', False):
         st.markdown("#### 🔍 Debug: Session State Status")
         
-        content_ir_exists = bool(st.safe_get(session_state, 'content_ir_json'))
-        render_plan_exists = bool(st.safe_get(session_state, 'render_plan_json'))
-        generated_content_ir_exists = bool(st.safe_get(session_state, 'generated_content_ir'))
-        generated_render_plan_exists = bool(st.safe_get(session_state, 'generated_render_plan'))
+        content_ir_exists = bool(st.session_state.get( 'content_ir_json'))
+        render_plan_exists = bool(st.session_state.get( 'render_plan_json'))
+        generated_content_ir_exists = bool(st.session_state.get( 'generated_content_ir'))
+        generated_render_plan_exists = bool(st.session_state.get( 'generated_render_plan'))
         
         col1, col2 = st.columns(2)
         with col1:
@@ -6099,8 +6099,8 @@ with st.sidebar:
             st.write(f"generated_content_ir: {'✅' if generated_content_ir_exists else '❌'}")
             st.write(f"generated_render_plan: {'✅' if generated_render_plan_exists else '❌'}")
         
-        files_ready = st.safe_get(session_state, "files_ready", False)
-        auto_populated = st.safe_get(session_state, "auto_populated", False)
+        files_ready = st.session_state.get( "files_ready", False)
+        auto_populated = st.session_state.get( "auto_populated", False)
         
         st.write(f"**Status:** files_ready: {'✅' if files_ready else '❌'}, auto_populated: {'✅' if auto_populated else '❌'}")
     
@@ -6109,9 +6109,9 @@ with st.sidebar:
     # File Status Section
     st.subheader("📁 Generated Files Status")
     
-    if st.safe_get(session_state, "files_ready", False):
+    if st.session_state.get( "files_ready", False):
         st.success("✅ Files Ready!")
-        files_data = st.safe_get(session_state, "files_data", {})
+        files_data = st.session_state.get( "files_data", {})
         st.write(f"**Company:** {safe_get(files_data, 'company_name', 'N/A')}")
         st.write(f"**Generated:** {safe_get(files_data, 'timestamp', 'N/A')}")
         
@@ -6128,13 +6128,13 @@ with st.sidebar:
     st.subheader("📊 System Status")
     
     # Show research status
-    if st.safe_get(session_state, 'research_completed', False):
+    if st.session_state.get( 'research_completed', False):
         st.success("✅ Research completed")
     else:
         st.info("📋 Use Research Agent to start")
     
     # Show JSON status
-    if st.safe_get(session_state, 'content_ir_json') and st.safe_get(session_state, 'render_plan_json'):
+    if st.session_state.get( 'content_ir_json') and st.session_state.get( 'render_plan_json'):
         st.success("✅ JSONs generated")
     else:
         st.info("⚙️ Generate JSONs needed")
@@ -6238,7 +6238,7 @@ with tab_chat:
             st.rerun()
     
     # Display results if research is completed
-    if st.safe_get(session_state, 'research_completed', False) and st.safe_get(session_state, 'research_results'):
+    if st.session_state.get( 'research_completed', False) and st.session_state.get( 'research_results'):
         st.markdown("## 📊 Research Results")
         
         # Create tabs for each topic
@@ -6294,7 +6294,7 @@ with tab_chat:
                 st.rerun()
 
     # Edit mode interface
-    if st.safe_get(session_state, 'edit_mode', False) and st.safe_get(session_state, 'research_results'):
+    if st.session_state.get( 'edit_mode', False) and st.session_state.get( 'research_results'):
         st.markdown("---")
         st.markdown("## ✏️ Review & Edit Results")
         st.markdown("Review the research results below. You can edit any section before generating the final JSON.")
@@ -6347,7 +6347,7 @@ with tab_chat:
                 st.rerun()
 
     # Manual JSON Generation Trigger Button - Always show if research completed
-    if st.safe_get(session_state, 'research_completed', False) or len(st.safe_get(session_state, 'messages', [])) > 4:
+    if st.session_state.get( 'research_completed', False) or len(st.session_state.get( 'messages', [])) > 4:
                 col1, col2 = st.columns([3, 1])
                 with col2:
                     # 🚨 TEST: Simple test button first
@@ -6363,7 +6363,7 @@ with tab_chat:
                         from topic_based_slide_generator import generate_topic_based_presentation
                         
                         # Check if using Research Agent data (all 14 topics researched)
-                        if st.safe_get(session_state, 'research_completed', False):
+                        if st.session_state.get( 'research_completed', False):
                             # Research Agent: Generate ALL 14 slides
                             slide_list = [
                                 "business_overview", "product_service_footprint", 
@@ -6530,7 +6530,7 @@ RENDER PLAN JSON:
                                 st.error(f"❌ Generation failed: {str(e)}")
                                 print(f"❌ [HYBRID] Error: {str(e)}")
                                 # Fallback to bulletproof system
-                                company_name = st.safe_get(session_state, 'company_name', 'Company')
+                                company_name = st.session_state.get( 'company_name', 'Company')
                                 ai_response = f"""CONTENT IR JSON:
 {{
   "entities": {{"company": {{"name": "{company_name}"}}}},
@@ -6577,7 +6577,7 @@ RENDER PLAN JSON:
                                 
                                 # 🔧 MANDATORY AUTO-IMPROVEMENT INTEGRATION
                                 # Always apply auto-improvement for JSON generation (not optional)
-                                if st.safe_get(session_state, 'api_key'):
+                                if st.session_state.get( 'api_key'):
                                     with st.spinner("🔧 Auto-improving JSON quality with conversation data..."):
                                         try:
                                             # Use OPTIMIZED auto-improvement system for better performance
@@ -6684,12 +6684,12 @@ RENDER PLAN JSON:
                         st.rerun()
     
     # Research Agent Interface Complete - No chat input needed
-    if not st.safe_get(session_state, 'research_completed', False):
+    if not st.session_state.get( 'research_completed', False):
         st.markdown("---")
         st.info("💡 **How to use**: Enter a company name above and click 'Start Comprehensive Research' to automatically generate all 14 investment banking research topics, then use 'Generate JSON Now' button to create your presentation files.")
     
     # Export chat history for compatibility
-    if st.safe_get(session_state, "messages") and len(st.session_state.messages) > 1:
+    if st.session_state.get( "messages") and len(st.session_state.messages) > 1:
         # Research data export interface
         st.markdown("---")
         col1, col2, col3 = st.columns([1, 1, 2])
@@ -6707,7 +6707,7 @@ RENDER PLAN JSON:
         with col2:
             if st.button("💾 Export Chat"):
                 chat_export = {
-                    "model": st.safe_get(session_state, 'model', 'sonar-pro'),
+                    "model": st.session_state.get( 'model', 'sonar-pro'),
                     "messages": st.session_state.messages[1:],  # Exclude system message
                     "timestamp": str(pd.Timestamp.now())
                 }
@@ -6727,7 +6727,7 @@ with tab_extract:
     # Company name for deck footer/branding
     company_display_name = st.text_input(
         "Company Name for Presentation",
-        value=st.safe_get(session_state, 'company_name', ''),
+        value=st.session_state.get( 'company_name', ''),
         placeholder="e.g., Moelis & Company, Goldman Sachs, JP Morgan",
         help="This company name will appear in the bottom right corner of your PowerPoint slides",
         key="brand_company_name"
@@ -6750,7 +6750,7 @@ with tab_extract:
     with col1:
         vector_db_id = st.text_input(
             "Vector Database ID",
-            value=st.safe_get(session_state, 'vector_db_id', ''),
+            value=st.session_state.get( 'vector_db_id', ''),
             placeholder="e.g., your-database-id",
             help="Cassandra Vector Database ID for precedent transactions",
             key="vector_db_id_input"
@@ -6759,7 +6759,7 @@ with tab_extract:
     with col2:
         vector_db_token = st.text_input(
             "Vector Database Token",
-            value=st.safe_get(session_state, 'vector_db_token', ''),
+            value=st.session_state.get( 'vector_db_token', ''),
             placeholder="Enter your database token",
             type="password",
             help="Authentication token for vector database access",
@@ -6804,8 +6804,8 @@ with tab_extract:
     st.markdown("### 📊 Current Branding Status")
     
     # Company name status
-    presentation_name = st.safe_get(session_state, 'presentation_company_name')
-    research_name = st.safe_get(session_state, 'company_name')
+    presentation_name = st.session_state.get( 'presentation_company_name')
+    research_name = st.session_state.get( 'company_name')
     
     if presentation_name:
         st.success(f"🏢 **Presentation Company:** {presentation_name}")
@@ -6816,7 +6816,7 @@ with tab_extract:
         st.warning("⚠️ No company name set for branding")
     
     # Brand deck status
-    if st.safe_get(session_state, 'uploaded_brand_file'):
+    if st.session_state.get( 'uploaded_brand_file'):
         st.success("🎨 **Brand Deck:** Uploaded and ready")
     else:
         st.info("📁 **Brand Deck:** Using default styling")
@@ -6832,23 +6832,23 @@ with tab_json:
     st.subheader("📄 JSON Editor")
     
     # Check if JSONs were auto-populated from AI Copilot
-    auto_populated = st.safe_get(session_state, "auto_populated", False)
-    files_ready = st.safe_get(session_state, "files_ready", False)
+    auto_populated = st.session_state.get( "auto_populated", False)
+    files_ready = st.session_state.get( "files_ready", False)
     
     # 🔧 AUTO-IMPROVEMENT VALIDATION STATUS
-    if st.safe_get(session_state, 'auto_improve_enabled', False) and st.safe_get(session_state, 'api_key'):
+    if st.session_state.get( 'auto_improve_enabled', False) and st.session_state.get( 'api_key'):
         st.markdown("### 🔧 JSON Quality Status")
         
         # Quick validation for both JSONs - check multiple possible storage locations
         content_ir_sources = [
-            st.safe_get(session_state, "content_ir_json"),
-            st.safe_get(session_state, "generated_content_ir_parsed"), 
-            st.safe_get(session_state, "files_data", {}).get("content_ir_json_parsed")
+            st.session_state.get( "content_ir_json"),
+            st.session_state.get( "generated_content_ir_parsed"), 
+            st.session_state.get( "files_data", {}).get("content_ir_json_parsed")
         ]
         render_plan_sources = [
-            st.safe_get(session_state, "render_plan_json"),
-            st.safe_get(session_state, "generated_render_plan_parsed"),
-            st.safe_get(session_state, "files_data", {}).get("render_plan_json_parsed") 
+            st.session_state.get( "render_plan_json"),
+            st.session_state.get( "generated_render_plan_parsed"),
+            st.session_state.get( "files_data", {}).get("render_plan_json_parsed") 
         ]
         
         content_ir_json = next((src for src in content_ir_sources if src), None)
@@ -6880,7 +6880,7 @@ with tab_json:
         
         # Show file status if files are ready but not auto-populated
         if files_ready and not auto_populated:
-            files_data = st.safe_get(session_state, "files_data", {})
+            files_data = st.session_state.get( "files_data", {})
             st.success(f"🎉 Using generated files for {safe_get(files_data, 'company_name', 'your company')}")
             
             with st.expander("📋 Generated Files Summary"):
@@ -6896,9 +6896,9 @@ with tab_json:
         
         # Get Content IR from various possible sources
         content_ir_text = ""
-        if auto_populated and st.safe_get(session_state, "generated_content_ir"):
+        if auto_populated and st.session_state.get( "generated_content_ir"):
             content_ir_text = st.session_state["generated_content_ir"]
-        elif st.safe_get(session_state, "files_data", {}).get("content_ir_json"):
+        elif st.session_state.get( "files_data", {}).get("content_ir_json"):
             content_ir_text = st.session_state["files_data"]["content_ir_json"]
         
         content_ir_input = st.text_area(
@@ -6924,9 +6924,9 @@ with tab_json:
         
         # Get Render Plan from various possible sources  
         render_plan_text = ""
-        if auto_populated and st.safe_get(session_state, "generated_render_plan"):
+        if auto_populated and st.session_state.get( "generated_render_plan"):
             render_plan_text = st.session_state["generated_render_plan"]
-        elif st.safe_get(session_state, "files_data", {}).get("render_plan_json"):
+        elif st.session_state.get( "files_data", {}).get("render_plan_json"):
             render_plan_text = st.session_state["files_data"]["render_plan_json"]
         
         render_plan_input = st.text_area(
@@ -6954,7 +6954,7 @@ with tab_json:
     col1, col2 = st.columns(2)
     
     if content_ir_input and render_plan_input:
-        company_name = st.safe_get(session_state, 'company_name', 'company')
+        company_name = st.session_state.get( 'company_name', 'company')
         
         with col1:
             st.download_button(
@@ -6976,8 +6976,8 @@ with tab_execute:
     st.subheader("⚙️ Generate PowerPoint Presentation")
     
     # Check if JSONs are available
-    content_ir_available = bool(st.safe_get(session_state, "content_ir_json") or st.safe_get(session_state, "generated_content_ir"))
-    render_plan_available = bool(st.safe_get(session_state, "render_plan_json") or st.safe_get(session_state, "generated_render_plan"))
+    content_ir_available = bool(st.session_state.get( "content_ir_json") or st.session_state.get( "generated_content_ir"))
+    render_plan_available = bool(st.session_state.get( "render_plan_json") or st.session_state.get( "generated_render_plan"))
     
     if not content_ir_available or not render_plan_available:
         st.warning("⚠️ **Missing JSONs**: Please complete research and generate JSONs first.")
@@ -6987,7 +6987,7 @@ with tab_execute:
         
         # Company name for file naming and presentation branding
         # Use the branding company name from Brand tab, fallback to research company name
-        company_name = st.safe_get(session_state, 'presentation_company_name') or st.safe_get(session_state, 'company_name', 'company')
+        company_name = st.session_state.get( 'presentation_company_name') or st.session_state.get( 'company_name', 'company')
         
         # Generation options
         col1, col2 = st.columns(2)
@@ -7031,13 +7031,13 @@ with tab_execute:
             with st.spinner("🎨 Generating your PowerPoint presentation... This may take 2-3 minutes."):
                 try:
                     # Get JSONs
-                    content_ir = st.safe_get(session_state, "content_ir_json")
-                    render_plan = st.safe_get(session_state, "render_plan_json")
+                    content_ir = st.session_state.get( "content_ir_json")
+                    render_plan = st.session_state.get( "render_plan_json")
                     
                     if not content_ir:
-                        content_ir = json.loads(st.safe_get(session_state, "generated_content_ir", "{}"))
+                        content_ir = json.loads(st.session_state.get( "generated_content_ir", "{}"))
                     if not render_plan:
-                        render_plan = json.loads(st.safe_get(session_state, "generated_render_plan", "{}"))
+                        render_plan = json.loads(st.session_state.get( "generated_render_plan", "{}"))
                     
                     # Generate presentation using existing executor
                     from executor import execute_plan
@@ -7124,8 +7124,8 @@ with tab_validate:
     st.subheader("🔍 JSON Validator & Auto-Fix")
     
     # Check if JSONs are available for validation
-    content_ir_json = st.safe_get(session_state, "content_ir_json")
-    render_plan_json = st.safe_get(session_state, "render_plan_json")
+    content_ir_json = st.session_state.get( "content_ir_json")
+    render_plan_json = st.session_state.get( "render_plan_json")
     
     if not content_ir_json or not render_plan_json:
         st.warning("⚠️ **No JSONs to validate**: Please complete research and JSON generation first.")
