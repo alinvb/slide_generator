@@ -6599,7 +6599,29 @@ RENDER PLAN JSON:
                                 from bulletproof_json_generator_clean import generate_clean_bulletproof_json
                                 
                                 def bulletproof_llm_call(messages):
-                                    return shared_call_llm_api(messages, selected_model, api_key, api_service)
+                                    # Detect if this is a comprehensive gap-filling call that needs extended timeout
+                                    is_gap_filling = False
+                                    for msg in messages:
+                                        if msg.get('role') == 'user' and msg.get('content', ''):
+                                            content = msg['content'].lower()
+                                            if any(keyword in content for keyword in [
+                                                'comprehensive gap-filling', 
+                                                'strategic_buyers', 
+                                                'financial_buyers',
+                                                'precedent_transactions',
+                                                'valuation_data',
+                                                'llamaindex',
+                                                'generate only the json object with all fields filled'
+                                            ]):
+                                                is_gap_filling = True
+                                                break
+                                    
+                                    # Use extended timeout for gap-filling calls
+                                    if is_gap_filling:
+                                        print("⏱️ [TIMEOUT] Using extended timeout (180s) for comprehensive gap-filling")
+                                        return shared_call_llm_api(messages, selected_model, api_key, api_service, 0, 180)
+                                    else:
+                                        return shared_call_llm_api(messages, selected_model, api_key, api_service)
                                 
                                 # 🚨 ENHANCED: Show progress tracking before calling bulletproof generator
                                 st.info("🔄 **Starting Bulletproof JSON Generation** - Progress tracking will show below")
