@@ -6820,22 +6820,60 @@ with tab_extract:
     st.markdown("### 📤 Upload Brand Deck (Optional)")
     st.info("Upload your company's brand deck (PowerPoint) to extract colors, fonts, and styling automatically")
     
-    # Simple brand upload
-    uploaded_brand = st.file_uploader(
-        "Select Brand Deck (.pptx)",
-        type=['pptx'],
-        help="Upload a PowerPoint file to extract brand colors and fonts",
-        key="brand_upload_simple"
-    )
+    # Test if this area is working at all
+    if st.button("🧪 Test Button - Click Me", key="brand_test_button"):
+        st.success("🧪 Test button works! Widget area is functional.")
     
-    if uploaded_brand:
-        st.success(f"✅ Brand deck uploaded: {uploaded_brand.name}")
-        st.info("💡 Brand extraction will happen automatically when you generate the PowerPoint in the Execute tab")
+    # Simple brand upload with enhanced debugging and different key
+    try:
+        # Clear any existing file first
+        if 'uploaded_brand_file' in st.session_state:
+            existing_file = st.session_state.get('uploaded_brand_file')
+            if existing_file:
+                st.success(f"📁 Current brand file: {existing_file.name}")
+                if st.button("🗑️ Clear Brand File", key="clear_brand_file"):
+                    del st.session_state['uploaded_brand_file']
+                    st.rerun()
         
-        # Store the uploaded file in session state
-        st.session_state['uploaded_brand_file'] = uploaded_brand
-    else:
-        st.info("📁 No brand deck uploaded - default styling will be used")
+        st.markdown("**Step 1: Select your brand PowerPoint file**")
+        
+        # Primary uploader
+        uploaded_brand = st.file_uploader(
+            "Choose .pptx file",
+            type=['pptx'],
+            help="Upload a PowerPoint file to extract brand colors and fonts automatically",
+            key="brand_uploader_v2"
+        )
+        
+        # Alternative uploader if primary doesn't work
+        if not uploaded_brand:
+            st.markdown("**Alternative: Try this uploader if the above doesn't work**")
+            uploaded_brand_alt = st.file_uploader(
+                "Alternative uploader for .pptx files",
+                type=['pptx', 'ppt'],
+                help="Backup file uploader",
+                key="brand_uploader_alt"
+            )
+            if uploaded_brand_alt:
+                uploaded_brand = uploaded_brand_alt
+        
+        print(f"🎨 [BRAND DEBUG] File uploader result: {uploaded_brand}")
+        
+        if uploaded_brand:
+            print(f"🎨 [BRAND DEBUG] File uploaded - name: {uploaded_brand.name}, size: {uploaded_brand.size}")
+            st.success(f"✅ Brand deck uploaded: {uploaded_brand.name}")
+            st.info("💡 Brand extraction will happen automatically when you generate the PowerPoint in the Execute tab")
+            
+            # Store the uploaded file in session state
+            st.session_state['uploaded_brand_file'] = uploaded_brand
+            print(f"🎨 [BRAND DEBUG] File stored in session state successfully")
+        else:
+            st.info("📁 No brand deck uploaded - default styling will be used")
+            
+    except Exception as e:
+        print(f"❌ [BRAND DEBUG] File uploader error: {e}")
+        st.error(f"❌ File upload error: {str(e)}")
+        st.info("📁 Using default styling due to upload error")
     
     st.markdown("---")
     st.markdown("---")

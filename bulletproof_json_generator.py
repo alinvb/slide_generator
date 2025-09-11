@@ -196,8 +196,13 @@ RESPOND WITH ONLY THE JSON - NO OTHER TEXT.
                 if not extracted_data.get(field):
                     missing_fields.append(field)
             
-            # Research missing fields with comprehensive LLM call
+            # PERFORMANCE: Skip research if we have sufficient data from conversation
             if missing_fields:
+                # Check if we have enough conversation data to skip API research
+                if len(missing_fields) <= 2 and len(extracted_data) > 15:
+                    print(f"⚡ [PERFORMANCE] Skipping research for {slide} - sufficient conversation data available ({len(extracted_data)} fields)")
+                    continue
+                
                 print(f"🔍 [RESEARCH] Researching missing fields for {slide}: {missing_fields}")
                 
                 research_prompt = f"""
