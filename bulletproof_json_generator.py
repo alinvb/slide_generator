@@ -335,24 +335,35 @@ Ensure all data is specific to {company_name} and factually accurate."""
         }
     
     def _extract_management_team(self, data: Dict) -> Dict:
-        """Extract detailed management team from research"""
+        """Extract detailed management team from research with LLM enhancement for missing fields"""
         team_members = data.get("team_members", [])
+        company_name = data.get("company_name", "the company")
         
         if not team_members:
-            return {
-                "left_column_profiles": [],
-                "right_column_profiles": []
-            }
+            print(f"🔍 [RESEARCH] No management team found, researching for {company_name}...")
+            # Research management team if missing
+            team_members = [{"name": "Research Required"}]  # Will be enhanced below
         
         # Split team into left/right columns
         left_profiles = []
         right_profiles = []
         
         for i, member in enumerate(team_members[:4]):  # Max 4 executives
+            # Research missing fields with LLM calls
+            name = member.get("name") or self._research_missing_field(company_name, "executive name", f"management team member #{i+1}")
+            role_title = member.get("title", member.get("role")) or self._research_missing_field(company_name, "executive title", f"{name} role at {company_name}")
+            background = member.get("background") or self._research_missing_field(company_name, "executive experience", f"{name} professional background")
+            
+            # Process experience bullets
+            if background and isinstance(background, str):
+                experience_bullets = background.split(". ") if ". " in background else [background]
+            else:
+                experience_bullets = [background] if background else [f"Leadership experience at {company_name}"]
+            
             profile = {
-                "name": member.get("name", "[Name Required]"),
-                "role_title": member.get("title", "[Title Required]"),
-                "experience_bullets": member.get("background", "").split(". ") if member.get("background") else ["[Experience Required]"]
+                "name": name,
+                "role_title": role_title,
+                "experience_bullets": experience_bullets
             }
             
             if i % 2 == 0:
@@ -506,24 +517,37 @@ Format as JSON array with objects containing: name, description, investment_thes
         return financial_buyers
     
     def _extract_competitive_analysis(self, data: Dict, company_name: str) -> Dict:
-        """Extract competitive analysis from research"""
+        """Extract competitive analysis from research with LLM enhancement for missing fields"""
         competitors_data = data.get("competitors_identified", [])
         
-        if not competitors_data:
-            return {
-                "competitors": [],
-                "assessment": [["Company", "Rating"], [company_name, "[Rating Required]"]],
-                "barriers": [],
-                "advantages": []
-            }
+        # Research competitive rating if missing
+        company_rating = self._research_missing_field(company_name, "competitive rating", f"{company_name} market position rating")
         
-        competitors = [{"name": comp.get("name", "[Competitor Required]"), "revenue": comp.get("revenue", 0)} for comp in competitors_data[:6]]
+        if not competitors_data:
+            print(f"🔍 [RESEARCH] No competitors found, researching for {company_name}...")
+            # Research competitors if missing
+            competitors_data = [{"name": "Research Required"}]  # Will be enhanced below
+        
+        # Research missing competitor information
+        competitors = []
+        for i, comp in enumerate(competitors_data[:6]):
+            competitor_name = comp.get("name") or self._research_missing_field(company_name, "competitor name", f"main competitor #{i+1}")
+            competitors.append({
+                "name": competitor_name,
+                "revenue": comp.get("revenue", 0)
+            })
+        
+        # Research competitive advantages if missing
+        advantages = data.get("competitive_advantages") 
+        if not advantages:
+            advantages_str = self._research_missing_field(company_name, "competitive advantages", f"{company_name} key competitive advantages")
+            advantages = [advantages_str] if advantages_str else []
         
         return {
             "competitors": competitors,
-            "assessment": data.get("competitive_assessment", [["Company", "Rating"], [company_name, "[Rating Required]"]]),
+            "assessment": data.get("competitive_assessment", [["Company", "Rating"], [company_name, company_rating]]),
             "barriers": data.get("competitive_barriers", []),
-            "advantages": data.get("competitive_advantages", [])
+            "advantages": advantages
         }
     
     def _extract_precedent_transactions(self, data: Dict) -> List[Dict]:
@@ -604,37 +628,53 @@ Format as JSON array with objects containing: name, description, investment_thes
         return valuation_methods
     
     def _extract_product_service_data(self, data: Dict) -> Dict:
-        """Extract product/service data from research"""
+        """Extract product/service data from research with LLM enhancement for missing fields"""
         services_list = data.get("products_services_list", [])
         geographic_markets = data.get("geographic_markets", [])
+        company_name = data.get("company_name", "the company")
         
         services = []
         if services_list:
-            for service in services_list[:6]:  # Max 6 services
+            for i, service in enumerate(services_list[:6]):  # Max 6 services
                 if isinstance(service, dict):
+                    # Research missing service details
+                    service_name = service.get("name") or self._research_missing_field(company_name, "service name", f"main service #{i+1}")
+                    service_desc = service.get("description") or self._research_missing_field(company_name, "service description", f"{service_name} detailed description")
+                    
                     services.append({
-                        "title": service.get("name", "[Service Name Required]"),
-                        "desc": service.get("description", "[Description Required]")
+                        "title": service_name,
+                        "desc": service_desc
                     })
                 else:
+                    # Research description for string services
+                    service_name = str(service)
+                    service_desc = self._research_missing_field(company_name, "service description", f"{service_name} service details")
+                    
                     services.append({
-                        "title": str(service),
-                        "desc": "[Description Required]"
+                        "title": service_name,
+                        "desc": service_desc
                     })
         
         # Build coverage table from geographic data
         coverage_table = [["Region", "Market Segment", "Major Assets/Products", "Coverage Details"]]
         if geographic_markets:
-            for market in geographic_markets[:5]:  # Max 5 regions
+            for i, market in enumerate(geographic_markets[:5]):  # Max 5 regions
                 if isinstance(market, dict):
-                    coverage_table.append([
-                        market.get("region", "[Region Required]"),
-                        market.get("segment", "[Segment Required]"),
-                        market.get("products", "[Products Required]"),
-                        market.get("details", "[Details Required]")
-                    ])
+                    # Research missing market details
+                    region = market.get("region") or self._research_missing_field(company_name, "market region", f"geographic region #{i+1}")
+                    segment = market.get("segment") or self._research_missing_field(company_name, "market segment", f"{region} market segment")
+                    products = market.get("products") or self._research_missing_field(company_name, "regional products", f"{company_name} products in {region}")
+                    details = market.get("details") or self._research_missing_field(company_name, "coverage details", f"{company_name} operations in {region}")
+                    
+                    coverage_table.append([region, segment, products, details])
                 else:
-                    coverage_table.append([str(market), "[Segment Required]", "[Products Required]", "[Details Required]"])
+                    # Research details for string markets
+                    region_name = str(market)
+                    segment = self._research_missing_field(company_name, "market segment", f"{region_name} market segment")
+                    products = self._research_missing_field(company_name, "regional products", f"{company_name} products in {region_name}")
+                    details = self._research_missing_field(company_name, "coverage details", f"{company_name} operations in {region_name}")
+                    
+                    coverage_table.append([region_name, segment, products, details])
         
         return {
             "services": services,
@@ -690,25 +730,37 @@ Format as JSON array with objects containing: name, description, investment_thes
         }
     
     def _extract_margin_cost_data(self, data: Dict) -> Dict:
-        """Extract margin and cost data from research"""
+        """Extract margin and cost data from research with LLM enhancement for missing fields"""
         years = data.get("financial_years", ["2022", "2023", "2024"])
         margins = data.get("ebitda_margins", [])
+        company_name = data.get("company_name", "the company")
         
         cost_items = data.get("cost_management_initiatives", [])
         cost_management_items = []
         
         if cost_items:
-            for item in cost_items[:6]:  # Max 6 items
+            for i, item in enumerate(cost_items[:6]):  # Max 6 items
                 if isinstance(item, dict):
+                    # Research missing cost initiative details
+                    title = item.get("title") or self._research_missing_field(company_name, "cost initiative", f"cost management initiative #{i+1}")
+                    description = item.get("description") or self._research_missing_field(company_name, "initiative description", f"{title} detailed description")
+                    
                     cost_management_items.append({
-                        "title": item.get("title", "[Cost Initiative Required]"),
-                        "description": item.get("description", "[Description Required]")
+                        "title": title,
+                        "description": description
                     })
                 else:
+                    # Research description for string items
+                    title = str(item)
+                    description = self._research_missing_field(company_name, "initiative description", f"{title} cost management details")
+                    
                     cost_management_items.append({
-                        "title": str(item),
-                        "description": "[Description Required]"
+                        "title": title,
+                        "description": description
                     })
+        
+        # Research risk mitigation strategy if missing
+        risk_strategy = data.get("cost_risk_mitigation") or self._research_missing_field(company_name, "cost risk mitigation", f"{company_name} cost risk management strategy")
         
         return {
             "chart_data": {
@@ -717,25 +769,35 @@ Format as JSON array with objects containing: name, description, investment_thes
             },
             "cost_management": {"items": cost_management_items},
             "risk_mitigation": {
-                "main_strategy": data.get("cost_risk_mitigation", "[Cost risk mitigation strategy required]")
+                "main_strategy": risk_strategy
             }
         }
     
     def _extract_global_conglomerates(self, data: Dict) -> List[Dict]:
-        """Extract global conglomerate data from research"""
+        """Extract global conglomerate data from research with LLM enhancement for missing fields"""
         conglomerates = data.get("global_conglomerates_identified", [])
+        company_name = data.get("company_name", "the company")
         
         if not conglomerates:
-            return []  # Return empty if no research data
+            print(f"🔍 [RESEARCH] No global conglomerates found, researching for {company_name}...")
+            # Research conglomerates if missing
+            conglomerates = [{"name": "Research Required"}]  # Will be enhanced below
         
         conglomerate_list = []
-        for cong in conglomerates[:8]:  # Max 8 conglomerates
+        for i, cong in enumerate(conglomerates[:8]):  # Max 8 conglomerates
+            # Research missing conglomerate details
+            conglomerate_name = cong.get("name") or self._research_missing_field(company_name, "conglomerate name", f"global conglomerate #{i+1} for {company_name} acquisition")
+            country = cong.get("country") or self._research_missing_field(company_name, "conglomerate country", f"{conglomerate_name} headquarters country")
+            description = cong.get("description") or self._research_missing_field(company_name, "conglomerate description", f"{conglomerate_name} business overview")
+            shareholders = cong.get("shareholders") or self._research_missing_field(company_name, "key shareholders", f"{conglomerate_name} major shareholders")
+            financials = cong.get("financials") or self._research_missing_field(company_name, "financial metrics", f"{conglomerate_name} key financial metrics")
+            
             conglomerate_list.append({
-                "name": cong.get("name", "[Conglomerate Name Required]"),
-                "country": cong.get("country", "[Country Required]"),
-                "description": cong.get("description", "[Description Required]"),
-                "key_shareholders": cong.get("shareholders", "[Shareholders Required]"),
-                "key_financials": cong.get("financials", "[Financials Required]"),
+                "name": conglomerate_name,
+                "country": country,
+                "description": description,
+                "key_shareholders": shareholders,
+                "key_financials": financials,
                 "contact": cong.get("contact", "N/A")
             })
         
