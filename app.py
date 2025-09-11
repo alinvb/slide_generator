@@ -5880,9 +5880,6 @@ def call_claude_api(messages, model_name, api_key):
 # API Configuration is now handled by config file
 # The config.py file sets up the API key environment variables automatically
 print("ℹ️ [CONFIG] Using config file for API configuration instead of sidebar")
-    
-    💡 **Brand extraction** happens automatically in Execute tab
-    """)
 
 
 # Initialize chat history
