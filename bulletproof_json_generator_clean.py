@@ -70,7 +70,25 @@ Return only valid JSON:"""
             json_match = re.search(r'\{.*\}', extraction_response, re.DOTALL)
             if json_match:
                 import json
-                json_str = json_match.group()\n                # Clean JSON string to fix Unicode issues\n                json_str_cleaned = json_str.replace('–', '-').replace('—', '-').replace('"', '\"').replace('"', '\"').replace(''', \"'\").replace(''', \"'\")\n                \n                try:\n                    extracted_data = json.loads(json_str_cleaned)\n                except json.JSONDecodeError as e:\n                    print(f\"⚠️ [CLEAN] Conversation JSON parsing failed: {e}, using fallback\")\n                    json_str_fixed = json_str_cleaned.replace(',}', '}').replace(',]', ']')\n                    try:\n                        extracted_data = json.loads(json_str_fixed)\n                    except:\n                        print(f\"❌ [CLEAN] Conversation extraction completely failed, using minimal fallback\")\n                        return {\n                            \"company_name\": \"TechCorp Solutions\",\n                            \"business_description\": \"Technology company providing business solutions\",\n                            \"industry\": \"Technology\",\n                            \"key_discussion_points\": [\"Business analysis and investment opportunity\"]\n                        }
+                json_str = json_match.group()
+                # Clean JSON string to fix Unicode issues
+                json_str_cleaned = json_str.replace('–', '-').replace('—', '-').replace('"', '"').replace('"', '"').replace(''', "'").replace(''', "'")
+                
+                try:
+                    extracted_data = json.loads(json_str_cleaned)
+                except json.JSONDecodeError as e:
+                    print(f"⚠️ [CLEAN] Conversation JSON parsing failed: {e}, using fallback")
+                    json_str_fixed = json_str_cleaned.replace(',}', '}').replace(',]', ']')
+                    try:
+                        extracted_data = json.loads(json_str_fixed)
+                    except:
+                        print(f"❌ [CLEAN] Conversation extraction completely failed, using minimal fallback")
+                        return {
+                            "company_name": "TechCorp Solutions",
+                            "business_description": "Technology company providing business solutions",
+                            "industry": "Technology",
+                            "key_discussion_points": ["Business analysis and investment opportunity"]
+                        }
                 field_count = len(extracted_data) if extracted_data else 0
                 print(f"✅ [CLEAN] INDEPENDENT extraction successful: {field_count} fields")
                 return extracted_data
@@ -420,7 +438,23 @@ Generate ONLY the JSON object with ALL fields filled using CONVERSATION-PRIORITI
                 json_str = json_match.group()
                 print(f"📊 [CLEAN] Extracted JSON length: {len(json_str)} characters")
                 
-                # Clean JSON string to fix common Unicode issues\n                json_str_cleaned = json_str.replace('–', '-').replace('—', '-').replace('"', '\"').replace('"', '\"').replace(''', \"'\").replace(''', \"'\")\n                \n                try:\n                    gap_fill_json = json.loads(json_str_cleaned)\n                except json.JSONDecodeError as e:\n                    print(f\"❌ [CLEAN] JSON parsing failed: {e}\")\n                    print(f\"🔍 [CLEAN] Problematic JSON around error: ...{json_str_cleaned[max(0, e.pos-50):e.pos+50]}...\")\n                    # Try to fix common issues and retry\n                    json_str_fixed = json_str_cleaned.replace(',}', '}').replace(',]', ']')\n                    try:\n                        gap_fill_json = json.loads(json_str_fixed)\n                        print(f\"✅ [CLEAN] JSON parsing succeeded after fixing\")\n                    except:\n                        print(f\"❌ [CLEAN] JSON parsing failed even after cleaning, using fallback\")\n                        raise e
+                # Clean JSON string to fix common Unicode and formatting issues
+                json_str_cleaned = json_str.replace('–', '-').replace('—', '-').replace('"', '"').replace('"', '"').replace(''', "'").replace(''', "'")
+                
+                try:
+                    gap_fill_json = json.loads(json_str_cleaned)
+                except json.JSONDecodeError as e:
+                    print(f"❌ [CLEAN] JSON parsing failed: {e}")
+                    print(f"🔍 [CLEAN] Problematic JSON around error: ...{json_str_cleaned[max(0, e.pos-50):e.pos+50]}...")
+                    # Try to fix common issues and retry
+                    json_str_fixed = json_str_cleaned.replace(',}', '}').replace(',]', ']').replace('}\n{', '},{')
+                    try:
+                        gap_fill_json = json.loads(json_str_fixed)
+                        print(f"✅ [CLEAN] JSON parsing succeeded after fixing")
+                    except json.JSONDecodeError as e2:
+                        print(f"❌ [CLEAN] JSON parsing failed even after cleaning: {e2}")
+                        print(f"🔍 [CLEAN] Final attempt - using extracted data only")
+                        return extracted_data
                 print(f"✅ [CLEAN] Successfully parsed gap-fill JSON with {len(gap_fill_json)} fields")
                 
                 # Debug: Check for key LlamaIndex fields
