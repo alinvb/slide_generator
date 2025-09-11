@@ -28,14 +28,32 @@ class CleanBulletproofJSONGenerator:
             print(f"❌ [CLEAN] Extraction failed: {e}")
             return {}
     
+    def _format_management_profiles(self, profiles: List[Dict]) -> List[Dict]:
+        """Format management profiles to match slide renderer expectations"""
+        formatted_profiles = []
+        for profile in profiles:
+            if isinstance(profile, dict):
+                # Convert to format expected by management team renderer
+                formatted_profile = {
+                    "name": profile.get('name', 'Executive'),
+                    "title": profile.get('title', 'Management Role'),
+                    "experience_bullets": [
+                        profile.get('background', 'Professional background'),
+                        profile.get('experience', 'Key experience and expertise')
+                    ]
+                }
+                formatted_profiles.append(formatted_profile)
+        return formatted_profiles
+    
     def comprehensive_llm_gap_filling(self, extracted_data: Dict, llm_api_call) -> Dict:
         """MANDATORY LLM gap-filling - must extract/estimate ALL fields from available context"""
         print("🤖 [CLEAN] Starting MANDATORY comprehensive LLM gap-filling...")
         
         # Create MANDATORY gap-filling prompt that forces LLM to extract or estimate everything
+        context_json = json.dumps(extracted_data, indent=2)
         gap_filling_prompt = f"""You are tasked with creating comprehensive investment banking presentation data. You MUST populate ALL required fields using the available context and your knowledge to make data-driven estimates.
 
-AVAILABLE CONTEXT: {json.dumps(extracted_data, indent=2)}
+AVAILABLE CONTEXT: {context_json}
 
 MANDATORY TASK: Extract or intelligently estimate ALL missing data using:
 1. Any conversation/research content provided
@@ -51,7 +69,7 @@ For each field, if not explicitly provided:
 - Make intelligent assumptions based on company size/type/industry
 - Ensure all content is professionally appropriate for investment banking
 
-MANDATORY FIELDS TO POPULATE:
+MANDATORY FIELDS TO POPULATE (EXACT FIELD NAMES REQUIRED FOR SLIDE RENDERERS):
 
 1. **Company Basics** (extract/estimate from context):
    - company_name: [Extract from context or estimate based on clues]
@@ -62,39 +80,54 @@ MANDATORY FIELDS TO POPULATE:
    - employee_count: [Estimate based on revenue/business scale]
 
 2. **Financial Data** (extract/estimate):
-   - annual_revenue_usd_m: [Extract or estimate realistic revenue progression]
-   - ebitda_usd_m: [Calculate realistic EBITDA based on industry margins]
-   - financial_years: [Generate appropriate year sequence]
-   - growth_rates: [Calculate from revenue data or estimate]
+   - annual_revenue_usd_m: [Array of numbers - realistic revenue progression over 4-5 years]
+   - ebitda_usd_m: [Array of numbers - realistic EBITDA based on industry margins]
+   - financial_years: [Array of strings - year sequence like ["2021","2022","2023","2024"]]
+   - growth_rates: [Array of strings - growth descriptions like "Revenue CAGR: 25%"]
+   - ebitda_margins: [Array of numbers - margin percentages like [15, 18, 20, 22]]
 
-3. **Management Team** (create realistic profiles):
-   - management_team_profiles: [Generate 4-6 realistic executive profiles with:
-     * Names appropriate to industry/geography
-     * Titles fitting actual company structure
-     * Backgrounds relevant to industry
-     * Experience descriptions matching company context]
+3. **Management Team** (create realistic profiles - EXACT format required):
+   - management_team_profiles: Array of objects with EXACT structure - each object must have:
+     * "name": "Executive Full Name"
+     * "title": "Exact Job Title"  
+     * "background": "Detailed professional background description"
+     * "experience": "Key experience summary"
+     Generate 4-6 executives appropriate to industry with this exact structure
 
-4. **Strategic Buyers** (industry-specific analysis):
-   - strategic_buyers_analysis: [Generate 5-8 realistic potential acquirers:
-     * Companies actually in this industry
-     * Logical acquisition rationale
-     * Industry-appropriate buyer types]
+4. **Competitive Analysis** (EXACT field names for slide renderer):
+   - competitors: Array of objects for chart rendering - each object must have:
+     * "name": "Competitor Company Name"
+     * "revenue": NUMERIC_VALUE (important: must be a number for chart rendering)
+     Include 5-6 competitors with realistic revenue numbers
+   - competitive_advantages: [Array of strings - specific advantages for this industry]
+   - products_services_list: [Array of strings - company's main offerings]
+   - geographic_markets: [Array of strings - markets served]
 
-5. **Financial Buyers** (matching company profile):
-   - financial_buyers_analysis: [Generate 4-6 realistic PE/VC firms:
-     * Funds that actually invest in this sector
-     * Investment thesis matching company stage
-     * Appropriate check sizes for company scale]
+5. **Strategic Buyers** (industry-specific analysis):
+   - strategic_buyers_analysis: Array of objects - each object must have:
+     * "name": "Buyer Company Name"
+     * "rationale": "Why they would acquire this business"  
+     * "type": "Strategic"
 
-6. **Market Analysis** (industry-appropriate):
-   - competitive_advantages: [List 4-6 realistic advantages for this industry]
-   - competitors: [Name actual or realistic competitor types]
-   - market_opportunity: [Describe realistic market dynamics]
+6. **Financial Buyers** (matching company profile):
+   - financial_buyers_analysis: Array of objects - each object must have:
+     * "name": "PE/VC Fund Name"
+     * "rationale": "Investment thesis"
+     * "type": "Financial"
 
-7. **Investment Case** (compelling and realistic):
-   - investment_highlights_detailed: [Create compelling but realistic investment themes]
-   - key_investment_themes: [Professional investment rationale]
-   - transaction_highlights: [Realistic deal structure/process info]
+7. **Investment Highlights** (compelling and realistic):
+   - investment_highlights_detailed: [Array of strings - compelling investment reasons]
+   - key_investment_themes: [Array of strings - main investment themes]
+   - precedent_transactions: [Array of transaction examples]
+   - valuation_methodologies: [Array of valuation approaches like "Comparable Companies", "DCF Analysis"]
+   - growth_initiatives: [Array of growth strategies]
+
+8. **Valuation Data** (for valuation overview slide):
+   - valuation_data: Array of objects for valuation table - each object must have:
+     * "method": "Valuation Method Name"
+     * "low": "X.Xx" (string format like "8.0x")
+     * "high": "X.Xx" (string format like "12.0x")
+     Generate 3-4 realistic valuation methods with multiples
 
 CRITICAL REQUIREMENTS:
 - EVERYTHING must be realistic and industry-appropriate
@@ -253,19 +286,20 @@ JSON Response:"""
                 }
             },
             
-            # Leadership Team Slide Data - ALL from LLM
+            # Leadership Team Slide Data - Properly formatted for renderer
             "leadership_team": {
                 "title": "Management Team",
                 "team_members": enhanced_data.get('management_team_profiles', []),
                 "key_executives": len(enhanced_data.get('management_team_profiles', [])),
                 "leadership_experience": enhanced_data.get('leadership_experience'),
                 "team_structure": enhanced_data.get('team_structure'),
-                "left_column_profiles": enhanced_data.get('management_team_profiles', [])[:3] if enhanced_data.get('management_team_profiles') else [],
-                "right_column_profiles": enhanced_data.get('management_team_profiles', [])[3:] if len(enhanced_data.get('management_team_profiles', [])) > 3 else [],
+                # CRITICAL: Map to exact field names the renderer expects
+                "left_column_profiles": self._format_management_profiles(enhanced_data.get('management_team_profiles', [])[:3]),
+                "right_column_profiles": self._format_management_profiles(enhanced_data.get('management_team_profiles', [])[3:]),
                 "team_highlights": enhanced_data.get('team_highlights', [])
             },
             
-            # Market & Competition Slide Data - ALL from LLM
+            # Market & Competition Slide Data - Properly formatted for renderer
             "market_analysis": {
                 "title": "Competitive Positioning", 
                 "services": enhanced_data.get('products_services_list', []),
@@ -275,6 +309,8 @@ JSON Response:"""
                 "competitive_landscape": enhanced_data.get('competitive_landscape'),
                 "key_differentiators": enhanced_data.get('key_differentiators', []),
                 "market_opportunity": enhanced_data.get('market_opportunity', {}),
+                # CRITICAL: Add competitors field that renderer expects
+                "competitors": enhanced_data.get('competitors', []),
                 "competitive_analysis": {
                     "direct_competitors": enhanced_data.get('competitors', []),
                     "competitive_moat": enhanced_data.get('competitive_moat'),
@@ -308,9 +344,12 @@ JSON Response:"""
             
             "valuation_overview": {
                 "title": "Valuation Overview", 
+                "subtitle": "Implied EV/Post IRFS-16 EBITDA",
                 "methodologies": enhanced_data.get('valuation_methodologies', []),
                 "valuation_range": enhanced_data.get('valuation_range'),
-                "key_metrics": enhanced_data.get('valuation_metrics', {})
+                "key_metrics": enhanced_data.get('valuation_metrics', {}),
+                # CRITICAL: Add valuation_data that renderer expects
+                "valuation_data": enhanced_data.get('valuation_data', [])
             },
             
             "growth_strategy_projections": {
