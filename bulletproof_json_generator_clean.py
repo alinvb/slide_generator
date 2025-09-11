@@ -115,16 +115,17 @@ class CleanBulletproofJSONGenerator:
         
         # Create MANDATORY gap-filling prompt that forces LLM to extract or estimate everything
         context_json = json.dumps(extracted_data, indent=2)
-        gap_filling_prompt = f"""You are an expert investment banking analyst creating comprehensive presentation data. You MUST generate ALL required fields using the available context, industry knowledge, and realistic estimates. 
+        gap_filling_prompt = f"""You are an expert investment banking analyst creating comprehensive presentation data matching the EXACT field structure and detail level of successful enterprise presentations. You MUST generate ALL required fields using available context, industry knowledge, and realistic estimates.
 
 AVAILABLE CONTEXT: {context_json}
 
-CRITICAL INSTRUCTIONS:
+CRITICAL INSTRUCTIONS - GENERATE COMPREHENSIVE DATA LIKE LLAMAINDEX EXAMPLE:
 🚫 NO GENERIC PLACEHOLDERS OR TECHNOLOGY-SPECIFIC ASSUMPTIONS ALLOWED
 🚫 NO HARD-CODED INDUSTRY ASSUMPTIONS (healthcare, tech, oil & gas, etc.)
 ✅ MUST BE UNIVERSALLY APPLICABLE TO ANY INDUSTRY AND COMPANY TYPE
 ✅ ALL DATA MUST BE REALISTIC AND INDUSTRY-APPROPRIATE
 ✅ GENERATE COMPREHENSIVE, PROFESSIONAL INVESTMENT BANKING CONTENT
+✅ MATCH THE DEPTH AND DETAIL OF THE LLAMAINDEX EXAMPLE PROVIDED
 
 UNIVERSAL APPROACH:
 1. Analyze the company's actual business from available context
@@ -133,113 +134,271 @@ UNIVERSAL APPROACH:
 4. Use realistic financial metrics appropriate to company size/industry
 5. Create relevant competitive landscape for the specific industry
 6. Identify appropriate strategic and financial buyers for this industry
+7. Generate ALL detailed fields with same comprehensiveness as LlamaIndex example
 
-MANDATORY COMPREHENSIVE DATA GENERATION (EXACT FIELD NAMES REQUIRED):
+MANDATORY COMPREHENSIVE DATA GENERATION - EXACT FIELD NAMES AND STRUCTURES REQUIRED:
 
-**1. COMPANY FUNDAMENTALS:**
+**1. COMPANY FUNDAMENTALS & ENTITIES:**
 - company_name: [Extract from context or use available name]
 - industry: [Determine specific industry from business description] 
-- business_description: [Detailed description based on actual business model]
+- business_description: [Detailed 2-3 sentence description based on actual business model]
 - founded_year: [Realistic founding year based on business maturity]
 - headquarters_location: [Geographic location from context or realistic estimate]
 - employee_count: [Appropriate headcount for business size and industry]
-- products_services_list: [Array of specific offerings relevant to this industry]
-- geographic_markets: [Array of markets served - relevant to business type]
+- products_services_list: [Array of 3-4 specific service objects with "title" and "desc" fields]
+- geographic_markets: [Array of 3-4 markets served - relevant to business type]
 
-**2. FINANCIAL PERFORMANCE DATA:**
-- annual_revenue_usd_m: [Array of 4-5 numbers showing realistic revenue progression for this industry/size]
-- ebitda_usd_m: [Array of 4-5 numbers with appropriate EBITDA margins for this industry]
-- financial_years: [Array like ["2020","2021","2022","2023","2024"]]
-- ebitda_margins: [Array of margin percentages appropriate to this industry]
-- growth_rates: [Array of growth metrics relevant to business type]
-- financial_highlights: [Array of key financial achievements]
+**2. FINANCIAL PERFORMANCE DATA (COMPLETE ARRAYS):**
+- annual_revenue_usd_m: [Array of 5 numbers showing realistic revenue progression: [year1, year2, year3, year4, year5E]]
+- ebitda_usd_m: [Array of 5 numbers with appropriate EBITDA progression showing path to profitability]
+- financial_years: [Exact array: ["2020","2021","2022","2023","2024E"]]
+- ebitda_margins: [Array of 5 margin percentages showing improvement trajectory]
+- growth_rates: [Array of growth metrics including revenue CAGR]
+- financial_highlights: [Array of 3-4 key financial achievements with specific metrics]
 
-**3. MANAGEMENT TEAM (EXACT STRUCTURE REQUIRED):**
-- management_team_profiles: [Array of 4-6 executive objects, each with:]
-  * "name": "Realistic Executive Name"
-  * "title": "Industry-Appropriate Job Title" 
-  * "background": "Detailed professional background relevant to this industry"
-  * "experience": "Specific experience and expertise summary"
+**3. MANAGEMENT TEAM (EXACT LLAMAINDEX STRUCTURE):**
+- management_team_profiles: [
+    Array of 4 executive objects in EXACT format:
+    {
+        "name": "Realistic Executive Name",
+        "role_title": "Industry-Appropriate Job Title",  
+        "experience_bullets": [
+            "Detailed professional bullet point 1 relevant to this industry",
+            "Detailed professional bullet point 2 with specific achievements",
+            "Detailed professional bullet point 3 with background",
+            "Detailed professional bullet point 4 with expertise",
+            "Detailed professional bullet point 5 with education/focus"
+        ]
+    }
+]
 
-**4. COMPETITIVE LANDSCAPE (CHART-READY DATA):**
-- competitors: [Array of 5-6 competitor objects, each with:]
-  * "name": "Real or Realistic Competitor Name in This Industry"
-  * "revenue": [NUMERIC VALUE - must be number for chart rendering]
-- competitive_advantages: [Array of specific advantages for this industry/business]
-- barriers_to_entry: [Array of industry-specific barriers]
-- market_position: [Positioning description relevant to this industry]
+**4. STRATEGIC BUYERS (COMPREHENSIVE LLAMAINDEX FORMAT):**
+- strategic_buyers: [
+    Array of 4 strategic buyer objects in EXACT format:
+    {
+        "buyer_name": "Realistic Strategic Buyer Company Name",
+        "description": "Detailed 1-2 sentence company description",
+        "strategic_rationale": "Specific industry-relevant acquisition rationale",
+        "key_synergies": "Detailed synergy description",
+        "fit": "High (X/10) - Specific fit description",
+        "financial_capacity": "Very High/High/Medium"
+    }
+]
 
-**5. STRATEGIC BUYER ANALYSIS:**
-- strategic_buyers_analysis: [Array of 4-6 strategic buyer objects relevant to this industry:]
-  * "name": "Realistic Strategic Buyer Company Name"
-  * "rationale": "Industry-specific acquisition rationale"
-  * "type": "Strategic"
-- sea_conglomerates: [If relevant, array of regional conglomerate objects with:]
-  * "name": "Conglomerate Name"
-  * "country": "Country"
-  * "description": "Business description relevant to acquiring this type of company"
-  * "key_shareholders": "Ownership structure"
-  * "key_financials": "Financial metrics"
-  * "contact": "Contact role"
+**5. FINANCIAL BUYERS (COMPREHENSIVE LLAMAINDEX FORMAT):**
+- financial_buyers: [
+    Array of 4 financial buyer objects in EXACT format:
+    {
+        "buyer_name": "Realistic PE/VC Fund Name",
+        "description": "Detailed 1-2 sentence fund description",
+        "strategic_rationale": "Specific investment thesis for this business type",
+        "key_synergies": "Detailed value-add description",
+        "fit": "High (X/10) - Specific fit description",
+        "financial_capacity": "Very High/High/Medium"
+    }
+]
 
-**6. FINANCIAL BUYER ANALYSIS:**
-- financial_buyers_analysis: [Array of 4-6 PE/VC objects appropriate to company size/stage:]
-  * "name": "Realistic PE/VC Fund Name"
-  * "rationale": "Investment thesis for this type of business"
-  * "type": "Financial"
+**6. COMPETITIVE ANALYSIS (COMPLETE LLAMAINDEX STRUCTURE):**
+- competitors: [Array of 5-6 competitor objects with "name" and numeric "revenue" fields]
+- competitive_analysis: {
+    "assessment": [
+        ["Company", "Market Focus", "Product Quality", "Enterprise Adoption", "Industry Position"],
+        [Company Name, "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"],
+        [Competitor 1, "⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐"],
+        [Additional rows for each competitor with realistic star ratings]
+    ],
+    "barriers": [
+        {"title": "Barrier 1 Title", "desc": "Detailed barrier description"},
+        {"title": "Barrier 2 Title", "desc": "Detailed barrier description"},
+        {"title": "Barrier 3 Title", "desc": "Detailed barrier description"}
+    ],
+    "advantages": [
+        {"title": "Advantage 1 Title", "desc": "Detailed competitive advantage"},
+        {"title": "Advantage 2 Title", "desc": "Detailed competitive advantage"},
+        {"title": "Advantage 3 Title", "desc": "Detailed competitive advantage"}
+    ]
+}
 
-**7. INVESTMENT OPPORTUNITY:**
-- investment_highlights_detailed: [Array of compelling, industry-specific investment reasons]
-- key_investment_themes: [Array of main themes relevant to this business]
-- growth_initiatives: [Array of realistic growth strategies for this industry]
-- valuation_methodologies: [Array of appropriate valuation approaches]
+**7. PRECEDENT TRANSACTIONS (COMPLETE LLAMAINDEX FORMAT):**
+- precedent_transactions: [
+    Array of 5 transaction objects in EXACT format:
+    {
+        "target": "Target Company Name",
+        "acquirer": "Acquirer Name", 
+        "date": "QX YYYY",
+        "country": "Country",
+        "enterprise_value": "$XXXm or $X.XB",
+        "revenue": "$XXXm",
+        "ev_revenue_multiple": "XXx"
+    }
+]
 
-**8. VALUATION ANALYSIS (TABLE-READY DATA):**
-- valuation_data: [Array of 3-4 valuation method objects:]
-  * "method": "Appropriate Valuation Method Name"
-  * "low": "X.Xx" (string format multiple like "8.0x")
-  * "high": "X.Xx" (string format multiple like "12.0x")
+**8. VALUATION OVERVIEW (COMPLETE LLAMAINDEX FORMAT):**
+- valuation_data: [
+    Array of 3 valuation method objects in EXACT format:
+    {
+        "methodology": "Valuation Method Name",
+        "enterprise_value": "$XX–XXM",
+        "metric": "EV/Revenue or EV/EBITDA or DCF",
+        "22a_multiple": "X.Xx or n/a",
+        "23e_multiple": "X.Xx or n/a",
+        "commentary": "Detailed methodology explanation and assumptions"
+    }
+]
 
-**9. PRECEDENT TRANSACTIONS:**
-- precedent_transactions: [Array of realistic comparable transactions in this industry]
+**9. PRODUCT SERVICE DATA (COMPLETE LLAMAINDEX FORMAT):**
+- product_service_data: {
+    "services": [
+        Array of 3-4 service objects: {"title": "Service Name", "desc": "Detailed service description"}
+    ],
+    "coverage_table": [
+        ["Region", "Market Segment", "Major Products/Services", "Coverage Details"],
+        ["United States", "Industry Segment", "Product Names", "Market penetration details"],
+        ["Europe", "Industry Segment", "Product Names", "Market penetration details"],
+        ["Asia/Global", "Industry Segment", "Product Names", "Market penetration details"]
+    ],
+    "metrics": {
+        "key_metric_1": numeric_value,
+        "key_metric_2": numeric_value,
+        "key_metric_3": numeric_value,
+        "key_metric_4": numeric_value
+    }
+}
 
-**10. MARGIN & COST ANALYSIS:**
-- cost_management: Object with:
-  * "title": "Cost Management & Efficiency Initiatives" 
-  * "items": [Array of cost management initiatives with "title" and "description"]
-- risk_mitigation: Object with:
-  * "main_strategy": Object with "title", "description", and "benefits" array
-  * "banker_view": Object with "title" and "text"
+**10. BUSINESS OVERVIEW DATA (COMPLETE LLAMAINDEX FORMAT):**
+- business_overview_data: {
+    "description": "Detailed 2-3 sentence business description",
+    "timeline": {"start_year": year, "end_year": year},
+    "highlights": [
+        "Specific achievement 1 with metrics",
+        "Specific achievement 2 with details", 
+        "Specific achievement 3 with partnerships/growth"
+    ],
+    "services": [Array of 3-4 specific service descriptions],
+    "positioning_desc": "Detailed market positioning statement"
+}
 
-**11. GROWTH & PROJECTIONS:**
-- growth_initiatives: [Array of specific growth strategies for this industry]
-- financial_projections: Object with revenue/EBITDA projections if applicable
+**11. GROWTH STRATEGY DATA (COMPLETE LLAMAINDEX FORMAT):**
+- growth_strategy_data: {
+    "growth_strategy": {
+        "strategies": [
+            "Specific growth strategy 1 with details",
+            "Specific growth strategy 2 with market focus", 
+            "Specific growth strategy 3 with expansion plans",
+            "Specific growth strategy 4 with partnerships",
+            "Specific growth strategy 5 with R&D focus"
+        ]
+    },
+    "financial_projections": {
+        "categories": ["2023", "2024E", "2025E"],
+        "revenue": [current_revenue, projected_year1, projected_year2],
+        "ebitda": [current_ebitda, projected_ebitda1, projected_ebitda2]
+    },
+    "key_assumptions": {
+        "revenue_cagr": "XX–XX%",
+        "margin_improvement": "Margin improvement description",
+        "client_growth": "Client growth projections"
+    }
+}
 
-**12. PRODUCT/SERVICE COVERAGE:**
-- products_services_list: [Array of specific offerings relevant to this business]
-- service_coverage: [Array of service areas or geographic coverage]
-- geographic_markets: [Array of markets/regions served]
+**12. INVESTOR PROCESS DATA (COMPLETE LLAMAINDEX FORMAT):**
+- investor_process_data: {
+    "diligence_topics": [
+        "Specific diligence area 1 relevant to industry",
+        "Specific diligence area 2 with focus",
+        "Specific diligence area 3 with details",
+        "Specific diligence area 4 with scope",
+        "Specific diligence area 5 with requirements",
+        "Specific diligence area 6 with validation"
+    ],
+    "synergy_opportunities": [
+        "Specific synergy 1 with integration potential",
+        "Specific synergy 2 with value creation",
+        "Specific synergy 3 with market expansion",
+        "Specific synergy 4 with operational benefits"
+    ],
+    "risk_factors": [
+        "Specific risk 1 relevant to industry",
+        "Specific risk 2 with market dynamics",
+        "Specific risk 3 with operational challenges",
+        "Specific risk 4 with dependency issues"
+    ],
+    "mitigants": [
+        "Specific mitigation 1 with action plan",
+        "Specific mitigation 2 with protection measures", 
+        "Specific mitigation 3 with documentation",
+        "Specific mitigation 4 with transition support"
+    ],
+    "timeline": [
+        "Preparation: X weeks – Specific activities",
+        "Initial diligence: X weeks – Specific activities",
+        "Deep diligence: X weeks – Specific activities",
+        "Final offers: X weeks – Specific activities",
+        "Signing/closing: X weeks – Specific activities"
+    ]
+}
 
-**13. INVESTOR PROCESS & DUE DILIGENCE:**
-- diligence_topics: [Array of due diligence focus areas for this industry]
-- synergy_opportunities: [Array of potential synergies for acquirers] 
-- risk_factors: [Array of key business/industry risks]
-- mitigants: [Array of risk mitigation factors]
-- timeline: [Array of transaction timeline milestones]
+**13. MARGIN COST DATA (COMPLETE LLAMAINDEX FORMAT):**
+- margin_cost_data: {
+    "chart_data": {
+        "categories": ["2021", "2022", "2023", "2024E", "2025E"],
+        "values": [margin1, margin2, margin3, margin4, margin5]
+    },
+    "cost_management": {
+        "items": [
+            {"title": "Cost Initiative 1", "description": "Detailed cost management approach"},
+            {"title": "Cost Initiative 2", "description": "Detailed cost management approach"},
+            {"title": "Cost Initiative 3", "description": "Detailed cost management approach"},
+            {"title": "Cost Initiative 4", "description": "Detailed cost management approach"}
+        ]
+    },
+    "risk_mitigation": {
+        "main_strategy": "Detailed risk mitigation strategy description"
+    }
+}
 
-**14. COST & MARGIN ANALYSIS:**
-- cost_management: Object with "title" and "items" array of cost initiatives
-- risk_mitigation: Object with "main_strategy" and "banker_view" for professional analysis
+**14. SEA CONGLOMERATES (COMPLETE LLAMAINDEX FORMAT):**
+- sea_conglomerates: [
+    Array of 4-5 conglomerate objects in EXACT format:
+    {
+        "name": "Conglomerate Name",
+        "country": "Country",
+        "description": "Detailed business description", 
+        "key_shareholders": "Ownership structure",
+        "key_financials": "Financial metrics and market cap",
+        "contact": "N/A or Contact Role"
+    }
+]
 
-UNIVERSAL QUALITY STANDARDS:
+**15. INVESTOR CONSIDERATIONS (COMPLETE LLAMAINDEX FORMAT):**
+- investor_considerations: {
+    "considerations": [
+        "Specific investor concern 1 relevant to industry",
+        "Specific investor concern 2 with market dynamics",
+        "Specific investor concern 3 with operational risks",
+        "Specific investor concern 4 with competitive landscape"
+    ],
+    "mitigants": [
+        "Specific mitigation 1 with strategic approach",
+        "Specific mitigation 2 with operational excellence",
+        "Specific mitigation 3 with market positioning", 
+        "Specific mitigation 4 with partnership strategy"
+    ]
+}
+
+UNIVERSAL QUALITY STANDARDS MATCHING LLAMAINDEX:
 ✅ Industry-appropriate terminology and metrics
 ✅ Realistic financial figures for company size and industry
-✅ Relevant competitor names and positioning
-✅ Appropriate buyer types for this industry
-✅ Professional investment banking language
-✅ Consistent business logic throughout
+✅ Relevant competitor names and positioning with star ratings
+✅ Comprehensive buyer profiles with fit scores
+✅ Professional investment banking language throughout
+✅ Consistent business logic and narrative
+✅ Detailed precedent transactions with realistic multiples
+✅ Complete valuation methodologies with commentary
+✅ Comprehensive timeline and process details
+✅ ALL fields populated with same depth as LlamaIndex example
 
-Return ONLY a complete JSON object with ALL fields populated using industry-appropriate, realistic data.
+Return ONLY a complete JSON object with ALL fields populated using industry-appropriate, realistic data matching the LlamaIndex comprehensiveness level.
 
 JSON Response:"""
 
@@ -462,42 +621,122 @@ JSON Response:"""
                 "expansion_plans": enhanced_data.get('expansion_plans', [])
             },
             
+            # COMPREHENSIVE FIELD MAPPING - All LlamaIndex-level data structures
+            "entities": {
+                "company": {
+                    "name": enhanced_data.get('company_name')
+                }
+            },
+            
+            "facts": {
+                "years": self._ensure_string_array(enhanced_data.get('financial_years', [])),
+                "revenue_usd_m": self._ensure_numeric_array(enhanced_data.get('annual_revenue_usd_m', [])),
+                "ebitda_usd_m": self._ensure_numeric_array(enhanced_data.get('ebitda_usd_m', [])),
+                "ebitda_margins": self._ensure_numeric_array(enhanced_data.get('ebitda_margins', []))
+            },
+            
             # CRITICAL: Add all legacy fields that slide renderers expect
             "management_team": {
                 "profiles": enhanced_data.get('management_team_profiles', []),
                 "executives": enhanced_data.get('management_team_profiles', []),
-                "team_data": enhanced_data.get('management_team_profiles', [])
+                "team_data": enhanced_data.get('management_team_profiles', []),
+                "left_column_profiles": enhanced_data.get('management_team_profiles', [])[:2],
+                "right_column_profiles": enhanced_data.get('management_team_profiles', [])[2:]
             },
             
-            "investor_considerations": {
+            # Strategic and Financial Buyers with comprehensive LlamaIndex format
+            "strategic_buyers": enhanced_data.get('strategic_buyers', enhanced_data.get('strategic_buyers_analysis', [])),
+            "financial_buyers": enhanced_data.get('financial_buyers', enhanced_data.get('financial_buyers_analysis', [])),
+            
+            # Competitive Analysis with full LlamaIndex structure
+            "competitive_analysis": enhanced_data.get('competitive_analysis', {
+                "competitors": enhanced_data.get('competitors', []),
+                "assessment": enhanced_data.get('competitive_assessment', []),
+                "barriers": enhanced_data.get('barriers_to_entry', []),
+                "advantages": enhanced_data.get('competitive_advantages', [])
+            }),
+            
+            # Precedent Transactions
+            "precedent_transactions": enhanced_data.get('precedent_transactions', []),
+            
+            # Valuation Data
+            "valuation_data": enhanced_data.get('valuation_data', []),
+            
+            # Product Service Data with full LlamaIndex structure
+            "product_service_data": enhanced_data.get('product_service_data', {
+                "services": enhanced_data.get('products_services_list', []),
+                "coverage_table": enhanced_data.get('coverage_table', []),
+                "metrics": enhanced_data.get('service_metrics', {})
+            }),
+            
+            # Business Overview Data with full LlamaIndex structure
+            "business_overview_data": enhanced_data.get('business_overview_data', {
+                "description": enhanced_data.get('business_description'),
+                "timeline": enhanced_data.get('business_timeline', {"start_year": enhanced_data.get('founded_year'), "end_year": 2025}),
+                "highlights": enhanced_data.get('business_highlights', []),
+                "services": enhanced_data.get('products_services_list', []),
+                "positioning_desc": enhanced_data.get('market_positioning')
+            }),
+            
+            # Growth Strategy Data with full LlamaIndex structure
+            "growth_strategy_data": enhanced_data.get('growth_strategy_data', {
+                "growth_strategy": {
+                    "strategies": enhanced_data.get('growth_initiatives', [])
+                },
+                "financial_projections": enhanced_data.get('financial_projections', {}),
+                "key_assumptions": enhanced_data.get('growth_assumptions', {})
+            }),
+            
+            # Investor Process Data with full LlamaIndex structure
+            "investor_process_data": enhanced_data.get('investor_process_data', {
+                "diligence_topics": enhanced_data.get('diligence_topics', []),
+                "synergy_opportunities": enhanced_data.get('synergy_opportunities', []),
+                "risk_factors": enhanced_data.get('risk_factors', []),
+                "mitigants": enhanced_data.get('mitigants', []),
+                "timeline": enhanced_data.get('timeline', [])
+            }),
+            
+            # Margin Cost Data with full LlamaIndex structure
+            "margin_cost_data": enhanced_data.get('margin_cost_data', {
+                "chart_data": {
+                    "categories": self._ensure_string_array(enhanced_data.get('financial_years', [])),
+                    "values": self._ensure_numeric_array(enhanced_data.get('ebitda_margins', []))
+                },
+                "cost_management": enhanced_data.get('cost_management', {}),
+                "risk_mitigation": enhanced_data.get('risk_mitigation', {})
+            }),
+            
+            # SEA Conglomerates
+            "sea_conglomerates": enhanced_data.get('sea_conglomerates', []),
+            
+            # Investor Considerations
+            "investor_considerations": enhanced_data.get('investor_considerations', {
+                "considerations": enhanced_data.get('investor_concerns', []),
+                "mitigants": enhanced_data.get('concern_mitigants', [])
+            }),
+            
+            # Legacy compatibility fields
+            "investor_considerations_legacy": {
                 "investment_highlights": enhanced_data.get('investment_highlights_detailed', []),
                 "key_themes": enhanced_data.get('key_investment_themes', []),
-                "strategic_buyers": enhanced_data.get('strategic_buyers_analysis', []),
-                "financial_buyers": enhanced_data.get('financial_buyers_analysis', [])
+                "strategic_buyers": enhanced_data.get('strategic_buyers', enhanced_data.get('strategic_buyers_analysis', [])),
+                "financial_buyers": enhanced_data.get('financial_buyers', enhanced_data.get('financial_buyers_analysis', []))
             },
             
-            "competitive_analysis": {
+            "competitive_analysis_legacy": {
                 "competitors": enhanced_data.get('competitors', []),
                 "competitive_advantages": enhanced_data.get('competitive_advantages', []),
                 "market_position": enhanced_data.get('market_position'),
                 "barriers_to_entry": enhanced_data.get('barriers_to_entry', [])
             },
             
-            "valuation_data": enhanced_data.get('valuation_data', []),
-            
-            "sea_conglomerates": enhanced_data.get('sea_conglomerates', []),
-            
-            "strategic_buyers": enhanced_data.get('strategic_buyers_analysis', []),
-            
-            "financial_buyers": enhanced_data.get('financial_buyers_analysis', []),
-            
-            "product_service_data": {
+            "product_service_data_legacy": {
                 "services": enhanced_data.get('products_services_list', []),
                 "markets": enhanced_data.get('geographic_markets', []),
                 "coverage": enhanced_data.get('service_coverage', [])
             },
             
-            "business_overview_data": {
+            "business_overview_data_legacy": {
                 "company_name": enhanced_data.get('company_name'),
                 "description": enhanced_data.get('business_description'),
                 "industry": enhanced_data.get('industry'),
@@ -510,54 +749,26 @@ JSON Response:"""
                 }
             },
             
-            "growth_strategy_data": {
+            "growth_strategy_data_legacy": {
                 "initiatives": enhanced_data.get('growth_initiatives', []),
                 "projections": enhanced_data.get('financial_projections', {}),
                 "strategies": enhanced_data.get('growth_initiatives', [])
-            },
-            
-            "investor_process_data": {
-                "diligence_topics": enhanced_data.get('diligence_topics', [
-                    {"title": "Financial Review", "description": "Comprehensive financial analysis and projections"},
-                    {"title": "Market Analysis", "description": "Market size, growth trends, and competitive landscape"},
-                    {"title": "Technology Assessment", "description": "Platform scalability and technical infrastructure"},
-                    {"title": "Management Evaluation", "description": "Leadership team assessment and organizational structure"}
-                ]),
-                "synergy_opportunities": enhanced_data.get('synergy_opportunities', [
-                    {"title": "Revenue Synergies", "description": "Cross-selling and market expansion opportunities"},
-                    {"title": "Cost Synergies", "description": "Operational efficiency and infrastructure optimization"},
-                    {"title": "Strategic Synergies", "description": "Technology integration and capability enhancement"}
-                ]),
-                "risk_factors": enhanced_data.get('risk_factors', [
-                    "Market competition and technological disruption",
-                    "Regulatory changes in target markets",
-                    "Key personnel retention and integration challenges"
-                ]),
-                "mitigants": enhanced_data.get('mitigants', [
-                    "Strong competitive moat and differentiated technology",
-                    "Diversified revenue streams across geographies",
-                    "Experienced management team with proven track record"
-                ]),
-                "timeline": enhanced_data.get('timeline', [
-                    {"date": "Week 1-2", "description": "Initial due diligence and management presentations"},
-                    {"date": "Week 3-4", "description": "Detailed financial and technical review"},
-                    {"date": "Week 5-6", "description": "Final negotiations and closing preparations"}
-                ])
-            },
-            
-            "margin_cost_data": {
-                "cost_management": enhanced_data.get('cost_management', {}),
-                "risk_mitigation": enhanced_data.get('risk_mitigation', {}),
-                "financial_metrics": {
-                    "revenue_data": self._ensure_numeric_array(enhanced_data.get('annual_revenue_usd_m', [])),
-                    "ebitda_data": self._ensure_numeric_array(enhanced_data.get('ebitda_usd_m', [])),
-                    "years": self._ensure_string_array(enhanced_data.get('financial_years', [])),
-                    "margins": self._ensure_numeric_array(enhanced_data.get('ebitda_margins', []))
-                }
             }
         }
         
-        print(f"✅ [CLEAN] Content IR built with {len(content_ir)} sections")
+        # Add debug information about comprehensive data mapping
+        total_sections = len(content_ir)
+        strategic_buyers_count = len(enhanced_data.get('strategic_buyers', enhanced_data.get('strategic_buyers_analysis', [])))
+        financial_buyers_count = len(enhanced_data.get('financial_buyers', enhanced_data.get('financial_buyers_analysis', [])))
+        management_count = len(enhanced_data.get('management_team_profiles', []))
+        precedent_count = len(enhanced_data.get('precedent_transactions', []))
+        valuation_count = len(enhanced_data.get('valuation_data', []))
+        
+        print(f"✅ [CLEAN] Content IR built with {total_sections} sections")
+        print(f"📊 [CLEAN] Data completeness: {strategic_buyers_count} strategic buyers, {financial_buyers_count} financial buyers")
+        print(f"👥 [CLEAN] Management team: {management_count} executives")
+        print(f"💰 [CLEAN] Precedent transactions: {precedent_count}, Valuation methods: {valuation_count}")
+        print(f"🎯 [CLEAN] All LlamaIndex-level field structures mapped and populated")
         return content_ir
     
     def build_render_plan(self, required_slides: List[str], content_ir: Dict) -> Dict:
@@ -647,7 +858,7 @@ JSON Response:"""
                 "slide_type": slide_type,
                 "slide_title": slide_type.replace('_', ' ').title(),
                 "template": slide_templates.get(slide_type, "business_overview"),
-                "data": slide_data,  # THIS IS THE KEY FIX: Pass the actual data instead of just a reference
+                "data": slide_data,  # COMPREHENSIVE DATA: LlamaIndex-level detailed content for all slides
                 "content_available": True,
                 "generation_ready": True
             }

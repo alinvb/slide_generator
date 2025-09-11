@@ -7007,10 +7007,6 @@ with tab_extract:
             """)
     
     st.markdown("---")
-        st.error(f"❌ File upload error: {str(e)}")
-        st.info("📁 Using default styling due to upload error")
-    
-    st.markdown("---")
     st.markdown("---")
     
     # Show current branding status
