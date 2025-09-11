@@ -7126,6 +7126,189 @@ with tab_extract:
             """)
     
     st.markdown("---")
+    
+    # Manual Brand Configuration Section
+    st.markdown("### 🎨 Manual Brand Configuration")
+    st.info("💡 **Alternative to file upload:** Enter your brand colors and font manually for precise control")
+    
+    # Toggle for manual brand configuration
+    use_manual_brand = st.checkbox("🎯 Use Manual Brand Settings", 
+                                  key="use_manual_brand",
+                                  help="Enable this to manually configure colors and fonts instead of uploading a file")
+    
+    if use_manual_brand:
+        st.markdown("#### 🌈 Brand Colors")
+        st.markdown("Enter HEX codes for your brand colors (e.g., #1A5B88, #B5975B)")
+        
+        # Create columns for color inputs
+        color_cols = st.columns(4)
+        
+        # Define the color roles and their descriptions
+        color_roles = [
+            ("primary", "Primary", "Main brand color (headers, buttons)", "#1A5B88"),
+            ("secondary", "Secondary", "Secondary brand color (accents)", "#B5975B"), 
+            ("accent", "Accent", "Accent color (highlights, borders)", "#404040"),
+            ("text", "Text", "Main text color", "#404040")
+        ]
+        
+        manual_colors = {}
+        
+        for idx, (role, label, description, default) in enumerate(color_roles):
+            with color_cols[idx]:
+                # Color input with validation
+                color_input = st.text_input(
+                    f"**{label}**",
+                    value=st.session_state.get(f'manual_color_{role}', default),
+                    key=f"manual_color_{role}",
+                    help=description,
+                    placeholder="#RRGGBB"
+                )
+                
+                # Validate HEX code
+                if color_input:
+                    # Clean the input
+                    clean_color = color_input.strip()
+                    if not clean_color.startswith('#'):
+                        clean_color = '#' + clean_color
+                    
+                    # Validate HEX format
+                    import re
+                    if re.match(r'^#[0-9A-Fa-f]{6}$', clean_color):
+                        manual_colors[role] = clean_color
+                        # Show color preview
+                        st.markdown(f"""
+                        <div style="background-color: {clean_color}; height: 30px; border-radius: 3px; border: 1px solid #ddd; margin-top: 5px;"></div>
+                        <small style="color: #666;">{clean_color.upper()}</small>
+                        """, unsafe_allow_html=True)
+                    else:
+                        st.error(f"❌ Invalid HEX code")
+                        manual_colors[role] = default
+        
+        st.markdown("#### 🔤 Typography Settings")
+        
+        # Font selection and sizing
+        font_cols = st.columns(3)
+        
+        with font_cols[0]:
+            # Font family selection
+            font_options = [
+                "Arial", "Helvetica", "Times New Roman", "Calibri", 
+                "Segoe UI", "Georgia", "Verdana", "Tahoma", "Open Sans",
+                "Roboto", "Lato", "Montserrat", "Source Sans Pro"
+            ]
+            
+            selected_font = st.selectbox(
+                "**Primary Font**",
+                options=font_options,
+                index=font_options.index(st.session_state.get('manual_primary_font', 'Arial')),
+                key="manual_primary_font",
+                help="Font family for all text in slides"
+            )
+        
+        with font_cols[1]:
+            # Title font size
+            title_size = st.number_input(
+                "**Title Size (pt)**",
+                min_value=16,
+                max_value=48,
+                value=st.session_state.get('manual_title_size', 24),
+                key="manual_title_size",
+                help="Font size for slide titles"
+            )
+        
+        with font_cols[2]:
+            # Body font size
+            body_size = st.number_input(
+                "**Body Size (pt)**",
+                min_value=8,
+                max_value=20,
+                value=st.session_state.get('manual_body_size', 11),
+                key="manual_body_size",
+                help="Font size for body text"
+            )
+        
+        # Preview section
+        if manual_colors:
+            st.markdown("#### 🔍 Brand Preview")
+            
+            # Show all colors in a row
+            preview_cols = st.columns(4)
+            for idx, (role, label, _, _) in enumerate(color_roles):
+                with preview_cols[idx]:
+                    color = manual_colors.get(role, "#404040")
+                    st.markdown(f"""
+                    <div style="text-align: center;">
+                        <div style="background-color: {color}; height: 50px; border-radius: 5px; border: 1px solid #ddd; margin-bottom: 5px;"></div>
+                        <strong>{label}</strong><br>
+                        <small>{color}</small>
+                    </div>
+                    """, unsafe_allow_html=True)
+            
+            # Typography preview
+            st.markdown(f"""
+            **🔤 Typography Preview:**
+            - **Font Family:** {selected_font}
+            - **Title Size:** {title_size}pt  
+            - **Body Size:** {body_size}pt
+            """)
+            
+            # Save manual brand configuration
+            if st.button("💾 Save Manual Brand Settings", key="save_manual_brand"):
+                # Convert manual settings to brand config format
+                from pptx.dml.color import RGBColor
+                from pptx.util import Pt
+                
+                # Convert HEX to RGB
+                def hex_to_rgb(hex_color):
+                    hex_color = hex_color.lstrip('#')
+                    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+                
+                manual_brand_config = {
+                    'color_scheme': {},
+                    'typography': {
+                        'primary_font': selected_font,
+                        'title_size': title_size,
+                        'header_size': max(14, int(title_size * 0.6)),
+                        'body_size': body_size,
+                        'small_size': max(8, int(body_size * 0.8))
+                    },
+                    'header_style': {
+                        'type': 'line',
+                        'height': 0.05,
+                        'color': 'primary',
+                        'has_logo': False
+                    },
+                    'layout_config': {
+                        'title_alignment': 'left',
+                        'header_type': 'manual'
+                    },
+                    'source': 'manual_configuration'
+                }
+                
+                # Add colors with proper RGBColor objects
+                for role, hex_color in manual_colors.items():
+                    r, g, b = hex_to_rgb(hex_color)
+                    manual_brand_config['color_scheme'][role] = RGBColor(r, g, b)
+                
+                # Add additional required colors
+                manual_brand_config['color_scheme']['background'] = RGBColor(255, 255, 255)
+                manual_brand_config['color_scheme']['light_grey'] = RGBColor(240, 240, 240) 
+                manual_brand_config['color_scheme']['footer_grey'] = RGBColor(128, 128, 128)
+                
+                # Store in session state
+                st.session_state['manual_brand_config'] = manual_brand_config
+                
+                st.success("✅ **Manual brand settings saved!** These will be applied when generating presentations.")
+                
+                # Show confirmation
+                with st.expander("📋 Saved Configuration", expanded=False):
+                    st.json({
+                        'colors': {role: hex_color for role, hex_color in manual_colors.items()},
+                        'font': selected_font,
+                        'title_size': f"{title_size}pt",
+                        'body_size': f"{body_size}pt"
+                    })
+    
     st.markdown("---")
     
     # Show current branding status
@@ -7143,11 +7326,35 @@ with tab_extract:
     else:
         st.warning("⚠️ No company name set for branding")
     
-    # Brand deck status
-    if st.session_state.get( 'uploaded_brand_file'):
+    # Brand configuration status
+    manual_brand = st.session_state.get('manual_brand_config')
+    uploaded_brand = st.session_state.get('uploaded_brand_file')
+    use_manual = st.session_state.get('use_manual_brand', False)
+    
+    if use_manual and manual_brand:
+        st.success("🎨 **Brand Settings:** Manual configuration active")
+        # Show a summary of manual settings
+        colors = manual_brand.get('color_scheme', {})
+        typography = manual_brand.get('typography', {})
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if colors:
+                primary = colors.get('primary')
+                if hasattr(primary, 'r'):
+                    hex_color = f"#{primary.r:02x}{primary.g:02x}{primary.b:02x}"
+                    st.markdown(f"🎨 **Primary Color:** {hex_color}")
+        
+        with col2:
+            font = typography.get('primary_font', 'Arial')
+            st.markdown(f"🔤 **Font:** {font}")
+            
+    elif uploaded_brand:
         st.success("🎨 **Brand Deck:** Uploaded and ready")
+        if use_manual:
+            st.info("💡 Manual settings will override uploaded file")
     else:
-        st.info("📁 **Brand Deck:** Using default styling")
+        st.info("📁 **Brand Settings:** Using default styling")
     
     st.markdown("---")
     st.markdown("### 📋 **Next Steps**")
@@ -7406,10 +7613,41 @@ with tab_execute:
                         "output_format": output_format
                     }
                     
-                    # Extract brand configuration from uploaded file if available
+                    # Determine brand configuration priority: Manual > Uploaded > Default
                     brand_config = None
+                    use_manual_brand = st.session_state.get('use_manual_brand', False)
+                    manual_brand_config = st.session_state.get('manual_brand_config')
                     uploaded_brand_file = st.session_state.get('uploaded_brand_file')
-                    if uploaded_brand_file:
+                    
+                    # Priority 1: Manual brand configuration
+                    if use_manual_brand and manual_brand_config:
+                        brand_config = manual_brand_config
+                        st.info("🎯 **Using manual brand configuration**")
+                        print(f"🎯 [BRAND DEBUG] Using manual brand configuration")
+                        
+                        # Show manual brand summary
+                        colors = manual_brand_config.get('color_scheme', {})
+                        typography = manual_brand_config.get('typography', {})
+                        
+                        if colors:
+                            st.markdown("### 🎨 Manual Brand Colors Applied")
+                            manual_color_cols = st.columns(4)
+                            for idx, (name, color) in enumerate(list(colors.items())[:4]):
+                                if hasattr(color, 'r') and idx < 4:
+                                    with manual_color_cols[idx]:
+                                        hex_color = f"#{color.r:02x}{color.g:02x}{color.b:02x}"
+                                        st.markdown(f"""
+                                        <div style="background-color: {hex_color}; height: 40px; border-radius: 3px; border: 1px solid #ddd; margin-bottom: 5px;"></div>
+                                        <small><strong>{name.title()}</strong><br>{hex_color}</small>
+                                        """, unsafe_allow_html=True)
+                        
+                        font = typography.get('primary_font', 'Arial')
+                        title_size = typography.get('title_size', 24)
+                        st.markdown(f"### 🔤 Manual Typography Applied")
+                        st.markdown(f"**Primary Font:** {font} | **Title Size:** {title_size}pt")
+                        
+                    # Priority 2: Uploaded brand file (only if manual not active)
+                    elif uploaded_brand_file:
                         try:
                             print("🎨 [BRAND DEBUG] Processing uploaded brand deck...")
                             from brand_extractor import BrandExtractor
@@ -7482,16 +7720,25 @@ with tab_execute:
                             print(f"❌ [BRAND DEBUG] Brand extraction failed: {e}")
                             brand_config = None
                     
+                    # No brand configuration available
+                    else:
+                        st.info("📁 **Using default brand styling** - Upload a file or use manual configuration for custom branding")
+                        print(f"📁 [BRAND DEBUG] No brand configuration - using defaults")
+                    
                     # Execute presentation generation
                     # Fix parameter name - execute_plan expects 'plan' not 'render_plan'
                     print(f"🔍 [POWERPOINT DEBUG] Calling execute_plan with correct parameters...")
                     print(f"🎨 [POWERPOINT DEBUG] Using brand_config: {brand_config is not None}")
+                    if brand_config:
+                        source = brand_config.get('source', 'unknown')
+                        print(f"🎨 [POWERPOINT DEBUG] Brand config source: {source}")
+                        
                     result = execute_plan(
                         plan=render_plan,  # Fixed: was render_plan=render_plan
                         content_ir=content_ir,
                         company_name=company_name,
                         config=generation_config,
-                        brand_config=brand_config  # NEW: Pass extracted brand configuration
+                        brand_config=brand_config  # Pass brand configuration (manual or extracted)
                     )
                     
                     print(f"🔍 [POWERPOINT DEBUG] Execute_plan returned: {type(result)}")
