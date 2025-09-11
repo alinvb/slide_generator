@@ -184,14 +184,31 @@ Return only valid JSON:"""
                         
                 field_count = len(extracted_data) if extracted_data else 0
                 print(f"✅ [CLEAN] INDEPENDENT extraction successful: {field_count} fields")
+                
+                # Apply formatting validation for consistent presentation
+                extracted_data = self._validate_and_fix_formatting(extracted_data)
                 return extracted_data
             else:
                 print("⚠️ [CLEAN] No JSON found in extraction response - using enhanced fallback")
-                return self._get_netflix_fallback_data() if is_netflix_conversation else self._get_generic_fallback_data()
+                fallback_data = self._get_netflix_fallback_data() if is_netflix_conversation else self._get_generic_fallback_data()
+                
+                # Apply formatting validation for consistent presentation
+                fallback_data = self._validate_and_fix_formatting(fallback_data)
+                return fallback_data
                 
         except Exception as e:
             print(f"❌ [CLEAN] INDEPENDENT extraction failed: {e} - using enhanced fallback")
-            return self._get_netflix_fallback_data() if is_netflix_conversation else self._get_generic_fallback_data()
+            
+            # Determine fallback based on content
+            is_netflix_conversation = any(keyword in str(e).lower() + str(messages).lower() for keyword in [
+                'netflix', 'streaming', 'ted sarandos', 'greg peters'
+            ]) if messages else False
+            
+            fallback_data = self._get_netflix_fallback_data() if is_netflix_conversation else self._get_generic_fallback_data()
+            
+            # Apply formatting validation for consistent presentation
+            fallback_data = self._validate_and_fix_formatting(fallback_data)
+            return fallback_data
     
     def _format_management_profiles(self, profiles: List[Dict]) -> List[Dict]:
         """Format management profiles to match slide renderer expectations"""
@@ -274,6 +291,131 @@ Return only valid JSON:"""
             string_data.append(str(item))
         return string_data
     
+    def _validate_and_fix_formatting(self, data: Dict) -> Dict:
+        """Validate and fix formatting requirements for presentation consistency"""
+        print("🔧 [CLEAN] Validating and fixing formatting requirements...")
+        
+        # Fix business overview highlights - must be exactly 6
+        if 'business_overview_data' in data and 'highlights' in data['business_overview_data']:
+            highlights = data['business_overview_data']['highlights']
+            if len(highlights) < 6:
+                # Add generic highlights to reach 6
+                generic_highlights = [
+                    "Strong market position and competitive advantages",
+                    "Proven business model with sustainable revenue streams", 
+                    "Experienced management team with industry expertise",
+                    "Scalable operations and growth opportunities",
+                    "Diversified customer base and market presence",
+                    "Strong financial performance and operational metrics"
+                ]
+                while len(highlights) < 6:
+                    highlights.append(generic_highlights[len(highlights)])
+            elif len(highlights) > 6:
+                highlights = highlights[:6]
+            data['business_overview_data']['highlights'] = highlights
+            print(f"✅ [CLEAN] Fixed business overview highlights: {len(highlights)} bullets")
+        
+        # Fix product service data - must be exactly 5 services and 4 metrics
+        if 'product_service_data' in data:
+            # Fix services - exactly 5
+            if 'services' in data['product_service_data']:
+                services = data['product_service_data']['services']
+                if len(services) < 5:
+                    generic_services = [
+                        {"title": "Core Product Offering", "desc": "Primary product or service line"},
+                        {"title": "Complementary Services", "desc": "Additional services and solutions"},
+                        {"title": "Customer Support", "desc": "Customer service and technical support"},
+                        {"title": "Technology Platform", "desc": "Technology infrastructure and capabilities"},
+                        {"title": "Market Solutions", "desc": "Market-specific products and services"}
+                    ]
+                    while len(services) < 5:
+                        services.append(generic_services[len(services)])
+                elif len(services) > 5:
+                    services = services[:5]
+                data['product_service_data']['services'] = services
+                print(f"✅ [CLEAN] Fixed product services: {len(services)} services")
+            
+            # Fix metrics - exactly 4
+            if 'metrics' in data['product_service_data']:
+                metrics = data['product_service_data']['metrics']
+                if isinstance(metrics, dict):
+                    if len(metrics) < 4:
+                        generic_metrics = {
+                            "market_presence": "Market coverage and reach",
+                            "customer_base": "Customer metrics and engagement",
+                            "operational_scale": "Operational capacity and efficiency", 
+                            "growth_metrics": "Growth indicators and performance"
+                        }
+                        metric_keys = list(metrics.keys())
+                        for key, value in generic_metrics.items():
+                            if key not in metrics and len(metrics) < 4:
+                                metrics[key] = value
+                    elif len(metrics) > 4:
+                        # Keep first 4 metrics
+                        metric_keys = list(metrics.keys())[:4]
+                        metrics = {k: metrics[k] for k in metric_keys}
+                    data['product_service_data']['metrics'] = metrics
+                    print(f"✅ [CLEAN] Fixed product metrics: {len(metrics)} metrics")
+        
+        # Fix growth strategy - must be exactly 6 strategies
+        if 'growth_strategy_data' in data and 'growth_strategy' in data['growth_strategy_data']:
+            if 'strategies' in data['growth_strategy_data']['growth_strategy']:
+                strategies = data['growth_strategy_data']['growth_strategy']['strategies']
+                if len(strategies) < 6:
+                    generic_strategies = [
+                        "Market expansion and geographic growth initiatives",
+                        "Product development and innovation programs",
+                        "Strategic partnerships and alliance development", 
+                        "Operational efficiency and cost optimization",
+                        "Technology advancement and digital transformation",
+                        "Customer acquisition and retention strategies"
+                    ]
+                    while len(strategies) < 6:
+                        strategies.append(generic_strategies[len(strategies)])
+                elif len(strategies) > 6:
+                    strategies = strategies[:6]
+                data['growth_strategy_data']['growth_strategy']['strategies'] = strategies
+                print(f"✅ [CLEAN] Fixed growth strategies: {len(strategies)} strategies")
+        
+        # Fix investor considerations - must have exactly 5 considerations and 5 mitigants
+        if 'investor_considerations' in data:
+            # Fix considerations - exactly 5
+            considerations = data['investor_considerations'].get('considerations', [])
+            if len(considerations) < 5:
+                generic_considerations = [
+                    "Market competition and competitive positioning risks",
+                    "Regulatory changes and compliance requirements",
+                    "Economic sensitivity and market cycle impacts",
+                    "Technology disruption and innovation challenges",
+                    "Operational scalability and execution risks"
+                ]
+                while len(considerations) < 5:
+                    considerations.append(generic_considerations[len(considerations)])
+            elif len(considerations) > 5:
+                considerations = considerations[:5]
+            
+            # Fix mitigants - exactly 5 (must equal considerations)
+            mitigants = data['investor_considerations'].get('mitigants', [])
+            if len(mitigants) < 5:
+                generic_mitigants = [
+                    "Strong competitive advantages and market position",
+                    "Proactive compliance and regulatory management",
+                    "Diversified revenue streams and market resilience",
+                    "Technology leadership and innovation capabilities",
+                    "Experienced management team and operational excellence"
+                ]
+                while len(mitigants) < 5:
+                    mitigants.append(generic_mitigants[len(mitigants)])
+            elif len(mitigants) > 5:
+                mitigants = mitigants[:5]
+            
+            data['investor_considerations']['considerations'] = considerations
+            data['investor_considerations']['mitigants'] = mitigants
+            print(f"✅ [CLEAN] Fixed investor considerations: {len(considerations)} considerations, {len(mitigants)} mitigants")
+        
+        print("🎯 [CLEAN] Formatting validation completed - all slides will render consistently")
+        return data
+    
     def _get_netflix_fallback_data(self) -> Dict:
         """Enhanced Netflix fallback data for when API calls fail"""
         print("🎬 [CLEAN] Using Netflix enhanced fallback data")
@@ -321,9 +463,9 @@ Return only valid JSON:"""
                 "Tencent Video (international competition)"
             ],
             "precedent_transactions": [
-                "Disney-Fox acquisition ($71B)",
-                "AT&T-WarnerMedia acquisition ($85B)", 
-                "Amazon-MGM acquisition ($8.45B)"
+                {"target": "Disney-Fox Assets", "acquirer": "The Walt Disney Company", "date": "Q1 2019", "country": "USA", "enterprise_value": "$71.3B", "revenue": "$30B", "ev_revenue_multiple": "2.4x"},
+                {"target": "WarnerMedia", "acquirer": "AT&T Inc.", "date": "Q2 2018", "country": "USA", "enterprise_value": "$85.4B", "revenue": "$31B", "ev_revenue_multiple": "2.8x"},
+                {"target": "MGM Studios", "acquirer": "Amazon.com Inc.", "date": "Q1 2022", "country": "USA", "enterprise_value": "$8.45B", "revenue": "$1.5B", "ev_revenue_multiple": "5.6x"}
             ],
             "investment_considerations": [
                 "Market leadership position in streaming",
@@ -498,7 +640,11 @@ Return only valid JSON:"""
   ],
   "product_service_data": {
     "services": [
-      {"title": "Service Name", "desc": "Service description"}
+      {"title": "Service 1", "desc": "Service description 1"},
+      {"title": "Service 2", "desc": "Service description 2"},
+      {"title": "Service 3", "desc": "Service description 3"},
+      {"title": "Service 4", "desc": "Service description 4"},
+      {"title": "Service 5", "desc": "Service description 5"}
     ],
     "coverage_table": [
       ["Region", "Market Segment", "Products", "Coverage"],
@@ -506,7 +652,9 @@ Return only valid JSON:"""
     ],
     "metrics": {
       "key_metric_1": 100,
-      "key_metric_2": 200
+      "key_metric_2": 200,
+      "key_metric_3": 300,
+      "key_metric_4": 400
     }
   },
   "business_overview_data": {
@@ -538,10 +686,18 @@ Return only valid JSON:"""
       "Synergy 1", "Synergy 2"
     ],
     "risk_factors": [
-      "Risk 1", "Risk 2"
+      "Risk 1", 
+      "Risk 2", 
+      "Risk 3", 
+      "Risk 4", 
+      "Risk 5"
     ],
     "mitigants": [
-      "Mitigation 1", "Mitigation 2"
+      "Mitigation 1", 
+      "Mitigation 2", 
+      "Mitigation 3", 
+      "Mitigation 4", 
+      "Mitigation 5"
     ],
     "timeline": [
       "Phase 1: Description", "Phase 2: Description"
@@ -608,6 +764,15 @@ DETAILED REQUIREMENTS:
 9. Make sure facts.years, revenue_usd_m, ebitda_usd_m arrays have same length and reflect conversation context
 10. Use the SPECIFIC industry terminology and business model details from the conversation
 
+🎯 MANDATORY FORMATTING REQUIREMENTS:
+- business_overview_data.highlights: EXACTLY 6 bullets
+- product_service_data.services: EXACTLY 5 service items
+- product_service_data.metrics: EXACTLY 4 key metrics
+- growth_strategy_data.growth_strategy.strategies: EXACTLY 6 strategy bullets
+- investor_considerations.considerations: EXACTLY 5 consideration items
+- investor_considerations.mitigants: EXACTLY 5 mitigant items (MUST EQUAL considerations count)
+- All bullet points must be detailed, professional, and industry-specific
+
 🎯 PRIORITY ORDER: 
 1) CONVERSATION FACTS (highest priority - use exact details mentioned)
 2) INDUSTRY-SPECIFIC REALISTIC DATA (for the actual industry discussed)  
@@ -620,6 +785,12 @@ DETAILED REQUIREMENTS:
 - Only add generic buyers if conversation doesn't mention any specific buyers
 
 ⚠️ NEVER use generic placeholder data when conversation context provides specific information!
+
+📐 FORMATTING VALIDATION:
+- Count all bullet arrays to ensure exact quantities as specified above
+- Verify considerations and mitigants have equal counts (both exactly 5 items)
+- Ensure all content is substantive and professional (not placeholder text)
+- Make each bullet point detailed and industry-relevant
 
 Generate ONLY the JSON object with ALL fields filled using CONVERSATION-PRIORITIZED, professional investment banking data:
 
@@ -689,17 +860,27 @@ Generate ONLY the JSON object with ALL fields filled using CONVERSATION-PRIORITI
                 
                 print(f"✅ [CLEAN] Comprehensive data assembled: {len(comprehensive_data)} fields total")
                 print(f"🎯 [CLEAN] Key verification - entities: {bool(comprehensive_data.get('entities'))}, facts: {bool(comprehensive_data.get('facts'))}")
+                
+                # Apply formatting validation for consistent presentation
+                comprehensive_data = self._validate_and_fix_formatting(comprehensive_data)
                 return comprehensive_data
                 
             else:
                 print("⚠️ [CLEAN] No JSON found in gap-fill response, using extracted data only")
                 print("🔍 [CLEAN] Response does not contain valid JSON structure")
+                
+                # Apply formatting validation for consistent presentation
+                extracted_data = self._validate_and_fix_formatting(extracted_data)
                 return extracted_data
                 
         except Exception as e:
             print(f"❌ [CLEAN] Gap-filling failed: {e}")
             print("⚠️ [CLEAN] Falling back to enhanced gap-fill fallback")
-            return self._get_enhanced_gap_fill_fallback(extracted_data)
+            fallback_data = self._get_enhanced_gap_fill_fallback(extracted_data)
+            
+            # Apply formatting validation for consistent presentation
+            fallback_data = self._validate_and_fix_formatting(fallback_data)
+            return fallback_data
     
     def _get_enhanced_gap_fill_fallback(self, extracted_data: Dict) -> Dict:
         """Enhanced fallback for gap filling when API calls fail"""
@@ -710,9 +891,13 @@ Generate ONLY the JSON object with ALL fields filled using CONVERSATION-PRIORITI
         is_netflix = 'netflix' in company_name.lower()
         
         if is_netflix:
-            return self._get_netflix_comprehensive_data()
+            data = self._get_netflix_comprehensive_data()
         else:
-            return self._get_generic_comprehensive_data()
+            data = self._get_generic_comprehensive_data()
+        
+        # Apply formatting validation for consistent presentation
+        data = self._validate_and_fix_formatting(data)
+        return data
     
     def _get_netflix_comprehensive_data(self) -> Dict:
         """Comprehensive Netflix data structure matching LlamaIndex template"""
@@ -899,6 +1084,28 @@ Generate ONLY the JSON object with ALL fields filled using CONVERSATION-PRIORITI
                     "commentary": "Control premium reflects strategic value and competitive positioning"
                 }
             ],
+            "product_service_data": {
+                "services": [
+                    {"title": "Subscription Streaming", "desc": "Global streaming service offering original and licensed films and series"},
+                    {"title": "Original Content Production", "desc": "Development and production of exclusive series and movies"},
+                    {"title": "Content Licensing", "desc": "Licensing Netflix originals to third-party platforms and networks"},
+                    {"title": "Technology Platform", "desc": "Advanced streaming technology and recommendation algorithms"},
+                    {"title": "Global Distribution", "desc": "Worldwide content delivery and localization services"}
+                ],
+                "coverage_table": [
+                    ["Region", "Market Segment", "Products", "Coverage"],
+                    ["United States & Canada", "Streaming", "Originals, Licensed Content", "Full"],
+                    ["EMEA", "Streaming", "Originals, Local Content", "Full"],
+                    ["Latin America", "Streaming", "Originals, Licensed Content", "Full"],
+                    ["Asia-Pacific", "Streaming", "Originals, Local Content", "Full"]
+                ],
+                "metrics": {
+                    "global_subscribers_m": 270,
+                    "annual_content_spend_usd_b": 15,
+                    "employees": 14000,
+                    "countries_served": 190
+                }
+            },
             "business_overview_data": {
                 "description": "Netflix is the world's leading streaming entertainment service with over 260 million paid memberships in more than 190 countries. Founded in 1997 as a DVD-by-mail service, Netflix has transformed into a global entertainment powerhouse with $15B+ annual content investment.",
                 "timeline": {"start_year": 1997, "end_year": 2025},
@@ -906,7 +1113,9 @@ Generate ONLY the JSON object with ALL fields filled using CONVERSATION-PRIORITI
                     "260+ million global subscribers across 190+ countries",
                     "$15B+ annual investment in original content production", 
                     "Market leader in streaming with first-mover advantage",
-                    "Award-winning original content including Emmy and Oscar winners"
+                    "Award-winning original content including Emmy and Oscar winners",
+                    "Strong revenue growth trajectory with path to profitability",
+                    "Global infrastructure spanning 190+ countries worldwide"
                 ],
                 "services": [
                     "Global streaming entertainment platform",
@@ -922,7 +1131,9 @@ Generate ONLY the JSON object with ALL fields filled using CONVERSATION-PRIORITI
                         "Continued investment in high-quality original content ($15B+ annually)",
                         "Geographic expansion in emerging markets with localized content", 
                         "Gaming integration and interactive entertainment expansion",
-                        "Advertising-supported tier to capture broader market segments"
+                        "Advertising-supported tier to capture broader market segments",
+                        "Technology platform enhancement and recommendation algorithm advancement",
+                        "Strategic partnerships and distribution channel expansion"
                     ]
                 },
                 "financial_projections": {
@@ -1001,13 +1212,15 @@ Generate ONLY the JSON object with ALL fields filled using CONVERSATION-PRIORITI
                     "Market leadership position may face increased competitive pressure",
                     "Content investment requirements continue to escalate globally",
                     "Subscriber growth slowing in mature markets requires emerging market focus", 
-                    "Technology disruption risks from new platforms and viewing habits"
+                    "Technology disruption risks from new platforms and viewing habits",
+                    "Regulatory changes in content distribution and data privacy globally"
                 ],
                 "mitigants": [
                     "Strong brand recognition and first-mover advantages in streaming",
                     "Proprietary data and algorithms drive content decision-making",
                     "Diversified global revenue base reduces single-market dependency",
-                    "Financial flexibility supports continued investment and adaptation"
+                    "Financial flexibility supports continued investment and adaptation",
+                    "Established content creator relationships and production infrastructure"
                 ]
             },
             # Netflix-specific metadata
