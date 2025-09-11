@@ -776,29 +776,6 @@ Generate ONLY the JSON object with ALL fields filled using realistic, profession
             }
         }
         
-        # Build individual slide definitions with proper data mapping to content_ir sections
-        slide_data_mapping = {
-            "business_overview": "business_overview",
-            "financial_performance": "financial_performance",
-            "historical_financial_performance": "financial_performance", 
-            "leadership_team": "leadership_team",
-            "management_team": "leadership_team",
-            "market_analysis": "market_analysis",
-            "competitive_positioning": "market_analysis",
-            "investment_opportunity": "investment_opportunity",
-            "precedent_transactions": "precedent_transactions",
-            "valuation_overview": "valuation_overview",
-            "strategic_buyers": "investment_opportunity",
-            "financial_buyers": "investment_opportunity",
-            "investment_considerations": "investment_opportunity",
-            "investor_considerations": "investment_opportunity",
-            "investor_process_overview": "investment_opportunity",
-            "margin_cost_resilience": "financial_performance",
-            "growth_strategy": "growth_strategy_projections",
-            "growth_strategy_projections": "growth_strategy_projections",
-            "product_service_footprint": "market_analysis"
-        }
-        
         # Template mapping to match RENDERER_MAP in adapters.py
         slide_templates = {
             "business_overview": "business_overview",
@@ -821,27 +798,177 @@ Generate ONLY the JSON object with ALL fields filled using realistic, profession
             "product_service_footprint": "product_service_footprint"
         }
         
-        for i, slide_type in enumerate(required_slides):
-            # Get the data source section from content_ir
-            data_source_key = slide_data_mapping.get(slide_type, "business_overview")
-            slide_data = content_ir.get(data_source_key, {})
+        # CRITICAL FIX: Create proper data extraction for each slide type
+        def extract_slide_data(slide_type: str, content_ir: Dict) -> Dict:
+            """Extract the exact data structure each slide renderer expects"""
             
-            # Add title field to data if not present
-            if isinstance(slide_data, dict) and "title" not in slide_data:
-                slide_data = {**slide_data, "title": slide_type.replace('_', ' ').title()}
+            if slide_type in ["management_team", "leadership_team"]:
+                # Management team renderer expects left_column_profiles, right_column_profiles
+                management_profiles = content_ir.get('management_team_profiles', content_ir.get('management_team', {}).get('profiles', []))
+                left_profiles = self._format_management_profiles(management_profiles[:3])  # First 3
+                right_profiles = self._format_management_profiles(management_profiles[3:])  # Remaining
+                
+                return {
+                    "title": "Senior Management Team",
+                    "left_column_profiles": left_profiles,
+                    "right_column_profiles": right_profiles,
+                    "team_members": management_profiles,
+                    "key_executives": len(management_profiles)
+                }
+            
+            elif slide_type == "valuation_overview":
+                # Valuation renderer expects valuation_data array
+                valuation_data = content_ir.get('valuation_data', [])
+                # Ensure proper formatting for valuation data
+                formatted_valuation = self._format_valuation_data(valuation_data)
+                
+                return {
+                    "title": "Valuation Overview",
+                    "subtitle": "Implied EV/Post IRFS-16 EBITDA",
+                    "valuation_data": formatted_valuation,
+                    "methodologies": content_ir.get('valuation_overview', {}).get('methodologies', [])
+                }
+            
+            elif slide_type in ["financial_performance", "historical_financial_performance"]:
+                # Financial performance renderer expects revenue_data, ebitda_data, years arrays
+                return {
+                    "title": "Historical Financial Performance",
+                    "revenue_data": content_ir.get('facts', {}).get('revenue_usd_m', []),
+                    "ebitda_data": content_ir.get('facts', {}).get('ebitda_usd_m', []),
+                    "years": content_ir.get('facts', {}).get('years', []),
+                    "margins": content_ir.get('facts', {}).get('ebitda_margins', []),
+                    "financial_highlights": content_ir.get('financial_performance', {}).get('financial_highlights', [])
+                }
+            
+            elif slide_type in ["competitive_positioning", "market_analysis"]:
+                # Market analysis renderer expects competitors array
+                competitors = content_ir.get('competitive_analysis', {}).get('competitors', [])
+                formatted_competitors = self._ensure_numeric_competitor_revenue(competitors)
+                
+                return {
+                    "title": "Competitive Positioning",
+                    "competitors": formatted_competitors,
+                    "competitive_advantages": content_ir.get('competitive_analysis', {}).get('advantages', []),
+                    "barriers_to_entry": content_ir.get('competitive_analysis', {}).get('barriers', []),
+                    "assessment": content_ir.get('competitive_analysis', {}).get('assessment', [])
+                }
+            
+            elif slide_type == "business_overview":
+                # Business overview renderer
+                return {
+                    "title": "Business Overview",
+                    "company_name": content_ir.get('entities', {}).get('company', {}).get('name', company_name),
+                    "description": content_ir.get('business_overview_data', {}).get('description', ''),
+                    "highlights": content_ir.get('business_overview_data', {}).get('highlights', []),
+                    "services": content_ir.get('product_service_data', {}).get('services', []),
+                    "positioning": content_ir.get('business_overview_data', {}).get('positioning_desc', '')
+                }
+            
+            elif slide_type == "precedent_transactions":
+                # Precedent transactions renderer
+                return {
+                    "title": "Precedent Transactions",
+                    "precedent_transactions": content_ir.get('precedent_transactions', []),
+                    "comparable_deals": content_ir.get('precedent_transactions', [])
+                }
+            
+            elif slide_type in ["strategic_buyers", "financial_buyers"]:
+                # Buyer profiles renderer
+                if slide_type == "strategic_buyers":
+                    buyers = content_ir.get('strategic_buyers', [])
+                    title = "Strategic Buyers"
+                else:
+                    buyers = content_ir.get('financial_buyers', [])
+                    title = "Financial Buyers"
+                
+                return {
+                    "title": title,
+                    "buyers": buyers,
+                    "buyer_profiles": buyers
+                }
+            
+            elif slide_type in ["investment_considerations", "investor_considerations"]:
+                # Investment considerations renderer
+                return {
+                    "title": "Investment Considerations",
+                    "investment_highlights": content_ir.get('investor_considerations', {}).get('considerations', []),
+                    "key_themes": content_ir.get('investor_considerations_legacy', {}).get('key_themes', []),
+                    "strategic_buyers": content_ir.get('strategic_buyers', []),
+                    "financial_buyers": content_ir.get('financial_buyers', [])
+                }
+            
+            elif slide_type in ["growth_strategy", "growth_strategy_projections"]:
+                # Growth strategy renderer
+                return {
+                    "title": "Growth Strategy & Projections",
+                    "growth_strategy": content_ir.get('growth_strategy_data', {}).get('growth_strategy', {}),
+                    "financial_projections": content_ir.get('growth_strategy_data', {}).get('financial_projections', {}),
+                    "growth_initiatives": content_ir.get('growth_strategy_data', {}).get('growth_strategy', {}).get('strategies', [])
+                }
+            
+            elif slide_type == "product_service_footprint":
+                # Product service renderer
+                return {
+                    "title": "Product & Service Footprint",
+                    "services": content_ir.get('product_service_data', {}).get('services', []),
+                    "coverage_table": content_ir.get('product_service_data', {}).get('coverage_table', []),
+                    "metrics": content_ir.get('product_service_data', {}).get('metrics', {})
+                }
+            
+            elif slide_type == "margin_cost_resilience":
+                # Margin cost renderer
+                return {
+                    "title": "Margin & Cost Resilience",
+                    "chart_data": content_ir.get('margin_cost_data', {}).get('chart_data', {}),
+                    "cost_management": content_ir.get('margin_cost_data', {}).get('cost_management', {}),
+                    "risk_mitigation": content_ir.get('margin_cost_data', {}).get('risk_mitigation', {})
+                }
+            
+            elif slide_type == "investor_process_overview":
+                # Investor process renderer
+                return {
+                    "title": "Investor Process Overview",
+                    "diligence_topics": content_ir.get('investor_process_data', {}).get('diligence_topics', []),
+                    "synergy_opportunities": content_ir.get('investor_process_data', {}).get('synergy_opportunities', []),
+                    "risk_factors": content_ir.get('investor_process_data', {}).get('risk_factors', []),
+                    "timeline": content_ir.get('investor_process_data', {}).get('timeline', [])
+                }
+            
+            else:
+                # Default fallback - try to get from direct content_ir section
+                print(f"⚠️ [CLEAN] Unknown slide type: {slide_type}, using fallback data extraction")
+                return content_ir.get(slide_type, {"title": slide_type.replace('_', ' ').title()})
+        
+        for i, slide_type in enumerate(required_slides):
+            # CRITICAL FIX: Use proper data extraction for each slide type
+            slide_data = extract_slide_data(slide_type, content_ir)
+            
+            # Debug output to verify data extraction
+            if slide_type == "management_team":
+                left_count = len(slide_data.get('left_column_profiles', []))
+                right_count = len(slide_data.get('right_column_profiles', []))
+                print(f"🔍 [CLEAN] Management team slide: {left_count} left profiles, {right_count} right profiles")
+            
+            elif slide_type == "valuation_overview":
+                valuation_count = len(slide_data.get('valuation_data', []))
+                print(f"🔍 [CLEAN] Valuation slide: {valuation_count} valuation methods")
+            
+            elif slide_type == "competitive_positioning":
+                competitors_count = len(slide_data.get('competitors', []))
+                print(f"🔍 [CLEAN] Competitive slide: {competitors_count} competitors")
             
             slide_def = {
                 "slide_number": i + 1,
                 "slide_type": slide_type,
                 "slide_title": slide_type.replace('_', ' ').title(),
                 "template": slide_templates.get(slide_type, "business_overview"),
-                "data": slide_data,  # COMPREHENSIVE DATA: LlamaIndex-level detailed content for all slides
+                "data": slide_data,  # COMPREHENSIVE DATA: Properly extracted for each renderer
                 "content_available": True,
                 "generation_ready": True
             }
             render_plan["slides"].append(slide_def)
         
-        print(f"✅ [CLEAN] Render plan built with {len(render_plan['slides'])} slides, data properly mapped")
+        print(f"✅ [CLEAN] Render plan built with {len(render_plan['slides'])} slides, data properly extracted for each renderer")
         return render_plan
 
 
