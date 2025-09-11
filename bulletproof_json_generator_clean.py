@@ -207,26 +207,26 @@ class CleanBulletproofJSONGenerator:
             }
         }
         
-        # Build individual slide definitions using ACTUAL template function names
+        # Build individual slide definitions using slide type names (what adapters.py expects)
         slide_templates = {
-            "business_overview": "render_business_overview_slide",
-            "financial_performance": "render_historical_financial_performance_slide",
-            "historical_financial_performance": "render_historical_financial_performance_slide", 
-            "leadership_team": "render_management_team_slide",
-            "management_team": "render_management_team_slide",
-            "market_analysis": "render_competitive_positioning_slide",
-            "competitive_positioning": "render_competitive_positioning_slide",
-            "precedent_transactions": "render_precedent_transactions_slide",
-            "valuation_overview": "render_valuation_overview_slide",
-            "strategic_buyers": "render_buyer_profiles_slide",
-            "financial_buyers": "render_buyer_profiles_slide",
-            "investment_considerations": "render_investor_considerations_slide",
-            "investor_considerations": "render_investor_considerations_slide",
-            "investor_process_overview": "render_investor_process_overview_slide",
-            "margin_cost_resilience": "render_margin_cost_resilience_slide",
-            "growth_strategy": "render_growth_strategy_slide",
-            "growth_strategy_projections": "render_growth_strategy_projections_slide",
-            "product_service_footprint": "render_product_service_footprint_slide"
+            "business_overview": "business_overview",
+            "financial_performance": "historical_financial_performance",
+            "historical_financial_performance": "historical_financial_performance", 
+            "leadership_team": "management_team",
+            "management_team": "management_team",
+            "market_analysis": "competitive_positioning",
+            "competitive_positioning": "competitive_positioning",
+            "precedent_transactions": "precedent_transactions",
+            "valuation_overview": "valuation_overview",
+            "strategic_buyers": "buyer_profiles",
+            "financial_buyers": "buyer_profiles",
+            "investment_considerations": "investor_considerations",
+            "investor_considerations": "investor_considerations",
+            "investor_process_overview": "investor_process_overview",
+            "margin_cost_resilience": "margin_cost_resilience",
+            "growth_strategy": "growth_strategy_projections",
+            "growth_strategy_projections": "growth_strategy_projections",
+            "product_service_footprint": "product_service_footprint"
         }
         
         for i, slide_type in enumerate(required_slides):
@@ -234,8 +234,7 @@ class CleanBulletproofJSONGenerator:
                 "slide_number": i + 1,
                 "slide_type": slide_type,
                 "slide_title": slide_type.replace('_', ' ').title(),
-                "template": slide_templates.get(slide_type, "render_business_overview_slide"),  # Use actual renderer function as fallback
-                "renderer_function": slide_templates.get(slide_type, "render_business_overview_slide"),  # Add explicit renderer
+                "template": slide_templates.get(slide_type, "business_overview"),  # Use slide type names that adapters.py expects
                 "data_source": f"content_ir.{slide_type}" if slide_type in content_ir else "content_ir.business_overview",
                 "content_available": True,
                 "generation_ready": True
