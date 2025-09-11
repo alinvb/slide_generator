@@ -147,20 +147,21 @@ Return only valid JSON:"""
             
             # First check if we can make API calls
             if not llm_api_call:
-                print("⚠️ [CLEAN] No API function provided - using enhanced fallback")
-                return self._get_netflix_fallback_data() if is_netflix_conversation else self._get_generic_fallback_data()
+                print("❌ [CLEAN] No API function provided - conversation extraction requires LLM")
+                raise ValueError("LLM API required for conversation extraction")
             
             print("🤖 [CLEAN] Making LLM call for conversation extraction...")
             try:
                 extraction_response = llm_api_call([{"role": "user", "content": extraction_prompt}])
                 
                 if not extraction_response or len(extraction_response.strip()) < 10:
-                    print("⚠️ [CLEAN] Empty/invalid API response - using enhanced fallback")
-                    return self._get_netflix_fallback_data() if is_netflix_conversation else self._get_generic_fallback_data()
+                    print("⚠️ [CLEAN] Empty/invalid API response - retrying with simple extraction")
+                    simple_extraction_prompt = f"Extract basic company information from the conversation: company name, industry, key details. Return as JSON."
+                    extraction_response = llm_api_call([{"role": "user", "content": simple_extraction_prompt}])
                 
             except Exception as api_error:
-                print(f"❌ [CLEAN] API call failed: {api_error} - using enhanced fallback")
-                return self._get_netflix_fallback_data() if is_netflix_conversation else self._get_generic_fallback_data()
+                print(f"❌ [CLEAN] API call failed: {api_error} - cannot extract without LLM")
+                raise ValueError(f"LLM API required for conversation extraction: {api_error}")
             
             # Extract JSON from response
             import re
@@ -861,19 +862,27 @@ Generate ONLY the JSON object with ALL fields filled using CONVERSATION-PRIORITI
             
             # Check if API is available before making the call
             if not llm_api_call:
-                print("⚠️ [CLEAN] No API function - using enhanced fallback for gap filling")
-                return self._get_enhanced_gap_fill_fallback(extracted_data)
+                print("❌ [CLEAN] No API function - gap filling requires LLM API")
+                raise ValueError("LLM API required for gap filling - no hard-coded fallbacks allowed")
             
             try:
                 gap_fill_response = llm_api_call([{"role": "user", "content": gap_filling_prompt}])
                 
                 if not gap_fill_response or len(gap_fill_response.strip()) < 50:
-                    print("⚠️ [CLEAN] Empty/invalid gap-fill API response - using enhanced fallback")
-                    return self._get_enhanced_gap_fill_fallback(extracted_data)
+                    print("⚠️ [CLEAN] Empty/invalid gap-fill API response - retrying with basic prompt")
+                    # Retry with simpler prompt instead of fallback
+                    basic_prompt = f"Generate comprehensive investment banking data for {extracted_data.get('company_name', 'the company')}. Include strategic buyers, financial buyers, management team, and all required sections as JSON."
+                    gap_fill_response = llm_api_call([{"role": "user", "content": basic_prompt}])
                     
             except Exception as api_error:
-                print(f"❌ [CLEAN] Gap-fill API call failed: {api_error} - using enhanced fallback")
-                return self._get_enhanced_gap_fill_fallback(extracted_data)
+                print(f"❌ [CLEAN] Gap-fill API call failed: {api_error} - attempting simple research")
+                # Try a simple research-based approach instead of fallback
+                simple_prompt = f"Research and generate investment banking presentation data for {extracted_data.get('company_name', 'the company')}. Focus on strategic buyers, financial buyers, management team, competitive analysis, and financial projections."
+                try:
+                    gap_fill_response = llm_api_call([{"role": "user", "content": simple_prompt}])
+                except:
+                    print("❌ [CLEAN] All LLM attempts failed - cannot generate comprehensive data without API")
+                    raise ValueError("LLM API required for data generation - no fallback data available")
             
             print(f"🤖 [CLEAN] Gap-fill response length: {len(gap_fill_response)} characters")
             print("🔍 [CLEAN] Raw response preview:")

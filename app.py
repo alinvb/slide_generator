@@ -6340,15 +6340,15 @@ RENDER PLAN JSON:
                                     
                                     # CRITICAL: If no API key, show clear error and return meaningful fallback
                                     if not working_api_key:
-                                        print("🚨 [CRITICAL] NO API KEY - THIS IS WHY JSON IS EMPTY!")
-                                        print("💡 [INFO] No API key configured in session state or environment.")
-                                        print("📊 [INFO] Using LLM backup research for data generation.")
-                                        st.error("🚨 **CRITICAL: No API Key Found!** This is why your strategic buyers and other sections are empty.")
-                                        st.warning("⚠️ **Add your Perplexity API key in the sidebar for real research.**")
+                                        print("🚨 [CRITICAL] NO API KEY - Using comprehensive fallback data")
+                                        print("💡 [INFO] No API key configured - generating with fallback research data.")
+                                        st.warning("⚠️ **No API Key Found** - Using comprehensive fallback data for demonstration")
+                                        st.info("💡 **Add your Perplexity API key in the sidebar for real research.**")
                                         
-                                        # Use LLM backup research instead of fallback data
-                                        print("🔍 [LLM_BACKUP] Bulletproof generator will use LLM-based research instead of fallback")
-                                        return None  # Let bulletproof generator handle with LLM research
+                                        # Use comprehensive fallback response instead of None
+                                        from shared_functions import generate_fallback_response
+                                        print("🔍 [FALLBACK] Using comprehensive fallback data generation")
+                                        return generate_fallback_response(messages)
                                     
                                     # Detect if this is a comprehensive gap-filling call that needs extended timeout
                                     is_gap_filling = False
@@ -6379,18 +6379,20 @@ RENDER PLAN JSON:
                                         print(f"🔍 [API_DEBUG] API response length: {len(response) if response else 0}")
                                         
                                         if not response or len(response) < 10:
-                                            print("🚨 [API_DEBUG] API RESPONSE TOO SHORT - LIKELY FAILED!")
-                                            st.warning(f"⚠️ **API Response Empty:** Got {len(response) if response else 0} characters - using LLM backup research")
-                                            print("🔍 [LLM_BACKUP] Bulletproof generator will use LLM-based research instead of fallback")
-                                            return None  # Let bulletproof generator handle with LLM research
+                                            print("🚨 [API_DEBUG] API RESPONSE TOO SHORT - Using fallback data!")
+                                            st.warning(f"⚠️ **API Response Empty:** Got {len(response) if response else 0} characters - using fallback data")
+                                            print("🔍 [FALLBACK] Using comprehensive fallback data generation")
+                                            from shared_functions import generate_fallback_response
+                                            return generate_fallback_response(messages)
                                         
                                         return response
                                         
                                     except Exception as e:
                                         print(f"🚨 [API_DEBUG] API CALL FAILED: {str(e)}")
-                                        st.warning(f"⚠️ **API Call Error:** {str(e)} - using LLM backup research")
-                                        print("🔍 [LLM_BACKUP] Bulletproof generator will use LLM-based research instead of fallback")
-                                        return None  # Let bulletproof generator handle with LLM research
+                                        st.warning(f"⚠️ **API Call Error:** {str(e)} - using fallback data")
+                                        print("🔍 [FALLBACK] Using comprehensive fallback data generation")
+                                        from shared_functions import generate_fallback_response
+                                        return generate_fallback_response(messages)
                                 
                                 # 🚨 ENHANCED: Show progress tracking before calling bulletproof generator
                                 st.info("🔄 **Starting Bulletproof JSON Generation** - Progress tracking will show below")
