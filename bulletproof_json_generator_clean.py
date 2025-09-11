@@ -100,27 +100,35 @@ class CleanBulletproofJSONGenerator:
             
             # Business Overview Slide Data
             "business_overview": {
+                "title": "Business Overview",
                 "company_name": company_name,
                 "description": enhanced_data.get('description') or enhanced_data.get('business_description', 'Innovative technology company providing AI-powered solutions'),
                 "founded_year": enhanced_data.get('founded_year', 2021),
                 "headquarters": enhanced_data.get('headquarters_location', 'Middle East'),
                 "highlights": [
-                    f"Founded in {extracted_data.get('founded_year', 2021)}",
+                    f"Founded in {enhanced_data.get('founded_year', 2021)}",
                     f"Latest revenue: ${latest_revenue}M",
                     f"Latest EBITDA: ${latest_ebitda}M",
-                    f"Strong growth trajectory"
+                    "Strong growth trajectory"
                 ],
                 "services": enhanced_data.get('products_services_list', ['AI-powered business automation solutions']),
-                "positioning": "Market leader in AI-driven business solutions"
+                "positioning": "Market leader in AI-driven business solutions",
+                "key_metrics": {
+                    "revenue": f"${latest_revenue}M",
+                    "ebitda": f"${latest_ebitda}M",
+                    "employees": enhanced_data.get('employee_count', 50),
+                    "market": enhanced_data.get('geographic_markets', ['Middle East'])[0] if enhanced_data.get('geographic_markets') else 'Middle East'
+                }
             },
             
             # Financial Performance Slide Data
             "financial_performance": {
+                "title": "Historical Financial Performance",
                 "revenue_data": revenue_data,
                 "ebitda_data": ebitda_data,
                 "years": years,
-                "margins": extracted_data.get('ebitda_margins', [16, 20, 22, 26]),
-                "growth_metrics": extracted_data.get('growth_rates', [
+                "margins": enhanced_data.get('ebitda_margins', [16, 20, 22, 26]),
+                "growth_metrics": enhanced_data.get('growth_rates', [
                     'Revenue CAGR: 115% (2021-2024)', 
                     'EBITDA growth: 700%+ over 3 years'
                 ]),
@@ -129,34 +137,79 @@ class CleanBulletproofJSONGenerator:
                     f"${latest_ebitda}M EBITDA with strong margins",
                     "Consistent year-over-year growth",
                     "Strong profitability trajectory"
-                ]
+                ],
+                "historical_data": {
+                    "revenue": {str(year): float(rev) for year, rev in zip(years, revenue_data)},
+                    "ebitda": {str(year): float(ebitda) for year, ebitda in zip(years, ebitda_data)},
+                    "margin_trend": "improving"
+                },
+                "kpis": {
+                    "latest_revenue_m": latest_revenue,
+                    "latest_ebitda_m": latest_ebitda,
+                    "revenue_cagr": "115%",
+                    "ebitda_margin": f"{round(latest_ebitda/latest_revenue*100) if latest_revenue > 0 else 26}%"
+                }
             },
             
             # Leadership Team Slide Data
             "leadership_team": {
-                "team_members": extracted_data.get('team_members', []),
-                "key_executives": len(extracted_data.get('team_members', [])),
+                "title": "Management Team",
+                "team_members": enhanced_data.get('team_members', []),
+                "key_executives": len(enhanced_data.get('team_members', [])),
                 "leadership_experience": "Strong leadership team with consulting, technology, and finance expertise",
-                "team_structure": "Executive team with complementary skills and proven track record"
+                "team_structure": "Executive team with complementary skills and proven track record",
+                "left_column_profiles": enhanced_data.get('team_members', [])[:3] if enhanced_data.get('team_members') else [
+                    {"name": "CEO & Founder", "title": "Chief Executive Officer", "background": "Technology leadership"},
+                    {"name": "CTO", "title": "Chief Technology Officer", "background": "AI/ML expertise"},
+                    {"name": "CFO", "title": "Chief Financial Officer", "background": "Finance & strategy"}
+                ],
+                "right_column_profiles": enhanced_data.get('team_members', [])[3:] if len(enhanced_data.get('team_members', [])) > 3 else [
+                    {"name": "VP Operations", "title": "VP of Operations", "background": "Operational excellence"},
+                    {"name": "VP Sales", "title": "VP of Sales", "background": "Revenue growth"}
+                ],
+                "team_highlights": [
+                    "Experienced leadership across key functions",
+                    "Proven track record in scaling technology companies",
+                    "Strong industry expertise and relationships"
+                ]
             },
             
             # Market & Competition Slide Data
             "market_analysis": {
-                "services": extracted_data.get('products_services_list', ['AI-powered business automation']),
-                "geographic_markets": extracted_data.get('geographic_markets', ['Middle East']),
-                "competitive_advantages": extracted_data.get('competitive_advantages', [
-                    'AI capabilities', 
-                    'Regional market access',
-                    'Strong leadership team'
+                "title": "Competitive Positioning", 
+                "services": enhanced_data.get('products_services_list', ['AI-powered business automation']),
+                "geographic_markets": enhanced_data.get('geographic_markets', ['Middle East']),
+                "competitive_advantages": enhanced_data.get('competitive_advantages', [
+                    'Advanced AI capabilities', 
+                    'Regional market leadership',
+                    'Strong leadership team',
+                    'Proven track record'
                 ]),
                 "market_position": "Leading position in AI-driven business solutions",
-                "competitive_landscape": "Differentiated through technology and regional expertise"
+                "competitive_landscape": "Differentiated through technology and regional expertise",
+                "key_differentiators": [
+                    "Proprietary AI technology platform",
+                    "Strong regional market presence",
+                    "Experienced management team",
+                    "Scalable business model"
+                ],
+                "market_opportunity": {
+                    "size": "Growing market for AI automation",
+                    "growth_rate": "High growth potential",
+                    "positioning": "Market leader"
+                },
+                "competitive_analysis": {
+                    "direct_competitors": enhanced_data.get('competitors', ["Regional AI companies"]),
+                    "competitive_moat": "Technology and market positioning",
+                    "barriers_to_entry": "High technical expertise required"
+                }
             },
             
             # Investment Opportunity Slide Data
             "investment_opportunity": {
-                "strategic_buyers": extracted_data.get('strategic_buyers_identified', []),
-                "financial_buyers": extracted_data.get('financial_buyers_identified', []),
+                "title": "Investment Opportunity",
+                "strategic_buyers": enhanced_data.get('strategic_buyers_identified', []),
+                "financial_buyers": enhanced_data.get('financial_buyers_identified', []),
                 "investment_highlights": [
                     f"Strong financial performance: ${latest_revenue}M revenue",
                     "Experienced leadership team",
@@ -164,7 +217,60 @@ class CleanBulletproofJSONGenerator:
                     "Clear competitive advantages"
                 ],
                 "valuation_ready": True,
-                "transaction_readiness": "Company ready for institutional investment"
+                "transaction_readiness": "Company ready for institutional investment",
+                "key_investment_themes": [
+                    "Market-leading AI technology platform",
+                    "Strong financial growth trajectory", 
+                    "Experienced management team",
+                    "Attractive market opportunity"
+                ],
+                "transaction_highlights": {
+                    "process_type": "Competitive auction process",
+                    "timeline": "Q2 2024 transaction close",
+                    "expected_interest": "Strategic and financial buyers",
+                    "value_drivers": ["Technology", "Market position", "Growth potential"]
+                },
+                "buyer_profiles": {
+                    "strategic": enhanced_data.get('strategic_acquirers', ["Technology companies", "Regional conglomerates"]),
+                    "financial": enhanced_data.get('pe_firms', ["Growth equity firms", "Private equity funds"])
+                }
+            },
+            
+            # Additional slide data sections for comprehensive coverage
+            "precedent_transactions": {
+                "title": "Precedent Transactions",
+                "comparable_deals": enhanced_data.get('precedent_transactions', []),
+                "transaction_multiples": {
+                    "ev_revenue": "8.0x - 12.0x",
+                    "ev_ebitda": "15.0x - 20.0x",
+                    "valuation_range": f"${latest_revenue * 8}M - ${latest_revenue * 12}M"
+                },
+                "market_context": "Strong M&A activity in AI/technology sector"
+            },
+            
+            "valuation_overview": {
+                "title": "Valuation Overview", 
+                "methodologies": ["Comparable companies", "Precedent transactions", "DCF analysis"],
+                "valuation_range": f"${latest_revenue * 8}M - ${latest_revenue * 12}M",
+                "key_metrics": {
+                    "revenue_multiple": "8.0x - 12.0x",
+                    "ebitda_multiple": "15.0x - 20.0x"
+                }
+            },
+            
+            "growth_strategy_projections": {
+                "title": "Growth Strategy & Projections",
+                "growth_initiatives": [
+                    "Market expansion",
+                    "Product development", 
+                    "Strategic partnerships",
+                    "Technology enhancement"
+                ],
+                "financial_projections": {
+                    "revenue_growth": "25-30% annually",
+                    "margin_expansion": "Improving profitability",
+                    "market_expansion": "Geographic growth"
+                }
             }
         }
         
@@ -172,7 +278,7 @@ class CleanBulletproofJSONGenerator:
         return content_ir
     
     def build_render_plan(self, required_slides: List[str], content_ir: Dict) -> Dict:
-        """Build render plan for slide generation"""
+        """Build render plan for slide generation with proper data mapping"""
         print("📋 [CLEAN] Building render plan...")
         
         company_name = content_ir["metadata"]["company_name"]
@@ -189,14 +295,6 @@ class CleanBulletproofJSONGenerator:
             
             "slides": [],
             
-            "data_mapping": {
-                "business_overview": "content_ir.business_overview",
-                "financial_performance": "content_ir.financial_performance", 
-                "leadership_team": "content_ir.leadership_team",
-                "market_analysis": "content_ir.market_analysis",
-                "investment_opportunity": "content_ir.investment_opportunity"
-            },
-            
             "rendering_options": {
                 "style": "professional",
                 "color_scheme": "corporate_blue",
@@ -207,7 +305,30 @@ class CleanBulletproofJSONGenerator:
             }
         }
         
-        # Build individual slide definitions using slide type names (what adapters.py expects)
+        # Build individual slide definitions with proper data mapping to content_ir sections
+        slide_data_mapping = {
+            "business_overview": "business_overview",
+            "financial_performance": "financial_performance",
+            "historical_financial_performance": "financial_performance", 
+            "leadership_team": "leadership_team",
+            "management_team": "leadership_team",
+            "market_analysis": "market_analysis",
+            "competitive_positioning": "market_analysis",
+            "investment_opportunity": "investment_opportunity",
+            "precedent_transactions": "precedent_transactions",
+            "valuation_overview": "valuation_overview",
+            "strategic_buyers": "investment_opportunity",
+            "financial_buyers": "investment_opportunity",
+            "investment_considerations": "investment_opportunity",
+            "investor_considerations": "investment_opportunity",
+            "investor_process_overview": "investment_opportunity",
+            "margin_cost_resilience": "financial_performance",
+            "growth_strategy": "growth_strategy_projections",
+            "growth_strategy_projections": "growth_strategy_projections",
+            "product_service_footprint": "market_analysis"
+        }
+        
+        # Template mapping to match RENDERER_MAP in adapters.py
         slide_templates = {
             "business_overview": "business_overview",
             "financial_performance": "historical_financial_performance",
@@ -230,18 +351,26 @@ class CleanBulletproofJSONGenerator:
         }
         
         for i, slide_type in enumerate(required_slides):
+            # Get the data source section from content_ir
+            data_source_key = slide_data_mapping.get(slide_type, "business_overview")
+            slide_data = content_ir.get(data_source_key, {})
+            
+            # Add title field to data if not present
+            if isinstance(slide_data, dict) and "title" not in slide_data:
+                slide_data = {**slide_data, "title": slide_type.replace('_', ' ').title()}
+            
             slide_def = {
                 "slide_number": i + 1,
                 "slide_type": slide_type,
                 "slide_title": slide_type.replace('_', ' ').title(),
-                "template": slide_templates.get(slide_type, "business_overview"),  # Use slide type names that adapters.py expects
-                "data_source": f"content_ir.{slide_type}" if slide_type in content_ir else "content_ir.business_overview",
+                "template": slide_templates.get(slide_type, "business_overview"),
+                "data": slide_data,  # THIS IS THE KEY FIX: Pass the actual data instead of just a reference
                 "content_available": True,
                 "generation_ready": True
             }
             render_plan["slides"].append(slide_def)
         
-        print(f"✅ [CLEAN] Render plan built with {len(render_plan['slides'])} slides")
+        print(f"✅ [CLEAN] Render plan built with {len(render_plan['slides'])} slides, data properly mapped")
         return render_plan
 
 
