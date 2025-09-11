@@ -41,7 +41,8 @@ def call_llm_api(messages: List[Dict], model: str = None, api_key: str = None, a
         api_service = st.session_state.get('api_service', 'perplexity')
     
     if not api_key:
-        return "Error: No API key provided"
+        print("⚠️ [FALLBACK] No API key configured - using comprehensive fallback data")
+        return generate_fallback_response(messages)
     
     try:
         if api_service == "perplexity":
@@ -60,8 +61,9 @@ def call_llm_api(messages: List[Dict], model: str = None, api_key: str = None, a
             return call_llm_api(messages, model, api_key, api_service, retry_count + 1, timeout)
         else:
             # If still failing after retries, provide fallback response instead of complete failure
-            if "timed out" in error_str.lower():
-                print(f"⚠️ [FALLBACK] API timeout after {retry_count + 1} attempts, using fallback data")
+            if "timed out" in error_str.lower() or "no api key" in error_str.lower():
+                print(f"⚠️ [FALLBACK] API issue after {retry_count + 1} attempts: {error_str}")
+                print(f"⚠️ [FALLBACK] Using comprehensive fallback data for gap-filling")
                 return generate_fallback_response(messages)
             return f"Error calling {api_service} API: {error_str}"
 
