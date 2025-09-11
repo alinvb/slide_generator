@@ -115,92 +115,119 @@ class CleanBulletproofJSONGenerator:
         
         # Create MANDATORY gap-filling prompt that forces LLM to extract or estimate everything
         context_json = json.dumps(extracted_data, indent=2)
-        gap_filling_prompt = f"""You are tasked with creating comprehensive investment banking presentation data. You MUST populate ALL required fields using the available context and your knowledge to make data-driven estimates.
+        gap_filling_prompt = f"""You are an expert investment banking analyst creating comprehensive presentation data. You MUST generate ALL required fields using the available context, industry knowledge, and realistic estimates. 
 
 AVAILABLE CONTEXT: {context_json}
 
-MANDATORY TASK: Extract or intelligently estimate ALL missing data using:
-1. Any conversation/research content provided
-2. Industry knowledge and logical deduction  
-3. Data-driven estimates based on available information
-4. Professional investment banking standards
+CRITICAL INSTRUCTIONS:
+🚫 NO GENERIC PLACEHOLDERS OR TECHNOLOGY-SPECIFIC ASSUMPTIONS ALLOWED
+🚫 NO HARD-CODED INDUSTRY ASSUMPTIONS (healthcare, tech, oil & gas, etc.)
+✅ MUST BE UNIVERSALLY APPLICABLE TO ANY INDUSTRY AND COMPANY TYPE
+✅ ALL DATA MUST BE REALISTIC AND INDUSTRY-APPROPRIATE
+✅ GENERATE COMPREHENSIVE, PROFESSIONAL INVESTMENT BANKING CONTENT
 
-YOU MUST RETURN COMPLETE DATA FOR ALL FIELDS - NO PLACEHOLDERS OR GENERIC CONTENT ALLOWED.
+UNIVERSAL APPROACH:
+1. Analyze the company's actual business from available context
+2. Determine appropriate industry category and business model
+3. Generate industry-specific content that matches the business
+4. Use realistic financial metrics appropriate to company size/industry
+5. Create relevant competitive landscape for the specific industry
+6. Identify appropriate strategic and financial buyers for this industry
 
-For each field, if not explicitly provided:
-- Use conversation context to infer details
-- Apply industry knowledge to estimate realistic values
-- Make intelligent assumptions based on company size/type/industry
-- Ensure all content is professionally appropriate for investment banking
+MANDATORY COMPREHENSIVE DATA GENERATION (EXACT FIELD NAMES REQUIRED):
 
-MANDATORY FIELDS TO POPULATE (EXACT FIELD NAMES REQUIRED FOR SLIDE RENDERERS):
+**1. COMPANY FUNDAMENTALS:**
+- company_name: [Extract from context or use available name]
+- industry: [Determine specific industry from business description] 
+- business_description: [Detailed description based on actual business model]
+- founded_year: [Realistic founding year based on business maturity]
+- headquarters_location: [Geographic location from context or realistic estimate]
+- employee_count: [Appropriate headcount for business size and industry]
+- products_services_list: [Array of specific offerings relevant to this industry]
+- geographic_markets: [Array of markets served - relevant to business type]
 
-1. **Company Basics** (extract/estimate from context):
-   - company_name: [Extract from context or estimate based on clues]
-   - industry: [Determine from business description/context]
-   - business_description: [Extract detailed description from available info]
-   - founded_year: [Extract or estimate based on company maturity indicators]
-   - headquarters_location: [Extract or estimate from geographic context]
-   - employee_count: [Estimate based on revenue/business scale]
+**2. FINANCIAL PERFORMANCE DATA:**
+- annual_revenue_usd_m: [Array of 4-5 numbers showing realistic revenue progression for this industry/size]
+- ebitda_usd_m: [Array of 4-5 numbers with appropriate EBITDA margins for this industry]
+- financial_years: [Array like ["2020","2021","2022","2023","2024"]]
+- ebitda_margins: [Array of margin percentages appropriate to this industry]
+- growth_rates: [Array of growth metrics relevant to business type]
+- financial_highlights: [Array of key financial achievements]
 
-2. **Financial Data** (extract/estimate):
-   - annual_revenue_usd_m: [Array of numbers - realistic revenue progression over 4-5 years]
-   - ebitda_usd_m: [Array of numbers - realistic EBITDA based on industry margins]
-   - financial_years: [Array of strings - year sequence like ["2021","2022","2023","2024"]]
-   - growth_rates: [Array of strings - growth descriptions like "Revenue CAGR: 25%"]
-   - ebitda_margins: [Array of numbers - margin percentages like [15, 18, 20, 22]]
+**3. MANAGEMENT TEAM (EXACT STRUCTURE REQUIRED):**
+- management_team_profiles: [Array of 4-6 executive objects, each with:]
+  * "name": "Realistic Executive Name"
+  * "title": "Industry-Appropriate Job Title" 
+  * "background": "Detailed professional background relevant to this industry"
+  * "experience": "Specific experience and expertise summary"
 
-3. **Management Team** (create realistic profiles - EXACT format required):
-   - management_team_profiles: Array of objects with EXACT structure - each object must have:
-     * "name": "Executive Full Name"
-     * "title": "Exact Job Title"  
-     * "background": "Detailed professional background description"
-     * "experience": "Key experience summary"
-     Generate 4-6 executives appropriate to industry with this exact structure
+**4. COMPETITIVE LANDSCAPE (CHART-READY DATA):**
+- competitors: [Array of 5-6 competitor objects, each with:]
+  * "name": "Real or Realistic Competitor Name in This Industry"
+  * "revenue": [NUMERIC VALUE - must be number for chart rendering]
+- competitive_advantages: [Array of specific advantages for this industry/business]
+- barriers_to_entry: [Array of industry-specific barriers]
+- market_position: [Positioning description relevant to this industry]
 
-4. **Competitive Analysis** (EXACT field names for slide renderer):
-   - competitors: Array of objects for chart rendering - each object must have:
-     * "name": "Competitor Company Name"
-     * "revenue": NUMERIC_VALUE (important: must be a number for chart rendering)
-     Include 5-6 competitors with realistic revenue numbers
-   - competitive_advantages: [Array of strings - specific advantages for this industry]
-   - products_services_list: [Array of strings - company's main offerings]
-   - geographic_markets: [Array of strings - markets served]
+**5. STRATEGIC BUYER ANALYSIS:**
+- strategic_buyers_analysis: [Array of 4-6 strategic buyer objects relevant to this industry:]
+  * "name": "Realistic Strategic Buyer Company Name"
+  * "rationale": "Industry-specific acquisition rationale"
+  * "type": "Strategic"
+- sea_conglomerates: [If relevant, array of regional conglomerate objects with:]
+  * "name": "Conglomerate Name"
+  * "country": "Country"
+  * "description": "Business description relevant to acquiring this type of company"
+  * "key_shareholders": "Ownership structure"
+  * "key_financials": "Financial metrics"
+  * "contact": "Contact role"
 
-5. **Strategic Buyers** (industry-specific analysis):
-   - strategic_buyers_analysis: Array of objects - each object must have:
-     * "name": "Buyer Company Name"
-     * "rationale": "Why they would acquire this business"  
-     * "type": "Strategic"
+**6. FINANCIAL BUYER ANALYSIS:**
+- financial_buyers_analysis: [Array of 4-6 PE/VC objects appropriate to company size/stage:]
+  * "name": "Realistic PE/VC Fund Name"
+  * "rationale": "Investment thesis for this type of business"
+  * "type": "Financial"
 
-6. **Financial Buyers** (matching company profile):
-   - financial_buyers_analysis: Array of objects - each object must have:
-     * "name": "PE/VC Fund Name"
-     * "rationale": "Investment thesis"
-     * "type": "Financial"
+**7. INVESTMENT OPPORTUNITY:**
+- investment_highlights_detailed: [Array of compelling, industry-specific investment reasons]
+- key_investment_themes: [Array of main themes relevant to this business]
+- growth_initiatives: [Array of realistic growth strategies for this industry]
+- valuation_methodologies: [Array of appropriate valuation approaches]
 
-7. **Investment Highlights** (compelling and realistic):
-   - investment_highlights_detailed: [Array of strings - compelling investment reasons]
-   - key_investment_themes: [Array of strings - main investment themes]
-   - precedent_transactions: [Array of transaction examples]
-   - valuation_methodologies: [Array of valuation approaches like "Comparable Companies", "DCF Analysis"]
-   - growth_initiatives: [Array of growth strategies]
+**8. VALUATION ANALYSIS (TABLE-READY DATA):**
+- valuation_data: [Array of 3-4 valuation method objects:]
+  * "method": "Appropriate Valuation Method Name"
+  * "low": "X.Xx" (string format multiple like "8.0x")
+  * "high": "X.Xx" (string format multiple like "12.0x")
 
-8. **Valuation Data** (for valuation overview slide):
-   - valuation_data: Array of objects for valuation table - each object must have:
-     * "method": "Valuation Method Name"
-     * "low": "X.Xx" (string format like "8.0x")
-     * "high": "X.Xx" (string format like "12.0x")
-     Generate 3-4 realistic valuation methods with multiples
+**9. PRECEDENT TRANSACTIONS:**
+- precedent_transactions: [Array of realistic comparable transactions in this industry]
 
-CRITICAL REQUIREMENTS:
-- EVERYTHING must be realistic and industry-appropriate
-- NO hard-coded assumptions or generic placeholders
-- Use available context to drive all estimates
-- Apply professional investment banking standards
-- Ensure consistency across all data points
+**10. MARGIN & COST ANALYSIS:**
+- cost_management: Object with:
+  * "title": "Cost Management & Efficiency Initiatives" 
+  * "items": [Array of cost management initiatives with "title" and "description"]
+- risk_mitigation: Object with:
+  * "main_strategy": Object with "title", "description", and "benefits" array
+  * "banker_view": Object with "title" and "text"
 
-Return ONLY a complete JSON object with ALL fields populated. Every field must contain rich, realistic, professionally appropriate content.
+**11. GROWTH & PROJECTIONS:**
+- growth_initiatives: [Array of specific growth strategies for this industry]
+- financial_projections: Object with revenue/EBITDA projections if applicable
+
+**12. PRODUCT/SERVICE COVERAGE:**
+- products_services_list: [Array of specific offerings relevant to this business]
+- service_coverage: [Array of service areas or geographic coverage]
+
+UNIVERSAL QUALITY STANDARDS:
+✅ Industry-appropriate terminology and metrics
+✅ Realistic financial figures for company size and industry
+✅ Relevant competitor names and positioning
+✅ Appropriate buyer types for this industry
+✅ Professional investment banking language
+✅ Consistent business logic throughout
+
+Return ONLY a complete JSON object with ALL fields populated using industry-appropriate, realistic data.
 
 JSON Response:"""
 

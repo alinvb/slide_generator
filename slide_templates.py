@@ -1311,17 +1311,20 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
         for i, row in enumerate(assessment_data[:3]):
             print(f"[DEBUG] Assessment row {i}: {row}")
     else:
-        # Fallback: create proper table from user's actual data or use default
-        print(f"[DEBUG] Creating fallback assessment table")
-        assessment_data = [
-            ["Company", "Market Focus", "Connectors/Indexing", "Enterprise Adoption", "Factuality/Traceability"],
-            ["LlamaIndex", "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"],
-            ["LangChain", "⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐"],
-            ["CrewAI", "⭐⭐⭐", "⭐⭐⭐", "⭐⭐", "⭐⭐⭐"],
-            ["OpenAI API", "⭐⭐⭐⭐", "⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐"],
-            ["Haystack", "⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐"]
-        ]
-        print(f"[DEBUG] Using LlamaIndex competitive assessment data")
+        # NO HARD-CODED FALLBACKS: Show message that LLM data is required
+        print(f"[ERROR] No competitive assessment data provided - LLM generation required")
+        
+        # Add message about missing data instead of hard-coded fallback
+        message_box = slide.shapes.add_textbox(Inches(7.5), Inches(2.0), Inches(5.5), Inches(1.5))
+        message_frame = message_box.text_frame
+        message_frame.text = "Competitive assessment data not available. Please ensure LLM generates comprehensive competitor analysis."
+        message_para = message_frame.paragraphs[0]
+        message_para.alignment = PP_ALIGN.CENTER
+        message_para.font.name = fonts["primary_font"]
+        message_para.font.size = Pt(12)
+        message_para.font.color.rgb = colors["text"]
+        print(f"[DEBUG] Displayed data missing message - no hard-coded fallbacks used")
+        return prs
     
     # Create assessment table
     table_left = Inches(7.5)
@@ -1388,12 +1391,15 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
     add_clean_text(slide, Inches(0.5), Inches(4.5), Inches(6), Inches(0.3), 
                    "Barriers to Entry", 14, colors["primary"], True)
     
-    barriers = slide_data.get('barriers', [
-        {"title": "Regulatory Compliance:", "desc": "Stringent healthcare licensing requirements and facility standards"},
-        {"title": "Specialist Recruitment:", "desc": "Challenging acquisition of multilingual medical talent"},
-        {"title": "Prime Real Estate:", "desc": "Limited availability and high cost of clinic locations"},
-        {"title": "Insurance Relationships:", "desc": "Established direct billing partnerships with 35+ insurers"}
-    ])
+    # NO HARD-CODED FALLBACKS: Barriers must come from LLM-generated data
+    barriers = slide_data.get('barriers', slide_data.get('barriers_to_entry', []))
+    
+    if not barriers:
+        print(f"[ERROR] No barriers to entry data provided - LLM generation required")
+        # Show message instead of hard-coded data
+        add_clean_text(slide, Inches(0.5), Inches(4.8), Inches(6), Inches(0.5), 
+                       "Barriers to entry analysis not available. LLM must generate industry-specific barriers.", 
+                       10, colors["text"])
     
     y_start = Inches(4.9)
     for i, barrier in enumerate(barriers):
@@ -1886,20 +1892,25 @@ def render_margin_cost_resilience_slide(data=None, color_scheme=None, typography
     else:
         print(f"[DEBUG] Using fallback cost management items")
     
-    cost_items = cost_section.get('items', [
-        {
-            "title": "Operational Efficiency",
-            "description": "Streamlined processes and resource optimization initiatives"
-        },
-        {
-            "title": "Technology Investment", 
-            "description": "Digital transformation reducing administrative overhead"
-        },
-        {
-            "title": "Supply Chain Management",
-            "description": "Centralized procurement and vendor consolidation"
-        }
-    ])
+    # NO HARD-CODED FALLBACKS: Cost items must come from LLM
+    cost_items = cost_section.get('items', [])
+    
+    if not cost_items:
+        cost_items = [
+            {
+                "title": "Cost Management Data Required",
+                "description": "LLM must generate industry-specific cost management initiatives"
+            },
+            {
+                "title": "No Generic Fallbacks", 
+                "description": "All content must be relevant to company's actual business model"
+            },
+            {
+                "title": "Industry-Appropriate Content",
+                "description": "Cost initiatives must match company's operational profile"
+            }
+        ]
+        print(f"[ERROR] No cost management data - LLM generation required")
     
     y_start = Inches(4.8)
     
@@ -1959,13 +1970,13 @@ def render_margin_cost_resilience_slide(data=None, color_scheme=None, typography
             }
             print(f"[DEBUG] Converted unknown main_strategy type to object format")
     else:
-        # Provide comprehensive fallback when no data available
+        # NO HARD-CODED FALLBACKS: Show message that LLM data is required
         main_strategy = {
-            'title': 'Diversified Revenue Strategy',
-            'description': 'Multiple revenue streams and operational efficiency measures provide resilience against market volatility and cost pressures',
-            'benefits': ['Reduced earnings volatility', 'Stable cash generation', 'Operational flexibility']
+            'title': 'Risk Mitigation Data Required',
+            'description': 'LLM must generate industry-specific risk mitigation strategies based on company business model and market risks',
+            'benefits': ['LLM data required', 'No generic fallbacks', 'Industry-specific content needed']
         }
-        print(f"[DEBUG] Using fallback risk mitigation strategy")
+        print(f"[ERROR] No risk mitigation data - LLM generation required")
     
     strategy_box = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8), Inches(1.8), Inches(5), Inches(1.8))
     strategy_box.fill.solid()
@@ -2004,12 +2015,12 @@ def render_margin_cost_resilience_slide(data=None, color_scheme=None, typography
         banker_view = risk_section.get('banker_view', {})
         print(f"[DEBUG] Using provided banker's view")
     else:
-        # Enhanced fallback banker's view
+        # NO HARD-CODED FALLBACKS: Show message that LLM data is required
         banker_view = {
-            'title': "BANKER'S VIEW",
-            'text': 'Strong operational resilience through diversified revenue streams and disciplined cost management supports sustainable margin expansion and reduced business risk profile.'
+            'title': "BANKER'S VIEW - DATA REQUIRED",
+            'text': 'LLM must generate professional banker analysis based on company-specific risk profile and market positioning.'
         }
-        print(f"[DEBUG] Using fallback banker's view")
+        print(f"[ERROR] No banker's view data - LLM generation required")
     
     banker_box = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8), Inches(3.8), Inches(5), Inches(0.8))
     banker_box.fill.solid()
@@ -2441,9 +2452,14 @@ def render_business_overview_slide(data=None, color_scheme=None, typography=None
     title_text = slide_data.get('title', 'Business & Operational Overview')
     _apply_standard_header_and_title(slide, title_text, brand_config, company_name)
     
-    # Company description - FIXED POSITIONING TO AVOID OVERLAP
-    company_desc = slide_data.get('description', 'Leading healthcare services provider with comprehensive medical care and operational excellence.')
-    print(f"[DEBUG] Company description: {company_desc}")
+    # Company description - NO HARD-CODED FALLBACKS
+    company_desc = slide_data.get('description', slide_data.get('company_description', slide_data.get('business_description', '')))
+    
+    if not company_desc:
+        company_desc = "Company description not available. LLM must generate industry-specific business overview."
+        print(f"[ERROR] No company description provided - LLM generation required")
+    else:
+        print(f"[DEBUG] Using LLM-generated company description: {company_desc[:50]}...")
     
     # FIXED: Better positioning to avoid overlap with highlights
     add_clean_text(slide, Inches(0.8), Inches(1.3), Inches(6.5), Inches(1.0), 
@@ -2585,9 +2601,12 @@ def render_business_overview_slide(data=None, color_scheme=None, typography=None
         add_clean_text(slide, Inches(0.8), Inches(5.8), Inches(7), Inches(0.3), 
                        positioning_title, 12, colors["primary"], True)
         
-        positioning_desc = slide_data.get('positioning_desc', 
-            'The company has established itself as the leading premium healthcare provider in Southeast Asia, '
-            'serving both individual patients and corporate clients with comprehensive medical services and exceptional care standards.')
+        # NO HARD-CODED FALLBACKS: Positioning must come from LLM
+        positioning_desc = slide_data.get('positioning_desc', slide_data.get('market_positioning', slide_data.get('strategic_positioning', '')))
+        
+        if not positioning_desc:
+            positioning_desc = "Strategic market positioning not available. LLM must generate industry-specific positioning analysis."
+            print(f"[ERROR] No positioning description provided - LLM generation required")
         
         # FIXED: Reduced width and increased height for better text flow
         add_clean_text(slide, Inches(0.8), Inches(6.1), Inches(7), Inches(0.8), 
@@ -3218,31 +3237,14 @@ def render_growth_strategy_slide(data=None, color_scheme=None, typography=None, 
             add_clean_text(slide, Inches(0.85), y_pos - Inches(0.05), Inches(5.5), Inches(0.3), 
                            strategy, 9, colors["text"])
     else:
-        # FIXED: Add fallback content when no strategies are available
-        print(f"[DEBUG] Growth Strategy: No strategies found, adding fallback message")
+        # NO HARD-CODED FALLBACKS: Show message that LLM data is required
+        print(f"[ERROR] Growth Strategy: No strategies found - LLM generation required")
         print(f"[DEBUG] Available slide_data keys: {list(slide_data.keys())}")
         
-        fallback_strategies = [
-            "Strategic growth initiatives will be outlined here",
-            "Market expansion and diversification plans", 
-            "Operational efficiency improvements",
-            "Technology and innovation investments",
-            "Sustainability and ESG initiatives"
-        ]
-        
-        for i, strategy in enumerate(fallback_strategies):
-            y_pos = Inches(1.8 + i * 0.35)
-            
-            # Grey bullet for fallback content
-            bullet = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(0.7), y_pos, Inches(0.06), Inches(0.06))
-            bullet.fill.solid()
-            bullet.fill.fore_color.rgb = colors["light_grey"]
-            bullet.line.fill.background()
-            bullet.shadow.inherit = False
-            
-            # Strategy text in lighter color
-            add_clean_text(slide, Inches(0.85), y_pos - Inches(0.05), Inches(5.5), Inches(0.3), 
-                           strategy, 9, colors["footer_grey"])
+        # Add message about missing data instead of generic fallback
+        add_clean_text(slide, Inches(0.7), Inches(2.0), Inches(5.5), Inches(1.0), 
+                       "Growth strategies not available.\n\nLLM must generate industry-specific growth initiatives based on company business model and market opportunities.", 
+                       10, colors["text"])
     
     # Financial Projections Chart - ENHANCED: Better data handling and fallback
     projections = slide_data.get('financial_projections', {})
@@ -3647,42 +3649,29 @@ def render_sea_conglomerates_slide(data=None, color_scheme=None, typography=None
     print(f"[DEBUG] First company data: {slide_data[0] if slide_data else 'No data'}")
     print(f"[DEBUG] Input data type: {type(data)}")
     print(f"[DEBUG] Input data keys: {list(data.keys()) if isinstance(data, dict) else 'Not a dict'}")
-    print(f"[DEBUG] Using fallback data: {not slide_data}")
+    print(f"[DEBUG] LLM data provided: {bool(slide_data)}")
     
-    # Default data if none provided - FALLBACK ONLY (Oil & Gas focused)
+    # NO HARD-CODED FALLBACKS: All data must come from LLM generation
     if not slide_data:
-        slide_data = [
-            {
-                "name": "Reliance Industries Limited",
-                "country": "India",
-                "description": "Large diversified conglomerate with significant oil refining and petrochemicals operations",
-                "key_shareholders": "Mukesh Ambani family trust and public investors",
-                "key_financials": "Revenue: US$104B, Strong energy sector presence",
-                "contact": "Managing Director - Energy Sector"
-            },
-            {
-                "name": "Mitsubishi Corporation",
-                "country": "Japan", 
-                "description": "Global trading and investment conglomerate with extensive energy and natural resources portfolio",
-                "key_shareholders": "Mitsubishi Group companies and institutional investors",
-                "key_financials": "Revenue: US$156B+, Major energy trading operations",
-                "contact": "Executive Director - Energy Trading"
-            },
-            {
-                "name": "China National Petroleum Corporation",
-                "country": "China",
-                "description": "State-owned oil and gas corporation with integrated upstream and downstream operations",
-                "key_shareholders": "Chinese state-owned enterprise",
-                "key_financials": "Revenue: US$480B+, Leading global oil producer",
-                "contact": "Managing Director - International Operations"
-            },
-            {
-                "name": "Adnoc Group", 
-                "country": "UAE",
-                "description": "National oil company with diversified energy portfolio and strategic international partnerships",
-                "key_shareholders": "UAE government and sovereign funds",
-                "key_financials": "Revenue: US$60B+, Expanding global footprint",
-                "contact": "Executive Director - Corporate Development"
+        print(f"[ERROR] No SEA conglomerates data provided - LLM generation required")
+        
+        # Add message about missing data instead of hard-coded fallback
+        message_box = slide.shapes.add_textbox(Inches(2), Inches(3), Inches(9), Inches(2))
+        message_frame = message_box.text_frame
+        message_frame.text = ("Strategic buyer profiles not available.\n\n"
+                             "The LLM must generate industry-specific potential acquirers based on:\n"
+                             "• Company industry and business model\n"
+                             "• Geographic markets and operations\n" 
+                             "• Strategic fit and synergy opportunities\n"
+                             "• Market consolidation trends")
+        message_para = message_frame.paragraphs[0]
+        message_para.alignment = PP_ALIGN.LEFT
+        message_para.font.name = fonts["primary_font"]
+        message_para.font.size = Pt(12)
+        message_para.font.color.rgb = colors["text"]
+        
+        print(f"[DEBUG] Displayed data missing message - no hard-coded fallbacks used")
+        return prs
             }
         ]
     
@@ -3767,12 +3756,12 @@ def render_sea_conglomerates_slide(data=None, color_scheme=None, typography=None
         for row_idx, company in enumerate(chunk_data, 1):
             # Define the data for each column - handle different data structures
             row_data = [
-                company.get('name', ''),
-                company.get('country', ''),
-                company.get('description', company.get('healthcare_focus', '')),  # Fallback to healthcare_focus
-                company.get('key_shareholders', 'N/A'),
-                company.get('key_financials', company.get('revenue', '')),  # Fallback to revenue
-                company.get('contact', company.get('moelis_contact', 'To be assigned'))
+                company.get('name', 'Company Name Required'),
+                company.get('country', 'Country Required'),
+                company.get('description', company.get('business_description', 'Description Required')),
+                company.get('key_shareholders', 'Shareholders Required'),
+                company.get('key_financials', company.get('revenue', company.get('financials', 'Financials Required'))),
+                company.get('contact', company.get('moelis_contact', 'Contact Required'))
             ]
             
             for col_idx, data in enumerate(row_data):
