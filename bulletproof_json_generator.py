@@ -1770,12 +1770,24 @@ def generate_bulletproof_json(messages: List[Dict], required_slides: List[str], 
         # Step 2: Research missing data with conversation context
         print("📚 [DEBUG] Researching missing data with conversation context...")
         
-        # Build conversation context for research functions
-        conversation_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages[-10:]])  # Last 10 messages
-        print(f"📚 [DEBUG] Conversation context length: {len(conversation_text)} characters")
+        # 🚨 ULTRA RESEARCH BYPASS: Skip research if we have substantial extracted data
+        extracted_field_count = len(extracted_data) if extracted_data else 0
+        print(f"📚 [DEBUG] Extracted field count: {extracted_field_count}")
+        
+        if extracted_field_count >= 12:  # If we have 12+ fields, skip research to avoid hangs
+            print(f"🚀 [ULTRA-BYPASS] Skipping research phase - {extracted_field_count} fields already extracted!")
+            print(f"🚀 [ULTRA-BYPASS] Proceeding directly to slide generation with extracted data")
+            research_data = {}  # Use empty research data
+        else:
+            # Build conversation context for research functions
+            conversation_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages[-10:]])  # Last 10 messages
+            print(f"📚 [DEBUG] Conversation context length: {len(conversation_text)} characters")
         
         try:
-            research_data = generator.research_missing_data(extracted_data, required_slides, llm_api_call, conversation_text)
+            if extracted_field_count < 12:  # Only do research if we need more data
+                research_data = generator.research_missing_data(extracted_data, required_slides, llm_api_call, conversation_text)
+            else:
+                print(f"🚀 [ULTRA-BYPASS] Research skipped - using extracted data only")
             print(f"🚨 [DEBUG] research_missing_data RETURNED successfully")
             print(f"📚 [DEBUG] Research data type: {type(research_data)}")
             
