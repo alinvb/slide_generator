@@ -6363,7 +6363,12 @@ with tab_chat:
                         from topic_based_slide_generator import generate_topic_based_presentation
                         
                         # Check if using Research Agent data (all 14 topics researched)
-                        if st.session_state.get( 'research_completed', False):
+                        research_completed = st.session_state.get('research_completed', False)
+                        print(f"🔍 [DEBUG] research_completed flag: {research_completed}")
+                        print(f"🔍 [DEBUG] messages count: {len(st.session_state.messages)}")
+                        
+                        # FORCE BULLETPROOF SYSTEM FOR TESTING - Always use comprehensive research approach
+                        if True:  # st.session_state.get( 'research_completed', False):
                             # Research Agent: Generate ALL 14 slides
                             slide_list = [
                                 "business_overview", "product_service_footprint", 

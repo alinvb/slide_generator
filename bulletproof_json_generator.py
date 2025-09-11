@@ -75,7 +75,15 @@ class BulletproofJSONGenerator:
     def extract_conversation_data(self, messages: List[Dict], llm_api_call):
         """Extract structured data from conversation using LLM"""
         
+        print(f"🔍 [EXTRACTION DEBUG] Processing {len(messages)} conversation messages")
+        
+        # Debug: Check what's in the messages
+        for i, msg in enumerate(messages[-5:]):  # Show last 5 messages
+            content_preview = str(msg.get('content', ''))[:200] + "..." if len(str(msg.get('content', ''))) > 200 else str(msg.get('content', ''))
+            print(f"🔍 [EXTRACTION DEBUG] Message {i}: Role={msg.get('role')}, Content Preview={content_preview}")
+        
         conversation_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages])
+        print(f"🔍 [EXTRACTION DEBUG] Total conversation length: {len(conversation_text)} characters")
         
         extraction_prompt = f"""
 🔍 CRITICAL EXTRACTION TASK - NO GENERIC DATA ALLOWED:
@@ -129,9 +137,34 @@ RESPOND WITH ONLY THE JSON - NO OTHER TEXT.
 """
         
         try:
+            print(f"🔍 [EXTRACTION DEBUG] Making LLM call for conversation extraction...")
             response = llm_api_call([{"role": "user", "content": extraction_prompt}])
-            extracted_data = json.loads(response)
+            print(f"🔍 [EXTRACTION DEBUG] Raw extraction response length: {len(response)} characters")
+            print(f"🔍 [EXTRACTION DEBUG] Response preview: {response[:300]}...")
+            
+            # Clean response for JSON parsing
+            response_clean = response.strip()
+            if "```json" in response_clean:
+                response_clean = response_clean.split("```json")[1].split("```")[0].strip()
+            elif "```" in response_clean:
+                response_clean = response_clean.split("```")[1].split("```")[0].strip()
+            
+            extracted_data = json.loads(response_clean)
+            
+            # Debug what was actually extracted
+            print(f"🔍 [EXTRACTION DEBUG] Successfully extracted {len(extracted_data)} fields:")
+            for key, value in extracted_data.items():
+                if value and value != "null" and value != []:
+                    value_preview = str(value)[:100] + "..." if len(str(value)) > 100 else str(value)
+                    print(f"🔍 [EXTRACTION DEBUG] - {key}: {value_preview}")
+                else:
+                    print(f"🔍 [EXTRACTION DEBUG] - {key}: [EMPTY/NULL]")
+            
             return extracted_data
+        except json.JSONDecodeError as e:
+            print(f"❌ JSON parsing failed in extraction: {e}")
+            print(f"❌ Raw response was: {response[:500]}...")
+            return {}
         except Exception as e:
             print(f"❌ Data extraction failed: {e}")
             return {}
@@ -145,6 +178,7 @@ RESPOND WITH ONLY THE JSON - NO OTHER TEXT.
             return {}
         
         print(f"🔍 [RESEARCH] Starting missing data research for {company_name}...")
+        print(f"🔍 [RESEARCH] Checking {len(required_slides)} slide types for missing data...")
         missing_data = {}
         
         for slide in required_slides:
@@ -622,6 +656,19 @@ Ensure all data is specific to {company_name} and factually accurate."""
         # Merge extracted and research data
         complete_data = {**extracted_data, **research_data}
         print(f"📊 [DEBUG] complete_data keys: {list(complete_data.keys())}")
+        print(f"📊 [DEBUG] Data sources: {len(extracted_data)} from conversation, {len(research_data)} from research")
+        
+        # Show what data came from where
+        conversation_fields = []
+        research_fields = []
+        for key, value in complete_data.items():
+            if key in extracted_data and extracted_data[key] and extracted_data[key] != "null" and extracted_data[key] != []:
+                conversation_fields.append(key)
+            elif key in research_data and research_data[key] and research_data[key] != "null" and research_data[key] != []:
+                research_fields.append(key)
+        
+        print(f"📊 [DEBUG] Fields from CONVERSATION: {conversation_fields}")
+        print(f"📊 [DEBUG] Fields from RESEARCH: {research_fields}")
         
         # SMART FILTERING: Only include slides that have sufficient data from conversation
         covered_slides = self.filter_slides_by_conversation_coverage(complete_data, required_slides)
