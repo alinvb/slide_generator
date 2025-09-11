@@ -137,9 +137,14 @@ RESPOND WITH ONLY THE JSON - NO OTHER TEXT.
             return {}
     
     def research_missing_data(self, extracted_data: Dict, required_slides: List[str], llm_api_call):
-        """Research missing data for required slides"""
+        """Research missing data for required slides using LLM calls"""
         
         company_name = extracted_data.get("company_name", "the company")
+        if not company_name or company_name in ["Company Name", "[Research Required]", "the company"]:
+            print("❌ No specific company name found - cannot perform targeted research")
+            return {}
+        
+        print(f"🔍 [RESEARCH] Starting missing data research for {company_name}...")
         missing_data = {}
         
         for slide in required_slides:
@@ -147,35 +152,101 @@ RESPOND WITH ONLY THE JSON - NO OTHER TEXT.
                 continue
                 
             template = self.research_field_mapping[slide]
+            
+            # Check for required fields (handle both required_fields and required_data)
+            required_fields = template.get("required_fields", template.get("required_data", []))
             missing_fields = []
             
-            # Check what's missing
-            for field in template["required_fields"]:
+            # Check what's missing from extracted data
+            for field in required_fields:
                 if not extracted_data.get(field):
                     missing_fields.append(field)
             
-            # Research missing fields
+            # Research missing fields with comprehensive LLM call
             if missing_fields:
+                print(f"🔍 [RESEARCH] Researching missing fields for {slide}: {missing_fields}")
+                
                 research_prompt = f"""
-Research {company_name} and provide the following missing information:
+🔍 COMPREHENSIVE RESEARCH TASK for {company_name}:
 
-NEEDED FIELDS: {', '.join(missing_fields)}
+You are a senior investment banking analyst researching {company_name} for a pitch deck.
 
-Provide ONLY a JSON object with these fields:
-{{
-    {', '.join([f'"{field}": "provide {field} data"' for field in missing_fields])}
-}}
+MISSING INFORMATION NEEDED for {slide.upper()} slide:
+{', '.join(missing_fields)}
 
-RESPOND WITH ONLY THE JSON - NO OTHER TEXT.
-"""
+🚨 RESEARCH REQUIREMENTS:
+- Search for SPECIFIC, FACTUAL information about {company_name}
+- Use real data, dates, numbers, and names when available
+- If exact data unavailable, provide reasonable estimates based on industry analysis
+- NO generic placeholders - use company-specific insights
+
+SLIDE TYPE: {slide}
+NEEDED FIELDS: {missing_fields}
+
+Based on your research of {company_name}, provide a JSON response with the following structure:
+
+{{"""
+
+                # Add specific field requirements based on slide type
+                if slide == "business_overview":
+                    research_prompt += f"""
+    "company_name": "{company_name}",
+    "description": "2-3 sentence detailed business description",
+    "highlights": ["Specific milestone 1 with date", "Specific milestone 2", "Specific milestone 3"],
+    "services": ["Primary service/product 1", "Primary service/product 2"],
+    "positioning": "Market position and competitive differentiation"
+}}"""
+                elif slide == "historical_financial_performance":
+                    research_prompt += f"""
+    "revenue_data": [specific revenue figures for recent years],
+    "ebitda_data": [EBITDA figures or estimates],
+    "growth_metrics": ["Growth metric 1: X%", "Growth metric 2: Y units"],
+    "financial_highlights": ["Key financial achievement 1", "Key financial achievement 2"]
+}}"""
+                elif slide == "management_team":
+                    research_prompt += f"""
+    "executive_profiles": [
+        {{"name": "CEO Name", "role": "Chief Executive Officer", "background": "Previous experience"}},
+        {{"name": "Executive Name", "role": "Title", "background": "Background"}}
+    ],
+    "leadership_experience": "Combined years of leadership experience",
+    "team_structure": "Organizational structure overview"
+}}"""
+                else:
+                    # Generic research structure
+                    field_requirements = []
+                    for field in missing_fields:
+                        field_requirements.append(f'    "{field}": "researched data for {field}"')
+                    research_prompt += "\n" + ",\n".join(field_requirements) + "\n}"
+
+                research_prompt += f"""
+
+RESPOND WITH ONLY THE JSON OBJECT - NO OTHER TEXT OR EXPLANATIONS.
+Ensure all data is specific to {company_name} and factually accurate."""
                 
                 try:
+                    print(f"🔍 [RESEARCH] Making LLM call for {slide}...")
                     response = llm_api_call([{"role": "user", "content": research_prompt}])
-                    research_data = json.loads(response)
+                    
+                    # Clean response to extract JSON
+                    response_clean = response.strip()
+                    if "```json" in response_clean:
+                        response_clean = response_clean.split("```json")[1].split("```")[0].strip()
+                    elif "```" in response_clean:
+                        response_clean = response_clean.split("```")[1].split("```")[0].strip()
+                    
+                    research_data = json.loads(response_clean)
                     missing_data.update(research_data)
+                    
+                    print(f"✅ [RESEARCH] Successfully researched {slide}: {list(research_data.keys())}")
+                    
+                except json.JSONDecodeError as e:
+                    print(f"❌ [RESEARCH] JSON parsing failed for {slide}: {e}")
+                    print(f"❌ [RESEARCH] Raw response: {response[:200]}...")
                 except Exception as e:
-                    print(f"⚠️ Research failed for {slide}: {e}")
+                    print(f"❌ [RESEARCH] Research failed for {slide}: {e}")
         
+        print(f"🔍 [RESEARCH] Completed research. Total fields researched: {len(missing_data)}")
         return missing_data
     
     def filter_slides_by_conversation_coverage(self, complete_data: Dict, required_slides: List[str]) -> List[str]:
@@ -591,10 +662,32 @@ RESPOND WITH ONLY THE JSON - NO OTHER TEXT.
         # Use filtered slides instead of all required slides
         for slide_type in covered_slides:
             if slide_type == "business_overview":
-                # Use actual company data from conversation
-                founded_year = complete_data.get("founded", "2022")
-                description = complete_data.get("description", f"{company_name} business description")
-                milestones = complete_data.get("key_milestones", ["Company founded", "Platform launched"])
+                # Use research-enhanced data (both conversation + LLM research)
+                founded_year = complete_data.get("founded", complete_data.get("founded_year", "2022"))
+                
+                # Enhanced description using research data  
+                description = (complete_data.get("description") or 
+                             complete_data.get("business_description") or 
+                             f"{company_name} business description")
+                
+                # Enhanced milestones from multiple sources
+                milestones = (complete_data.get("highlights") or 
+                            complete_data.get("key_milestones") or 
+                            complete_data.get("milestones") or 
+                            [f"{company_name} established", "Platform launched"])
+                
+                # Enhanced services from research
+                services = (complete_data.get("services") or 
+                           complete_data.get("products_services") or 
+                           complete_data.get("primary_services") or 
+                           [f"{company_name} platform services"])
+                
+                # Enhanced positioning from research
+                positioning = (complete_data.get("positioning") or 
+                             complete_data.get("market_position") or 
+                             f"{company_name} - {description[:100]}..." if len(description) > 100 else description)
+                
+                print(f"🎯 [BUSINESS_OVERVIEW] Using: description={description[:50]}..., highlights={len(milestones)} items, services={len(services)} items")
                 
                 slides.append({
                     "template": "business_overview",
@@ -603,12 +696,12 @@ RESPOND WITH ONLY THE JSON - NO OTHER TEXT.
                         "company_name": company_name,
                         "description": description,
                         "timeline": {
-                            "start_year": int(founded_year) if founded_year.isdigit() else 2022,
+                            "start_year": int(founded_year) if str(founded_year).isdigit() else 2022,
                             "end_year": 2024
                         },
-                        "highlights": milestones[:4] if milestones else [f"{company_name} established", "Technology platform launched"],
-                        "services": complete_data.get("products_services", [f"{company_name} platform services"]),
-                        "positioning_desc": f"{company_name} - {description[:100]}..." if len(description) > 100 else description
+                        "highlights": milestones[:4] if isinstance(milestones, list) else [str(milestones)],
+                        "services": services if isinstance(services, list) else [str(services)],
+                        "positioning_desc": positioning
                     }
                 })
             
@@ -650,10 +743,17 @@ RESPOND WITH ONLY THE JSON - NO OTHER TEXT.
                 })
             
             elif slide_type == "historical_financial_performance":
-                # Use actual financial data if available
-                years = complete_data.get("years", ["2022", "2023", "2024"])
-                revenue = complete_data.get("revenue_usd_m", [])
-                ebitda = complete_data.get("ebitda_usd_m", [])
+                # Use enhanced financial data from multiple sources
+                years = (complete_data.get("years") or 
+                        complete_data.get("financial_years") or 
+                        ["2022", "2023", "2024"])
+                
+                revenue = (complete_data.get("revenue_usd_m") or 
+                          complete_data.get("revenue_data") or 
+                          complete_data.get("annual_revenue_usd_m") or [])
+                
+                ebitda = (complete_data.get("ebitda_usd_m") or 
+                         complete_data.get("ebitda_data") or [])
                 
                 # If no structured data, extract from conversation
                 if not revenue and "2.73 billion" in str(complete_data).lower():
