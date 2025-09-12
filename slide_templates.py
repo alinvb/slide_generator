@@ -1285,8 +1285,8 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
         value_axis.maximum_scale = max(dynamic_max, 10)  # Minimum scale of 10
         print(f"[DEBUG] Competitive chart axis scaled: max {data_max:,} → {dynamic_max:,}")
     else:
-        value_axis.maximum_scale = 100  # Better fallback for empty data
-        print(f"[DEBUG] Using fallback axis scale: 100")
+        # No fallback - leave axis unscaled to show data gaps
+        print(f"[DEBUG] No chart data available - leaving axis unscaled to expose data gaps")
     
     # Highlight the user's company (first in list or matching company name) in secondary color
     user_company_name = (content_ir or {}).get('entities', {}).get('company', {}).get('name', '')
@@ -1876,7 +1876,8 @@ def render_margin_cost_resilience_slide(data=None, color_scheme=None, typography
                     value_axis.maximum_scale = dynamic_max
                     print(f"[DEBUG] Margin chart axis scaled: max {data_max}% → {dynamic_max}%")
                 else:
-                    value_axis.maximum_scale = 50  # Reasonable default for percentages
+                    # No default scale - let chart show actual data gaps
+                    pass
                 
                 # Style the line series (secondary color)
                 series = chart.series[0]
@@ -2243,7 +2244,7 @@ def render_historical_financial_performance_slide(data=None, color_scheme=None, 
             print(f"[DEBUG] Large scale detected, ensuring proper chart rendering")
     else:
         value_axis.minimum_scale = 0
-        value_axis.maximum_scale = 45  # Fallback for empty data
+        # No fallback scale - let chart show actual data or gaps
     
     # Color the series
     series = chart.series
@@ -2910,6 +2911,9 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
         if isinstance(transaction, dict):
             target = transaction.get('target', 'N/A')
             acquirer = transaction.get('acquirer', 'N/A')
+            # Fix: Ensure acquirer is not None to prevent NoneType error
+            if acquirer is None:
+                acquirer = 'N/A'
         elif isinstance(transaction, str):
             # If transaction is a string, create a simple row
             target = f"Transaction {col_idx + 1}"
@@ -2924,6 +2928,9 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
         # Smart truncation for company names - keep more characters but break intelligently
         def smart_truncate(name, max_length=18):
             """Intelligently truncate company names"""
+            # Fix: Handle None values
+            if name is None:
+                return 'N/A'
             if len(name) <= max_length:
                 return name
             

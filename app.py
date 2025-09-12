@@ -1682,10 +1682,9 @@ def validate_json_char_by_char(json_str, error_pos):
     return json_str
 
 def fallback_json_repair(json_str):
-    """DISABLED - Fallback repair causes more issues"""
-    print(f"[FALLBACK REPAIR] Disabled - returning empty JSON")
-    # Return minimal valid JSON to prevent crashes
-    return '{}'
+    """REMOVED - No fallback JSON repair allowed"""
+    print(f"❌ [ERROR] Fallback JSON repair removed - no hard-coded JSON allowed")
+    raise ValueError(f"JSON repair fallback removed. Fix JSON parsing issues - no hard-coded fallbacks allowed.")
 
 def extract_jsons_from_response(response_text):
     """Extract both Content IR and Render Plan JSONs from AI response - ENHANCED VERSION FOR USER'S FORMAT"""
@@ -5928,8 +5927,8 @@ with tab_chat:
     # API key is now configured via config.py file
     api_key = st.session_state.get('api_key', '')
     if not api_key:
-        st.info("ℹ️ API key is configured via config.py file. If you don't have one, the system will use fallback data.")
-        # Don't stop execution - allow fallback mode to work
+        st.error("❌ API key is required - no fallback data allowed. Configure API key to proceed.")
+        # Stop execution - no fallback mode allowed
     
     # Import Research Agent functions
     from research_agent import research_all_topics, fact_check_user_info
@@ -5947,7 +5946,7 @@ with tab_chat:
     
     # 🚨 TESTING: Add button to load default research data
     if not st.session_state.get('research_completed', False) and len(st.session_state.get('messages', [])) <= 4:
-        col_demo1, col_demo2 = st.columns([2, 1])
+        col_demo1, col_demo2, col_demo3 = st.columns([2, 1, 1])
         with col_demo2:
             if st.button("🎬 Load Netflix Data", type="secondary", help="Load Netflix investment banking conversation for testing"):
                 print(f"🎬 [NETFLIX_DATA] Loading Netflix research conversation for testing...")
@@ -6000,6 +5999,52 @@ with tab_chat:
                 st.success("🎬 **Netflix Research Data Loaded!** Comprehensive investment banking conversation ready. Scroll down to find the '🚀 Generate JSON Now' button.")
                 print(f"🎬 [NETFLIX_DATA] Loaded {len(netflix_research_messages)} Netflix research messages")
                 st.rerun()  # Refresh page to show updated data
+        
+        with col_demo3:
+            if st.button("📊 Load NVIDIA Data", type="secondary", help="Load NVIDIA investment banking research for testing"):
+                # Load NVIDIA sample data
+                try:
+                    import json
+                    with open('nvidia_sample_data.json', 'r') as f:
+                        sample_data = json.load(f)
+                    
+                    # Convert NVIDIA research to conversation format
+                    nvidia_messages = [
+                        {"role": "system", "content": "Investment banking research assistant"},
+                        {"role": "assistant", "content": f"Let's conduct comprehensive research on {sample_data['company_name']} for your investment banking analysis and potential acquisition scenarios."}
+                    ]
+                    
+                    # Add each research topic as conversation
+                    for topic_id, topic_data in sample_data['research_results'].items():
+                        nvidia_messages.append({
+                            "role": "user", 
+                            "content": f"Please research {topic_data['title'].lower()} for {sample_data['company_name']}."
+                        })
+                        nvidia_messages.append({
+                            "role": "assistant",
+                            "content": f"**{topic_data['title']} Research Complete**\n\n{topic_data['content']}"
+                        })
+                    
+                    # Add final message
+                    nvidia_messages.append({
+                        "role": "assistant",
+                        "content": f"✅ **{sample_data['company_name']} Research Complete!** All 14 investment banking topics researched comprehensively.\n\n✅ **Ready for JSON Generation**: You can now click 'Generate JSON Now' to create your comprehensive {sample_data['company_name']} investment banking presentation."
+                    })
+                    
+                    # Update session state
+                    st.session_state.messages = nvidia_messages
+                    st.session_state['research_completed'] = True
+                    st.session_state['fake_data_loaded'] = True
+                    st.session_state['company_name'] = sample_data['company_name']
+                    st.session_state['current_company'] = sample_data['company_name']
+                    
+                    st.success(f"📊 **{sample_data['company_name']} Research Data Loaded!** Comprehensive investment banking research ready. Scroll down to find the '🚀 Generate JSON Now' button.")
+                    print(f"📊 [NVIDIA_DATA] Loaded {len(nvidia_messages)} {sample_data['company_name']} research messages")
+                    st.rerun()
+                    
+                except Exception as e:
+                    st.error(f"❌ Failed to load NVIDIA sample data: {e}")
+                    print(f"❌ [NVIDIA_DATA] Load failed: {e}")
     
     st.markdown("### 🔍 Company Research")
     st.markdown("Enter a company name and let AI research all 14 investment banking topics automatically")
@@ -6065,11 +6110,37 @@ with tab_chat:
             with topic_tabs[i]:
                 st.markdown(f"### {topic_data['title']}")
                 
-                # Show status
-                if topic_data['status'] == 'completed':
-                    st.success("✅ Research completed")
-                else:
-                    st.error("❌ Research failed")
+                # Show status with retry option for failed topics
+                col1, col2 = st.columns([3, 1])
+                
+                with col1:
+                    if topic_data['status'] == 'completed':
+                        st.success("✅ Research completed")
+                    elif 'retry' in topic_data['status']:
+                        st.success("✅ Research completed (retried)")
+                    elif 'edited' in topic_data['status']:
+                        st.info("✏️ Research edited by user")
+                    else:
+                        st.error("❌ Research failed")
+                
+                with col2:
+                    # Add retry button for failed topics or allow re-research for any topic
+                    if st.button(f"🔄 Retry Research", key=f"retry_{topic_id}", help="Re-run LLM research for this topic"):
+                        with st.spinner(f"Re-researching {topic_data['title']}..."):
+                            try:
+                                # Import the retry function
+                                from research_agent import _retry_single_topic_research
+                                
+                                # Re-run research for this specific topic
+                                retried_result = _retry_single_topic_research(topic_id, topic_data)
+                                if retried_result:
+                                    st.session_state.research_results[topic_id] = retried_result
+                                    st.success("✅ Research retry successful!")
+                                    st.rerun()  # Refresh the display
+                                else:
+                                    st.error("❌ Research retry failed")
+                            except Exception as e:
+                                st.error(f"❌ Retry failed: {str(e)}")
                 
                 # Show content with edit capability
                 st.markdown("**Research Results:**")
@@ -6086,7 +6157,17 @@ with tab_chat:
                 # Update research results with user edits
                 if edited_content != topic_data['content']:
                     st.session_state.research_results[topic_id]['content'] = edited_content
+                    st.session_state.research_results[topic_id]['status'] = 'edited'
                     st.info(f"✏️ Content edited for {topic_data['title']}")
+                
+                # Show required fields that should be covered
+                with st.expander(f"📋 Required fields for {topic_data['title']}"):
+                    st.markdown("**This topic should cover the following information:**")
+                    if 'required_fields' in topic_data:
+                        for field in topic_data['required_fields']:
+                            st.write(f"• {field}")
+                    else:
+                        st.write("• Comprehensive research for this topic")
                 
                 # Show original vs edited content
                 if edited_content != topic_data.get('original_content', topic_data['content']):
@@ -6363,17 +6444,14 @@ RENDER PLAN JSON:
                                     print(f"🔍 [API_KEY_DEBUG] Using service: {working_service}")
                                     print(f"🔍 [API_KEY_DEBUG] Session state keys: {list(st.session_state.keys())}")
                                     
-                                    # CRITICAL: If no API key, show clear error and return meaningful fallback
+                                    # CRITICAL: If no API key, show clear error - NO FALLBACK DATA
                                     if not working_api_key:
-                                        print("🚨 [CRITICAL] NO API KEY - Using comprehensive fallback data")
-                                        print("💡 [INFO] No API key configured - generating with fallback research data.")
-                                        st.warning("⚠️ **No API Key Found** - Using comprehensive fallback data for demonstration")
-                                        st.info("💡 **Add your Perplexity API key in the sidebar for real research.**")
+                                        print("❌ [CRITICAL] NO API KEY - No fallback data allowed")
+                                        st.error("❌ **No API Key Found** - System requires valid API key to proceed")
+                                        st.info("💡 **Add your Perplexity API key in the sidebar to enable research.**")
                                         
-                                        # Use comprehensive fallback response instead of None
-                                        from shared_functions import generate_fallback_response
-                                        print("🔍 [FALLBACK] Using comprehensive fallback data generation")
-                                        return generate_fallback_response(messages)
+                                        # No fallback data - raise error to expose gaps
+                                        raise ValueError("API key required - no fallback data allowed. Configure API key to proceed.")
                                     
                                     # Detect if this is a comprehensive gap-filling call that needs extended timeout
                                     is_gap_filling = False
@@ -6404,20 +6482,16 @@ RENDER PLAN JSON:
                                         print(f"🔍 [API_DEBUG] API response length: {len(response) if response else 0}")
                                         
                                         if not response or len(response) < 10:
-                                            print("🚨 [API_DEBUG] API RESPONSE TOO SHORT - Using fallback data!")
-                                            st.warning(f"⚠️ **API Response Empty:** Got {len(response) if response else 0} characters - using fallback data")
-                                            print("🔍 [FALLBACK] Using comprehensive fallback data generation")
-                                            from shared_functions import generate_fallback_response
-                                            return generate_fallback_response(messages)
+                                            print("❌ [API_DEBUG] API RESPONSE TOO SHORT - No fallback data allowed!")
+                                            st.error(f"❌ **API Response Empty:** Got {len(response) if response else 0} characters - API issue needs to be resolved")
+                                            raise ValueError(f"API response too short ({len(response) if response else 0} chars) - no fallback data allowed")
                                         
                                         return response
                                         
                                     except Exception as e:
-                                        print(f"🚨 [API_DEBUG] API CALL FAILED: {str(e)}")
-                                        st.warning(f"⚠️ **API Call Error:** {str(e)} - using fallback data")
-                                        print("🔍 [FALLBACK] Using comprehensive fallback data generation")
-                                        from shared_functions import generate_fallback_response
-                                        return generate_fallback_response(messages)
+                                        print(f"❌ [API_DEBUG] API CALL FAILED: {str(e)}")
+                                        st.error(f"❌ **API Call Error:** {str(e)} - API issue needs to be resolved")
+                                        raise Exception(f"API call failed: {str(e)} - no fallback data allowed")
                                 
                                 # 🚨 ENHANCED: Show progress tracking before calling bulletproof generator
                                 st.info("🔄 **Starting Bulletproof JSON Generation** - Progress tracking will show below")

@@ -9,6 +9,7 @@ from shared_functions import safe_get
 import json
 import time
 from typing import Dict, List, Tuple, Any
+from datetime import datetime
 
 # Import shared functions to avoid circular import
 from shared_functions import call_llm_api, run_research, get_current_company
@@ -328,95 +329,96 @@ Research actual financial data, peer multiples, and transaction comparables. Pro
 
         "strategic_buyers": {
             "title": "Strategic Buyers Analysis",
-            "prompt": """🎯 STRATEGIC ACQUIRER IDENTIFICATION for {company}:
+            "prompt": """🎯 2-PHASE STRATEGIC ACQUIRER ANALYSIS for {company}:
 
 CONTEXT FROM PRIOR RESEARCH:
-Use {company}'s valuation range from Topic 7 and business model from Topics 1-6 to identify SPECIFIC strategic acquirers.
+Use {company}'s valuation range from Topic 7 and business model from Topics 1-6.
 
-🚨 MANDATORY REQUIREMENTS - PROVIDE ACTUAL COMPANY NAMES:
-Identify 6-8 SPECIFIC strategic buyers with detailed analysis:
+**PHASE 1: IDENTIFY 10 POTENTIAL STRATEGIC BUYERS**
+🚨 MANDATORY: Find 10 specific strategic buyer candidates:
 
-**FOR EACH STRATEGIC BUYER PROVIDE**:
-✅ **Company Name**: Actual corporation name (e.g., "Microsoft", "Salesforce")
-✅ **Current Revenue**: Latest annual revenue in billions/millions USD
+**FOR EACH OF 10 COMPANIES PROVIDE**:
+✅ **Company Name**: Actual corporation name
+✅ **Revenue**: Latest annual revenue (billions/millions USD)
 ✅ **Market Cap**: Current market capitalization
+✅ **Industry**: Primary business sector
+✅ **Geographic Presence**: Key markets/regions
+✅ **Affordability**: Can they afford {company}? (Yes/No/Maybe)
+✅ **Strategic Logic**: Brief acquisition rationale (1-2 sentences)
+
+**PHASE 2: SELECT TOP 5 WITH DETAILED ANALYSIS**
+From the 10 candidates above, select TOP 5 most viable and provide:
+
+**FOR EACH TOP 5 BUYER**:
 ✅ **Cash Position**: Available cash and credit facilities
-✅ **Affordability Score**: Can they afford {company}'s valuation? (Yes/No + rationale)
-✅ **Strategic Rationale**: Why they would acquire {company} (2-3 specific reasons)
+✅ **Recent M&A**: Relevant acquisitions (2022-2024) with deal values
 ✅ **Synergy Value**: Estimated synergy potential in $M
-✅ **Acquisition History**: Recent relevant acquisitions with deal values
-✅ **Geographic Fit**: Presence in {company}'s markets
-✅ **Strategic Fit Rating**: 1-10 scale with rationale
+✅ **Strategic Fit Score**: 1-10 with detailed rationale
+✅ **Acquisition Timeline**: Expected timing and process
 
-**RESEARCH REQUIREMENTS**:
-- Research actual public companies with 10x+ {company}'s estimated revenue
-- Verify each buyer's recent M&A activity and deal capacity
-- Focus on companies in same/adjacent industries with geographic overlap
-- **CRITICAL**: Reference specific valuation range from Topic 7 for affordability
+**OUTPUT FORMAT**:
+**ALL 10 CANDIDATES:**
+1. [Company] - $XXB Rev, $YYB MCap, [Industry] → Affordable: Yes/No
+2-10. [Continue list...]
 
-**AFFORDABILITY ANALYSIS**:
-For buyers to be viable, they typically need:
-- Revenue: 10-20x target company revenue
-- Market Cap: 20-50x target enterprise value
-- Cash/Credit: 2-3x acquisition price available
-
-**OUTPUT FORMAT REQUIRED**:
-1. [Company Name] - $XXB Revenue, $YYB Market Cap
-   - Affordability: Can acquire for $ZZM (within credit capacity)
-   - Strategic Rationale: [Specific business reasons]
-   - Synergies: $AAM potential value creation
-   - Fit Score: X/10
+**TOP 5 DETAILED ANALYSIS:**
+🏆 1. [Company Name] - Strategic Fit: X/10
+   - Cash Available: $XXB (can afford $YYM acquisition)
+   - Recent Deals: [Company], $ZZM, [Date]
+   - Synergies: $AAM potential
+   - Timeline: [Expected process]
 
 RESEARCH INSTRUCTIONS:
-Provide investment banking-grade strategic buyer analysis with specific company names, financial capacity verification, and detailed strategic rationale.""",
-            "required_fields": ["strategic_buyers_list", "affordability_verification", "acquisition_rationale_detailed", "financial_capacity_analysis", "synergy_estimates", "fit_ratings"]
+Research actual public companies with sufficient scale (10x+ {company} revenue). Focus on same/adjacent industries with geographic overlap.""",
+            "required_fields": ["all_10_candidates", "top_5_detailed_analysis", "affordability_verification", "strategic_rationale", "synergy_estimates", "fit_scores"]
         },
 
         "financial_buyers": {
             "title": "Financial Buyers Analysis", 
-            "prompt": """💰 PRIVATE EQUITY FIRM IDENTIFICATION for {company}:
+            "prompt": """💰 2-PHASE PRIVATE EQUITY ANALYSIS for {company}:
 
 CONTEXT FROM PRIOR RESEARCH:
-Use {company}'s valuation range from Topic 7 and business characteristics to identify SPECIFIC PE firms.
+Use {company}'s valuation range from Topic 7 and business characteristics.
 
-🚨 MANDATORY REQUIREMENTS - PROVIDE ACTUAL PE FIRM NAMES:
-Identify 6-8 SPECIFIC private equity firms with detailed analysis:
+**PHASE 1: IDENTIFY 10 POTENTIAL PE FIRMS**
+🚨 MANDATORY: Find 10 specific PE firm candidates:
 
-**FOR EACH PE FIRM PROVIDE**:
-✅ **Firm Name**: Actual PE firm name (e.g., "KKR", "Blackstone Growth")
-✅ **Fund Size**: Latest fund AUM in billions USD
-✅ **Deal Size Range**: Typical investment range (e.g., "$50M-$500M")
-✅ **Check Size Capability**: Can they write check for {company}? (Yes/No + amount)
-✅ **Sector Focus**: Industry expertise relevant to {company}
-✅ **Geographic Focus**: Investment regions matching {company}'s markets
-✅ **Recent Deals**: 2-3 recent investments with deal values in similar sector
-✅ **Investment Strategy**: Growth/buyout/sector-specific focus
-✅ **Portfolio Fit**: How {company} fits their portfolio strategy
-✅ **Fit Rating**: 1-10 scale with investment rationale
+**FOR EACH OF 10 PE FIRMS PROVIDE**:
+✅ **Firm Name**: Actual PE firm name (e.g., "KKR", "Blackstone")
+✅ **Fund Size**: Latest fund AUM (billions USD)
+✅ **Deal Range**: Typical investment size ($XXM-$YYM)
+✅ **Sector Focus**: Primary industry expertise
+✅ **Geography**: Investment regions
+✅ **Check Size Fit**: Can write check for {company}? (Yes/No/Maybe)
+✅ **Investment Style**: Growth/buyout/sector-specific
 
-**RESEARCH REQUIREMENTS**:
-- Research actual PE firms with funds raised 2020-2024
-- Verify each firm's deal size capabilities vs. {company}'s valuation
-- Focus on firms with sector expertise and geographic presence
-- **CRITICAL**: Use Topic 7 valuation range to ensure deal size fit
+**PHASE 2: SELECT TOP 5 WITH DETAILED ANALYSIS**
+From the 10 candidates above, select TOP 5 most suitable and provide:
+
+**FOR EACH TOP 5 PE FIRM**:
+✅ **Recent Portfolio**: 2-3 relevant investments (2022-2024)
+✅ **Deal Capacity**: Specific check size for {company} ($XXM)
+✅ **Sector Experience**: Portfolio companies in same/adjacent industries
+✅ **Value Creation**: Typical operational improvements and returns
+✅ **Investment Fit Score**: 1-10 with detailed rationale
+
+**OUTPUT FORMAT**:
+**ALL 10 CANDIDATES:**
+1. [PE Firm] - $XXB Fund, $YY-$ZZM Range, [Sector Focus] → Fit: Yes/No
+2-10. [Continue list...]
+
+**TOP 5 DETAILED ANALYSIS:**
+🏆 1. [PE Firm Name] - Investment Fit: X/10
+   - Check Size: $XXM (within $YY-$ZZM sweet spot)
+   - Recent Deal: [Company], $AAM, [Date]
+   - Sector Experience: [Portfolio examples]
+   - Value Strategy: [Operational improvements]
 
 **PE FIRM SIZE REQUIREMENTS**:
-For {company}'s valuation, target PE firms with:
-- Fund Size: 5-15x target deal value
-- Deal Size Sweet Spot: 0.5-2x {company}'s enterprise value
-- Geographic Presence: Active in {company}'s primary markets
-- Sector Experience: Relevant portfolio companies or sector focus
-
-**OUTPUT FORMAT REQUIRED**:
-1. [PE Firm Name] - $XXB Fund, $YY-$ZZM Deal Range
-   - Check Size: Can invest $AAM in {company} (within range)
-   - Sector Fit: [Specific industry focus/experience]
-   - Geography: [Active regions matching {company}]
-   - Recent Deal: [Similar company, $BBM, date]
-   - Strategy Fit: X/10
+Target firms with fund size 5-15x deal value, active 2020-2024 fundraising.
 
 RESEARCH INSTRUCTIONS:
-Provide investment banking-grade PE analysis with specific firm names, fund capacities, and detailed investment fit rationale.""",
+Research actual PE firms with appropriate scale and sector expertise for {company}'s profile.""",
             "required_fields": ["pe_firms_list", "fund_capacity_analysis", "deal_size_fit", "sector_expertise", "geographic_alignment", "recent_transactions", "investment_fit_ratings"]
         },
 
@@ -579,7 +581,7 @@ def research_all_topics(company_name: str, user_info: str = "") -> Dict[str, Any
                 vector_db = VectorDBManager()
                 
                 # Check if vector DB credentials are available
-                if st.safe_get(session_state, 'vector_db_id') and st.safe_get(session_state, 'vector_db_token'):
+                if safe_get(session_state, 'vector_db_id') and safe_get(session_state, 'vector_db_token'):
                     vector_db.initialize(
                         database_id=st.session_state['vector_db_id'],
                         token=st.session_state['vector_db_token']
@@ -699,9 +701,9 @@ def fact_check_user_info(user_info: str, company_name: str) -> Dict[str, Any]:
         ]
         
         response = call_llm_api(messages, 
-                              st.safe_get(session_state, 'model', 'sonar-pro'),
-                              st.safe_get(session_state, 'api_key'), 
-                              st.safe_get(session_state, 'api_service', 'perplexity'))
+                              safe_get(session_state, 'model', 'sonar-pro'),
+                              safe_get(session_state, 'api_key'), 
+                              safe_get(session_state, 'api_service', 'perplexity'))
         
         return {
             'has_info': True,
@@ -716,33 +718,116 @@ def fact_check_user_info(user_info: str, company_name: str) -> Dict[str, Any]:
             'original_info': user_info
         }
 
-def display_research_results(results: Dict[str, Any]) -> None:
+def display_research_results(results: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Display research results in a clean, organized format
+    Display research results in a clean, organized format with retry functionality
+    Returns updated results if any topics were re-researched
     """
     st.markdown("## 📊 Research Results")
     
     # Create tabs for each topic
     topic_tabs = st.tabs([results[topic]['title'] for topic in results.keys()])
     
+    updated_results = results.copy()  # Track any updates
+    
     for i, (topic_id, topic_data) in enumerate(results.items()):
         with topic_tabs[i]:
             st.markdown(f"### {topic_data['title']}")
             
-            # Show status
-            if topic_data['status'] == 'completed':
-                st.success("✅ Research completed")
-            else:
-                st.error("❌ Research failed")
+            # Show status with retry option for failed topics
+            col1, col2 = st.columns([3, 1])
             
-            # Show content
+            with col1:
+                if topic_data['status'] == 'completed':
+                    st.success("✅ Research completed")
+                else:
+                    st.error("❌ Research failed")
+            
+            with col2:
+                # Add retry button for failed topics or allow re-research for any topic
+                if st.button(f"🔄 Retry Research", key=f"retry_{topic_id}", help="Re-run LLM research for this topic"):
+                    with st.spinner(f"Re-researching {topic_data['title']}..."):
+                        try:
+                            # Re-run research for this specific topic
+                            retried_result = _retry_single_topic_research(topic_id, topic_data)
+                            if retried_result:
+                                updated_results[topic_id] = retried_result
+                                st.success("✅ Research retry successful!")
+                                st.experimental_rerun()  # Refresh the display
+                            else:
+                                st.error("❌ Research retry failed")
+                        except Exception as e:
+                            st.error(f"❌ Retry failed: {str(e)}")
+            
+            # Show content with edit capability
             st.markdown("**Research Results:**")
-            st.markdown(topic_data['content'])
+            
+            # Create editable text area for the content
+            edited_content = st.text_area(
+                "Edit research content if needed:",
+                value=topic_data['content'],
+                height=300,
+                key=f"content_{topic_id}",
+                help="You can edit this content and it will be used for JSON generation"
+            )
+            
+            # Update the content if it was edited
+            if edited_content != topic_data['content']:
+                updated_results[topic_id]['content'] = edited_content
+                updated_results[topic_id]['status'] = 'edited'
             
             # Show required fields that should be covered
             with st.expander(f"📋 Required fields for {topic_data['title']}"):
+                st.markdown("**This topic should cover the following information:**")
                 for field in topic_data['required_fields']:
                     st.write(f"• {field}")
+    
+    return updated_results
+
+
+def _retry_single_topic_research(topic_id: str, topic_data: Dict) -> Dict:
+    """
+    Retry research for a single topic
+    """
+    try:
+        # Get research prompts
+        research_prompts = get_research_prompts()
+        
+        if topic_id not in research_prompts:
+            raise Exception(f"No prompt configuration found for topic: {topic_id}")
+        
+        topic_config = research_prompts[topic_id]
+        
+        # Get current company name from session state
+        company_name = get_current_company()
+        if not company_name:
+            company_name = st.session_state.get('company_name', 'Unknown Company')
+        
+        # Format the prompt for this specific topic
+        formatted_prompt = topic_config['prompt'].format(
+            company=company_name,
+            vector_db_transactions=""  # Keep it simple for retry
+        )
+        
+        # Add context about this being a retry
+        formatted_prompt += f"\n\nNOTE: This is a retry of the research. Previous attempt failed or was insufficient. Please provide comprehensive, detailed research."
+        
+        # Use existing research system
+        st.session_state['current_company'] = company_name
+        research_result = run_research(formatted_prompt)
+        
+        # Create updated topic data
+        return {
+            'title': topic_config['title'],
+            'content': research_result,
+            'required_fields': topic_config['required_fields'],
+            'status': 'completed_retry',
+            'topic_number': topic_data.get('topic_number', 0)
+        }
+        
+    except Exception as e:
+        print(f"❌ [RETRY] Failed to retry research for {topic_id}: {e}")
+        return None
 
 def create_edit_interface(results: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -859,8 +944,22 @@ def main():
             help="Provide any information you have. The AI will fact-check it and use correct information."
         )
     
-    # Research button
-    if st.button("🚀 Start Comprehensive Research", type="primary", disabled=not company_name):
+    # Sample data and Research buttons
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        if st.button("📊 Load Sample Data (NVIDIA)", help="Load pre-researched NVIDIA data for testing"):
+            if load_sample_data():
+                st.success("✅ NVIDIA sample data loaded successfully!")
+                st.info("💡 Ready for JSON generation and slide creation testing")
+                st.rerun()
+            else:
+                st.error("❌ Failed to load sample data")
+    
+    with col2:
+        research_button = st.button("🚀 Start Comprehensive Research", type="primary", disabled=not company_name)
+    
+    if research_button:
         if not company_name.strip():
             st.error("Please enter a company name")
             return
@@ -897,7 +996,7 @@ def main():
         col1, col2 = st.columns(2)
         
         with col1:
-            if st.button("✅ Results Look Good - Generate JSON", type="primary"):
+            if st.button("✅ Results Look Good - Generate JSON", type="primary"):  
                 st.markdown("### 🔄 Generating Investment Banking JSON...")
                 
                 # Use existing JSON generation system
@@ -936,9 +1035,9 @@ def main():
                         def llm_wrapper(messages, model=None, api_key=None, api_service=None):
                             return call_llm_api(
                                 messages, 
-                                st.safe_get(session_state, 'model'),
-                                st.safe_get(session_state, 'api_key'),
-                                st.safe_get(session_state, 'api_service')
+                                safe_get(session_state, 'model'),
+                                safe_get(session_state, 'api_key'),
+                                safe_get(session_state, 'api_service')
                             )
                         
                         response, content_ir, render_plan = generate_bulletproof_json(
@@ -997,7 +1096,7 @@ def main():
                 st.rerun()
     
     # Edit mode
-    if st.safe_get(session_state, 'edit_mode', False) and st.session_state.research_results:
+    if safe_get(session_state, 'edit_mode', False) and st.session_state.research_results:
         st.markdown("---")
         edited_results = create_edit_interface(st.session_state.research_results)
         
@@ -1006,6 +1105,27 @@ def main():
             st.session_state.edit_mode = False
             st.success("✅ Changes saved! Click 'Results Look Good' to generate JSON.")
             st.rerun()
+
+def load_sample_data() -> bool:
+    """
+    Load NVIDIA sample data for testing extraction and slide generation
+    Returns True if successful, False otherwise
+    """
+    try:
+        with open('nvidia_sample_data.json', 'r') as f:
+            sample_data = json.load(f)
+        
+        # Load into session state
+        st.session_state.research_results = sample_data['research_results']
+        st.session_state.research_completed = True
+        st.session_state.current_company = sample_data['company_name']
+        st.session_state.company_name = sample_data['company_name']
+        
+        print(f"✅ [LOAD] Sample data loaded: {sample_data['company_name']} with {len(sample_data['research_results'])} topics")
+        return True
+    except Exception as e:
+        print(f"❌ [LOAD] Failed to load sample data: {e}")
+        return False
 
 if __name__ == "__main__":
     main()

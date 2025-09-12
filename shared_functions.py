@@ -41,8 +41,8 @@ def call_llm_api(messages: List[Dict], model: str = None, api_key: str = None, a
         api_service = st.session_state.get('api_service', 'perplexity')
     
     if not api_key:
-        print("⚠️ [FALLBACK] No API key configured - using comprehensive fallback data")
-        return generate_fallback_response(messages)
+        print("❌ [ERROR] No API key configured - no fallback data allowed")
+        raise ValueError("API key required - no fallback data allowed. Configure API key to proceed.")
     
     try:
         if api_service == "perplexity":
@@ -60,39 +60,72 @@ def call_llm_api(messages: List[Dict], model: str = None, api_key: str = None, a
             time.sleep(2 ** retry_count)  # Exponential backoff: 1s, 2s, 4s
             return call_llm_api(messages, model, api_key, api_service, retry_count + 1, timeout)
         else:
-            # If still failing after retries, provide fallback response instead of complete failure
-            if "timed out" in error_str.lower() or "no api key" in error_str.lower():
-                print(f"⚠️ [FALLBACK] API issue after {retry_count + 1} attempts: {error_str}")
-                print(f"⚠️ [FALLBACK] Using comprehensive fallback data for gap-filling")
-                return generate_fallback_response(messages)
-            return f"Error calling {api_service} API: {error_str}"
+            # No fallback - raise error to expose API issues
+            print(f"❌ [ERROR] API issue after {retry_count + 1} attempts: {error_str}")
+            raise Exception(f"API calls failed after {retry_count + 1} attempts: {error_str}. No fallback data allowed - fix API configuration.")
 
 
 def call_perplexity_api(messages: List[Dict], model: str, api_key: str, timeout: int = 60) -> str:
-    """Call Perplexity API"""
+    """Call Perplexity API with proper message formatting"""
     headers = {
         'Authorization': f'Bearer {api_key}',
         'Content-Type': 'application/json'
     }
     
-    data = {
-        'model': model,
-        'messages': messages,
-        'max_tokens': 4000,
-        'temperature': 0.1,
-        'return_citations': True,
-        'return_images': False,
-        'return_related_questions': False,
-        'search_domain_filter': [],
-        'search_recency_filter': "month"
-    }
+    # FIX: Ensure proper message alternation for Perplexity API
+    formatted_messages = _format_messages_for_perplexity(messages)
+    print(f"🔍 [PERPLEXITY] Formatted {len(messages)} → {len(formatted_messages)} messages")
     
-    response = requests.post(
-        'https://api.perplexity.ai/chat/completions',
-        headers=headers,
-        json=data,
-        timeout=timeout
-    )
+    # Check if this is investment banking related (should use completion mode to avoid timeouts)
+    message_content = ' '.join([msg.get('content', '') for msg in formatted_messages]).lower()
+    is_investment_banking = any(keyword in message_content for keyword in [
+        'investment banking', 'strategic buyers', 'financial buyers', 'netflix', 
+        'comprehensive gap-filling', 'bulletproof', 'precedent transactions',
+        'management team', 'valuation', 'investment'
+    ])
+    
+    # Also check for large prompts
+    is_large_prompt = any(len(msg.get('content', '')) > 5000 for msg in formatted_messages)
+    
+    if is_investment_banking or is_large_prompt:
+        print(f"🔍 [PERPLEXITY] Investment banking/large prompt - using COMPLETION MODE (no search)")
+        data = {
+            'model': model,
+            'messages': formatted_messages,
+            'max_tokens': 4000,
+            'temperature': 0.1
+            # No search parameters to avoid timeouts
+        }
+    else:
+        print(f"🔍 [PERPLEXITY] Regular prompt - using search mode")
+        data = {
+            'model': model,
+            'messages': formatted_messages,
+            'max_tokens': 4000,
+            'temperature': 0.1,
+            'return_citations': True,
+            'return_images': False,
+            'return_related_questions': False,
+            'search_domain_filter': [],
+            'search_recency_filter': "month"
+        }
+    
+    print(f"🔍 [PERPLEXITY] Making API call with timeout: {timeout}s")
+    
+    try:
+        response = requests.post(
+            'https://api.perplexity.ai/chat/completions',
+            headers=headers,
+            json=data,
+            timeout=timeout
+        )
+        print(f"✅ [PERPLEXITY] API call completed, status: {response.status_code}")
+    except requests.exceptions.Timeout:
+        print(f"❌ [PERPLEXITY] API call timed out after {timeout}s")
+        raise Exception(f"Perplexity API timeout after {timeout}s - no fallback data allowed")
+    except Exception as e:
+        print(f"❌ [PERPLEXITY] API call failed: {e}")
+        raise
     
     if response.status_code == 200:
         result = response.json()
@@ -146,257 +179,101 @@ def call_claude_api(messages: List[Dict], model: str, api_key: str, timeout: int
         raise Exception(f"Claude API error {response.status_code}: {response.text}")
 
 
-def run_research(query: str) -> str:
+def run_research(query: str, timeout: int = None) -> str:
     """
-    Shared research function 
+    Shared research function with configurable timeout
     Moved here to avoid circular import between app.py and research_agent.py
+    
+    Args:
+        query: Research query to execute
+        timeout: Custom timeout in seconds (default: 60s, use 120s+ for complex buyers research)
     """
+    # Detect if this is buyers research that needs longer timeout
+    if timeout is None:
+        is_buyers_research = any(keyword in query.lower() for keyword in [
+            'strategic buyers', 'financial buyers', 'private equity', 'strategic acquirer'
+        ])
+        timeout = 120 if is_buyers_research else 60
+        if is_buyers_research:
+            print(f"🔍 [TIMEOUT] Detected buyers research - using extended timeout: {timeout}s")
+    
     # Use the shared call_llm_api function
     messages = [
         {"role": "system", "content": "You are a senior investment banking research analyst with 15+ years experience at Goldman Sachs and Morgan Stanley. You provide SPECIFIC, DETAILED, and FACTUAL research with exact numbers, dates, names, and citations. NEVER use generic placeholders - always research real data. Focus on providing investment-grade analysis suitable for M&A transactions and due diligence processes."},
         {"role": "user", "content": query}
     ]
     
-    return call_llm_api(messages)
+    return call_llm_api(messages, timeout=timeout)
 
 
 def generate_fallback_response(messages: List[Dict]) -> str:
     """
-    Generate fallback response when API calls fail
-    Returns proper JSON structure for gap-filling calls, text for regular calls
+    NO FALLBACK DATA - Raise error to expose gaps in data sourcing
     """
-    user_content = ""
-    for msg in messages:
-        if msg['role'] == 'user':
-            user_content = msg['content']
-            break
-    
-    # Extract company name from the user content or session state
-    company_name = "TechCorp Solutions"  # Default fallback
-    try:
-        import streamlit as st
-        company_name = st.session_state.get('company_name', st.session_state.get('current_company', company_name))
-    except:
-        pass
-    
-    # Check if this is a gap-filling request that needs JSON structure
-    if any(keyword in user_content.lower() for keyword in [
-        'strategic_buyers', 'financial_buyers', 'precedent_transactions', 
-        'valuation_data', 'comprehensive gap-filling', 'llamaindex',
-        'generate only the json object'
-    ]):
-        # Return structured JSON for bulletproof system
-        import json
-        fallback_data = {
-            "entities": {"company": {"name": company_name}},
-            "facts": {
-                "years": ["2020", "2021", "2022", "2023", "2024E"],
-                "revenue_usd_m": [5.0, 12.0, 28.0, 52.0, 85.0],
-                "ebitda_usd_m": [-2.0, -1.0, 2.0, 8.0, 18.0],
-                "ebitda_margins": [-40.0, -8.3, 7.1, 15.4, 21.2]
-            },
-            "management_team_profiles": [
-                {"name": "John Smith", "role_title": "CEO", "experience_bullets": ["15+ years technology leadership", "Former VP at major tech company", "Expert in enterprise software", "MBA from top-tier university", "Successfully scaled multiple startups"]},
-                {"name": "Sarah Johnson", "role_title": "CTO", "experience_bullets": ["20+ years engineering leadership", "Former Principal Engineer at tech giant", "Expert in cloud architecture", "PhD Computer Science", "Built scalable platforms serving millions"]},
-                {"name": "Mike Chen", "role_title": "CFO", "experience_bullets": ["12+ years financial leadership", "Former Director at investment bank", "Expert in corporate finance", "CPA and MBA", "Led multiple funding rounds"]},
-                {"name": "Lisa Davis", "role_title": "VP Sales", "experience_bullets": ["10+ years sales leadership", "Former VP Sales at SaaS company", "Expert in enterprise sales", "Consistently exceeded quotas", "Built high-performing sales teams"]}
-            ],
-            "strategic_buyers": [
-                {"buyer_name": "Microsoft Corporation", "description": "Global technology leader in cloud and enterprise software", "strategic_rationale": "Complementary technology stack and customer base", "key_synergies": "Cross-selling opportunities and platform integration", "fit": "High (9/10) - Strong strategic alignment", "financial_capacity": "Very High"},
-                {"buyer_name": "Salesforce Inc", "description": "Leading CRM and enterprise cloud platform", "strategic_rationale": "Expands data analytics capabilities", "key_synergies": "Enhanced customer insights and AI capabilities", "fit": "High (8/10) - Cultural and product fit", "financial_capacity": "Very High"},
-                {"buyer_name": "Oracle Corporation", "description": "Enterprise software and database solutions leader", "strategic_rationale": "Strengthens data management portfolio", "key_synergies": "Integrated analytics and database solutions", "fit": "Medium-High (7/10) - Technology synergies", "financial_capacity": "Very High"}
-            ],
-            "financial_buyers": [
-                {"buyer_name": "KKR & Co", "description": "Leading global investment firm", "strategic_rationale": "High-growth technology investment", "key_synergies": "Operational expertise and scaling support", "fit": "High (8/10) - Strong track record in tech", "financial_capacity": "Very High"},
-                {"buyer_name": "Vista Equity Partners", "description": "Technology-focused private equity firm", "strategic_rationale": "Software sector specialization", "key_synergies": "Portfolio company synergies and expertise", "fit": "High (9/10) - Perfect sector focus", "financial_capacity": "Very High"},
-                {"buyer_name": "Thoma Bravo", "description": "Software-focused investment firm", "strategic_rationale": "Enterprise software expertise", "key_synergies": "Operational improvements and growth acceleration", "fit": "High (8/10) - Proven software investor", "financial_capacity": "Very High"}
-            ],
-            "precedent_transactions": [
-                {"target": "DataDog Inc", "acquirer": "Public Market", "date": "Q2 2024", "country": "USA", "enterprise_value": "$8.5B", "revenue": "$500M", "ev_revenue_multiple": "17.0x"},
-                {"target": "Snowflake Inc", "acquirer": "Public Market", "date": "Q3 2024", "country": "USA", "enterprise_value": "$12.8B", "revenue": "$800M", "ev_revenue_multiple": "16.0x"},
-                {"target": "Palantir Technologies", "acquirer": "Public Market", "date": "Q4 2023", "country": "USA", "enterprise_value": "$15.2B", "revenue": "$1.1B", "ev_revenue_multiple": "13.8x"}
-            ],
-            "valuation_data": [
-                {"methodology": "Trading Multiples (EV/Revenue)", "enterprise_value": "$680M-$1.36B", "metric": "EV/Revenue", "22a_multiple": "13.1x", "23e_multiple": "16.0x", "commentary": "Based on comparable high-growth SaaS companies"},
-                {"methodology": "DCF Analysis", "enterprise_value": "$950M-$1.15B", "metric": "NPV", "22a_multiple": "N/A", "23e_multiple": "N/A", "commentary": "10-year DCF with 12% WACC assumption"},
-                {"methodology": "Precedent Transactions", "enterprise_value": "$765M-$1.28B", "metric": "EV/Revenue", "22a_multiple": "14.7x", "23e_multiple": "15.3x", "commentary": "Recent M&A transactions in analytics sector"}
-            ],
-            "business_overview_data": {
-                "description": f"{company_name} is a leading technology company specializing in advanced data analytics and AI-powered business intelligence solutions.",
-                "timeline": {"start_year": 2018, "end_year": 2025},
-                "highlights": ["Market-leading AI analytics platform", "Fortune 500 customer base", "Rapid revenue growth trajectory", "Proprietary technology stack"],
-                "services": ["Enterprise Analytics Platform", "AI-Powered Insights", "Real-time Data Processing", "Custom Business Intelligence"],
-                "positioning_desc": "Premium provider of enterprise-grade analytics solutions with strong competitive moats"
-            },
-            "competitive_analysis": {
-                "competitors": [
-                    {"name": "Tableau", "revenue": 1200},
-                    {"name": "Power BI", "revenue": 800},
-                    {"name": "Looker", "revenue": 400}
-                ],
-                "assessment": [
-                    ["Company", "Market Focus", "Product Quality", "Enterprise Adoption", "Innovation"],
-                    [company_name, "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"],
-                    ["Tableau", "⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐", "⭐⭐⭐"],
-                    ["Power BI", "⭐⭐⭐⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐"],
-                    ["Looker", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐"]
-                ],
-                "barriers": [
-                    {"title": "High Switching Costs", "desc": "Complex data integrations create customer lock-in"},
-                    {"title": "Technical Expertise", "desc": "Specialized knowledge required for advanced analytics"},
-                    {"title": "Data Security", "desc": "Enterprise-grade security and compliance requirements"}
-                ],
-                "advantages": [
-                    {"title": "Advanced AI Capabilities", "desc": "Proprietary machine learning algorithms and models"},
-                    {"title": "Scalable Architecture", "desc": "Cloud-native platform handling massive data volumes"},
-                    {"title": "Enterprise Focus", "desc": "Purpose-built for large organization requirements"}
-                ]
-            },
-            "product_service_data": {
-                "services": [
-                    {"title": "Enterprise Analytics Platform", "desc": "Comprehensive business intelligence and analytics solution"},
-                    {"title": "AI-Powered Insights", "desc": "Machine learning driven predictive analytics and recommendations"},
-                    {"title": "Real-time Data Processing", "desc": "High-performance streaming data analytics and visualization"},
-                    {"title": "Custom Business Intelligence", "desc": "Tailored analytics solutions for specific industry needs"}
-                ],
-                "coverage_table": [
-                    ["Market Segment", "Product", "Coverage", "Status"],
-                    ["Enterprise", "Full Platform", "Global", "Deployed"],
-                    ["Mid-Market", "Core Analytics", "North America", "Expanding"],
-                    ["SMB", "Starter Edition", "US/Canada", "Limited"]
-                ],
-                "metrics": {
-                    "active_customers": 1200,
-                    "data_processed_tb": 50000,
-                    "uptime_percentage": 99.9,
-                    "customer_satisfaction": 4.8
-                }
-            },
-            "growth_strategy_data": {
-                "growth_strategy": {
-                    "strategies": [
-                        "International market expansion into APAC and Europe",
-                        "Product portfolio expansion with AI/ML capabilities", 
-                        "Strategic partnerships with cloud providers",
-                        "Acquisition of complementary technology companies",
-                        "Enterprise customer upselling and cross-selling"
-                    ]
-                },
-                "financial_projections": {
-                    "categories": ["2023", "2024E", "2025E", "2026E"],
-                    "revenue": [52.0, 85.0, 135.0, 200.0],
-                    "ebitda": [8.0, 18.0, 35.0, 60.0]
-                }
-            },
-            "investor_process_data": {
-                "diligence_topics": [
-                    "Technology architecture and IP assessment",
-                    "Financial performance and projections analysis",
-                    "Market position and competitive landscape review",
-                    "Management team and organizational structure",
-                    "Customer base and revenue concentration analysis",
-                    "Legal and regulatory compliance review"
-                ],
-                "synergy_opportunities": [
-                    "Cross-selling to acquirer's existing customer base",
-                    "Integration of complementary product portfolios",
-                    "Operational efficiencies and cost synergies",
-                    "Enhanced R&D capabilities and innovation",
-                    "Geographic expansion leveraging acquirer's presence"
-                ],
-                "risk_factors": [
-                    "Customer concentration and key account dependencies",
-                    "Competitive pressure from larger technology companies",
-                    "Technology obsolescence and rapid innovation cycles",
-                    "Key personnel retention and talent acquisition",
-                    "Economic downturn impact on enterprise spending"
-                ],
-                "mitigants": [
-                    "Diversified customer base development strategy",
-                    "Continuous R&D investment and innovation pipeline",
-                    "Strong employee retention programs and equity incentives",
-                    "Flexible cost structure and scalable operations",
-                    "Long-term customer contracts and recurring revenue model"
-                ],
-                "timeline": [
-                    "Phase 1: Due diligence and initial negotiations (60 days)",
-                    "Phase 2: Detailed financial and legal review (45 days)",
-                    "Phase 3: Final negotiations and regulatory approvals (30 days)",
-                    "Phase 4: Integration planning and closing (30 days)"
-                ]
-            },
-            "margin_cost_data": {
-                "chart_data": {
-                    "categories": ["2021", "2022", "2023", "2024E", "2025E"],
-                    "values": [-8.3, 7.1, 15.4, 21.2, 26.5]
-                },
-                "cost_management": {
-                    "items": [
-                        {"title": "Cloud Infrastructure Optimization", "description": "Automated scaling and resource management"},
-                        {"title": "Sales & Marketing Efficiency", "description": "Data-driven customer acquisition strategies"},
-                        {"title": "R&D Process Improvements", "description": "Agile development and faster time-to-market"}
-                    ]
-                },
-                "risk_mitigation": {
-                    "main_strategy": "Diversified revenue streams and flexible cost structure to maintain margin resilience during market fluctuations"
-                }
-            },
-            "sea_conglomerates": [
-                {"name": "Genting Group", "country": "Malaysia", "description": "Diversified conglomerate with technology investments", "key_shareholders": "Genting family", "key_financials": "$4.2B revenue", "contact": "N/A"},
-                {"name": "Jardine Matheson", "country": "Hong Kong", "description": "Asian conglomerate with technology and services focus", "key_shareholders": "Keswick family", "key_financials": "$38B revenue", "contact": "N/A"},
-                {"name": "CP Group", "country": "Thailand", "description": "Thai conglomerate expanding into technology sector", "key_shareholders": "Chearavanont family", "key_financials": "$65B revenue", "contact": "N/A"}
-            ],
-            "investor_considerations": {
-                "considerations": [
-                    "Strong revenue growth trajectory and market opportunity",
-                    "Experienced management team with proven track record",
-                    "Differentiated technology platform and competitive advantages",
-                    "Recurring revenue model with high customer retention",
-                    "Scalable business model with improving unit economics"
-                ],
-                "mitigants": [
-                    "Market validation through Fortune 500 customer adoption",
-                    "Conservative financial projections with upside potential",
-                    "Proven ability to execute on growth initiatives",
-                    "Strong balance sheet and capital efficiency",
-                    "Clear path to profitability and cash flow generation"
-                ]
-            }
-        }
-        return json.dumps(fallback_data)
-    
-    # Regular text response for non-gap-filling calls
-    if "business overview" in user_content.lower():
-        return f"""**Business Overview for {company_name}**:
-
-{company_name} is a technology company operating in the data and analytics sector. The company provides cloud-based solutions and platforms for data processing and analysis. 
-
-**Key Information**:
-- Industry: Technology/Data Analytics
-- Business Model: Software as a Service (SaaS)
-- Market Position: Competitive player in data analytics space
-- Geographic Presence: Multi-regional operations
-
-*Note: This is fallback data due to API timeout. For detailed research, please retry the generation.*"""
-    elif "financial" in user_content.lower():
-        return f"""**Financial Analysis for {company_name}**:
-
-**Revenue Trends**: Growing revenue base with strong recurring revenue model
-**Profitability**: Working towards profitability with improving unit economics
-**Funding**: Multiple funding rounds supporting growth initiatives
-
-*Note: This is fallback data due to API timeout. For detailed research, please retry the generation.*"""
-    else:
-        return f"""**Research Analysis for {company_name}**:
-
-Basic company information and industry analysis available. The company operates in the technology sector with focus on providing innovative solutions to enterprise customers.
-
-*Note: This is fallback data due to API timeout. For detailed research, please retry the generation.*"""
-
-
+    print("❌ [ERROR] Fallback response generator removed - no hard-coded data allowed")
+    raise ValueError("Fallback response generator removed. System must use actual API calls or research data. No hard-coded fallbacks allowed.")
 def get_current_company() -> str:
     """
     Shared function to get current company context
     Moved here to avoid circular import between app.py and research_agent.py
     """
     return st.session_state.get('current_company', st.session_state.get('company_name', ''))
+
+
+def _format_messages_for_perplexity(messages: List[Dict]) -> List[Dict]:
+    """
+    Format messages to ensure proper user/assistant alternation for Perplexity API
+    Perplexity requires: (optional) system message(s), then alternating user/assistant messages
+    """
+    if not messages:
+        return []
+    
+    formatted_messages = []
+    system_messages = []
+    other_messages = []
+    
+    # Separate system messages from others
+    for msg in messages:
+        if msg.get('role') == 'system':
+            system_messages.append(msg)
+        else:
+            other_messages.append(msg)
+    
+    # Add system messages first (if any)
+    formatted_messages.extend(system_messages)
+    
+    # If we only have one non-system message, ensure it's a user message
+    if len(other_messages) == 1:
+        msg = other_messages[0]
+        if msg.get('role') != 'user':
+            # Convert single message to user message
+            formatted_messages.append({
+                'role': 'user',
+                'content': msg.get('content', '')
+            })
+        else:
+            formatted_messages.append(msg)
+        return formatted_messages
+    
+    # For multiple messages, ensure alternation starting with user
+    if not other_messages:
+        return formatted_messages
+    
+    # If we have multiple messages, combine them into a single user message to avoid alternation issues
+    if len(other_messages) > 1:
+        # Combine all non-system messages into one user message
+        combined_content = ""
+        for i, msg in enumerate(other_messages):
+            role = msg.get('role', 'user')
+            content = msg.get('content', '')
+            if i == 0:
+                combined_content = content
+            else:
+                combined_content += f"\n\n{content}"
+        
+        formatted_messages.append({
+            'role': 'user', 
+            'content': combined_content
+        })
+    
+    return formatted_messages

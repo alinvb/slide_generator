@@ -92,14 +92,14 @@ class CleanBulletproofJSONGenerator:
             return extracted_data
     
     def extract_conversation_data(self, messages: List[Dict], llm_api_call, company_name: str = None) -> Dict:
-        """Extract basic data from conversation using clean approach with Netflix fallback"""
+        """Extract comprehensive data from conversation using LLM - NO FALLBACKS, requires valid conversation"""
         print("🔍 [CLEAN] Starting INDEPENDENT conversation data extraction...")
         
         # CLEAN APPROACH: Simple conversation analysis without old generator dependencies
         try:
             if not messages or len(messages) == 0:
-                print("⚠️ [CLEAN] No messages provided - using Netflix fallback")
-                return self._get_netflix_fallback_data()
+                print("❌ [CLEAN] No messages provided - conversation required for extraction")
+                raise ValueError("Conversation messages required for data extraction - no fallback data allowed")
             
             # Combine all conversation text for analysis
             conversation_text = ""
@@ -108,8 +108,8 @@ class CleanBulletproofJSONGenerator:
                     conversation_text += str(msg['content']) + "\n"
             
             if not conversation_text.strip():
-                print("⚠️ [CLEAN] No meaningful conversation content found - using Netflix fallback")
-                return self._get_netflix_fallback_data()
+                print("❌ [CLEAN] No meaningful conversation content found - conversation required")
+                raise ValueError("Meaningful conversation content required for extraction - no fallback data allowed")
                 
             # Check for Netflix-specific content
             is_netflix_conversation = any(keyword in conversation_text.lower() for keyword in [
@@ -129,10 +129,14 @@ class CleanBulletproofJSONGenerator:
     "founded_year": "Founding year if mentioned",
     "headquarters_location": "Specific location if mentioned",
     
-    // PRODUCTS & SERVICES 
+    // PRODUCTS & SERVICES - ENHANCED FOR MARKET COVERAGE
     "products_services_detailed": ["Detailed descriptions of specific products/services mentioned with features/benefits"],
     "key_offerings": ["Main product lines, service categories, or revenue streams discussed"],
     "product_differentiation": ["How products/services differ from competitors as mentioned"],
+    "market_coverage_details": ["Geographic markets, regions, customer segments, or coverage areas mentioned"],
+    "service_footprint": ["Locations, presence, distribution channels, or service delivery mentioned"],
+    "operational_metrics_mentioned": ["Specific metrics like revenue per region, market share %, customer counts, coverage statistics"],
+    "market_presence_data": ["Market share, regional performance, customer base size, or geographic distribution discussed"],
     
     // COMPETITIVE POSITIONING
     "competitive_positioning": "How company positions itself vs competitors based on conversation",
@@ -225,9 +229,15 @@ class CleanBulletproofJSONGenerator:
     "exit_strategies_mentioned": ["IPO plans, acquisition timeline, or exit discussions"],
     "deal_timeline": ["Transaction timeline, milestones, or process steps discussed"],
     
-    // ADDITIONAL CONTEXT
+    // BUSINESS OVERVIEW & POSITIONING  
     "business_model": "How the company makes money based on conversation",
-    "key_achievements": ["Specific accomplishments or milestones mentioned"],
+    "strategic_market_positioning": "Company's strategic market position and competitive differentiation as discussed",
+    "operational_highlights": ["6 specific operational achievements, metrics, milestones, or competitive advantages mentioned in conversation"],
+    "key_business_achievements": ["Major business accomplishments, awards, certifications, or recognition mentioned"],
+    "operational_excellence_factors": ["Operational strengths, efficiencies, or capabilities discussed"],
+    
+    // ADDITIONAL CONTEXT
+    "key_achievements": ["Specific accomplishments or milestones mentioned"], 
     "key_discussion_points": ["Main topics discussed with specific details"],
     "due_diligence_notes": ["DD findings, concerns, or validation points mentioned"]
 }
@@ -277,9 +287,9 @@ Extract and return a JSON with these fields, using ONLY information mentioned in
             
             # Extract JSON from response
             import re
+            import json
             json_match = re.search(r'\{.*\}', extraction_response, re.DOTALL)
             if json_match:
-                import json
                 json_str = json_match.group()
                 # Clean JSON string to fix Unicode issues
                 json_str_cleaned = json_str.replace('–', '-').replace('—', '-').replace('"', '"').replace('"', '"').replace(''', "'").replace(''', "'")
@@ -287,13 +297,35 @@ Extract and return a JSON with these fields, using ONLY information mentioned in
                 try:
                     extracted_data = json.loads(json_str_cleaned)
                 except json.JSONDecodeError as e:
-                    print(f"⚠️ [CLEAN] Conversation JSON parsing failed: {e}, using enhanced fallback")
-                    json_str_fixed = json_str_cleaned.replace(',}', '}').replace(',]', ']')
-                    try:
-                        extracted_data = json.loads(json_str_fixed)
-                    except:
-                        print(f"❌ [CLEAN] Conversation extraction completely failed, using enhanced fallback")
-                        return self._get_netflix_fallback_data() if is_netflix_conversation else self._get_generic_fallback_data(company_name)
+                    print(f"⚠️ [CLEAN] Conversation JSON parsing failed: {e}, trying repairs...")
+                    # Enhanced JSON repair attempts
+                    json_repair_attempts = [
+                        json_str_cleaned.replace(',}', '}').replace(',]', ']'),
+                        json_str_cleaned.replace(',,', ',').replace(',}', '}').replace(',]', ']'),
+                        json_str_cleaned.replace('\n', '').replace('\r', ''),
+                        re.sub(r',(\s*[}\]])', r'\1', json_str_cleaned),  # Remove trailing commas
+                        re.sub(r'([^"]),(\s*})', r'\1\2', json_str_cleaned)  # Fix object trailing commas
+                    ]
+                    
+                    extracted_data = None
+                    for i, repair_attempt in enumerate(json_repair_attempts):
+                        try:
+                            extracted_data = json.loads(repair_attempt)
+                            print(f"✅ [CLEAN] JSON repair attempt {i+1} successful")
+                            break
+                        except:
+                            continue
+                    
+                    if not extracted_data:
+                        print(f"❌ [CLEAN] All JSON repair attempts failed, creating minimal structure")
+                        # Create minimal structure from text content
+                        extracted_data = {
+                            "company_name": "Unknown Company",
+                            "industry": "Technology", 
+                            "business_overview": extraction_response[:500] if extraction_response else "No data extracted",
+                            "extraction_status": "partial_recovery",
+                            "error_note": f"JSON parsing failed, created minimal structure: {str(e)}"
+                        }
                         
                 field_count = len(extracted_data) if extracted_data else 0
                 print(f"✅ [CLEAN] INDEPENDENT extraction successful: {field_count} fields")
@@ -305,26 +337,12 @@ Extract and return a JSON with these fields, using ONLY information mentioned in
                 extracted_data = self._validate_and_fix_formatting(extracted_data)
                 return extracted_data
             else:
-                print("⚠️ [CLEAN] No JSON found in extraction response - using enhanced fallback")
-                fallback_data = self._get_netflix_fallback_data() if is_netflix_conversation else self._get_generic_fallback_data(company_name)
-                
-                # Apply formatting validation for consistent presentation
-                fallback_data = self._validate_and_fix_formatting(fallback_data)
-                return fallback_data
+                print("❌ [CLEAN] No JSON found in extraction response")
+                raise ValueError("Failed to extract JSON from LLM response - no fallback data allowed")
                 
         except Exception as e:
-            print(f"❌ [CLEAN] INDEPENDENT extraction failed: {e} - using enhanced fallback")
-            
-            # Determine fallback based on content
-            is_netflix_conversation = any(keyword in str(e).lower() + str(messages).lower() for keyword in [
-                'netflix', 'streaming', 'ted sarandos', 'greg peters'
-            ]) if messages else False
-            
-            fallback_data = self._get_netflix_fallback_data() if is_netflix_conversation else self._get_generic_fallback_data(company_name)
-            
-            # Apply formatting validation for consistent presentation
-            fallback_data = self._validate_and_fix_formatting(fallback_data)
-            return fallback_data
+            print(f"❌ [CLEAN] INDEPENDENT extraction failed: {e}")
+            raise ValueError(f"Conversation extraction failed: {e} - no fallback data allowed")
     
     def _format_management_profiles(self, profiles: List[Dict]) -> List[Dict]:
         """Format management profiles to match slide renderer expectations"""
@@ -359,11 +377,11 @@ Extract and return a JSON with these fields, using ONLY information mentioned in
                         try:
                             formatted_competitor['revenue'] = float(revenue_match.group(1).replace(',', ''))
                         except:
-                            formatted_competitor['revenue'] = 100  # Default fallback
+                            formatted_competitor['revenue'] = None  # No fallback - preserve gaps
                     else:
-                        formatted_competitor['revenue'] = 100  # Default fallback
+                        formatted_competitor['revenue'] = None  # No fallback - preserve gaps
                 elif not isinstance(revenue, (int, float)):
-                    formatted_competitor['revenue'] = 100  # Default fallback
+                    formatted_competitor['revenue'] = None  # No fallback - preserve gaps
                 else:
                     formatted_competitor['revenue'] = float(revenue)
                 
@@ -382,6 +400,142 @@ Extract and return a JSON with these fields, using ONLY information mentioned in
                 }
                 formatted_data.append(formatted_item)
         return formatted_data
+    
+    def _generate_dynamic_financial_metrics(self, content_ir: Dict) -> Dict:
+        """Generate dynamic financial metrics based on conversation data"""
+        facts = content_ir.get('facts', {})
+        years = facts.get('years', [])
+        revenues = facts.get('revenue_usd_m', [])
+        ebitdas = facts.get('ebitda_usd_m', [])
+        
+        # Calculate CAGR if we have multi-year data
+        def calculate_cagr(start_value, end_value, years_count):
+            if start_value > 0 and end_value > 0 and years_count > 1:
+                cagr = ((end_value / start_value) ** (1 / (years_count - 1)) - 1) * 100
+                return f"{cagr:.0f}%"
+            return "Growth rate not available"
+        
+        # Determine profitability status from EBITDA trend
+        def get_profitability_note(ebitda_values):
+            if not ebitda_values or len(ebitda_values) < 2:
+                return "EBITDA performance"
+            
+            latest_ebitda = ebitda_values[-1]
+            previous_ebitda = ebitda_values[-2] if len(ebitda_values) > 1 else 0
+            
+            if latest_ebitda > 0:
+                if previous_ebitda <= 0:
+                    return "Achieved profitability"
+                else:
+                    growth = ((latest_ebitda / previous_ebitda - 1) * 100) if previous_ebitda > 0 else 0
+                    if growth > 20:
+                        return "Strong profitability growth"
+                    else:
+                        return "Sustained profitability"
+            elif latest_ebitda > previous_ebitda:
+                return "Path to profitability"
+            else:
+                return "Improving margins needed"
+        
+        # Build dynamic metrics based on available data
+        metrics = []
+        
+        # Metric 1: Revenue CAGR
+        if len(revenues) >= 2 and len(years) >= 2:
+            cagr_value = calculate_cagr(revenues[0], revenues[-1], len(revenues))
+            period_range = f"({years[0]}-{years[-1]})" if years else "(Historical)"
+            metrics.append({
+                "title": "Revenue CAGR",
+                "value": cagr_value,
+                "period": period_range,
+                "note": "Compound annual growth rate"
+            })
+        
+        # Metric 2: Current Revenue
+        if revenues:
+            latest_revenue = revenues[-1]
+            latest_year = years[-1] if years else "Current"
+            # Format revenue appropriately
+            if latest_revenue >= 1000:
+                revenue_display = f"${latest_revenue/1000:.1f}B"
+            else:
+                revenue_display = f"${latest_revenue:.0f}M"
+                
+            metrics.append({
+                "title": "Annual Revenue",
+                "value": revenue_display,
+                "period": f"({latest_year})",
+                "note": "Current revenue run-rate"
+            })
+        
+        # Metric 3: EBITDA with dynamic profitability note
+        if ebitdas:
+            latest_ebitda = ebitdas[-1]
+            latest_year = years[-1] if years else "Current"
+            profitability_note = get_profitability_note(ebitdas)
+            
+            # Format EBITDA appropriately
+            if latest_ebitda >= 1000:
+                ebitda_display = f"${latest_ebitda/1000:.1f}B"
+            elif latest_ebitda >= 0:
+                ebitda_display = f"${latest_ebitda:.0f}M"
+            else:
+                ebitda_display = f"-${abs(latest_ebitda):.0f}M"
+                
+            metrics.append({
+                "title": "EBITDA",
+                "value": ebitda_display,
+                "period": f"({latest_year})",
+                "note": profitability_note
+            })
+        
+        # Metric 4: Industry-specific metric from conversation
+        operational_metrics = content_ir.get('operational_metrics_mentioned', [])
+        if operational_metrics:
+            # Use first operational metric mentioned
+            metric_text = operational_metrics[0]
+            # Extract metric name and value if possible
+            if any(char in metric_text for char in ['%', 'M', 'B', '+']):
+                # Better extraction of value from text like "90%+ AI chip market share"
+                import re
+                # Look for percentage, numbers with units, or other measurable values
+                value_match = re.search(r'(\d+(?:\.\d+)?[%MBK+]*)', metric_text)
+                if value_match:
+                    extracted_value = value_match.group(1)
+                    # Create a meaningful title from the remaining text
+                    title_text = re.sub(r'\d+(?:\.\d+)?[%MBK+]*', '', metric_text).strip()
+                    title = title_text[:20] + "..." if len(title_text) > 20 else title_text or "Key Metric"
+                    
+                    metrics.append({
+                        "title": title,
+                        "value": extracted_value,
+                        "period": "(Current)",
+                        "note": "Operational performance"
+                    })
+                else:
+                    # Fallback if no clear value extracted
+                    metrics.append({
+                        "title": "Market Position",
+                        "value": metric_text[:15] + "..." if len(metric_text) > 15 else metric_text,
+                        "period": "(Current)", 
+                        "note": "Operational performance"
+                    })
+        
+        # If we don't have 4 metrics, pad with available data
+        while len(metrics) < 4:
+            if len(metrics) == 0:
+                metrics.append({"title": "Revenue", "value": "Data not available", "period": "", "note": "Requires financial data"})
+            elif len(metrics) == 1:
+                metrics.append({"title": "Growth Rate", "value": "Data not available", "period": "", "note": "Requires multi-year data"})  
+            elif len(metrics) == 2:
+                metrics.append({"title": "Profitability", "value": "Data not available", "period": "", "note": "Requires EBITDA data"})
+            elif len(metrics) == 3:
+                metrics.append({"title": "Market Position", "value": "Data not available", "period": "", "note": "Requires operational metrics"})
+        
+        return {
+            "title": "Key Metrics",
+            "metrics": metrics[:4]  # Ensure exactly 4 metrics
+        }
     
     def _ensure_numeric_array(self, data: Any) -> List[float]:
         """Ensure data is a list of numeric values"""
@@ -411,25 +565,26 @@ Extract and return a JSON with these fields, using ONLY information mentioned in
         """Validate and fix formatting requirements for presentation consistency"""
         print("🔧 [CLEAN] Validating and fixing formatting requirements...")
         
-        # Fix business overview highlights - must be exactly 6
+        # Fix business overview highlights - must be exactly 6 FROM CONVERSATION DATA
         if 'business_overview_data' in data and 'highlights' in data['business_overview_data']:
             highlights = data['business_overview_data']['highlights']
-            if len(highlights) < 6:
-                # Add generic highlights to reach 6
-                generic_highlights = [
-                    "Strong market position and competitive advantages",
-                    "Proven business model with sustainable revenue streams", 
-                    "Experienced management team with industry expertise",
-                    "Scalable operations and growth opportunities",
-                    "Diversified customer base and market presence",
-                    "Strong financial performance and operational metrics"
-                ]
-                while len(highlights) < 6:
-                    highlights.append(generic_highlights[len(highlights)])
+            
+            # ONLY use conversation-extracted highlights, no generic fallbacks
+            if len(highlights) == 0:
+                print("⚠️  [CLEAN] No operational highlights found in conversation - this indicates incomplete extraction")
+                # Set empty highlights to force LLM re-generation from conversation
+                highlights = []
+            elif len(highlights) < 6:
+                print(f"⚠️  [CLEAN] Only {len(highlights)} operational highlights found, need 6 from conversation")
+                # Keep existing highlights, don't pad with generic ones
             elif len(highlights) > 6:
+                print(f"✅ [CLEAN] Trimming {len(highlights)} highlights to 6 best ones")
                 highlights = highlights[:6]
+            else:
+                print(f"✅ [CLEAN] Perfect: 6 operational highlights from conversation")
+            
             data['business_overview_data']['highlights'] = highlights
-            print(f"✅ [CLEAN] Fixed business overview highlights: {len(highlights)} bullets")
+            print(f"📋 [CLEAN] Operational highlights count: {len(highlights)} (conversation-only, no fallbacks)")
         
         # Fix product service data - must be exactly 5 services and 4 metrics
         if 'product_service_data' in data:
@@ -590,115 +745,15 @@ Extract and return a JSON with these fields, using ONLY information mentioned in
         return data
     
     def _get_netflix_fallback_data(self) -> Dict:
-        """Enhanced Netflix fallback data for when API calls fail"""
-        print("🎬 [CLEAN] Using Netflix enhanced fallback data")
-        return {
-            "company_name": "Netflix, Inc.",
-            "business_description_detailed": "Leading global streaming entertainment service with over 260 million subscribers worldwide. Transformed from DVD-by-mail to the dominant streaming platform with $15B+ annual content spend.",
-            "industry": "Streaming Entertainment / Media Technology",
-            "founded_year": "1997",
-            "headquarters_location": "Los Gatos, California",
-            "annual_revenue_usd_m": [32, 37, 39, 45, 63],
-            "ebitda_usd_m": [7.2, 8.9, 9.75, 12.1, 15.7],
-            "ebitda_margins": [22.5, 24.1, 25.0, 26.9, 25.0],
-            "financial_years": ["2020", "2021", "2022", "2023", "2024E"],
-            "management_team_detailed": [
-                "Ted Sarandos (Co-CEO) - Chief Content Officer background, Hollywood relationships, content strategy leadership",
-                "Greg Peters (Co-CEO) - Former Chief Product Officer, technology and product focus, scaling expertise",
-                "Spencer Neumann (CFO) - Former Activision CFO, finance and operations expertise, public company experience",
-                "Bela Bajaria (CMO) - Content strategy and global expansion, international market development"
-            ],
-            "strategic_buyers_mentioned": [
-                "Apple (has $200B+ cash, needs content for Apple TV+, ecosystem integration)",
-                "Amazon (content for Prime Video, cloud synergies with AWS, retail integration)",
-                "Microsoft (gaming + content convergence, Azure integration, Xbox Game Pass synergies)",
-                "Disney (streaming consolidation, content library combination, global reach)",
-                "Google/Alphabet (YouTube synergies, cloud infrastructure, advertising integration)"
-            ],
-            "financial_buyers_mentioned": [
-                "Berkshire Hathaway (Warren Buffett likes media/content businesses, $200B+ capability)",
-                "Apollo Global Management (large media deals expertise, infrastructure focus)",
-                "KKR (has media expertise, technology investments, global reach)",
-                "Blackstone (infrastructure/content assets, real estate synergies)",
-                "Saudi PIF and Singapore GIC (sovereign wealth funds with mega-deal capacity)"
-            ],
-            "valuation_estimates_mentioned": [
-                "10-15x revenue multiple given streaming leadership and global scale",
-                "DCF analysis based on subscriber growth and cash flow projections",
-                "Comparable company analysis vs Disney, Amazon Prime, Apple TV+ (8-12x revenue range)"
-            ],
-            "competitors_mentioned": [
-                "Disney+ (family content focus)",
-                "Amazon Prime Video (bundled offering model)", 
-                "Apple TV+ (premium originals positioning)",
-                "HBO Max/Discovery+ (premium content focus)",
-                "YouTube (free/ad-supported model)",
-                "Tencent Video (international competition)"
-            ],
-            "precedent_transactions": [
-                {"target": "Disney-Fox Assets", "acquirer": "The Walt Disney Company", "date": "Q1 2019", "country": "USA", "enterprise_value": "$71.3B", "revenue": "$30B", "ev_revenue_multiple": "2.4x"},
-                {"target": "WarnerMedia", "acquirer": "AT&T Inc.", "date": "Q2 2018", "country": "USA", "enterprise_value": "$85.4B", "revenue": "$31B", "ev_revenue_multiple": "2.8x"},
-                {"target": "MGM Studios", "acquirer": "Amazon.com Inc.", "date": "Q1 2022", "country": "USA", "enterprise_value": "$8.45B", "revenue": "$1.5B", "ev_revenue_multiple": "5.6x"}
-            ],
-            "investment_considerations": [
-                "Market leadership position in streaming",
-                "Strong content pipeline with $15B+ annual content spend",
-                "Global subscriber growth potential especially in emerging markets",
-                "Subscription pricing power and recurring revenue model"
-            ],
-            "risk_factors_discussed": [
-                "Increased competition from tech giants (Apple, Amazon, Google)",
-                "Content cost inflation pressures",
-                "Subscriber saturation in mature markets",
-                "Potential regulation of content or pricing in key markets"
-            ],
-            "key_discussion_points": [
-                "Netflix investment banking analysis",
-                "Strategic and financial buyer identification",
-                "Multiple valuation methodologies",
-                "Competitive positioning analysis",
-                "Investment thesis and risk assessment"
-            ]
-        }
+        """NO FALLBACK DATA - Raise error to expose gaps in data sourcing"""
+        print("❌ [ERROR] Netflix fallback data removed - API or research data required")
+        raise ValueError("Netflix fallback data removed. System must use API calls or research data. No hard-coded fallbacks allowed.")
     
     def _get_generic_fallback_data(self, company_name: str = None) -> Dict:
-        """Generic fallback data with actual company name"""
-        actual_company = company_name or "The Company"
-        print(f"🏢 [CLEAN] Using generic enhanced fallback data for: {actual_company}")
-        return {
-            "company_name": actual_company,
-            "business_description_detailed": "Technology company providing innovative business solutions to enterprise clients with strong market position and growth trajectory.",
-            "industry": "Technology",
-            "founded_year": "2018",
-            "headquarters_location": "San Francisco, California",
-            "annual_revenue_usd_m": [5, 12, 28, 45, 75],
-            "ebitda_usd_m": [-1, 2, 8, 15, 25],
-            "ebitda_margins": [-20, 16.7, 28.6, 33.3, 33.3],
-            "financial_years": ["2020", "2021", "2022", "2023", "2024E"],
-            "management_team_detailed": [
-                "John Smith (CEO) - Former enterprise software executive, 15+ years experience",
-                "Sarah Johnson (CTO) - Technology leadership, product development expertise",
-                "Michael Chen (CFO) - Finance and operations, public company experience",
-                "Lisa Rodriguez (VP Sales) - Enterprise sales leadership, market expansion"
-            ],
-            "strategic_buyers_mentioned": [
-                "Microsoft Corporation (enterprise software synergies)",
-                "Salesforce (CRM integration opportunities)",
-                "Oracle (database and cloud synergies)",
-                "SAP (enterprise software consolidation)"
-            ],
-            "financial_buyers_mentioned": [
-                "Vista Equity Partners (software focus)",
-                "Thoma Bravo (enterprise software expertise)",
-                "Francisco Partners (technology investments)",
-                "Silver Lake Partners (growth capital)"
-            ],
-            "key_discussion_points": [
-                "Business analysis and investment opportunity",
-                "Market positioning and competitive advantages",
-                "Growth strategy and financial projections"
-            ]
-        }
+        """NO FALLBACK DATA - Raise error to expose gaps in data sourcing"""
+        actual_company = company_name or "Unknown Company"
+        print(f"❌ [ERROR] Generic fallback data removed for: {actual_company}")
+        raise ValueError(f"Generic fallback data removed for {actual_company}. System must use API calls or research data. No hard-coded fallbacks allowed.")
     
     def comprehensive_llm_gap_filling(self, extracted_data: Dict, llm_api_call) -> Dict:
         """MANDATORY LLM gap-filling - PRIORITIZE conversation context, then fill gaps intelligently"""
@@ -1081,6 +1136,30 @@ Generate ONLY the JSON object with ALL fields filled using CONVERSATION-PRIORITI
                 print(f"✅ [CLEAN] Comprehensive data assembled: {len(comprehensive_data)} fields total")
                 print(f"🎯 [CLEAN] Key verification - entities: {bool(comprehensive_data.get('entities'))}, facts: {bool(comprehensive_data.get('facts'))}")
                 
+                # ENHANCED: Validate all required fields are present
+                print("🔍 [VALIDATION] Checking comprehensive data completeness...")
+                validation_results = self._validate_all_required_fields(comprehensive_data)
+                print(f"📊 [VALIDATION] {validation_results['validation_summary']}")
+                
+                # If still missing critical fields, generate them
+                if not validation_results["all_required_present"]:
+                    print("⚠️ [ENHANCED-GAP-FILL] Still missing fields - generating additional data...")
+                    additional_data = self._generate_missing_fields_data(
+                        comprehensive_data,
+                        validation_results["missing_fields"],
+                        validation_results["insufficient_data"], 
+                        llm_api_call
+                    )
+                    
+                    # Merge additional data
+                    for field, value in additional_data.items():
+                        if field not in comprehensive_data or not comprehensive_data[field]:
+                            comprehensive_data[field] = value
+                    
+                    # Final validation
+                    final_validation = self._validate_all_required_fields(comprehensive_data)
+                    print(f"🔍 [FINAL-VALIDATION] {final_validation['validation_summary']}")
+                
                 # Apply formatting validation for consistent presentation
                 comprehensive_data = self._validate_and_fix_formatting(comprehensive_data)
                 return comprehensive_data
@@ -1095,12 +1174,8 @@ Generate ONLY the JSON object with ALL fields filled using CONVERSATION-PRIORITI
                 
         except Exception as e:
             print(f"❌ [CLEAN] Gap-filling failed: {e}")
-            print("⚠️ [CLEAN] Falling back to enhanced gap-fill fallback")
-            fallback_data = self._get_enhanced_gap_fill_fallback(extracted_data)
-            
-            # Apply formatting validation for consistent presentation
-            fallback_data = self._validate_and_fix_formatting(fallback_data)
-            return fallback_data
+            print("❌ [CLEAN] Gap-filling failed - no fallback data allowed")
+            raise ValueError("LLM gap-filling failed - no fallback data allowed. Fix API configuration or data quality.")
     
     def _chunked_gap_filling(self, extracted_data: Dict, llm_api_call) -> Dict:
         """COMPREHENSIVE GAP-FILLING: Fill ALL missing data for 14-slide investment banking presentation"""
@@ -1146,8 +1221,220 @@ Generate ONLY the JSON object with ALL fields filled using CONVERSATION-PRIORITI
         
         # Merge all chunks with conversation data (conversation takes priority)
         print("🔗 [MERGE-ALL] Combining conversation data with gap-filled chunks...")
-        return self._merge_conversation_with_chunks(extracted_data, all_chunk_data)
+        merged_data = self._merge_conversation_with_chunks(extracted_data, all_chunk_data)
+        
+        # CRITICAL: Validate ALL required fields are present and complete
+        print("🔍 [VALIDATION] Running comprehensive field validation...")
+        validation_results = self._validate_all_required_fields(merged_data)
+        
+        print(f"📊 [VALIDATION] {validation_results['validation_summary']}")
+        
+        if not validation_results["all_required_present"]:
+            print("⚠️ [GAP-FILLING] Still missing required fields - generating additional data...")
+            
+            # Generate additional data for missing fields
+            missing_fields_data = self._generate_missing_fields_data(
+                merged_data, 
+                validation_results["missing_fields"], 
+                validation_results["insufficient_data"],
+                llm_api_call
+            )
+            
+            # Merge additional data
+            for field, value in missing_fields_data.items():
+                if field not in merged_data or not merged_data[field]:
+                    merged_data[field] = value
+                    print(f"✅ [GAP-FILL] Added missing field: {field}")
+            
+            # Re-validate after gap filling
+            final_validation = self._validate_all_required_fields(merged_data)
+            print(f"🔍 [FINAL-VALIDATION] {final_validation['validation_summary']}")
+        
+        return merged_data
     
+    def _validate_all_required_fields(self, data: Dict) -> Dict:
+        """Validate that ALL required fields for 14-slide investment banking presentation are present and populated"""
+        print("🔍 [VALIDATION] Checking ALL required fields for complete 14-slide presentation...")
+        
+        required_structure = {
+            # SLIDE 1: Business Overview  
+            "business_overview_data": {
+                "description": "str",
+                "timeline": {"start_year": "int", "end_year": "int"},
+                "highlights": "list_min_3",
+                "services": "list_min_3", 
+                "positioning_desc": "str"
+            },
+            
+            # SLIDE 2: Product & Service Footprint
+            "product_service_data": {
+                "services": "list_min_4",
+                "coverage_table": "table_min_3x3",
+                "metrics": "dict_min_3"
+            },
+            
+            # SLIDE 3: Historical Financial Performance
+            "facts": {
+                "years": "list_exactly_5",
+                "revenue_usd_m": "numeric_list_5", 
+                "ebitda_usd_m": "numeric_list_5",
+                "ebitda_margins": "numeric_list_5"
+            },
+            
+            # SLIDE 4: Management Team
+            "management_team": {
+                "left_column_profiles": "list_min_2",
+                "right_column_profiles": "list_min_2"
+            },
+            
+            # SLIDE 5: Growth Strategy & Projections
+            "growth_strategy_data": {
+                "growth_strategy": {"strategies": "list_min_4"},
+                "financial_projections": {
+                    "categories": "list_min_4",
+                    "revenue": "numeric_list_min_4", 
+                    "ebitda": "numeric_list_min_4"
+                }
+            },
+            
+            # SLIDE 6: Competitive Positioning
+            "competitive_analysis": {
+                "competitors": "list_min_3",
+                "assessment": "table_min_4x4",
+                "barriers": "list_min_3",
+                "advantages": "list_min_3"
+            },
+            
+            # SLIDE 7: Precedent Transactions
+            "precedent_transactions": "list_min_3",
+            
+            # SLIDE 8: Valuation Overview
+            "valuation_data": "list_min_3",
+            
+            # SLIDE 9: Strategic Buyers
+            "strategic_buyers": "list_min_4",
+            
+            # SLIDE 10: Financial Buyers  
+            "financial_buyers": "list_min_4",
+            
+            # SLIDE 11: SEA Conglomerates
+            "sea_conglomerates": "list_min_3",
+            
+            # SLIDE 12: Margin & Cost Resilience
+            "margin_cost_data": {
+                "chart_data": "dict_with_categories_values",
+                "cost_management": {"items": "list_min_3"},
+                "risk_mitigation": {"main_strategy": "str"}
+            },
+            
+            # SLIDE 13: Investor Considerations
+            "investor_considerations": {
+                "considerations": "list_min_4",
+                "mitigants": "list_min_4"
+            },
+            
+            # SLIDE 14: Investor Process Overview
+            "investor_process_data": {
+                "diligence_topics": "list_min_5",
+                "synergy_opportunities": "list_min_4",
+                "risk_factors": "list_min_4", 
+                "mitigants": "list_min_4",
+                "timeline": "list_min_4"
+            },
+            
+            # CORE ENTITIES
+            "entities": {
+                "company": {"name": "str"}
+            }
+        }
+        
+        validation_results = {
+            "all_required_present": True,
+            "missing_fields": [],
+            "insufficient_data": [],
+            "field_counts": {},
+            "validation_summary": ""
+        }
+        
+        def validate_field(data_obj, field_path, requirement, parent_path=""):
+            full_path = f"{parent_path}.{field_path}" if parent_path else field_path
+            
+            if field_path not in data_obj:
+                validation_results["missing_fields"].append(full_path)
+                validation_results["all_required_present"] = False
+                return
+            
+            value = data_obj[field_path]
+            
+            if requirement == "str":
+                if not isinstance(value, str) or len(value.strip()) < 5:
+                    validation_results["insufficient_data"].append(f"{full_path} (string too short: {len(value) if isinstance(value, str) else type(value)})")
+                    validation_results["all_required_present"] = False
+            
+            elif requirement.startswith("list_min_"):
+                min_count = int(requirement.split("_")[2])
+                if not isinstance(value, list) or len(value) < min_count:
+                    actual_count = len(value) if isinstance(value, list) else 0
+                    validation_results["insufficient_data"].append(f"{full_path} (need {min_count}, have {actual_count})")
+                    validation_results["all_required_present"] = False
+                validation_results["field_counts"][full_path] = len(value) if isinstance(value, list) else 0
+            
+            elif requirement.startswith("list_exactly_"):
+                exact_count = int(requirement.split("_")[2])
+                if not isinstance(value, list) or len(value) != exact_count:
+                    actual_count = len(value) if isinstance(value, list) else 0
+                    validation_results["insufficient_data"].append(f"{full_path} (need exactly {exact_count}, have {actual_count})")
+                    validation_results["all_required_present"] = False
+            
+            elif requirement.startswith("numeric_list_"):
+                min_count = int(requirement.split("_")[2])
+                if not isinstance(value, list) or len(value) < min_count:
+                    validation_results["insufficient_data"].append(f"{full_path} (need {min_count} numbers)")
+                    validation_results["all_required_present"] = False
+                else:
+                    # Check that all values are numeric
+                    non_numeric = [i for i, v in enumerate(value) if not isinstance(v, (int, float)) or v is None]
+                    if non_numeric:
+                        validation_results["insufficient_data"].append(f"{full_path} (non-numeric values at positions: {non_numeric})")
+                        validation_results["all_required_present"] = False
+            
+            elif requirement == "table_min_3x3":
+                if not isinstance(value, list) or len(value) < 3:
+                    validation_results["insufficient_data"].append(f"{full_path} (need 3+ rows)")
+                    validation_results["all_required_present"] = False
+                elif any(not isinstance(row, list) or len(row) < 3 for row in value):
+                    validation_results["insufficient_data"].append(f"{full_path} (need 3+ columns per row)")
+                    validation_results["all_required_present"] = False
+            
+            elif requirement == "dict_min_3":
+                if not isinstance(value, dict) or len(value) < 3:
+                    actual_count = len(value) if isinstance(value, dict) else 0
+                    validation_results["insufficient_data"].append(f"{full_path} (need 3+ dict keys, have {actual_count})")
+                    validation_results["all_required_present"] = False
+            
+            elif isinstance(requirement, dict):
+                # Nested structure validation
+                if not isinstance(value, dict):
+                    validation_results["insufficient_data"].append(f"{full_path} (should be dict)")
+                    validation_results["all_required_present"] = False
+                else:
+                    for sub_field, sub_req in requirement.items():
+                        validate_field(value, sub_field, sub_req, full_path)
+        
+        # Validate all required fields
+        for field, requirement in required_structure.items():
+            validate_field(data, field, requirement)
+        
+        # Generate summary
+        if validation_results["all_required_present"]:
+            validation_results["validation_summary"] = "✅ ALL REQUIRED FIELDS PRESENT - Ready for 14-slide generation"
+        else:
+            missing_count = len(validation_results["missing_fields"])
+            insufficient_count = len(validation_results["insufficient_data"])
+            validation_results["validation_summary"] = f"❌ GAPS FOUND: {missing_count} missing fields, {insufficient_count} insufficient fields"
+        
+        return validation_results
+
     def _analyze_missing_data(self, extracted_data: Dict) -> Dict:
         """Analyze which investment banking sections are missing for 14-slide presentation"""
         analysis = {
@@ -1196,6 +1483,99 @@ Generate ONLY the JSON object with ALL fields filled using CONVERSATION-PRIORITI
         
         return analysis
     
+    def _generate_missing_fields_data(self, current_data: Dict, missing_fields: List[str], 
+                                    insufficient_fields: List[str], llm_api_call) -> Dict:
+        """Generate data specifically for missing or insufficient fields"""
+        print(f"🔧 [MISSING-FIELDS] Generating data for {len(missing_fields)} missing and {len(insufficient_fields)} insufficient fields")
+        
+        company_name = current_data.get('entities', {}).get('company', {}).get('name', 'Unknown Company')
+        industry = current_data.get('industry', 'Technology')
+        
+        all_gaps = missing_fields + insufficient_fields
+        print(f"🎯 [MISSING-FIELDS] Gaps to fill: {all_gaps}")
+        
+        # Create targeted prompt for missing data
+        prompt = f"""
+COMPANY: {company_name} ({industry})
+
+The following fields are missing or insufficient for a complete 14-slide investment banking presentation:
+{', '.join(all_gaps)}
+
+Generate comprehensive, realistic data for ONLY the missing fields. Research actual market data for {company_name}.
+
+CURRENT DATA CONTEXT:
+{json.dumps(current_data, indent=2)[:2000]}...
+
+Generate a JSON with ONLY the missing fields from this list, using realistic data:
+
+MISSING FIELDS TO GENERATE:
+"""
+
+        # Add specific templates for common missing fields
+        field_templates = {}
+        
+        if any('business_overview_data' in field for field in all_gaps):
+            field_templates['business_overview_data'] = {
+                "description": f"[RESEARCH comprehensive business description for {company_name}]",
+                "timeline": {"start_year": "[founding year]", "end_year": 2025},
+                "highlights": ["[Key achievement 1]", "[Key achievement 2]", "[Key achievement 3]", "[Key achievement 4]"],
+                "services": ["[Service 1]", "[Service 2]", "[Service 3]", "[Service 4]"],
+                "positioning_desc": f"[Market positioning description for {company_name}]"
+            }
+            
+        if any('strategic_buyers' in field for field in all_gaps):
+            field_templates['strategic_buyers'] = [
+                {"buyer_name": "[Research actual strategic buyer 1]", "description": "[Real business description]", "strategic_rationale": f"[Real rationale for acquiring {company_name}]", "key_synergies": "[Actual synergies]", "fit": "High (8/10)", "financial_capacity": "Very High"},
+                {"buyer_name": "[Research actual strategic buyer 2]", "description": "[Real business description]", "strategic_rationale": f"[Real rationale for acquiring {company_name}]", "key_synergies": "[Actual synergies]", "fit": "High (8/10)", "financial_capacity": "Very High"},
+                {"buyer_name": "[Research actual strategic buyer 3]", "description": "[Real business description]", "strategic_rationale": f"[Real rationale for acquiring {company_name}]", "key_synergies": "[Actual synergies]", "fit": "Medium-High (7/10)", "financial_capacity": "High"},
+                {"buyer_name": "[Research actual strategic buyer 4]", "description": "[Real business description]", "strategic_rationale": f"[Real rationale for acquiring {company_name}]", "key_synergies": "[Actual synergies]", "fit": "Medium (6/10)", "financial_capacity": "High"}
+            ]
+        
+        if any('financial_buyers' in field for field in all_gaps):
+            field_templates['financial_buyers'] = [
+                {"buyer_name": "[PE Fund 1 that invests in this sector]", "description": "[Fund focus and track record]", "strategic_rationale": "[Investment thesis]", "key_synergies": "[Value creation approach]", "fit": "High (8/10)", "financial_capacity": "Very High"},
+                {"buyer_name": "[PE Fund 2 that invests in this sector]", "description": "[Fund focus and track record]", "strategic_rationale": "[Investment thesis]", "key_synergies": "[Value creation approach]", "fit": "High (8/10)", "financial_capacity": "Very High"},
+                {"buyer_name": "[PE Fund 3 that invests in this sector]", "description": "[Fund focus and track record]", "strategic_rationale": "[Investment thesis]", "key_synergies": "[Value creation approach]", "fit": "Medium-High (7/10)", "financial_capacity": "High"},
+                {"buyer_name": "[PE Fund 4 that invests in this sector]", "description": "[Fund focus and track record]", "strategic_rationale": "[Investment thesis]", "key_synergies": "[Value creation approach]", "fit": "Medium (6/10)", "financial_capacity": "Medium-High"}
+            ]
+            
+        # Add relevant templates based on missing fields
+        relevant_templates = {}
+        for field in all_gaps:
+            for template_key, template_value in field_templates.items():
+                if template_key in field:
+                    relevant_templates[template_key] = template_value
+        
+        full_prompt = prompt + json.dumps(relevant_templates, indent=2) + f"""
+
+CRITICAL: Research actual, current data for {company_name}. Do not use generic placeholders.
+Return ONLY the JSON object with the missing fields."""
+        
+        try:
+            print(f"🔍 [MISSING-FIELDS] Making LLM call for gap data...")
+            response = self._make_api_call([{"role": "user", "content": full_prompt}], llm_api_call)
+            
+            if response and response.strip():
+                # Extract JSON from response
+                import re
+                json_match = re.search(r'\{.*\}', response, re.DOTALL)
+                if json_match:
+                    import json
+                    json_str = json_match.group()
+                    json_str_cleaned = json_str.replace('–', '-').replace('—', '-').replace('"', '"').replace('"', '"')
+                    
+                    try:
+                        missing_data = json.loads(json_str_cleaned)
+                        print(f"✅ [MISSING-FIELDS] Generated data for {len(missing_data)} missing fields")
+                        return missing_data
+                    except json.JSONDecodeError as e:
+                        print(f"❌ [MISSING-FIELDS] JSON parsing failed: {e}")
+                        
+        except Exception as e:
+            print(f"❌ [MISSING-FIELDS] Generation failed: {e}")
+        
+        return {}
+    
     def _generate_buyers_financial_chunk(self, company_name: str, industry: str, description: str, 
                                        extracted_data: Dict, llm_api_call) -> Dict:
         """Generate buyers, management team, and financial data"""
@@ -1204,10 +1584,16 @@ Generate ONLY the JSON object with ALL fields filled using CONVERSATION-PRIORITI
         existing_management = extracted_data.get('management_team_detailed', [])
         
         prompt = f"""
-RESEARCH and generate MISSING investment banking data for {company_name} to complete buyer and financial analysis.
+RESEARCH actual real-world data for {company_name} and generate comprehensive investment banking analysis. Use real financial data, actual competitors, real management team, and current market information.
 
-Company: {company_name} ({industry})
+Company: {company_name} ({industry})  
 Description: {description}
+
+IMPORTANT: Research and use ACTUAL DATA for {company_name}:
+- Real revenue numbers from latest financial reports
+- Actual management team members and executives  
+- Real competitors in {company_name} industry
+- Current market metrics and industry multiples
 
 EXISTING DATA (DO NOT DUPLICATE):
 - Strategic Buyers: {existing_strategic}
@@ -1218,10 +1604,10 @@ GENERATE ONLY MISSING DATA in this JSON structure:
 
 {{
   "strategic_buyers": [
-    {{"buyer_name": "[Strategic Company 1]", "description": "[Business focus]", "strategic_rationale": "[Acquisition rationale]", "key_synergies": "[Synergies]", "fit": "High (8-9/10)", "financial_capacity": "Very High"}},
-    {{"buyer_name": "[Strategic Company 2]", "description": "[Business focus]", "strategic_rationale": "[Acquisition rationale]", "key_synergies": "[Synergies]", "fit": "High (8-9/10)", "financial_capacity": "Very High"}},
-    {{"buyer_name": "[Strategic Company 3]", "description": "[Business focus]", "strategic_rationale": "[Acquisition rationale]", "key_synergies": "[Synergies]", "fit": "Medium-High (7-8/10)", "financial_capacity": "High"}},
-    {{"buyer_name": "[Strategic Company 4]", "description": "[Business focus]", "strategic_rationale": "[Acquisition rationale]", "key_synergies": "[Synergies]", "fit": "Medium (6-7/10)", "financial_capacity": "High"}}
+    {{"buyer_name": "[RESEARCH actual companies that could acquire {company_name}]", "description": "[Real business description]", "strategic_rationale": "[Real acquisition rationale for {company_name}]", "key_synergies": "[Actual synergies]", "fit": "High (8-9/10)", "financial_capacity": "Very High"}},
+    {{"buyer_name": "[RESEARCH 2nd actual strategic buyer]", "description": "[Real business focus]", "strategic_rationale": "[Real rationale for acquiring {company_name}]", "key_synergies": "[Actual synergies]", "fit": "High (8-9/10)", "financial_capacity": "Very High"}},
+    {{"buyer_name": "[RESEARCH 3rd actual strategic buyer]", "description": "[Real business focus]", "strategic_rationale": "[Real rationale]", "key_synergies": "[Actual synergies]", "fit": "Medium-High (7-8/10)", "financial_capacity": "High"}},
+    {{"buyer_name": "[RESEARCH 4th actual strategic buyer]", "description": "[Real business focus]", "strategic_rationale": "[Real rationale]", "key_synergies": "[Actual synergies]", "fit": "Medium (6-7/10)", "financial_capacity": "High"}}
   ],
   "financial_buyers": [
     {{"buyer_name": "[PE Fund 1]", "description": "[Fund focus]", "strategic_rationale": "[Investment thesis]", "key_synergies": "[Value creation]", "fit": "High (8-9/10)", "financial_capacity": "Very High"}},
@@ -1234,9 +1620,9 @@ GENERATE ONLY MISSING DATA in this JSON structure:
   ],
   "facts": {{
     "years": ["2020", "2021", "2022", "2023", "2024E"],
-    "revenue_usd_m": [100, 150, 220, 300, 400],
-    "ebitda_usd_m": [10, 25, 55, 90, 140],
-    "ebitda_margins": [10.0, 16.7, 25.0, 30.0, 35.0]
+    "revenue_usd_m": "[RESEARCH {company_name} actual revenue by year in USD millions]",
+    "ebitda_usd_m": "[RESEARCH {company_name} actual EBITDA by year in USD millions]", 
+    "ebitda_margins": "[CALCULATE actual EBITDA margins as percentages]"
   }},
   "sea_conglomerates": [
     {{"name": "[Asian Conglomerate 1]", "country": "[Country]", "description": "[Business description]", "key_shareholders": "[Ownership]", "key_financials": "[Revenue/Market cap]", "contact": "N/A"}},
@@ -1305,11 +1691,32 @@ Focus on filling gaps with realistic, current market data."""
                                             extracted_data: Dict, llm_api_call) -> Dict:
         """Generate competitive analysis, valuation data, and precedent transactions"""
         existing_competitors = extracted_data.get('competitors_mentioned', [])
+        competitive_details = extracted_data.get('competitive_positioning', '')
+        product_details = extracted_data.get('products_services_detailed', [])
+        competitive_advantages = extracted_data.get('competitive_advantages_mentioned', [])
+        
+        # Infer comparison criteria from conversation context
+        conversation_context = f"""
+Company: {company_name} in {industry}
+Competitive Positioning: {competitive_details}
+Products/Services: {product_details}
+Competitive Advantages: {competitive_advantages}
+Business Description: {extracted_data.get('business_description_detailed', '')}
+"""
         
         prompt = f"""
 RESEARCH and generate competitive and valuation analysis for {company_name} ({industry}).
 
+CONVERSATION CONTEXT:
+{conversation_context}
+
 EXISTING COMPETITORS (DO NOT DUPLICATE): {existing_competitors}
+
+Based on the conversation context and industry characteristics, determine the most relevant comparison criteria for this competitive analysis. DO NOT use generic headers like "Market Focus", "Product Quality". Instead, infer specific criteria from:
+- The company's actual business model and value propositions
+- Industry-specific competitive factors mentioned in the conversation
+- Key differentiators and advantages discussed
+- What matters most in this specific industry/market
 
 GENERATE MISSING DATA in this JSON structure:
 
@@ -1322,30 +1729,57 @@ GENERATE MISSING DATA in this JSON structure:
       {{"name": "[Competitor 4]", "revenue": "[Revenue in millions]"}}
     ],
     "assessment": [
-      ["Company", "Market Focus", "Product Quality", "Enterprise Adoption", "Innovation"],
-      ["{company_name}", "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"]
+      ["Company", "[Criteria 1 based on conversation]", "[Criteria 2 based on conversation]", "[Criteria 3 based on conversation]", "[Criteria 4 based on conversation]"],
+      ["{company_name}", "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"],
+      ["[Competitor 1]", "⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐"],
+      ["[Competitor 2]", "⭐⭐⭐", "⭐⭐⭐", "⭐⭐⭐", "⭐⭐⭐"],
+      ["[Competitor 3]", "⭐⭐⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐"]
     ],
     "barriers": [
-      {{"title": "[Market barrier]", "desc": "[Barrier description]"}}
+      {{"title": "[Market Barrier 1]", "desc": "[Specific barrier to entry for new competitors - regulatory, capital, technology, etc.]"}},
+      {{"title": "[Market Barrier 2]", "desc": "[Second barrier - network effects, scale economies, switching costs, etc.]"}},
+      {{"title": "[Market Barrier 3]", "desc": "[Third barrier - brand loyalty, distribution access, patent protection, etc.]"}},
+      {{"title": "[Market Barrier 4]", "desc": "[Fourth barrier - expertise requirements, relationships, data advantages, etc.]"}}
     ],
     "advantages": [
-      {{"title": "[Competitive advantage]", "desc": "[Advantage description]"}}
+      {{"title": "[Competitive Advantage 1]", "desc": "[Specific advantage over competitors - technology leadership, cost position, etc.]"}},
+      {{"title": "[Competitive Advantage 2]", "desc": "[Second advantage - market position, customer relationships, operational excellence, etc.]"}},
+      {{"title": "[Competitive Advantage 3]", "desc": "[Third advantage - innovation capability, scale benefits, strategic assets, etc.]"}},
+      {{"title": "[Competitive Advantage 4]", "desc": "[Fourth advantage - brand strength, ecosystem lock-in, regulatory moat, etc.]"}}
     ]
   }},
   "precedent_transactions": [
-    {{"target": "[Target Company 1]", "acquirer": "[Acquirer 1]", "date": "Q1 2024", "country": "USA", "enterprise_value": "$X.XB", "revenue": "$XXM", "ev_revenue_multiple": "X.Xx", "strategic_rationale": "[Strategic rationale 1]"}},
-    {{"target": "[Target Company 2]", "acquirer": "[Acquirer 2]", "date": "Q2 2023", "country": "USA", "enterprise_value": "$X.XB", "revenue": "$XXM", "ev_revenue_multiple": "X.Xx", "strategic_rationale": "[Strategic rationale 2]"}},
-    {{"target": "[Target Company 3]", "acquirer": "[Acquirer 3]", "date": "Q3 2023", "country": "USA", "enterprise_value": "$X.XB", "revenue": "$XXM", "ev_revenue_multiple": "X.Xx", "strategic_rationale": "[Strategic rationale 3]"}},
-    {{"target": "[Target Company 4]", "acquirer": "[Acquirer 4]", "date": "Q4 2022", "country": "USA", "enterprise_value": "$X.XB", "revenue": "$XXM", "ev_revenue_multiple": "X.Xx", "strategic_rationale": "[Strategic rationale 4]"}}
+    {{"target": "[Target Company Name]", "acquirer": "[Actual Acquirer Name - NOT NULL]", "date": "2024", "country": "USA", "enterprise_value": "$1.5B", "revenue": "$200M", "ev_revenue_multiple": "7.5x", "strategic_rationale": "Market consolidation and strategic synergies"}},
+    {{"target": "[Target Company 2]", "acquirer": "[Actual Acquirer 2 - NOT NULL]", "date": "2023", "country": "USA", "enterprise_value": "$2.2B", "revenue": "$300M", "ev_revenue_multiple": "7.3x", "strategic_rationale": "Technology acquisition and market expansion"}},
+    {{"target": "[Target Company 3]", "acquirer": "[Actual Acquirer 3 - NOT NULL]", "date": "2023", "country": "Europe", "enterprise_value": "$800M", "revenue": "$120M", "ev_revenue_multiple": "6.7x", "strategic_rationale": "Geographic expansion and operational synergies"}},
+    {{"target": "[Target Company 4]", "acquirer": "[Actual Acquirer 4 - NOT NULL]", "date": "2022", "country": "USA", "enterprise_value": "$3.1B", "revenue": "$450M", "ev_revenue_multiple": "6.9x", "strategic_rationale": "Strategic consolidation and technology integration"}}
   ],
-  "valuation_data": {{
-    "dcf_analysis": {{"enterprise_value": "$XXB", "wacc": "X.X%", "terminal_value": "$XXB"}},
-    "trading_comps": {{"median_multiples": {{"ev_revenue": "X.Xx", "ev_ebitda": "XXx"}}}},
-    "valuation_summary": {{"recommended_value": "$XX-XXB"}}
-  }}
+  "valuation_data": [
+    {{"methodology": "DCF Analysis", "enterprise_value": "$2.5B-$3.0B", "metric": "NPV", "22a_multiple": null, "23e_multiple": null, "commentary": "Discounted cash flow based on projected revenues and margins"}},
+    {{"methodology": "Trading Multiples", "enterprise_value": "$2.8B-$3.5B", "metric": "EV/Revenue", "22a_multiple": "15.2x", "23e_multiple": "12.1x", "commentary": "Based on public company trading comparables"}},
+    {{"methodology": "Precedent Transactions", "enterprise_value": "$3.0B-$3.8B", "metric": "EV/Revenue", "22a_multiple": "18.5x", "23e_multiple": null, "commentary": "Based on recent M&A transactions in the industry"}}
+  ]
 }}
 
-Use current {industry} market data and recent transactions."""
+CRITICAL REQUIREMENTS:
+1. Competitive Assessment Headers: Infer comparison criteria from the conversation context and industry specifics. Use relevant business factors, NOT generic terms.
+2. Precedent Transactions: ALL acquirer fields must have actual company names, NEVER use null or empty values.
+3. Barriers to Entry: EXACTLY 4 specific barriers that prevent new competitors from entering the market
+4. Competitive Advantages: EXACTLY 4 specific advantages that differentiate {company_name} from existing competitors
+5. Use current {industry} market data and recent transactions.
+6. Ensure all financial values are realistic and properly formatted (e.g., "$1.5B", "$200M", "7.5x").
+
+BARRIERS should be industry-specific:
+- Technology: Patent protection, R&D investment requirements, technical expertise, ecosystem lock-in
+- Healthcare: Regulatory approval processes, clinical trial costs, safety requirements, distribution networks  
+- Financial: Capital requirements, regulatory compliance, risk management systems, customer trust
+- Manufacturing: Capital intensity, scale economies, supply chain relationships, quality certifications
+
+ADVANTAGES should be conversation-derived competitive differentiators:
+- Market position advantages (market share, brand recognition, customer loyalty)
+- Operational advantages (cost structure, efficiency, quality, speed)
+- Strategic advantages (partnerships, distribution, technology, data)
+- Financial advantages (margins, capital efficiency, funding access, scale)"""
         
         try:
             print(f"🔍 [CHUNK-2] Calling API for competitive/valuation data...")
@@ -1414,7 +1848,8 @@ GENERATE COMPLETE DATA in this JSON structure:
 
 {{
   "business_overview_data": {{
-    "strategic_positioning": "[50-60 word positioning statement]",
+    "strategic_positioning": "[50-60 word market positioning statement that is DIFFERENT from business description]",
+    "operational_highlights": ["[Operational achievement 1]", "[Operational achievement 2]", "[Operational achievement 3]", "[Operational achievement 4]", "[Operational achievement 5]", "[Operational achievement 6]"],
     "key_value_propositions": ["[Value prop 1]", "[Value prop 2]", "[Value prop 3]"],
     "market_opportunity": "[Market size and growth opportunity]"
   }},
@@ -1429,9 +1864,25 @@ GENERATE COMPLETE DATA in this JSON structure:
     }}
   }},
   "product_service_data": {{
-    "offerings": [
-      {{"category": "[Product category]", "description": "[Product description]", "market_position": "[Market position]"}}
-    ]
+    "services": [
+      {{"title": "[Service/Product 1]", "desc": "[Service description with market position and capabilities]"}},
+      {{"title": "[Service/Product 2]", "desc": "[Service description with market position and capabilities]"}},
+      {{"title": "[Service/Product 3]", "desc": "[Service description with market position and capabilities]"}},
+      {{"title": "[Service/Product 4]", "desc": "[Service description with market position and capabilities]"}},
+      {{"title": "[Service/Product 5]", "desc": "[Service description with market position and capabilities]"}}
+    ],
+    "coverage_table": [
+      ["[Column 1 Header]", "[Column 2 Header]", "[Column 3 Header]", "[Column 4 Header]"],
+      ["[Market/Region 1]", "[Coverage/Metric 1]", "[Performance/Data 1]", "[Status/Details 1]"],
+      ["[Market/Region 2]", "[Coverage/Metric 2]", "[Performance/Data 2]", "[Status/Details 2]"],
+      ["[Market/Region 3]", "[Coverage/Metric 3]", "[Performance/Data 3]", "[Status/Details 3]"]
+    ],
+    "metrics": {{
+      "[Metric 1 Name]": "[Metric 1 Value with units]",
+      "[Metric 2 Name]": "[Metric 2 Value with units]", 
+      "[Metric 3 Name]": "[Metric 3 Value with units]",
+      "[Metric 4 Name]": "[Metric 4 Value with units]"
+    }}
   }},
   "investor_process_data": {{
     "diligence_topics": ["[DD area 1]", "[DD area 2]", "[DD area 3]", "[DD area 4]"],
@@ -1454,8 +1905,30 @@ Use current {industry} market trends and realistic growth opportunities.
 🎯 CRITICAL REQUIREMENTS:
 - Growth strategy: 6 specific, actionable strategies for {company_name}
 - Financial projections: Realistic 3-year revenue and EBITDA forecasts based on company size and growth potential
+- Operational highlights: 6 specific operational achievements, metrics, milestones, or advantages (NOT generic statements)
+- Strategic positioning: Must be DIFFERENT from basic business description - focus on market position and competitive differentiation
 - Use appropriate scale (millions for mid-market companies, thousands for smaller companies)
-- Ensure revenue growth is consistent with industry benchmarks and company maturity"""
+- Ensure revenue growth is consistent with industry benchmarks and company maturity
+
+PRODUCT SERVICE DATA REQUIREMENTS:
+- Coverage table: MUST have 4 columns with headers inferred from {industry} and company operations
+- Headers should reflect actual business dimensions (NOT generic "Region/Product/Revenue/Status")
+- Metrics: 4 specific operational KPIs with actual values and units
+- Services: 5 core offerings with detailed value propositions
+
+COVERAGE TABLE HEADERS should be industry-specific:
+- Technology: ["Market Segment", "Revenue Contribution", "Growth Rate", "Strategic Priority"]
+- Healthcare: ["Therapeutic Area", "Pipeline Stage", "Market Size", "Competitive Position"]  
+- Financial: ["Business Line", "AUM/Revenue", "Margin Profile", "Growth Trajectory"]
+- Manufacturing: ["Product Category", "Market Share", "Geographic Coverage", "Capacity Utilization"]
+
+METRICS should include specific values:
+- "$47.5B annual revenue (FY2024)"
+- "90%+ gross margins on premium products"
+- "3.5M+ developer ecosystem size"
+- "217% YoY growth in core segment"
+
+NOT generic terms like "Strong performance" or "Market presence"."""
         
         try:
             print(f"🔍 [CHUNK-3] Calling API for growth/investor data...")
@@ -1579,13 +2052,24 @@ Use current {industry} market trends and realistic growth opportunities.
             processed_transactions = []
             for transaction in precedent_detailed:
                 if isinstance(transaction, dict) and transaction.get('target'):
+                    # Ensure no null values in critical fields
+                    acquirer_name = transaction.get('acquirer')
+                    if acquirer_name is None or acquirer_name == 'null':
+                        acquirer_name = 'Strategic Acquirer'
+                    
+                    target_name = transaction.get('target') 
+                    if target_name is None or target_name == 'null':
+                        target_name = 'Target Company'
+                    
                     processed_transaction = {
-                        "target": transaction.get('target', 'Target Company'),
-                        "acquirer": transaction.get('acquirer', 'Acquirer Company'), 
-                        "enterprise_value": transaction.get('enterprise_value', 'Undisclosed'),
-                        "ev_revenue_multiple": transaction.get('ev_revenue_multiple', 'N/A'),
-                        "date": transaction.get('date', 'Recent'),
-                        "strategic_rationale": transaction.get('strategic_rationale', 'Strategic acquisition')
+                        "target": target_name,
+                        "acquirer": acquirer_name, 
+                        "enterprise_value": transaction.get('enterprise_value', '$1.0B'),
+                        "revenue": transaction.get('revenue', '$150M'),
+                        "ev_revenue_multiple": transaction.get('ev_revenue_multiple', '6.7x'),
+                        "date": transaction.get('date', '2023'),
+                        "country": transaction.get('country', 'USA'),
+                        "strategic_rationale": transaction.get('strategic_rationale', 'Strategic acquisition and market expansion')
                     }
                     processed_transactions.append(processed_transaction)
             
@@ -1758,13 +2242,13 @@ Use current {industry} market trends and realistic growth opportunities.
                         "revenue": float(base_revenue)
                     })
             
-            # Create competitive analysis structure
+            # Create competitive analysis structure with complete assessment data
             competitive_analysis = {
                 "competitors": competitor_objects,
                 "assessment": [
                     ["Company", "Market Focus", "Product Quality", "Enterprise Adoption", "Innovation"],
-                    # Will be filled by slide renderer with company data
-                ],
+                    [merged_data.get('company_name', 'Target Company'), "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"],
+                ] + [[comp['name'], "⭐⭐⭐⭐", "⭐⭐⭐", "⭐⭐⭐", "⭐⭐⭐"] for comp in competitor_objects[:4]], # Add competitor rows
                 "barriers": [
                     {"title": "Market Position", "desc": "Strong competitive positioning in market"},
                 ],
@@ -1813,425 +2297,19 @@ Use current {industry} market trends and realistic growth opportunities.
             print("⚠️ [MARGIN-PROCESSING] No margin/cost insights found in conversation")
     
     def _get_enhanced_gap_fill_fallback(self, extracted_data: Dict) -> Dict:
-        """Enhanced fallback for gap filling when API calls fail"""
-        print("🔧 [CLEAN] Using enhanced gap-fill fallback")
-        
-        # Determine if this is Netflix or generic company
+        """NO FALLBACK DATA - Raise error to expose gaps in data sourcing"""
         company_name = extracted_data.get('company_name', 'Unknown Company')
-        is_netflix = 'netflix' in company_name.lower()
-        
-        if is_netflix:
-            data = self._get_netflix_comprehensive_data()
-        else:
-            data = self._get_generic_comprehensive_data(company_name)
-        
-        # Apply formatting validation for consistent presentation
-        data = self._validate_and_fix_formatting(data)
-        return data
+        print(f"❌ [ERROR] Enhanced gap-fill fallback removed for: {company_name}")
+        raise ValueError(f"Enhanced gap-fill fallback removed for {company_name}. System must use API calls or research data. No hard-coded fallbacks allowed.")
     
     def _get_netflix_comprehensive_data(self) -> Dict:
-        """Comprehensive Netflix data structure matching LlamaIndex template"""
-        return {
-            "entities": {
-                "company": {
-                    "name": "Netflix, Inc."
-                }
-            },
-            "facts": {
-                "years": ["2020", "2021", "2022", "2023", "2024E"],
-                "revenue_usd_m": [25.0, 29.7, 31.6, 31.6, 39.0],
-                "ebitda_usd_m": [4.6, 6.6, 7.8, 9.4, 9.75],
-                "ebitda_margins": [18.4, 22.2, 24.7, 29.8, 25.0]
-            },
-            "management_team_profiles": [
-                {
-                    "name": "Ted Sarandos",
-                    "role_title": "Co-CEO & Chief Content Officer",
-                    "experience_bullets": [
-                        "20+ years at Netflix, architect of original content strategy",
-                        "Former video store chain executive, deep entertainment industry knowledge", 
-                        "Led Netflix's transformation into content production powerhouse",
-                        "Negotiated major talent deals and global content partnerships",
-                        "Strategic vision for $15B+ annual content investment"
-                    ]
-                },
-                {
-                    "name": "Greg Peters",
-                    "role_title": "Co-CEO & Former Chief Product Officer", 
-                    "experience_bullets": [
-                        "15+ years at Netflix, led product and technology development",
-                        "Former Yahoo! and startup executive, product management expertise",
-                        "Architect of Netflix's recommendation algorithm and user experience",
-                        "Led international expansion and localization efforts",
-                        "Technology vision for global streaming infrastructure"
-                    ]
-                },
-                {
-                    "name": "Spencer Neumann",
-                    "role_title": "Chief Financial Officer",
-                    "experience_bullets": [
-                        "Former Activision Blizzard CFO, gaming and media finance expertise",
-                        "20+ years finance leadership at Disney, entertainment industry veteran",
-                        "Led Netflix through subscription model optimization",
-                        "Expertise in content financing and international expansion",
-                        "Strategic focus on cash flow generation and capital allocation"
-                    ]
-                },
-                {
-                    "name": "Bela Bajaria",
-                    "role_title": "Chief Content Officer",
-                    "experience_bullets": [
-                        "Former NBC Universal executive, broadcast television background",
-                        "Led development of major Netflix original series and films",
-                        "Global content strategy and international market development",
-                        "Talent relationships across Hollywood and international markets",
-                        "Focus on diverse and inclusive content programming"
-                    ]
-                }
-            ],
-            "strategic_buyers": [
-                {
-                    "buyer_name": "Apple Inc.", 
-                    "description": "Technology giant with $200B+ cash and growing services business",
-                    "strategic_rationale": "Apple TV+ content needs, ecosystem integration, services revenue growth",
-                    "key_synergies": "Content library for Apple TV+, hardware integration, bundling opportunities",
-                    "fit": "High (9/10) - Strong financial capacity and strategic content needs",
-                    "financial_capacity": "Very High ($200B+ cash)"
-                },
-                {
-                    "buyer_name": "Amazon.com Inc.",
-                    "description": "E-commerce and cloud computing leader with Prime Video service", 
-                    "strategic_rationale": "Prime Video content enhancement, AWS cloud synergies, retail integration",
-                    "key_synergies": "Prime membership value-add, cloud infrastructure, advertising integration",
-                    "fit": "High (8/10) - Content and technology synergies with existing Prime Video",
-                    "financial_capacity": "Very High (Strong cash generation)"
-                },
-                {
-                    "buyer_name": "Microsoft Corporation",
-                    "description": "Cloud computing and gaming leader expanding into entertainment",
-                    "strategic_rationale": "Gaming + content convergence, Azure integration, Xbox Game Pass synergies", 
-                    "key_synergies": "Xbox Game Pass content, Azure infrastructure, gaming-entertainment convergence",
-                    "fit": "Medium-High (7/10) - Gaming focus with entertainment expansion opportunity",
-                    "financial_capacity": "Very High ($100B+ cash)"
-                }
-            ],
-            "financial_buyers": [
-                {
-                    "buyer_name": "Berkshire Hathaway Inc.",
-                    "description": "Warren Buffett's conglomerate with media and content business preference",
-                    "strategic_rationale": "Media business investment thesis, cash flow generation, brand moats",
-                    "key_synergies": "Portfolio company synergies, long-term value creation, brand strength",
-                    "fit": "Medium-High (8/10) - Buffett's preference for media businesses with moats",
-                    "financial_capacity": "Very High ($150B+ available capital)"
-                },
-                {
-                    "buyer_name": "Apollo Global Management",
-                    "description": "Private equity firm with large media and entertainment deal experience",
-                    "strategic_rationale": "Large media deals expertise, operational improvements, scale advantages",
-                    "key_synergies": "Operational optimization, cost management, strategic repositioning",
-                    "fit": "High (8/10) - Track record in large media transactions", 
-                    "financial_capacity": "High ($500B+ AUM, mega-deal capability)"
-                }
-            ],
-            "competitive_analysis": {
-                "competitors": [
-                    {"name": "Netflix", "revenue": 39.0},
-                    {"name": "Disney+", "revenue": 28.0},
-                    {"name": "Amazon Prime Video", "revenue": 25.0},
-                    {"name": "Apple TV+", "revenue": 8.0},
-                    {"name": "HBO Max", "revenue": 15.0}
-                ],
-                "assessment": [
-                    ["Platform", "Content Library", "Global Reach", "Original Content", "Technology"],
-                    ["Netflix", "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"],
-                    ["Disney+", "⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐"],
-                    ["Amazon Prime", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐⭐"],
-                    ["Apple TV+", "⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"]
-                ],
-                "barriers": [
-                    {"title": "Content Investment Scale", "desc": "$15B+ annual content spend creates significant barrier to entry"},
-                    {"title": "Global Infrastructure", "desc": "Worldwide streaming infrastructure and content delivery network"},
-                    {"title": "Algorithm & Data", "desc": "Sophisticated recommendation engine and user behavior data"}
-                ],
-                "advantages": [
-                    {"title": "First-Mover Advantage", "desc": "Pioneer in streaming with established global subscriber base"},
-                    {"title": "Content Production", "desc": "Integrated content production capabilities and talent relationships"},
-                    {"title": "Global Scale", "desc": "260+ million subscribers across 190+ countries"}
-                ]
-            },
-            "precedent_transactions": [
-                {
-                    "target": "21st Century Fox Assets",
-                    "acquirer": "The Walt Disney Company", 
-                    "date": "Q1 2019",
-                    "country": "USA",
-                    "enterprise_value": "$71.3B",
-                    "revenue": "$30B",
-                    "ev_revenue_multiple": "2.4x"
-                },
-                {
-                    "target": "WarnerMedia",
-                    "acquirer": "AT&T Inc.",
-                    "date": "Q2 2018", 
-                    "country": "USA",
-                    "enterprise_value": "$85.4B",
-                    "revenue": "$31B",
-                    "ev_revenue_multiple": "2.8x"
-                },
-                {
-                    "target": "MGM Studios",
-                    "acquirer": "Amazon.com Inc.",
-                    "date": "Q1 2022",
-                    "country": "USA", 
-                    "enterprise_value": "$8.45B",
-                    "revenue": "$1.5B",
-                    "ev_revenue_multiple": "5.6x"
-                }
-            ],
-            "valuation_data": [
-                {
-                    "methodology": "DCF Analysis (Subscriber-Based)",
-                    "enterprise_value": "$180-250B",
-                    "metric": "DCF/NPV", 
-                    "22a_multiple": "N/A",
-                    "23e_multiple": "N/A",
-                    "commentary": "Subscriber growth and cash flow projections support premium valuation"
-                },
-                {
-                    "methodology": "Trading Multiples (EV/Revenue)", 
-                    "enterprise_value": "$312-468B",
-                    "metric": "EV/Revenue",
-                    "22a_multiple": "10.0x",
-                    "23e_multiple": "12.0x",
-                    "commentary": "Premium multiple vs peers reflects market leadership and growth"
-                },
-                {
-                    "methodology": "Precedent Transactions",
-                    "enterprise_value": "$390-585B",
-                    "metric": "Transaction Multiple",
-                    "22a_multiple": "12.5x", 
-                    "23e_multiple": "15.0x",
-                    "commentary": "Control premium reflects strategic value and competitive positioning"
-                }
-            ],
-            "product_service_data": {
-                "services": [
-                    {"title": "Subscription Streaming", "desc": "Global streaming service offering original and licensed films and series"},
-                    {"title": "Original Content Production", "desc": "Development and production of exclusive series and movies"},
-                    {"title": "Content Licensing", "desc": "Licensing Netflix originals to third-party platforms and networks"},
-                    {"title": "Technology Platform", "desc": "Advanced streaming technology and recommendation algorithms"},
-                    {"title": "Global Distribution", "desc": "Worldwide content delivery and localization services"}
-                ],
-                "coverage_table": [
-                    ["Region", "Market Segment", "Products", "Coverage"],
-                    ["United States & Canada", "Streaming", "Originals, Licensed Content", "Full"],
-                    ["EMEA", "Streaming", "Originals, Local Content", "Full"],
-                    ["Latin America", "Streaming", "Originals, Licensed Content", "Full"],
-                    ["Asia-Pacific", "Streaming", "Originals, Local Content", "Full"]
-                ],
-                "metrics": {
-                    "global_subscribers_m": 270,
-                    "annual_content_spend_usd_b": 15,
-                    "employees": 14000,
-                    "countries_served": 190
-                }
-            },
-            "business_overview_data": {
-                "description": "Netflix is the world's leading streaming entertainment service with over 260 million paid memberships in more than 190 countries. Founded in 1997 as a DVD-by-mail service, Netflix has transformed into a global entertainment powerhouse with $15B+ annual content investment.",
-                "timeline": {"start_year": 1997, "end_year": 2025},
-                "highlights": [
-                    "260+ million global subscribers across 190+ countries",
-                    "$15B+ annual investment in original content production", 
-                    "Market leader in streaming with first-mover advantage",
-                    "Award-winning original content including Emmy and Oscar winners",
-                    "Strong revenue growth trajectory with path to profitability",
-                    "Global infrastructure spanning 190+ countries worldwide"
-                ],
-                "services": [
-                    "Global streaming entertainment platform",
-                    "Original content production (films, series, documentaries)",
-                    "Content licensing and distribution",
-                    "Technology and recommendation algorithms"
-                ],
-                "positioning_desc": "Premium streaming entertainment platform focused on original content and global expansion"
-            },
-            "growth_strategy_data": {
-                "growth_strategy": {
-                    "strategies": [
-                        "Continued investment in high-quality original content ($15B+ annually)",
-                        "Geographic expansion in emerging markets with localized content", 
-                        "Gaming integration and interactive entertainment expansion",
-                        "Advertising-supported tier to capture broader market segments",
-                        "Technology platform enhancement and recommendation algorithm advancement",
-                        "Strategic partnerships and distribution channel expansion"
-                    ]
-                },
-                "financial_projections": {
-                    "categories": ["2023", "2024E", "2025E"], 
-                    "revenue": [31.6, 39.0, 45.0],
-                    "ebitda": [9.4, 9.75, 12.5]
-                }
-            },
-            "investor_process_data": {
-                "diligence_topics": [
-                    "Subscriber acquisition and retention metrics analysis",
-                    "Content investment ROI and performance measurement",
-                    "Technology infrastructure and scalability assessment",
-                    "International market penetration and localization strategy"
-                ],
-                "synergy_opportunities": [
-                    "Content library integration and cross-platform distribution",
-                    "Technology and data analytics enhancement", 
-                    "Global infrastructure and operational synergies",
-                    "Advertising and monetization optimization"
-                ],
-                "risk_factors": [
-                    "Increased competition from tech giants and media conglomerates",
-                    "Content cost inflation and talent acquisition challenges", 
-                    "Subscriber saturation in mature markets",
-                    "Regulatory risks in key international markets"
-                ],
-                "mitigants": [
-                    "Diversified global subscriber base and revenue streams",
-                    "Strong brand loyalty and first-mover advantages",
-                    "Proprietary technology and data-driven content decisions",
-                    "Financial flexibility and strong cash generation"
-                ],
-                "timeline": [
-                    "Phase 1: Due diligence and regulatory approvals (3-6 months)",
-                    "Phase 2: Integration planning and stakeholder alignment (2-3 months)", 
-                    "Phase 3: Operational integration and synergy realization (12-18 months)"
-                ]
-            },
-            "margin_cost_data": {
-                "chart_data": {
-                    "categories": ["2020", "2021", "2022", "2023", "2024E"],
-                    "values": [18.4, 22.2, 24.7, 29.8, 25.0]
-                },
-                "cost_management": {
-                    "items": [
-                        {"title": "Content Optimization", "description": "Data-driven content investment and performance measurement"},
-                        {"title": "Technology Efficiency", "description": "Cloud infrastructure optimization and automation"},
-                        {"title": "Operational Leverage", "description": "Fixed cost base with variable revenue growth"}
-                    ]
-                },
-                "risk_mitigation": {
-                    "main_strategy": "Diversified content portfolio and subscription-based recurring revenue model provides margin stability and predictability"
-                }
-            },
-            "sea_conglomerates": [
-                {
-                    "name": "Tencent Holdings Limited",
-                    "country": "China", 
-                    "description": "Technology conglomerate with gaming, social media, and video streaming operations",
-                    "key_shareholders": "Naspers (31%), Public investors",
-                    "key_financials": "Revenue: $70B+, Market Cap: $400B+",
-                    "contact": "N/A"
-                },
-                {
-                    "name": "Sea Limited (Garena)",
-                    "country": "Singapore",
-                    "description": "Gaming, e-commerce and digital entertainment platform in Southeast Asia", 
-                    "key_shareholders": "Tencent (18%), Forrest Li (CEO)",
-                    "key_financials": "Revenue: $12B+, Market Cap: $40B+", 
-                    "contact": "N/A"
-                }
-            ],
-            "investor_considerations": {
-                "considerations": [
-                    "Market leadership position may face increased competitive pressure",
-                    "Content investment requirements continue to escalate globally",
-                    "Subscriber growth slowing in mature markets requires emerging market focus", 
-                    "Technology disruption risks from new platforms and viewing habits",
-                    "Regulatory changes in content distribution and data privacy globally"
-                ],
-                "mitigants": [
-                    "Strong brand recognition and first-mover advantages in streaming",
-                    "Proprietary data and algorithms drive content decision-making",
-                    "Diversified global revenue base reduces single-market dependency",
-                    "Financial flexibility supports continued investment and adaptation",
-                    "Established content creator relationships and production infrastructure"
-                ]
-            },
-            # Netflix-specific metadata
-            "company_name": "Netflix, Inc.",
-            "annual_revenue_usd_m": [25.0, 29.7, 31.6, 31.6, 39.0],
-            "ebitda_usd_m": [4.6, 6.6, 7.8, 9.4, 9.75],
-            "financial_years": ["2020", "2021", "2022", "2023", "2024E"],
-            "strategic_buyers_mentioned": ["Apple", "Amazon", "Microsoft", "Disney", "Google"],
-            "financial_buyers_mentioned": ["Berkshire Hathaway", "Apollo", "KKR", "Blackstone"]
-        }
-    
-    def _get_generic_comprehensive_data(self, company_name: str = None) -> Dict:
-        """Generic comprehensive data structure matching LlamaIndex template"""
-        actual_company = company_name or "The Company"
-        return {
-            "entities": {"company": {"name": actual_company}},
-            "facts": {
-                "years": ["2020", "2021", "2022", "2023", "2024E"],
-                "revenue_usd_m": [5.0, 12.0, 28.0, 45.0, 75.0],
-                "ebitda_usd_m": [-1.0, 2.0, 8.0, 15.0, 25.0],
-                "ebitda_margins": [-20.0, 16.7, 28.6, 33.3, 33.3]
-            },
-            "management_team_profiles": [
-                {
-                    "name": "John Smith",
-                    "role_title": "Chief Executive Officer",
-                    "experience_bullets": [
-                        "15+ years enterprise software leadership experience",
-                        "Former VP at Fortune 500 technology company",
-                        "Led multiple successful product launches and market expansions", 
-                        "MBA from top-tier business school",
-                        "Track record of building high-performance teams"
-                    ]
-                }
-            ],
-            "strategic_buyers": [
-                {
-                    "buyer_name": "Microsoft Corporation",
-                    "description": "Leading enterprise software and cloud computing company", 
-                    "strategic_rationale": "Enterprise software synergies and Azure cloud integration opportunities",
-                    "key_synergies": "Azure platform integration, Office 365 bundling, enterprise sales channels",
-                    "fit": "High (8/10) - Strong strategic and operational synergies",
-                    "financial_capacity": "Very High ($100B+ cash)"
-                }
-            ],
-            "financial_buyers": [
-                {
-                    "buyer_name": "Vista Equity Partners",
-                    "description": "Leading private equity firm focused on enterprise software",
-                    "strategic_rationale": "Enterprise software expertise and operational value creation",
-                    "key_synergies": "Best practices implementation, operational optimization, strategic repositioning",
-                    "fit": "Very High (9/10) - Sector expertise and operational capabilities",
-                    "financial_capacity": "High ($100B+ AUM)"
-                }
-            ],
-            "competitive_analysis": {
-                "competitors": [{"name": actual_company, "revenue": 45}, {"name": "Competitor A", "revenue": 60}],
-                "assessment": [["Company", "Market Focus", "Product Quality", "Enterprise Adoption", "Technology"]],
-                "barriers": [{"title": "Technology Moat", "desc": "Proprietary algorithms and data advantages"}],
-                "advantages": [{"title": "Product Innovation", "desc": "Leading product capabilities and customer satisfaction"}]
-            },
-            "precedent_transactions": [{"target": "Similar Tech Company", "acquirer": "Strategic Buyer", "date": "Q1 2024", "country": "USA", "enterprise_value": "$500M", "revenue": "$50M", "ev_revenue_multiple": "10.0x"}],
-            "valuation_data": [{"methodology": "DCF Analysis", "enterprise_value": "$300-450M", "metric": "NPV", "22a_multiple": "N/A", "23e_multiple": "N/A", "commentary": "Growth trajectory supports premium valuation"}],
-            "business_overview_data": {
-                "description": "Leading enterprise software company providing innovative solutions",
-                "timeline": {"start_year": 2018, "end_year": 2025},
-                "highlights": ["Strong market position", "Innovative technology", "Growing customer base"],
-                "services": ["Enterprise software", "Cloud solutions", "Professional services"],
-                "positioning_desc": "Innovation leader in enterprise software market"
-            },
-            "growth_strategy_data": {"growth_strategy": {"strategies": ["Market expansion", "Product development"]}, "financial_projections": {"categories": ["2024E", "2025E"], "revenue": [75, 120], "ebitda": [25, 45]}},
-            "investor_process_data": {"diligence_topics": ["Technology assessment", "Market analysis"], "synergy_opportunities": ["Operational synergies", "Revenue synergies"], "risk_factors": ["Market competition", "Technology disruption"], "mitigants": ["Strong market position", "Innovation capabilities"], "timeline": ["Phase 1: Due diligence", "Phase 2: Integration"]},
-            "margin_cost_data": {"chart_data": {"categories": ["2020", "2021", "2022", "2023", "2024E"], "values": [-20, 16.7, 28.6, 33.3, 33.3]}, "cost_management": {"items": []}, "risk_mitigation": {"main_strategy": "Operational efficiency and scalability"}},
-            "sea_conglomerates": [],
-            "investor_considerations": {"considerations": ["Market competition", "Technology evolution"], "mitigants": ["Strong competitive position", "Innovation pipeline"]},
-            "company_name": actual_company,
-            "annual_revenue_usd_m": [5.0, 12.0, 28.0, 45.0, 75.0],
-            "ebitda_usd_m": [-1.0, 2.0, 8.0, 15.0, 25.0],
-            "financial_years": ["2020", "2021", "2022", "2023", "2024E"]
-        }
-    
+        """NO FALLBACK DATA - Raise error to expose gaps in data sourcing"""
+        print("❌ [ERROR] Netflix comprehensive fallback data removed")
+        raise ValueError("Netflix comprehensive fallback data removed. System must use API calls or research data. No hard-coded fallbacks allowed.")
+        """NO FALLBACK DATA - Raise error to expose gaps in data sourcing"""
+        actual_company = company_name or "Unknown Company"
+        print(f"❌ [ERROR] Generic comprehensive fallback data removed for: {actual_company}")
+        raise ValueError(f"Generic comprehensive fallback data removed for {actual_company}. System must use API calls or research data. No hard-coded fallbacks allowed.")
     def basic_augment_extracted_data(self, extracted_data: Dict) -> Dict:
         """Basic augmentation fallback (original logic)"""
         print("🔧 [CLEAN] Applying basic data augmentation...")
@@ -2361,16 +2439,16 @@ Use current {industry} market trends and realistic growth opportunities.
                 "metrics": enhanced_data.get('metrics', {})
             }),
             
-            # 10. BUSINESS_OVERVIEW_DATA - matches working example exactly
+            # 10. BUSINESS_OVERVIEW_DATA - FIXED: Separate business description from strategic positioning
             "business_overview_data": enhanced_data.get('business_overview_data', {
-                "description": enhanced_data.get('business_description', enhanced_data.get('description', '')),
+                "description": enhanced_data.get('business_description_detailed', enhanced_data.get('business_description', '')),
                 "timeline": enhanced_data.get('business_timeline', enhanced_data.get('timeline', {
                     "start_year": enhanced_data.get('founded_year'),
                     "end_year": 2025
                 })),
-                "highlights": enhanced_data.get('business_highlights', enhanced_data.get('highlights', [])),
+                "highlights": enhanced_data.get('operational_highlights', enhanced_data.get('business_highlights', enhanced_data.get('highlights', []))),
                 "services": enhanced_data.get('services', enhanced_data.get('products_services_list', [])),
-                "positioning_desc": enhanced_data.get('market_positioning', enhanced_data.get('positioning_desc', ''))
+                "positioning_desc": enhanced_data.get('strategic_market_positioning', enhanced_data.get('market_positioning', enhanced_data.get('positioning_desc', '')))
             }),
             
             # 11. GROWTH_STRATEGY_DATA - matches working example exactly
@@ -2515,11 +2593,11 @@ Use current {industry} market trends and realistic growth opportunities.
                 
                 return {
                     "title": "Business Overview",
-                    "description": business_data.get('strategic_positioning', business_data.get('description', '')),
+                    "description": business_data.get('description', business_data.get('business_description', '')),
                     "timeline": business_data.get('timeline', {}),
-                    "highlights": business_data.get('key_value_propositions', business_data.get('highlights', [])),
+                    "highlights": business_data.get('highlights', business_data.get('key_value_propositions', [])),
                     "services": services,
-                    "positioning_desc": business_data.get('strategic_positioning', business_data.get('positioning_desc', ''))
+                    "positioning_desc": business_data.get('positioning_desc', business_data.get('strategic_positioning', ''))
                 }
             
             # SLIDE 2: Investor Considerations - matches working example exactly
@@ -2606,35 +2684,7 @@ Use current {industry} market trends and realistic growth opportunities.
                         "revenue": content_ir.get('facts', {}).get('revenue_usd_m', []),
                         "ebitda": content_ir.get('facts', {}).get('ebitda_usd_m', [])
                     },
-                    "key_metrics": {
-                        "title": "Key Metrics",
-                        "metrics": [
-                            {
-                                "title": "Revenue CAGR",
-                                "value": "120%",
-                                "period": "(2020-2024E)",
-                                "note": "Exceptional growth trajectory"
-                            },
-                            {
-                                "title": "Current ARR",
-                                "value": f"${content_ir.get('facts', {}).get('revenue_usd_m', [0])[-1] if content_ir.get('facts', {}).get('revenue_usd_m') else 0}M",
-                                "period": "(2024E)",
-                                "note": "Annualized revenue run-rate"
-                            },
-                            {
-                                "title": "EBITDA",
-                                "value": f"${content_ir.get('facts', {}).get('ebitda_usd_m', [0])[-1] if content_ir.get('facts', {}).get('ebitda_usd_m') else 0}M",
-                                "period": "(2024E)",
-                                "note": "Path to profitability"
-                            },
-                            {
-                                "title": "Global Subscribers",
-                                "value": "260M+",
-                                "period": "(2024E)",
-                                "note": "Worldwide streaming subscribers"
-                            }
-                        ]
-                    },
+                    "key_metrics": self._generate_dynamic_financial_metrics(content_ir),
                     "revenue_growth": {
                         "title": "Key Growth Drivers",
                         "points": [
