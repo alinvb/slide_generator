@@ -6433,11 +6433,16 @@ RENDER PLAN JSON:
                                     st.error(f"🚨 **Only {len(slide_list)} slides generated** - Should be 14 for full investment banking analysis")
                                     st.write("Slides being generated:", slide_list)
                                 
+                                # Get the actual company name from session state
+                                current_company = st.session_state.get('current_company') or st.session_state.get('company_name', 'The Company')
+                                print(f"🎯 [COMPANY] Using company name: '{current_company}' for slide generation")
+                                
                                 # Generate bulletproof JSONs with CLEAN rewritten system (no hangs)
                                 bulletproof_response, content_ir_direct, render_plan_direct = generate_clean_bulletproof_json(
                                     st.session_state.messages, 
                                     slide_list,
-                                    bulletproof_llm_call
+                                    bulletproof_llm_call,
+                                    current_company  # Pass the actual company name
                                 )
                                 
                                 print(f"✅ [GENERATE_JSON_NOW] Bulletproof generation completed successfully!")

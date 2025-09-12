@@ -39,13 +39,15 @@ class CleanBulletproofJSONGenerator:
             print(f"❌ [API] Error in API call: {e}")
             return None
     
-    def _generate_comprehensive_data_chunks(self, extracted_data: Dict, llm_api_call) -> Dict:
+    def _generate_comprehensive_data_chunks(self, extracted_data: Dict, llm_api_call, company_name: str = None) -> Dict:
         """Generate comprehensive data using working chunked approach"""
         print("🔧 [CHUNKED] Starting comprehensive data generation with working chunks...")
         
-        company_name = extracted_data.get('company_name', 'Netflix')
-        industry = extracted_data.get('industry', 'Streaming Entertainment')
-        description = extracted_data.get('business_description_detailed', 'Leading streaming service')
+        # Use actual company name passed in, or extracted from conversation, with fallback
+        actual_company_name = company_name or extracted_data.get('company_name', 'The Company')
+        extracted_data['company_name'] = actual_company_name  # Ensure it's stored
+        industry = extracted_data.get('industry', 'Technology')
+        description = extracted_data.get('business_description_detailed', f'{actual_company_name} business operations')
         
         # Generate all chunks using working methods
         chunk_results = []
@@ -89,7 +91,7 @@ class CleanBulletproofJSONGenerator:
             print("❌ [CHUNKED] No chunk results - using conversation data only")
             return extracted_data
     
-    def extract_conversation_data(self, messages: List[Dict], llm_api_call) -> Dict:
+    def extract_conversation_data(self, messages: List[Dict], llm_api_call, company_name: str = None) -> Dict:
         """Extract basic data from conversation using clean approach with Netflix fallback"""
         print("🔍 [CLEAN] Starting INDEPENDENT conversation data extraction...")
         
@@ -121,7 +123,7 @@ class CleanBulletproofJSONGenerator:
             json_template = """
 {
     // BASIC COMPANY INFO  
-    "company_name": "Exact company name mentioned (or 'TechCorp Solutions' if none specific)",
+    "company_name": "Exact company name mentioned in conversation",
     "business_description_detailed": "Comprehensive business description including what company does, how it operates, key offerings",
     "industry": "Specific industry/sector mentioned",
     "founded_year": "Founding year if mentioned",
@@ -291,7 +293,7 @@ Extract and return a JSON with these fields, using ONLY information mentioned in
                         extracted_data = json.loads(json_str_fixed)
                     except:
                         print(f"❌ [CLEAN] Conversation extraction completely failed, using enhanced fallback")
-                        return self._get_netflix_fallback_data() if is_netflix_conversation else self._get_generic_fallback_data()
+                        return self._get_netflix_fallback_data() if is_netflix_conversation else self._get_generic_fallback_data(company_name)
                         
                 field_count = len(extracted_data) if extracted_data else 0
                 print(f"✅ [CLEAN] INDEPENDENT extraction successful: {field_count} fields")
@@ -304,7 +306,7 @@ Extract and return a JSON with these fields, using ONLY information mentioned in
                 return extracted_data
             else:
                 print("⚠️ [CLEAN] No JSON found in extraction response - using enhanced fallback")
-                fallback_data = self._get_netflix_fallback_data() if is_netflix_conversation else self._get_generic_fallback_data()
+                fallback_data = self._get_netflix_fallback_data() if is_netflix_conversation else self._get_generic_fallback_data(company_name)
                 
                 # Apply formatting validation for consistent presentation
                 fallback_data = self._validate_and_fix_formatting(fallback_data)
@@ -318,7 +320,7 @@ Extract and return a JSON with these fields, using ONLY information mentioned in
                 'netflix', 'streaming', 'ted sarandos', 'greg peters'
             ]) if messages else False
             
-            fallback_data = self._get_netflix_fallback_data() if is_netflix_conversation else self._get_generic_fallback_data()
+            fallback_data = self._get_netflix_fallback_data() if is_netflix_conversation else self._get_generic_fallback_data(company_name)
             
             # Apply formatting validation for consistent presentation
             fallback_data = self._validate_and_fix_formatting(fallback_data)
@@ -659,11 +661,12 @@ Extract and return a JSON with these fields, using ONLY information mentioned in
             ]
         }
     
-    def _get_generic_fallback_data(self) -> Dict:
-        """Generic fallback data for non-Netflix conversations"""
-        print("🏢 [CLEAN] Using generic enhanced fallback data")
+    def _get_generic_fallback_data(self, company_name: str = None) -> Dict:
+        """Generic fallback data with actual company name"""
+        actual_company = company_name or "The Company"
+        print(f"🏢 [CLEAN] Using generic enhanced fallback data for: {actual_company}")
         return {
-            "company_name": "TechCorp Solutions",
+            "company_name": actual_company,
             "business_description_detailed": "Technology company providing innovative business solutions to enterprise clients with strong market position and growth trajectory.",
             "industry": "Technology",
             "founded_year": "2018",
@@ -1820,7 +1823,7 @@ Use current {industry} market trends and realistic growth opportunities.
         if is_netflix:
             data = self._get_netflix_comprehensive_data()
         else:
-            data = self._get_generic_comprehensive_data()
+            data = self._get_generic_comprehensive_data(company_name)
         
         # Apply formatting validation for consistent presentation
         data = self._validate_and_fix_formatting(data)
@@ -2159,10 +2162,11 @@ Use current {industry} market trends and realistic growth opportunities.
             "financial_buyers_mentioned": ["Berkshire Hathaway", "Apollo", "KKR", "Blackstone"]
         }
     
-    def _get_generic_comprehensive_data(self) -> Dict:
+    def _get_generic_comprehensive_data(self, company_name: str = None) -> Dict:
         """Generic comprehensive data structure matching LlamaIndex template"""
+        actual_company = company_name or "The Company"
         return {
-            "entities": {"company": {"name": "TechCorp Solutions"}},
+            "entities": {"company": {"name": actual_company}},
             "facts": {
                 "years": ["2020", "2021", "2022", "2023", "2024E"],
                 "revenue_usd_m": [5.0, 12.0, 28.0, 45.0, 75.0],
@@ -2203,7 +2207,7 @@ Use current {industry} market trends and realistic growth opportunities.
                 }
             ],
             "competitive_analysis": {
-                "competitors": [{"name": "TechCorp Solutions", "revenue": 45}, {"name": "Competitor A", "revenue": 60}],
+                "competitors": [{"name": actual_company, "revenue": 45}, {"name": "Competitor A", "revenue": 60}],
                 "assessment": [["Company", "Market Focus", "Product Quality", "Enterprise Adoption", "Technology"]],
                 "barriers": [{"title": "Technology Moat", "desc": "Proprietary algorithms and data advantages"}],
                 "advantages": [{"title": "Product Innovation", "desc": "Leading product capabilities and customer satisfaction"}]
@@ -2222,7 +2226,7 @@ Use current {industry} market trends and realistic growth opportunities.
             "margin_cost_data": {"chart_data": {"categories": ["2020", "2021", "2022", "2023", "2024E"], "values": [-20, 16.7, 28.6, 33.3, 33.3]}, "cost_management": {"items": []}, "risk_mitigation": {"main_strategy": "Operational efficiency and scalability"}},
             "sea_conglomerates": [],
             "investor_considerations": {"considerations": ["Market competition", "Technology evolution"], "mitigants": ["Strong competitive position", "Innovation pipeline"]},
-            "company_name": "TechCorp Solutions",
+            "company_name": actual_company,
             "annual_revenue_usd_m": [5.0, 12.0, 28.0, 45.0, 75.0],
             "ebitda_usd_m": [-1.0, 2.0, 8.0, 15.0, 25.0],
             "financial_years": ["2020", "2021", "2022", "2023", "2024E"]
@@ -2271,7 +2275,7 @@ Use current {industry} market trends and realistic growth opportunities.
         print(f"✅ [CLEAN] Basic augmentation complete")
         return enhanced_data
 
-    def build_content_ir(self, extracted_data: Dict, required_slides: List[str], llm_api_call=None) -> Dict:
+    def build_content_ir(self, extracted_data: Dict, required_slides: List[str], llm_api_call=None, company_name: str = None) -> Dict:
         """Build comprehensive Content IR from extracted data with LLM gap-filling"""
         print("🔧 [CLEAN] Building Content IR...")
         
@@ -2279,7 +2283,7 @@ Use current {industry} market trends and realistic growth opportunities.
         print("🔧 [CLEAN] Using CHUNKED gap-filling for reliable data generation...")
         
         # Use the working chunked approach
-        enhanced_data = self._generate_comprehensive_data_chunks(extracted_data, llm_api_call)
+        enhanced_data = self._generate_comprehensive_data_chunks(extracted_data, llm_api_call, company_name)
         
         print(f"🔍 [DEBUG-CRITICAL] Chunked gap-filling returned: {type(enhanced_data)}")
         if enhanced_data is None:
@@ -2325,9 +2329,9 @@ Use current {industry} market trends and realistic growth opportunities.
             # 3. MANAGEMENT_TEAM - matches working example exactly
             "management_team": {
                 "left_column_profiles": enhanced_data.get('management_team', {}).get('left_column_profiles', 
-                    enhanced_data.get('management_team_profiles', [])[:2]),
+                    list(enhanced_data.get('management_team_profiles', []))[:2]),
                 "right_column_profiles": enhanced_data.get('management_team', {}).get('right_column_profiles',
-                    enhanced_data.get('management_team_profiles', [])[2:])
+                    list(enhanced_data.get('management_team_profiles', []))[2:])
             },
             
             # 4. STRATEGIC_BUYERS - matches working example exactly (array of buyer objects)
@@ -2990,7 +2994,7 @@ Use current {industry} market trends and realistic growth opportunities.
         return render_plan
 
 
-def generate_clean_bulletproof_json(messages: List[Dict], required_slides: List[str], llm_api_call):
+def generate_clean_bulletproof_json(messages: List[Dict], required_slides: List[str], llm_api_call, company_name: str = None):
     """CLEAN REWRITE: Simple, reliable bulletproof JSON generation"""
     
     print("🚀 [CLEAN-REWRITE] Starting bulletproof JSON generation...")
@@ -3002,21 +3006,28 @@ def generate_clean_bulletproof_json(messages: List[Dict], required_slides: List[
         
         # Step 1: Extract conversation data (using proven working method)
         print("🔍 [CLEAN-REWRITE] Step 1: Extracting conversation data...")
-        extracted_data = generator.extract_conversation_data(messages, llm_api_call)
+        extracted_data = generator.extract_conversation_data(messages, llm_api_call, company_name)
         
         if not extracted_data:
             print("⚠️ [CLEAN-REWRITE] No conversation data extracted - relying on LLM gap-filling")
             extracted_data = {}
         
+        # Use the company name passed in as parameter, or fall back to extracted name
+        if company_name:
+            extracted_data['company_name'] = company_name
+            print(f"🎯 [CLEAN-REWRITE] Using provided company name: {company_name}")
+        else:
+            company_name = extracted_data.get('company_name', 'Unknown Company')
+            print(f"🔍 [CLEAN-REWRITE] Using extracted company name: {company_name}")
+            
         field_count = len(extracted_data)
-        company_name = extracted_data.get('company_name', 'Unknown Company')
         
         print(f"✅ [CLEAN-REWRITE] Step 1 Complete: {field_count} fields extracted")
         print(f"📈 [CLEAN-REWRITE] Company: {company_name}")
         
         # Step 2: Build comprehensive Content IR with LLM gap-filling
         print("🔧 [CLEAN-REWRITE] Step 2: Building Content IR with comprehensive gap-filling...")
-        content_ir = generator.build_content_ir(extracted_data, required_slides, llm_api_call)
+        content_ir = generator.build_content_ir(extracted_data, required_slides, llm_api_call, company_name)
         
         print(f"✅ [CLEAN-REWRITE] Step 2 Complete: Content IR with {len(content_ir)} sections")
         
