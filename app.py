@@ -15,6 +15,7 @@ def safe_get(obj, key, default=None):
 
 import json
 import io
+import os
 from pathlib import Path
 import requests
 import streamlit as st
@@ -22,6 +23,14 @@ import pandas as pd
 import zipfile
 from datetime import datetime
 import re
+
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+    print("✅ [ENV] Environment variables loaded from .env file")
+except ImportError:
+    print("⚠️ [ENV] python-dotenv not installed, using system environment only")
 
 # Import shared functions to avoid circular imports
 from shared_functions import call_llm_api as shared_call_llm_api
@@ -1648,6 +1657,22 @@ except Exception:
 
 st.set_page_config(page_title="AI Deck Builder", page_icon="🤖", layout="wide")
 st.title("🤖 AI Deck Builder – LLM-Powered Pitch Deck Generator")
+
+# CRITICAL: Initialize session state with API key from environment
+# This ensures the app can make API calls even without sidebar input
+if 'api_key' not in st.session_state:
+    try:
+        from config import get_working_api_key, get_default_settings
+        default_settings = get_default_settings()
+        if default_settings['api_key']:
+            st.session_state['api_key'] = default_settings['api_key']
+            st.session_state['model'] = default_settings['model']
+            st.session_state['api_service'] = default_settings['service']
+            print(f"✅ [APP_INIT] Loaded API key from config: {len(default_settings['api_key'])} characters")
+        else:
+            print("⚠️ [APP_INIT] No API key found in config")
+    except Exception as e:
+        print(f"❌ [APP_INIT] Failed to load API key from config: {e}")
 
 # JSON CLEANING FUNCTIONS - Removed duplicate, using enhanced version below
 

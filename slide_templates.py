@@ -15,18 +15,18 @@ from datetime import datetime
 # Removed circular import - _apply_standard_header_and_title is now defined locally
 
 
-def get_template_styling(template_name="modern"):
+def get_template_styling(template_name="professional"):
     """Get template-specific color schemes and fonts"""
     template_configs = {
         "modern": {
             "color_scheme": {
-                "primary": RGBColor(24, 58, 88),      # Current blue
-                "secondary": RGBColor(181, 151, 91),   # Current gold  
-                "accent": RGBColor(64, 64, 64),
-                "text": RGBColor(64, 64, 64),
+                "primary": RGBColor(37, 99, 235),     # Modern bright blue
+                "secondary": RGBColor(16, 185, 129),  # Modern teal/green
+                "accent": RGBColor(75, 85, 99),       # Modern slate grey
+                "text": RGBColor(55, 65, 81),
                 "background": RGBColor(255, 255, 255),
-                "light_grey": RGBColor(240, 240, 240),
-                "footer_grey": RGBColor(128, 128, 128)
+                "light_grey": RGBColor(248, 250, 252),
+                "footer_grey": RGBColor(100, 116, 139)
             },
             "typography": {
                 "primary_font": 'Arial',
@@ -38,13 +38,13 @@ def get_template_styling(template_name="modern"):
         },
         "professional": {
             "color_scheme": {
-                "primary": RGBColor(30, 58, 138),      # Deep blue
-                "secondary": RGBColor(59, 130, 246),    # Medium blue
-                "accent": RGBColor(147, 197, 253),      # Light blue
-                "text": RGBColor(55, 65, 81),
+                "primary": RGBColor(24, 58, 88),       # Professional blue
+                "secondary": RGBColor(181, 151, 91),   # Professional gold  
+                "accent": RGBColor(64, 64, 64),        # Dark grey accent
+                "text": RGBColor(64, 64, 64),
                 "background": RGBColor(255, 255, 255),
-                "light_grey": RGBColor(243, 244, 246),
-                "footer_grey": RGBColor(107, 114, 128)
+                "light_grey": RGBColor(240, 240, 240),
+                "footer_grey": RGBColor(128, 128, 128)
             },
             "typography": {
                 "primary_font": 'Times New Roman',
@@ -93,10 +93,10 @@ def get_template_styling(template_name="modern"):
     }
     
     # Normalize template name
-    template_key = template_name.lower() if template_name else "modern"
-    return template_configs.get(template_key, template_configs["modern"])
+    template_key = template_name.lower() if template_name else "professional"
+    return template_configs.get(template_key, template_configs["professional"])
 
-def get_brand_styling(brand_config=None, color_scheme=None, typography=None, template_name="modern", **kwargs):
+def get_brand_styling(brand_config=None, color_scheme=None, typography=None, template_name="professional", **kwargs):
     """Extract brand styling or use template-specific defaults - ENHANCED VERSION"""
     # Check if template_name is in kwargs (for backward compatibility)
     if 'template_name' in kwargs and kwargs['template_name']:
@@ -114,7 +114,10 @@ def get_brand_styling(brand_config=None, color_scheme=None, typography=None, tem
             # Handle variations
             "prof": "professional",
             "corp": "corporate",
-            "inv": "investor"
+            "inv": "investor",
+            # Investment banking specific mappings
+            "modern_investment_banking": "corporate",
+            "investment_banking": "corporate"
         }
         template_name = template_mapping.get(template_name, "modern")
     else:
@@ -231,7 +234,7 @@ def get_brand_styling(brand_config=None, color_scheme=None, typography=None, tem
     return colors, fonts
 
 
-def _apply_standard_header_and_title(slide, title_text, brand_config=None, company_name="Moelis", template_name="modern"):
+def _apply_standard_header_and_title(slide, title_text, brand_config=None, company_name="Moelis", template_name="professional"):
     """Apply standardized header and title formatting to a slide"""
     # Normalize template name
     if template_name:
@@ -316,7 +319,7 @@ def ensure_prs(prs=None):
     return prs_obj
 
 
-def render_management_team_slide(data=None, color_scheme=None, typography=None, company_name="Your Company", prs=None, brand_config=None, template_name="modern", **kwargs):
+def render_management_team_slide(data=None, color_scheme=None, typography=None, company_name="Your Company", prs=None, brand_config=None, template_name="professional", **kwargs):
     """
     Renders a sophisticated management team slide with brand configuration support
     """
@@ -558,7 +561,7 @@ def render_management_team_slide(data=None, color_scheme=None, typography=None, 
     return prs
 
 
-def render_investor_considerations_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, **kwargs):
+def render_investor_considerations_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, template_name="professional", **kwargs):
     """
     Renders an investor considerations slide with two-column layout (Considerations vs Mitigants)
     """
@@ -572,7 +575,7 @@ def render_investor_considerations_slide(data=None, color_scheme=None, typograph
         prs = ensure_prs(prs)
     
     # Get brand styling
-    colors, fonts = get_brand_styling(brand_config, color_scheme, typography)
+    colors, fonts = get_brand_styling(brand_config, color_scheme, typography, template_name)
     
     # Add blank slide
     slide_layout = prs.slide_layouts[6]
@@ -718,7 +721,7 @@ def render_investor_considerations_slide(data=None, color_scheme=None, typograph
     return prs
 
 
-def render_product_service_footprint_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, **kwargs):
+def render_product_service_footprint_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, template_name="professional", **kwargs):
     """
     Render a product & service / market footprint slide for investment banking presentations
     """
@@ -735,7 +738,7 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
         prs = ensure_prs(prs)
     
     # Get brand styling
-    colors, fonts = get_brand_styling(brand_config, color_scheme, typography)
+    colors, fonts = get_brand_styling(brand_config, color_scheme, typography, template_name)
     
     # Add slide with blank layout
     slide_layout = prs.slide_layouts[6]
@@ -1108,7 +1111,7 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
     return prs
 
 
-def render_competitive_positioning_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, content_ir=None, **kwargs):
+def render_competitive_positioning_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, content_ir=None, template_name="professional", **kwargs):
     """
     Render an ENHANCED competitive positioning slide matching iCar Asia format
     Features: 5-column assessment table with star ratings, clean layout, comprehensive data
@@ -1123,10 +1126,10 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
         prs = ensure_prs(prs)
     
     # Get brand styling
-    colors, fonts = get_brand_styling(brand_config, color_scheme, typography)
+    colors, fonts = get_brand_styling(brand_config, color_scheme, typography, template_name)
     
     # Get brand styling
-    colors, fonts = get_brand_styling(brand_config, color_scheme, typography)
+    colors, fonts = get_brand_styling(brand_config, color_scheme, typography, template_name)
     
     # Add slide with blank layout
     slide_layout = prs.slide_layouts[6]  # Blank layout
@@ -1199,17 +1202,9 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
         message_para.font.size = Pt(10)
         return prs
     
-    # If we have competitors data, proceed with chart
-    chart_competitors_data = [
-        {'name': company_name, 'revenue': 50},  # User's company
-        {'name': 'Competitor A', 'revenue': 45},
-        {'name': 'Competitor B', 'revenue': 60},
-        {'name': 'Competitor C', 'revenue': 35},
-        {'name': 'Market Leader', 'revenue': 80}
-    ]
-    
+    # Use actual competitors data from conversation
     chart_data = ChartData()
-    chart_data.categories = [comp['name'] for comp in competitors_data]
+    chart_data.categories = [comp.get('name', comp.get('company', f'Competitor {i+1}')) for i, comp in enumerate(competitors_data)]
     
     # CRITICAL FIX: Ensure all revenue values are numeric for chart creation
     chart_revenues = []
@@ -1512,7 +1507,7 @@ def render_competitive_positioning_slide(data=None, color_scheme=None, typograph
     return prs
 
 
-def render_investor_process_overview_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, **kwargs):
+def render_investor_process_overview_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, template_name="professional", **kwargs):
     """
     Renders an investor considerations & process overview slide with 4-quadrant layout
     IMPROVED: Better spacing and text fitting for comprehensive content
@@ -1530,7 +1525,7 @@ def render_investor_process_overview_slide(data=None, color_scheme=None, typogra
         prs = ensure_prs(prs)
     
     # Get brand styling
-    colors, fonts = get_brand_styling(brand_config, color_scheme, typography)
+    colors, fonts = get_brand_styling(brand_config, color_scheme, typography, template_name)
     
     # Add blank slide
     slide_layout = prs.slide_layouts[6]
@@ -1759,7 +1754,7 @@ def render_investor_process_overview_slide(data=None, color_scheme=None, typogra
     return prs
 
 
-def render_margin_cost_resilience_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, **kwargs):
+def render_margin_cost_resilience_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, template_name="professional", **kwargs):
     """
     Renders a margin & cost resilience slide with charts and detailed analysis
     """
@@ -1773,7 +1768,7 @@ def render_margin_cost_resilience_slide(data=None, color_scheme=None, typography
         prs = ensure_prs(prs)
     
     # Get brand styling
-    colors, fonts = get_brand_styling(brand_config, color_scheme, typography)
+    colors, fonts = get_brand_styling(brand_config, color_scheme, typography, template_name)
     
     # Add blank slide
     slide_layout = prs.slide_layouts[6]
@@ -2108,7 +2103,7 @@ def render_margin_cost_resilience_slide(data=None, color_scheme=None, typography
     return prs
 
 
-def render_historical_financial_performance_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, **kwargs):
+def render_historical_financial_performance_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, template_name="professional", **kwargs):
     """
     Renders a historical financial performance slide with chart and metrics
     """
@@ -2122,7 +2117,7 @@ def render_historical_financial_performance_slide(data=None, color_scheme=None, 
         prs = ensure_prs(prs)
     
     # Get brand styling
-    colors, fonts = get_brand_styling(brand_config, color_scheme, typography)
+    colors, fonts = get_brand_styling(brand_config, color_scheme, typography, template_name)
     
     # Add blank slide
     slide_layout = prs.slide_layouts[6]
@@ -2416,7 +2411,7 @@ def render_historical_financial_performance_slide(data=None, color_scheme=None, 
     return prs
 
 
-def render_business_overview_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, **kwargs):
+def render_business_overview_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, template_name="professional", **kwargs):
     """
     Render a business & operational overview slide for investment banking presentations
     """
@@ -2430,7 +2425,7 @@ def render_business_overview_slide(data=None, color_scheme=None, typography=None
         prs = ensure_prs(prs)
     
     # Get brand styling
-    colors, fonts = get_brand_styling(brand_config, color_scheme, typography)
+    colors, fonts = get_brand_styling(brand_config, color_scheme, typography, template_name)
     
     # Add slide with blank layout
     slide_layout = prs.slide_layouts[6]
@@ -2692,7 +2687,7 @@ def render_business_overview_slide(data=None, color_scheme=None, typography=None
     return prs
 
 
-def render_precedent_transactions_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, **kwargs):
+def render_precedent_transactions_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, template_name="professional", **kwargs):
     """
     Simple, reliable precedent transactions slide
     """
@@ -2709,7 +2704,7 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
         prs = ensure_prs(prs)
     
     # Get brand styling
-    colors, fonts = get_brand_styling(brand_config, color_scheme, typography)
+    colors, fonts = get_brand_styling(brand_config, color_scheme, typography, template_name)
     
     # Add slide
     slide_layout = prs.slide_layouts[6]  # Blank layout
@@ -3068,7 +3063,7 @@ def render_precedent_transactions_slide(data=None, color_scheme=None, typography
     return prs
 
 
-def render_valuation_overview_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, **kwargs):
+def render_valuation_overview_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, template_name="professional", **kwargs):
     """
     Renders a clean, simple valuation overview slide with a standard table format
     """
@@ -3082,7 +3077,7 @@ def render_valuation_overview_slide(data=None, color_scheme=None, typography=Non
         prs = ensure_prs(prs)
     
     # Get brand styling
-    colors, fonts = get_brand_styling(brand_config, color_scheme, typography)
+    colors, fonts = get_brand_styling(brand_config, color_scheme, typography, template_name)
     
     # Add slide
     slide_layout = prs.slide_layouts[6]  # Blank layout
@@ -3230,7 +3225,7 @@ def render_valuation_overview_slide(data=None, color_scheme=None, typography=Non
     
     return prs
 
-def render_growth_strategy_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, **kwargs):
+def render_growth_strategy_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, template_name="professional", **kwargs):
     """
     Renders a growth strategy & financial projections slide
     """
@@ -3244,7 +3239,7 @@ def render_growth_strategy_slide(data=None, color_scheme=None, typography=None, 
         prs = ensure_prs(prs)
     
     # Get brand styling
-    colors, fonts = get_brand_styling(brand_config, color_scheme, typography)
+    colors, fonts = get_brand_styling(brand_config, color_scheme, typography, template_name)
     
     # Add blank slide
     slide_layout = prs.slide_layouts[6]
@@ -3506,7 +3501,7 @@ def render_growth_strategy_slide(data=None, color_scheme=None, typography=None, 
 
 
 # ALIAS FUNCTION: Handle naming mismatch between template name and function name
-def render_growth_strategy_projections_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, **kwargs):
+def render_growth_strategy_projections_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, template_name="professional", **kwargs):
     """
     Alias for render_growth_strategy_slide to handle template name mismatch.
     The template is called 'growth_strategy_projections' but the function was named 'growth_strategy'.
@@ -3515,7 +3510,7 @@ def render_growth_strategy_projections_slide(data=None, color_scheme=None, typog
                                       company_name=company_name, prs=prs, brand_config=brand_config, **kwargs)
 
 
-def render_buyer_profiles_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, **kwargs):
+def render_buyer_profiles_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, template_name="professional", **kwargs):
     """
     Renders a buyer profiles slide with table layout
     """
@@ -3529,7 +3524,7 @@ def render_buyer_profiles_slide(data=None, color_scheme=None, typography=None, c
         prs = ensure_prs(prs)
     
     # Get brand styling
-    colors, fonts = get_brand_styling(brand_config, color_scheme, typography)
+    colors, fonts = get_brand_styling(brand_config, color_scheme, typography, template_name)
     
     # Add blank slide
     slide_layout = prs.slide_layouts[6]
@@ -3713,7 +3708,7 @@ def render_buyer_profiles_slide(data=None, color_scheme=None, typography=None, c
     return prs
 
 
-def render_sea_conglomerates_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, **kwargs):
+def render_sea_conglomerates_slide(data=None, color_scheme=None, typography=None, company_name="Moelis", prs=None, brand_config=None, template_name="professional", **kwargs):
     """
     Render SEA conglomerates slide with brand configuration support
     """
@@ -3772,7 +3767,7 @@ def render_sea_conglomerates_slide(data=None, color_scheme=None, typography=None
         prs = ensure_prs(prs)
     
     # Get brand styling
-    colors, fonts = get_brand_styling(brand_config, color_scheme, typography)
+    colors, fonts = get_brand_styling(brand_config, color_scheme, typography, template_name)
     
     # Pagination: Split data into chunks of 4
     max_entries_per_slide = 4
