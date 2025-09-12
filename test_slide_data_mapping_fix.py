@@ -27,7 +27,7 @@ def mock_llm_api_call(messages):
   ],
   "facts": {
     "years": ["2020", "2021", "2022", "2023", "2024E"],
-    "revenue_usd_m": [16675, 26974, 27000, 60922, 130500],
+    "revenue_usd_m": [16675, 26974, 27000, 60922, 60900],
     "ebitda_usd_m": [5631, 8000, 12000, 34000, 73000]
   },
   "sea_conglomerates": [
@@ -45,7 +45,7 @@ def mock_llm_api_call(messages):
 {
   "competitive_analysis": {
     "competitors": [
-      {"name": "NVIDIA", "revenue": 130500},
+      {"name": "NVIDIA", "revenue": 60900},
       {"name": "AMD", "revenue": 23500}, 
       {"name": "Intel", "revenue": 76000}
     ],

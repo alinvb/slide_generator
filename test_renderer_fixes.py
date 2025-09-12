@@ -14,7 +14,7 @@ def test_competitive_renderer():
     test_data = {
         "title": "Competitive Positioning",
         "competitors": [
-            {"name": "NVIDIA", "revenue": 130500},
+            {"name": "NVIDIA", "revenue": 60900},
             {"name": "AMD", "revenue": 23500},
             {"name": "Intel", "revenue": 76000}
         ],

@@ -798,13 +798,24 @@ def render_product_service_footprint_slide(data=None, color_scheme=None, typogra
         icon_bg.fill.fore_color.rgb = colors["secondary"]
         icon_bg.line.fill.background()
         
+        # FIXED: Handle service data format issues
+        if isinstance(service, dict):
+            service_title = service.get("title", service.get("name", "Service"))
+            service_desc = service.get("desc", service.get("description", "Service description"))
+        else:
+            service_title = str(service) if service else "Service"
+            service_desc = "Service offering"
+        
+        # Debug what we're rendering
+        print(f"[DEBUG] Rendering service: title='{service_title}', desc='{service_desc}'")
+        
         # Service title
         add_clean_text(slide, Inches(1.2), y_pos, Inches(5.5), Inches(0.25), 
-                       service.get("title", ""), 12, colors["primary"], True)
+                       service_title, 12, colors["primary"], True)
         
         # Service description
         add_clean_text(slide, Inches(1.2), y_pos + Inches(0.25), Inches(5.5), Inches(0.55), 
-                       service.get("desc", ""), 10, colors["text"])
+                       service_desc, 10, colors["text"])
     
     # Right side - Product/Market Table (ALL FROM DATA)
     table_left = Inches(7.2)

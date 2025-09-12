@@ -39,7 +39,7 @@ def test_nvidia_slide_fixes():
 {
   "competitive_analysis": {
     "competitors": [
-      {"name": "NVIDIA", "revenue": 130500},
+      {"name": "NVIDIA", "revenue": 60900},
       {"name": "AMD", "revenue": 23500},
       {"name": "Intel", "revenue": 76000},
       {"name": "Broadcom", "revenue": 51000}

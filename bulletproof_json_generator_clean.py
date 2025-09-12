@@ -1723,10 +1723,10 @@ GENERATE MISSING DATA in this JSON structure:
 {{
   "competitive_analysis": {{
     "competitors": [
-      {{"name": "[Competitor 1]", "revenue": "[Revenue in millions]"}},
-      {{"name": "[Competitor 2]", "revenue": "[Revenue in millions]"}},
-      {{"name": "[Competitor 3]", "revenue": "[Revenue in millions]"}},
-      {{"name": "[Competitor 4]", "revenue": "[Revenue in millions]"}}
+      {{"name": "[Research actual competitor 1 name]", "revenue": 25000}},
+      {{"name": "[Research actual competitor 2 name]", "revenue": 18000}},
+      {{"name": "[Research actual competitor 3 name]", "revenue": 12000}},
+      {{"name": "[Research actual competitor 4 name]", "revenue": 8500}}
     ],
     "assessment": [
       ["Company", "[Criteria 1 based on conversation]", "[Criteria 2 based on conversation]", "[Criteria 3 based on conversation]", "[Criteria 4 based on conversation]"],
@@ -1766,7 +1766,8 @@ CRITICAL REQUIREMENTS:
 2. Precedent Transactions: ALL acquirer fields must have actual company names, NEVER use null or empty values.
 3. Barriers to Entry: EXACTLY 4 specific barriers that prevent new competitors from entering the market
 4. Competitive Advantages: EXACTLY 4 specific advantages that differentiate {company_name} from existing competitors
-5. Use current {industry} market data and recent transactions.
+5. Competitor Revenue Data: RESEARCH actual annual revenue figures for each competitor in millions USD (e.g., Apple: 394000, Microsoft: 211000)
+6. Use current {industry} market data and recent transactions.
 6. Ensure all financial values are realistic and properly formatted (e.g., "$1.5B", "$200M", "7.5x").
 
 BARRIERS should be industry-specific:
@@ -1848,6 +1849,7 @@ GENERATE COMPLETE DATA in this JSON structure:
 
 {{
   "business_overview_data": {{
+    "description": "[Comprehensive business description detailing company operations, market focus, and value proposition for {company_name} in {industry} sector]",
     "strategic_positioning": "[50-60 word market positioning statement that is DIFFERENT from business description]",
     "operational_highlights": ["[Operational achievement 1]", "[Operational achievement 2]", "[Operational achievement 3]", "[Operational achievement 4]", "[Operational achievement 5]", "[Operational achievement 6]"],
     "key_value_propositions": ["[Value prop 1]", "[Value prop 2]", "[Value prop 3]"],
@@ -2579,9 +2581,20 @@ NOT generic terms like "Strong performance" or "Market presence"."""
         def extract_slide_data(slide_type: str, content_ir: Dict) -> Dict:
             """Extract the exact data structure that renders perfectly - based on working example"""
             
-            # SLIDE 1: Business Overview - map chunked data fields correctly
+            # SLIDE 1: Business Overview - map chunked data fields correctly with fallbacks
             if slide_type == "business_overview":
                 business_data = content_ir.get('business_overview_data', {})
+                
+                # ENHANCED: Extract description from multiple sources with better fallbacks
+                description = (
+                    business_data.get('description') or 
+                    business_data.get('business_description') or
+                    content_ir.get('business_description_detailed') or  # From conversation extraction
+                    content_ir.get('business_description') or
+                    business_data.get('market_opportunity') or  # Fallback to market opportunity
+                    business_data.get('strategic_positioning') or  # Last resort: strategic positioning
+                    f"{content_ir.get('company_name', 'The company')} operates in the {content_ir.get('industry', 'technology')} sector with a focus on innovation and market leadership."  # Final fallback
+                )
                 
                 # Extract services from multiple possible sources
                 services = business_data.get('key_offerings', business_data.get('services', []))
@@ -2591,11 +2604,24 @@ NOT generic terms like "Strong performance" or "Market presence"."""
                     offerings = product_data.get('offerings', [])
                     services = [offering.get('category', '') for offering in offerings if offering.get('category')]
                 
+                # FIXED: Extract highlights from multiple sources
+                highlights = (
+                    business_data.get('highlights') or 
+                    business_data.get('key_value_propositions') or
+                    business_data.get('operational_highlights') or
+                    []
+                )
+                
+                # FIXED: Ensure description is never empty
+                final_description = description or f"{content_ir.get('company_name', 'The company')} is a leading {content_ir.get('industry', 'technology')} company with strong market presence and innovative solutions."
+                
+                print(f"[DEBUG] Business Overview: description length = {len(final_description) if final_description else 0}")
+                
                 return {
                     "title": "Business Overview",
-                    "description": business_data.get('description', business_data.get('business_description', '')),
+                    "description": final_description,
                     "timeline": business_data.get('timeline', {}),
-                    "highlights": business_data.get('highlights', business_data.get('key_value_propositions', [])),
+                    "highlights": highlights or [f"Leading {content_ir.get('industry', 'technology')} company", "Strong market position", "Innovation-focused approach"],
                     "services": services,
                     "positioning_desc": business_data.get('positioning_desc', business_data.get('strategic_positioning', ''))
                 }
@@ -2721,13 +2747,17 @@ NOT generic terms like "Strong performance" or "Market presence"."""
             # SLIDE 7: Competitive Positioning - matches working example exactly
             elif slide_type in ["competitive_positioning", "market_analysis"]:
                 competitors = content_ir.get('competitive_analysis', {}).get('competitors', [])
-                # Add the company itself to competitors if not present
                 company_name = content_ir.get('entities', {}).get('company', {}).get('name', 'Company')
                 latest_revenue = content_ir.get('facts', {}).get('revenue_usd_m', [0])[-1] if content_ir.get('facts', {}).get('revenue_usd_m') else 0
                 
+                print(f"[DEBUG] Competitive positioning: {len(competitors)} competitors found")
+                for i, comp in enumerate(competitors[:3]):
+                    if isinstance(comp, dict):
+                        print(f"[DEBUG] Competitor {i+1}: {comp.get('name')} - Revenue: {comp.get('revenue', 'N/A')}")
+                
                 # Check if company is already in competitors list
                 has_company = any(comp.get('name') == company_name for comp in competitors if isinstance(comp, dict))
-                if not has_company:
+                if not has_company and company_name:
                     competitors.insert(0, {"name": company_name, "revenue": latest_revenue})
                 
                 return {

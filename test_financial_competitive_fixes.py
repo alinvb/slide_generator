@@ -14,7 +14,7 @@ def test_dynamic_financial_metrics():
     test_content_ir = {
         "facts": {
             "years": ["2020", "2021", "2022", "2023", "2024E"],
-            "revenue_usd_m": [16675, 26974, 27000, 60922, 130500],
+            "revenue_usd_m": [16675, 26974, 27000, 60922, 60900],  # Corrected: NVIDIA actual 2024 revenue $60.9B
             "ebitda_usd_m": [5631, 8000, 12000, 34000, 73000]
         },
         "operational_metrics_mentioned": ["90%+ AI chip market share", "3.5M developers", "$47.5B data center revenue"]
@@ -52,7 +52,7 @@ def test_dynamic_financial_metrics():
         cagr_metric = next((m for m in metrics if 'CAGR' in m.get('title', '')), None)
         if cagr_metric:
             cagr_value = cagr_metric.get('value')
-            # Should calculate: ((130500/16675)^(1/4) - 1) * 100 ≈ 67%
+            # Should calculate: ((60900/16675)^(1/4) - 1) * 100 ≈ 38%
             print(f"   ✅ CAGR calculated: {cagr_value}")
         
         # Test profitability note
@@ -86,7 +86,7 @@ def test_competitive_positioning_completeness():
 {
   "competitive_analysis": {
     "competitors": [
-      {"name": "NVIDIA", "revenue": 130500},
+      {"name": "NVIDIA", "revenue": 60900},  # Corrected: NVIDIA actual 2024 revenue
       {"name": "AMD", "revenue": 23500},
       {"name": "Intel", "revenue": 76000},
       {"name": "Broadcom", "revenue": 51000}

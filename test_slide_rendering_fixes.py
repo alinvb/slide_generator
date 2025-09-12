@@ -48,7 +48,7 @@ def test_competitive_positioning_fix():
     test_data = {
         "title": "Competitive Positioning",
         "competitors": [
-            {"name": "NVIDIA", "revenue": 130500},
+            {"name": "NVIDIA", "revenue": 60900},
             {"name": "AMD", "revenue": 50.0},
             {"name": "Intel", "revenue": 42.0}
         ],
@@ -82,7 +82,7 @@ def test_incomplete_assessment_case():
     test_data = {
         "title": "Competitive Positioning", 
         "competitors": [
-            {"name": "NVIDIA", "revenue": 130500},
+            {"name": "NVIDIA", "revenue": 60900},
             {"name": "AMD", "revenue": 50.0}
         ],
         "assessment": [
