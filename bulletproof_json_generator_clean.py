@@ -2808,6 +2808,7 @@ NOT generic terms like "Strong performance" or "Market presence"."""
                 
                 return {
                     "title": "Valuation Overview",
+                    "subtitle": "Implied EV/Revenue Multiples",  # Add subtitle for renderer
                     "valuation_data": valuation_rows,
                     "valuation_overview": valuation_rows  # Also provide under expected key for validation
                 }
@@ -2873,8 +2874,9 @@ NOT generic terms like "Strong performance" or "Market presence"."""
                             "ev_revenue_multiple": "N/A"
                         })
                 
+                print(f"[DEBUG] Precedent Transactions slide data: {len(processed_transactions)} transactions")
                 return {
-                    "title": "Precedent Transactions",
+                    "title": "Precedent Transactions Analysis",  # Updated title to be more descriptive
                     "transactions": processed_transactions
                 }
             
@@ -2888,11 +2890,13 @@ NOT generic terms like "Strong performance" or "Market presence"."""
                     "risk_mitigation": content_ir.get('margin_cost_data', {}).get('risk_mitigation', {})
                 }
             
-            # SLIDE 11: SEA Conglomerates - matches working example exactly
+            # SLIDE 11: SEA Conglomerates - FIXED: Use correct key structure for renderer
             elif slide_type in ["global_conglomerates", "sea_conglomerates"]:
+                sea_conglomerates_data = content_ir.get('sea_conglomerates', [])
+                print(f"[DEBUG] SEA Conglomerates slide data: {len(sea_conglomerates_data)} items")
                 return {
-                    "title": "Global Conglomerates",
-                    "data": content_ir.get('sea_conglomerates', [])
+                    "title": "SEA Conglomerate Strategic Buyers",
+                    "sea_conglomerates": sea_conglomerates_data  # FIXED: Use correct key that renderer expects
                 }
             
             # SLIDE 12: Strategic Buyer Profiles - matches working example exactly
